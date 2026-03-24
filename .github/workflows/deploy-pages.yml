@@ -27,7 +27,6 @@ jobs:
         uses: actions/configure-pages@v5.0.0
         with:
           static_site_generator: docusaurus
-          enablement: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v6.3.0
