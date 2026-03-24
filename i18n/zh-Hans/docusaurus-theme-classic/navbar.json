@@ -1,0 +1,22 @@
+{
+  "title": {
+    "message": "VEF Framework",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "VEF Framework Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Docs": {
+    "message": "文档",
+    "description": "Navbar item with label Docs"
+  },
+  "item.label.API Reference": {
+    "message": "API 参考",
+    "description": "Navbar item with label API Reference"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

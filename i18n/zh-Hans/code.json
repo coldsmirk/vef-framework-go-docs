@@ -1,0 +1,276 @@
+{
+  "homepage.meta.title": {
+    "message": "首页"
+  },
+  "homepage.meta.description": {
+    "message": "VEF Framework 是一个围绕资源模型构建的 Go Web 框架，基于 FX、Fiber 和 Bun，并内置安全、存储、监控与 MCP 能力。"
+  },
+  "homepage.stats.endpoint.label": {
+    "message": "RPC 入口"
+  },
+  "homepage.stats.version.label": {
+    "message": "默认版本"
+  },
+  "homepage.stats.timeout.label": {
+    "message": "默认超时"
+  },
+  "homepage.stats.rate.label": {
+    "message": "默认限流"
+  },
+  "homepage.hero.kicker": {
+    "message": "FX 装配、资源驱动 API 与内置基础设施"
+  },
+  "homepage.hero.description": {
+    "message": "围绕显式资源、类型化处理器和源码可见的默认行为来构建 Go 服务，而不是依赖隐藏在脚手架后的黑盒约定。"
+  },
+  "homepage.hero.primary": {
+    "message": "阅读快速开始"
+  },
+  "homepage.hero.secondary": {
+    "message": "查看路由模型"
+  },
+  "homepage.hero.panel.title": {
+    "message": "启动形态"
+  },
+  "homepage.hero.panel.pointOne": {
+    "message": "资源通过显式注册进入容器，再由 API 引擎统一分发。"
+  },
+  "homepage.hero.panel.pointTwo": {
+    "message": "CRUD builder、结果对象和参数注入会替你去掉重复样板代码。"
+  },
+  "homepage.hero.panel.pointThree": {
+    "message": "默认值来自源码本身：版本 `v1`、超时 `30s`、限流 `100 / 5m`。"
+  },
+  "homepage.workflow.eyebrow": {
+    "message": "心智模型"
+  },
+  "homepage.workflow.title": {
+    "message": "先理解组合方式，再理解路由"
+  },
+  "homepage.workflow.subtitle": {
+    "message": "顺着运行时的形状来理解 VEF 最容易：组合模块、注册资源，然后交给 API 引擎去分发操作。"
+  },
+  "homepage.workflow.one.title": {
+    "message": "组合模块"
+  },
+  "homepage.workflow.one.description": {
+    "message": "从 `vef.Run(...)` 开始，让 FX 组装配置、数据库、ORM、中间件、安全、存储、MCP 与应用服务。"
+  },
+  "homepage.workflow.two.title": {
+    "message": "注册资源"
+  },
+  "homepage.workflow.two.description": {
+    "message": "通过 `api.NewRPCResource(...)` 或 `api.NewRESTResource(...)` 定义接口，再用 `vef.ProvideAPIResource(...)` 注册。"
+  },
+  "homepage.workflow.three.title": {
+    "message": "保持处理器精简"
+  },
+  "homepage.workflow.three.description": {
+    "message": "把 `fiber.Ctx`、`orm.DB`、Principal、Logger、Params、Meta、Storage、Event、Cron 直接注入处理器，而不是手写胶水层。"
+  },
+  "homepage.features.eyebrow": {
+    "message": "核心能力"
+  },
+  "homepage.features.title": {
+    "message": "最值得优先掌握的框架表面"
+  },
+  "homepage.features.subtitle": {
+    "message": "这些能力会最早出现在真实项目里，而且都能直接在当前源码树中找到对应实现。"
+  },
+  "homepage.feature.api.title": {
+    "message": "统一资源模型"
+  },
+  "homepage.feature.api.description": {
+    "message": "RPC 和 REST 都是一级资源类型；每个操作都显式携带认证、超时、限流、审计和版本控制。"
+  },
+  "homepage.feature.crud.title": {
+    "message": "泛型 CRUD Builder"
+  },
+  "homepage.feature.crud.description": {
+    "message": "创建、更新、删除、分页、树查询、导入导出、批量操作与 Hook 都能通过类型化 builder 组合出来。"
+  },
+  "homepage.feature.orm.title": {
+    "message": "模型驱动数据层"
+  },
+  "homepage.feature.orm.description": {
+    "message": "基于 Bun，提供审计模型、事务辅助、搜索标签、分页能力，以及面向企业场景的默认行为。"
+  },
+  "homepage.feature.auth.title": {
+    "message": "安全与数据范围"
+  },
+  "homepage.feature.auth.description": {
+    "message": "支持 Bearer、Signature 与公开接口，并能配合 RBAC 权限检查与请求级数据权限解析。"
+  },
+  "homepage.feature.builtin.title": {
+    "message": "内置系统资源"
+  },
+  "homepage.feature.builtin.description": {
+    "message": "认证、存储、Schema 检查、监控与 MCP 都能以内置资源和中间件的形式直接使用。"
+  },
+  "homepage.feature.modular.title": {
+    "message": "模块化运行时"
+  },
+  "homepage.feature.modular.description": {
+    "message": "扩展点按 FX group 显式组织：API 资源、应用中间件、CQRS 行为、参数解析器与 MCP provider。"
+  },
+  "homepage.paths.eyebrow": {
+    "message": "建议入口"
+  },
+  "homepage.paths.title": {
+    "message": "沿最短路径进入有效上下文"
+  },
+  "homepage.paths.subtitle": {
+    "message": "这些页面是理解 VEF 应用结构以及核心 API 用法的最快路径。"
+  },
+  "homepage.paths.install.title": {
+    "message": "安装与配置"
+  },
+  "homepage.paths.install.description": {
+    "message": "先把项目、`application.toml` 和最小运行依赖搭起来。"
+  },
+  "homepage.paths.quick.title": {
+    "message": "写出第一个资源"
+  },
+  "homepage.paths.quick.description": {
+    "message": "跟着最小可运行示例，真正跑起一个 API 接口。"
+  },
+  "homepage.paths.routing.title": {
+    "message": "理解路由与请求"
+  },
+  "homepage.paths.routing.description": {
+    "message": "把 RPC 请求、REST 路径、params、meta、认证与处理器关系一次看清。"
+  },
+  "homepage.paths.crud.title": {
+    "message": "用 CRUD Builder 扩展"
+  },
+  "homepage.paths.crud.description": {
+    "message": "从手写处理器进阶到泛型操作、Hook、搜索与分页组合。"
+  },
+  "theme.ErrorPageContent.title": {
+    "message": "页面已崩溃",
+    "description": "The title of the fallback page when the page crashed"
+  },
+  "theme.NotFound.title": {
+    "message": "找不到页面",
+    "description": "The title of the 404 page"
+  },
+  "theme.NotFound.p1": {
+    "message": "我们找不到您要找的页面。",
+    "description": "The first paragraph of the 404 page"
+  },
+  "theme.NotFound.p2": {
+    "message": "请联系将您链接到原始 URL 的站点所有者，并告知他们链接已损坏。",
+    "description": "The 2nd paragraph of the 404 page"
+  },
+  "theme.admonition.note": {
+    "message": "备注",
+    "description": "The default label used for the Note admonition (:::note)"
+  },
+  "theme.admonition.tip": {
+    "message": "提示",
+    "description": "The default label used for the Tip admonition (:::tip)"
+  },
+  "theme.admonition.danger": {
+    "message": "危险",
+    "description": "The default label used for the Danger admonition (:::danger)"
+  },
+  "theme.admonition.info": {
+    "message": "信息",
+    "description": "The default label used for the Info admonition (:::info)"
+  },
+  "theme.admonition.caution": {
+    "message": "警告",
+    "description": "The default label used for the Caution admonition (:::caution)"
+  },
+  "theme.admonition.warning": {
+    "message": "警告",
+    "description": "The default label used for the Warning admonition (:::warning)"
+  },
+  "theme.common.editThisPage": {
+    "message": "编辑此页",
+    "description": "The link label to edit the current page"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "收起侧边栏",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "展开侧边栏",
+    "description": "The title attribute for expand button of doc sidebar"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "跳到主要内容",
+    "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "切换浅色和深色模式（当前为{mode}）",
+    "description": "The ARIA label for the navbar color mode toggle"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "深色模式",
+    "description": "The name for the dark color mode"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "浅色模式",
+    "description": "The name for the light color mode"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "文档分页导航",
+    "description": "The ARIA label for the docs pagination"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "上一页",
+    "description": "The label used to navigate to the previous doc"
+  },
+  "theme.docs.paginator.next": {
+    "message": "下一页",
+    "description": "The label used to navigate to the next doc"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "文档侧边栏",
+    "description": "The ARIA label for the sidebar navigation"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← 返回主菜单",
+    "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "本页总览",
+    "description": "The label used by the button to toggle the collapsible TOC"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "切换导航栏",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
+  },
+  "theme.SearchBar.label": {
+    "message": "搜索",
+    "description": "The ARIA label and placeholder for search button"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "标签：",
+    "description": "The label alongside a tag list"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "{count} 篇文档带有标签",
+    "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged}「{tagName}」",
+    "description": "The title of the page for a docs tag"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "版本：{versionLabel}"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": "于 {date} ",
+    "description": "The words used to describe on which date a page has been last updated"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": "由 {user} ",
+    "description": "The words used to describe by who the page has been last updated"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "最后{byUser}{atDate}更新",
+    "description": "The sentence used to display when a page has been last updated, and by who"
+  }
+}
