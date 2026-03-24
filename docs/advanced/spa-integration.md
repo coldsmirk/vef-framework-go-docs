@@ -30,7 +30,7 @@ import (
   "embed"
   "io/fs"
 
-  vef "github.com/coldsmirk/vef-framework-go"
+  "github.com/coldsmirk/vef-framework-go"
   "github.com/coldsmirk/vef-framework-go/middleware"
 )
 

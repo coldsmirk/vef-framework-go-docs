@@ -122,7 +122,7 @@ That matters because the built-in `database_query` tool can already inspect live
 package appmcp
 
 import (
-  vef "github.com/coldsmirk/vef-framework-go"
+  "github.com/coldsmirk/vef-framework-go"
   "github.com/coldsmirk/vef-framework-go/mcp"
 )
 

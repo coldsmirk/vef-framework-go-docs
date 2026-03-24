@@ -18,7 +18,7 @@ package main
 import (
 	"github.com/gofiber/fiber/v3"
 
-	vef "github.com/coldsmirk/vef-framework-go"
+	"github.com/coldsmirk/vef-framework-go"
 	"github.com/coldsmirk/vef-framework-go/api"
 	"github.com/coldsmirk/vef-framework-go/result"
 )

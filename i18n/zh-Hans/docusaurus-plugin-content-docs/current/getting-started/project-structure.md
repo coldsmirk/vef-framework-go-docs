@@ -72,7 +72,7 @@ my-app/
 package main
 
 import (
-	vef "github.com/coldsmirk/vef-framework-go"
+	"github.com/coldsmirk/vef-framework-go"
 
 	"example.com/my-app/internal/auth"
 	"example.com/my-app/internal/user"
@@ -102,7 +102,7 @@ func main() {
 package user
 
 import (
-	vef "github.com/coldsmirk/vef-framework-go"
+	"github.com/coldsmirk/vef-framework-go"
 
 	"example.com/my-app/internal/user/resource"
 )
