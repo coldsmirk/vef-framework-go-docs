@@ -139,7 +139,7 @@ RPC action name 必须使用 `snake_case`。
 4. 如果两个动词都看起来能用，优先选择更能反映 API 最终可观察结果的那个。
 5. 如果一个 action 看起来同时承担多个职责，应拆分动作，或者按主职责重命名。
 
-Mermaid 决策图：
+决策图：
 
 ```mermaid
 flowchart TD

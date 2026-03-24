@@ -140,7 +140,7 @@ Use this decision order when naming a new RPC action:
 4. If two verbs seem possible, prefer the one that better matches the observable outcome of the API contract.
 5. If the action appears to contain multiple responsibilities, split the action or rename it around the dominant responsibility.
 
-Mermaid decision flow:
+Decision flow:
 
 ```mermaid
 flowchart TD
