@@ -363,7 +363,7 @@ pre {
 
 .theme-doc-toc-desktop {
     top: calc(var(--ifm-navbar-height) + 1rem);
-    overflow: visible;
+    overflow-y: visible;
 }
 
 .theme-doc-toc-desktop > div,
@@ -378,7 +378,12 @@ pre {
 }
 
 .theme-doc-toc-desktop .table-of-contents {
-    overflow: hidden;
+    max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.8rem;
+    scrollbar-gutter: stable;
 }
 
 .theme-doc-sidebar-container {
