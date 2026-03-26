@@ -3,7 +3,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
-  title: "VEF Framework",
+  title: "VEF Framework Go",
   tagline:
     "Resource-driven Go APIs with FX, Fiber, and built-in enterprise capabilities",
   favicon: "img/favicon.svg",
@@ -145,7 +145,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} VEF Framework.`,
+      copyright: `Copyright © ${new Date().getFullYear()} VEF Framework Go.`,
     },
   } satisfies Preset.ThemeConfig,
 };

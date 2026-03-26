@@ -225,7 +225,7 @@ function Home() {
   const pageDescription = translate({
     id: 'homepage.meta.description',
     message:
-      'VEF Framework is a resource-driven Go web framework built on FX, Fiber, and Bun, with built-in security, storage, monitoring, and MCP support.',
+      'VEF Framework Go is a resource-driven Go web framework built on FX, Fiber, and Bun, with built-in security, storage, monitoring, and MCP support.',
   });
 
   return (
@@ -255,9 +255,9 @@ function Home() {
                   <Translate id="homepage.hero.secondary">Explore routing</Translate>
                 </Link>
               </div>
-              <div className="home-stat-grid">
+              <div className="home-stat-grid home-stat-grid--metrics">
                 {statList.map((item) => (
-                  <div className="home-stat-card" key={item.label}>
+                  <div className="home-stat-card home-stat-card--metric" key={item.label}>
                     <span className="home-stat-label">{item.label}</span>
                     <strong className="home-stat-value">{item.value}</strong>
                   </div>
