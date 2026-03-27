@@ -51,17 +51,6 @@ Table names must start with a module prefix followed by an underscore. A new mod
 | `md_` | master data module | organizations, departments, staff, codes |
 | `hr_` | human resources module | HR-related business data |
 
-### 1.4 Script Comments
-
-Before each table, add a one-line Chinese comment naming the table:
-
-```sql
--- 用户
-CREATE TABLE sys_user (
-    ...
-);
-```
-
 ## 2. Naming Rules
 
 ### 2.1 General Rules
@@ -195,12 +184,13 @@ CREATE INDEX idx_sys_user__username__include ON sys_user (username) INCLUDE (nam
 
 | Usage | Type | Description |
 | --- | --- | --- |
-| primary key or foreign key | `VARCHAR(32)` | stores UUID values without hyphens |
+| primary key or foreign key | `VARCHAR(32)` | stores application identifiers; compact `xid` values are used by default, while 32 characters are reserved for future expansion and for system-reserved IDs such as `system`, `anonymous`, and `cron_job` |
 | person name | `VARCHAR(16)` | short human names |
 | entity name | `VARCHAR(32)` | role name, department name, and similar entity names |
 | long name | `VARCHAR(64)` | dictionary item names, code names, and similar values |
 | business code | `VARCHAR(32)` | all kinds of business codes |
-| URL or file path | `VARCHAR(128)` | avatar paths, links, email, and similar values |
+| email | `VARCHAR(128)` | ordinary email addresses |
+| URL or file path | `VARCHAR(512)` | avatar URLs, callback URLs, file paths, and similar values |
 | profile or long description | `VARCHAR(2048)` | organization profile, failure reason, and similar long descriptions |
 | remark | `VARCHAR(512)` | unified length for remark fields |
 | boolean | `BOOLEAN` | pair with `NOT NULL DEFAULT FALSE` |
@@ -341,12 +331,12 @@ CONSTRAINT fk_{表名}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(
 
 PostgreSQL automatically creates indexes for `PRIMARY KEY` and `UNIQUE` constraints. Those indexes must not be created manually again.
 
-### 6.2 Mandatory Indexes
+### 6.2 Common B-tree Indexes
 
 | Column | Sort order | Description |
 | --- | --- | --- |
 | `created_at` | `DESC` | add when reverse chronological lookup is needed |
-| `created_by` | default ascending | mandatory for all tables |
+| `created_by` | default ascending | add only when filtering by creator or "my own" records is a stable query pattern and the table is expected to grow large enough for the index to matter |
 | non-unique foreign keys | default ascending | for example `parent_id`, `app_id`, `organization_id` |
 | `sort_order` | default ascending | add when the table actually uses explicit sort order |
 
@@ -385,22 +375,6 @@ Note:
 
 - columns listed in `INCLUDE` do not participate in search or ordering
 - they are stored only as extra payload for index-only access
-
-### 6.6 Creating Indexes in Production
-
-When creating indexes on large production tables with existing data, `CONCURRENTLY` must be used to avoid write blocking:
-
-```sql
--- CONCURRENTLY 不阻塞表的读写操作
-CREATE INDEX CONCURRENTLY idx_sys_user__email ON sys_user (email);
-```
-
-Important notes:
-
-- `CREATE INDEX CONCURRENTLY` must not run inside a transaction block
-- it takes longer than ordinary index creation
-- if it fails, PostgreSQL may leave an `INVALID` index behind, and that index must be dropped manually before retrying
-- development-time initialization scripts do not need `CONCURRENTLY`; this rule is for production schema changes
 
 ## 7. COMMENT Rules
 
@@ -520,13 +494,15 @@ Among foreign keys, `created_by` and `updated_by` must be placed last.
 - `updated_at` and `updated_by` must be assigned by the application on every update
 - database triggers must not be used for this responsibility
 
-### 9.2 System User Initialization Prerequisite
+### 9.2 System-Reserved User Initialization Prerequisite
 
-The default values `'system'` for `created_by` and `updated_by` reference `sys_user(id)` through foreign keys. Therefore, database initialization must insert a system user row with `id = 'system'` first. Otherwise, inserts that depend on these defaults will fail on the foreign key check.
+The default values `'system'` for `created_by` and `updated_by` reference `sys_user(id)` through foreign keys. Reserved user IDs such as `system`, `anonymous`, and `cron_job` use the same primary-key type as ordinary users. Therefore, database initialization must insert a system user row with `id = 'system'` first. Otherwise, inserts that depend on these defaults will fail on the foreign key check.
 
 ```sql
 INSERT INTO sys_user (id, username, name) VALUES ('system', 'system', '系统');
 ```
+
+If your audit flow writes `anonymous`, `cron_job`, or other reserved actors, preload those user rows as well.
 
 ## 10. `ALTER TABLE` Rules
 
@@ -545,7 +521,6 @@ Such statements must be placed at the end of the DDL file for that dependency ch
 The following example shows a standard entity table:
 
 ```sql
--- 角色
 CREATE TABLE sys_role (
     id                       VARCHAR(32) NOT NULL,
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
@@ -572,13 +547,13 @@ COMMENT ON COLUMN sys_role.is_active IS '是否启用';
 COMMENT ON COLUMN sys_role.remark IS '备注';
 COMMENT ON COLUMN sys_role.meta IS '元数据';
 CREATE INDEX idx_sys_role__created_at ON sys_role (created_at DESC);
-CREATE INDEX idx_sys_role__created_by ON sys_role (created_by);
+-- Add the created_by index only when creator-based filtering becomes a stable query pattern on a large table
+-- CREATE INDEX idx_sys_role__created_by ON sys_role (created_by);
 ```
 
 The following example shows a relation table:
 
 ```sql
--- 用户角色关系
 CREATE TABLE sys_user_role (
     id                       VARCHAR(32) NOT NULL,
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
@@ -602,7 +577,8 @@ COMMENT ON COLUMN sys_user_role.user_id IS '用户ID';
 COMMENT ON COLUMN sys_user_role.role_id IS '角色ID';
 COMMENT ON COLUMN sys_user_role.effective_from IS '生效时间';
 COMMENT ON COLUMN sys_user_role.effective_to IS '失效时间';
-CREATE INDEX idx_sys_user_role__created_by ON sys_user_role (created_by);
+-- Add the created_by index only when querying records created by a specific user becomes common and row count is expected to grow
+-- CREATE INDEX idx_sys_user_role__created_by ON sys_user_role (created_by);
 CREATE INDEX idx_sys_user_role__role_id ON sys_user_role (role_id);
 ```
 

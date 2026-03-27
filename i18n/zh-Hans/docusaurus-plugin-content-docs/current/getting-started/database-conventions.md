@@ -51,17 +51,6 @@ CREATE INDEX IF NOT EXISTS idx_sys_user__email ON sys_user (email);
 | `md_` | 主数据模块 | 机构、部门、职员、编码等 |
 | `hr_` | 人力资源模块 | 人事业务相关 |
 
-### 1.4 脚本内注释
-
-每张表之前必须使用单行中文注释标注表名：
-
-```sql
--- 用户
-CREATE TABLE sys_user (
-    ...
-);
-```
-
 ## 2. 命名规范
 
 ### 2.1 通用规则
@@ -195,12 +184,13 @@ CREATE INDEX idx_sys_user__username__include ON sys_user (username) INCLUDE (nam
 
 | 用途 | 类型 | 说明 |
 | --- | --- | --- |
-| 主键 / 外键 | `VARCHAR(32)` | 存放去掉连字符的 UUID（32 字符） |
+| 主键 / 外键 | `VARCHAR(32)` | 存放应用标识符，默认使用长度较短的 `xid`；统一预留 32 字符以便后续扩展，并兼容 `system`、`anonymous`、`cron_job` 等系统保留 ID |
 | 用户名称 | `VARCHAR(16)` | 人名等短名称 |
 | 实体名称 | `VARCHAR(32)` | 角色名、部门名等 |
 | 长名称 | `VARCHAR(64)` | 字典项名称、编码名称等 |
 | 编码 | `VARCHAR(32)` | 各类业务编码 |
-| URL / 文件路径 | `VARCHAR(128)` | 头像、链接、邮箱等 |
+| 邮箱 | `VARCHAR(128)` | 常规邮箱地址 |
+| URL / 文件路径 | `VARCHAR(512)` | 头像链接、回调地址、文件路径等 |
 | 简介 / 长文本描述 | `VARCHAR(2048)` | 机构简介、失败原因等 |
 | 备注 | `VARCHAR(512)` | 所有表的备注字段统一长度 |
 | 布尔 | `BOOLEAN` | 搭配 `NOT NULL DEFAULT FALSE` |
@@ -341,12 +331,12 @@ CONSTRAINT fk_{表名}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(
 
 PostgreSQL 会自动为 `PRIMARY KEY` 和 `UNIQUE` 约束创建索引，这些索引不得重复手工创建。
 
-### 6.2 必建索引
+### 6.2 常用 B-tree 索引
 
 | 列 | 排序 | 说明 |
 | --- | --- | --- |
 | `created_at` | `DESC` | 需要按创建时间倒序查询时建立 |
-| `created_by` | 默认升序 | 所有表必建 |
+| `created_by` | 默认升序 | 仅在需要按创建人筛选、查询“我创建的数据”，且预期未来数据量较大时按需建立 |
 | 非唯一外键列 | 默认升序 | 如 `parent_id`、`app_id`、`organization_id` 等 |
 | `sort_order` | 默认升序 | 表确实使用排序字段时按需建立 |
 
@@ -385,22 +375,6 @@ CREATE INDEX idx_sys_user__username__include ON sys_user (username) INCLUDE (nam
 
 - `INCLUDE` 列不参与索引排序和搜索
 - 它们只作为附带数据存储在索引中
-
-### 6.6 生产环境建索引
-
-在已有数据的生产环境中创建索引时，必须使用 `CONCURRENTLY` 以避免阻塞写入：
-
-```sql
--- CONCURRENTLY 不阻塞表的读写操作
-CREATE INDEX CONCURRENTLY idx_sys_user__email ON sys_user (email);
-```
-
-注意事项：
-
-- `CREATE INDEX CONCURRENTLY` 不能放在事务块中执行
-- 它执行时间会比普通建索引更长
-- 如果失败，PostgreSQL 可能留下 `INVALID` 状态的索引，重试前必须先手工删除
-- 开发环境初始化 DDL 不需要使用 `CONCURRENTLY`，这一规则仅用于生产环境变更
 
 ## 7. COMMENT 规范
 
@@ -520,13 +494,15 @@ CREATE TABLE sys_user (
 - `updated_at` 和 `updated_by` 必须由应用程序在每次更新时赋值
 - 不得使用数据库触发器承担这一职责
 
-### 9.2 系统用户初始化前提
+### 9.2 系统保留用户初始化前提
 
-`created_by` 和 `updated_by` 的默认值 `'system'` 通过外键引用 `sys_user(id)`。因此，数据库初始化时必须先插入一条 `id = 'system'` 的系统用户记录，否则依赖这些默认值的插入操作会因外键校验失败：
+`created_by` 和 `updated_by` 的默认值 `'system'` 通过外键引用 `sys_user(id)`。`system`、`anonymous`、`cron_job` 等属于系统预留的特殊用户 ID，与普通用户共用同一主键类型。数据库初始化时必须先插入一条 `id = 'system'` 的系统用户记录，否则依赖这些默认值的插入操作会因外键校验失败：
 
 ```sql
 INSERT INTO sys_user (id, username, name) VALUES ('system', 'system', '系统');
 ```
+
+如业务链路会写入 `anonymous`、`cron_job` 等审计人，也应预先插入对应的保留用户记录。
 
 ## 10. ALTER TABLE 规范
 
@@ -545,7 +521,6 @@ ALTER TABLE sys_user
 以下是标准实体表的完整 DDL 示例：
 
 ```sql
--- 角色
 CREATE TABLE sys_role (
     id                       VARCHAR(32) NOT NULL,
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
@@ -572,13 +547,13 @@ COMMENT ON COLUMN sys_role.is_active IS '是否启用';
 COMMENT ON COLUMN sys_role.remark IS '备注';
 COMMENT ON COLUMN sys_role.meta IS '元数据';
 CREATE INDEX idx_sys_role__created_at ON sys_role (created_at DESC);
-CREATE INDEX idx_sys_role__created_by ON sys_role (created_by);
+-- 仅当大表中按创建人过滤成为稳定查询模式时，再建立 created_by 索引
+-- CREATE INDEX idx_sys_role__created_by ON sys_role (created_by);
 ```
 
 以下是关联表的完整 DDL 示例：
 
 ```sql
--- 用户角色关系
 CREATE TABLE sys_user_role (
     id                       VARCHAR(32) NOT NULL,
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
@@ -602,7 +577,8 @@ COMMENT ON COLUMN sys_user_role.user_id IS '用户ID';
 COMMENT ON COLUMN sys_user_role.role_id IS '角色ID';
 COMMENT ON COLUMN sys_user_role.effective_from IS '生效时间';
 COMMENT ON COLUMN sys_user_role.effective_to IS '失效时间';
-CREATE INDEX idx_sys_user_role__created_by ON sys_user_role (created_by);
+-- 仅当按指定创建人查询记录成为常见场景且数据量预计增长时，再建立 created_by 索引
+-- CREATE INDEX idx_sys_user_role__created_by ON sys_user_role (created_by);
 CREATE INDEX idx_sys_user_role__role_id ON sys_user_role (role_id);
 ```
 
