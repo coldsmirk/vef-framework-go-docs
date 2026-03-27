@@ -165,7 +165,7 @@ Partial indexes:
 - explain the filter condition in a comment
 
 ```sql
--- 仅索引启用状态的用户
+-- Index only active users
 CREATE INDEX idx_sys_user__email__partial ON sys_user (email) WHERE is_active = TRUE;
 ```
 
@@ -174,7 +174,7 @@ Covering indexes using `INCLUDE`:
 - append the `__include` suffix
 
 ```sql
--- 覆盖索引，避免回表查询
+-- Covering index to avoid heap lookup
 CREATE INDEX idx_sys_user__username__include ON sys_user (username) INCLUDE (name, email);
 ```
 
@@ -225,31 +225,31 @@ CONSTRAINT ck_sys_sequence_rule__overflow_strategy CHECK (overflow_strategy = AN
 Use this template for business entities that require full create, read, update, and delete support, such as users, roles, organizations, and departments:
 
 ```sql
-CREATE TABLE {模块前缀}_{实体名} (
-    -- ① 主键
+CREATE TABLE {module_prefix}_{entity_name} (
+    -- 1. Primary key
     id                       VARCHAR(32) NOT NULL,
 
-    -- ② 审计字段（固定 4 列，顺序不变）
+    -- 2. Audit fields (fixed 4 columns; order must not change)
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
     updated_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
     created_by               VARCHAR(32) NOT NULL DEFAULT 'system',
     updated_by               VARCHAR(32) NOT NULL DEFAULT 'system',
 
-    -- ③ 业务字段
+    -- 3. Business fields
     ...
 
-    -- ④ 通用可选字段（按需选用，顺序为：is_active → sort_order → remark → meta）
+    -- 4. Common optional fields (use as needed; order: is_active -> sort_order -> remark -> meta)
     is_active                BOOLEAN NOT NULL DEFAULT FALSE,
     sort_order               INTEGER NOT NULL DEFAULT 0,
     remark                   VARCHAR(512),
     meta                     JSONB,
 
-    -- ⑤ 约束（顺序：PK → UK → CK → FK）
-    CONSTRAINT pk_{表名} PRIMARY KEY (id),
-    CONSTRAINT uk_{表名}__{列名} UNIQUE (...),
-    CONSTRAINT ck_{表名}__{列名} CHECK (...),
-    CONSTRAINT fk_{表名}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT fk_{表名}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    -- 5. Constraints (order: PK -> UK -> CK -> FK)
+    CONSTRAINT pk_{table_name} PRIMARY KEY (id),
+    CONSTRAINT uk_{table_name}__{column_name} UNIQUE (...),
+    CONSTRAINT ck_{table_name}__{column_name} CHECK (...),
+    CONSTRAINT fk_{table_name}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_{table_name}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -258,27 +258,27 @@ CREATE TABLE {模块前缀}_{实体名} (
 Use this template for many-to-many relationships such as user-role, department-staff, and role-permission tables. These tables must not include `updated_at` or `updated_by`.
 
 ```sql
-CREATE TABLE {模块前缀}_{实体A}_{实体B} (
-    -- ① 主键
+CREATE TABLE {module_prefix}_{entity_a}_{entity_b} (
+    -- 1. Primary key
     id                       VARCHAR(32) NOT NULL,
 
-    -- ② 审计字段（仅 2 列）
+    -- 2. Audit fields (2 columns only)
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
     created_by               VARCHAR(32) NOT NULL DEFAULT 'system',
 
-    -- ③ 关联外键
-    {实体A}_id               VARCHAR(32) NOT NULL,
-    {实体B}_id               VARCHAR(32) NOT NULL,
+    -- 3. Relation foreign keys
+    {entity_a}_id            VARCHAR(32) NOT NULL,
+    {entity_b}_id            VARCHAR(32) NOT NULL,
 
-    -- ④ 附加业务字段（如有）
+    -- 4. Additional business fields, if any
     ...
 
-    -- ⑤ 约束
-    CONSTRAINT pk_{表名} PRIMARY KEY (id),
-    CONSTRAINT uk_{表名}__{实体A}_id_{实体B}_id UNIQUE ({实体A}_id, {实体B}_id),
-    CONSTRAINT fk_{表名}__{实体A}_id FOREIGN KEY ({实体A}_id) REFERENCES {实体A表}(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_{表名}__{实体B}_id FOREIGN KEY ({实体B}_id) REFERENCES {实体B表}(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_{表名}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    -- 5. Constraints
+    CONSTRAINT pk_{table_name} PRIMARY KEY (id),
+    CONSTRAINT uk_{table_name}__{entity_a}_id_{entity_b}_id UNIQUE ({entity_a}_id, {entity_b}_id),
+    CONSTRAINT fk_{table_name}__{entity_a}_id FOREIGN KEY ({entity_a}_id) REFERENCES {entity_a_table}(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_{table_name}__{entity_b}_id FOREIGN KEY ({entity_b}_id) REFERENCES {entity_b_table}(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_{table_name}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -287,20 +287,20 @@ CREATE TABLE {模块前缀}_{实体A}_{实体B} (
 Use this template for immutable records such as login logs and audit logs. These tables must not include `updated_at` or `updated_by`.
 
 ```sql
-CREATE TABLE {模块前缀}_{日志名}_log (
-    -- ① 主键
+CREATE TABLE {module_prefix}_{log_name}_log (
+    -- 1. Primary key
     id                       VARCHAR(32) NOT NULL,
 
-    -- ② 审计字段（仅 2 列）
+    -- 2. Audit fields (2 columns only)
     created_at               TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
     created_by               VARCHAR(32) NOT NULL DEFAULT 'system',
 
-    -- ③ 业务字段
+    -- 3. Business fields
     ...
 
-    -- ④ 约束
-    CONSTRAINT pk_{表名} PRIMARY KEY (id),
-    CONSTRAINT fk_{表名}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    -- 4. Constraints
+    CONSTRAINT pk_{table_name} PRIMARY KEY (id),
+    CONSTRAINT fk_{table_name}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 ```
 
@@ -321,8 +321,8 @@ CREATE TABLE {模块前缀}_{日志名}_log (
 All `created_by` and `updated_by` columns, when present, must reference `sys_user(id)`:
 
 ```sql
-CONSTRAINT fk_{表名}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-CONSTRAINT fk_{表名}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
+CONSTRAINT fk_{table_name}__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+CONSTRAINT fk_{table_name}__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 ```
 
 ## 6. Index Rules
@@ -353,7 +353,7 @@ PostgreSQL automatically creates indexes for `PRIMARY KEY` and `UNIQUE` constrai
 Use partial indexes when queries frequently target a fixed filter condition and the smaller index materially improves performance:
 
 ```sql
--- 仅索引启用状态的用户邮箱
+-- Index only active user emails
 CREATE INDEX idx_sys_user__email__partial ON sys_user (email) WHERE is_active = TRUE;
 ```
 
@@ -367,7 +367,7 @@ Typical scenarios:
 Use `INCLUDE` when a query can be fully covered by index data and you want to avoid heap lookup:
 
 ```sql
--- 按用户名查询时，同时覆盖 name 和 email，避免回表
+-- Cover name and email for username lookups to avoid heap access
 CREATE INDEX idx_sys_user__username__include ON sys_user (username) INCLUDE (name, email);
 ```
 
@@ -382,7 +382,7 @@ Note:
 
 - every table must have a `COMMENT ON TABLE`
 - every column must have a `COMMENT ON COLUMN`
-- comments must use Simplified Chinese
+- this English page renders SQL comments and `COMMENT ON` text in English for readability
 - `COMMENT` statements must appear immediately after `CREATE TABLE` and before index creation
 
 ### 7.2 Format
@@ -391,13 +391,13 @@ Note:
 CREATE TABLE sys_user (
     ...
 );
-COMMENT ON TABLE sys_user IS '用户';
-COMMENT ON COLUMN sys_user.id IS '主键';
-COMMENT ON COLUMN sys_user.created_at IS '创建时间';
-COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
-COMMENT ON COLUMN sys_user.created_by IS '创建人';
-COMMENT ON COLUMN sys_user.updated_by IS '更新人';
--- 业务列注释 ...
+COMMENT ON TABLE sys_user IS 'User';
+COMMENT ON COLUMN sys_user.id IS 'Primary key';
+COMMENT ON COLUMN sys_user.created_at IS 'Created at';
+COMMENT ON COLUMN sys_user.updated_at IS 'Updated at';
+COMMENT ON COLUMN sys_user.created_by IS 'Created by';
+COMMENT ON COLUMN sys_user.updated_by IS 'Updated by';
+-- Business column comments ...
 CREATE INDEX ...
 ```
 
@@ -405,15 +405,15 @@ CREATE INDEX ...
 
 | Column | Comment |
 | --- | --- |
-| `id` | `主键` |
-| `created_at` | `创建时间` |
-| `updated_at` | `更新时间` |
-| `created_by` | `创建人` |
-| `updated_by` | `更新人` |
-| `remark` | `备注` |
-| `meta` | `元数据` |
-| `sort_order` | `排序` |
-| `is_active` | `是否启用` |
+| `id` | `Primary key` |
+| `created_at` | `Created at` |
+| `updated_at` | `Updated at` |
+| `created_by` | `Created by` |
+| `updated_by` | `Updated by` |
+| `remark` | `Remark` |
+| `meta` | `Metadata` |
+| `sort_order` | `Sort order` |
+| `is_active` | `Is active` |
 
 ### 7.4 Foreign Key Column Comments
 
@@ -421,10 +421,10 @@ Foreign key column comments must use the `{referenced_entity_name}ID` pattern. T
 
 | Column | Correct comment | Incorrect comment |
 | --- | --- | --- |
-| `user_id` | `用户ID` | ~~用户主键~~ |
-| `role_id` | `角色ID` | ~~角色主键~~ |
-| `organization_id` | `机构ID` | ~~机构主键~~ |
-| `parent_id` | `上级ID` | ~~上级主键~~ |
+| `user_id` | `User ID` | ~~User primary key~~ |
+| `role_id` | `Role ID` | ~~Role primary key~~ |
+| `organization_id` | `Organization ID` | ~~Organization primary key~~ |
+| `parent_id` | `Parent ID` | ~~Parent primary key~~ |
 
 ## 8. Column Definition Formatting
 
@@ -499,7 +499,7 @@ Among foreign keys, `created_by` and `updated_by` must be placed last.
 The default values `'system'` for `created_by` and `updated_by` reference `sys_user(id)` through foreign keys. Reserved user IDs such as `system`, `anonymous`, and `cron_job` use the same primary-key type as ordinary users. Therefore, database initialization must insert a system user row with `id = 'system'` first. Otherwise, inserts that depend on these defaults will fail on the foreign key check.
 
 ```sql
-INSERT INTO sys_user (id, username, name) VALUES ('system', 'system', '系统');
+INSERT INTO sys_user (id, username, name) VALUES ('system', 'system', 'System');
 ```
 
 If your audit flow writes `anonymous`, `cron_job`, or other reserved actors, preload those user rows as well.
@@ -509,7 +509,7 @@ If your audit flow writes `anonymous`, `cron_job`, or other reserved actors, pre
 When cross-module circular dependencies exist, use `ALTER TABLE` to add foreign keys after the referenced table has been created:
 
 ```sql
--- 在 md_staff 表创建之后补充 sys_user.staff_id 的外键
+-- Add the sys_user.staff_id foreign key after md_staff has been created
 ALTER TABLE sys_user
     ADD CONSTRAINT fk_sys_user__staff_id FOREIGN KEY (staff_id) REFERENCES md_staff(id) ON DELETE RESTRICT ON UPDATE CASCADE;
 ```
@@ -536,16 +536,16 @@ CREATE TABLE sys_role (
     CONSTRAINT fk_sys_role__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_sys_role__updated_by FOREIGN KEY (updated_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
-COMMENT ON TABLE sys_role IS '角色';
-COMMENT ON COLUMN sys_role.id IS '主键';
-COMMENT ON COLUMN sys_role.created_at IS '创建时间';
-COMMENT ON COLUMN sys_role.updated_at IS '更新时间';
-COMMENT ON COLUMN sys_role.created_by IS '创建人';
-COMMENT ON COLUMN sys_role.updated_by IS '更新人';
-COMMENT ON COLUMN sys_role.name IS '角色名称';
-COMMENT ON COLUMN sys_role.is_active IS '是否启用';
-COMMENT ON COLUMN sys_role.remark IS '备注';
-COMMENT ON COLUMN sys_role.meta IS '元数据';
+COMMENT ON TABLE sys_role IS 'Role';
+COMMENT ON COLUMN sys_role.id IS 'Primary key';
+COMMENT ON COLUMN sys_role.created_at IS 'Created at';
+COMMENT ON COLUMN sys_role.updated_at IS 'Updated at';
+COMMENT ON COLUMN sys_role.created_by IS 'Created by';
+COMMENT ON COLUMN sys_role.updated_by IS 'Updated by';
+COMMENT ON COLUMN sys_role.name IS 'Role name';
+COMMENT ON COLUMN sys_role.is_active IS 'Is active';
+COMMENT ON COLUMN sys_role.remark IS 'Remark';
+COMMENT ON COLUMN sys_role.meta IS 'Metadata';
 CREATE INDEX idx_sys_role__created_at ON sys_role (created_at DESC);
 -- Add the created_by index only when creator-based filtering becomes a stable query pattern on a large table
 -- CREATE INDEX idx_sys_role__created_by ON sys_role (created_by);
@@ -569,14 +569,14 @@ CREATE TABLE sys_user_role (
     CONSTRAINT fk_sys_user_role__user_id FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_sys_user_role__created_by FOREIGN KEY (created_by) REFERENCES sys_user(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
-COMMENT ON TABLE sys_user_role IS '用户角色关系';
-COMMENT ON COLUMN sys_user_role.id IS '主键';
-COMMENT ON COLUMN sys_user_role.created_at IS '创建时间';
-COMMENT ON COLUMN sys_user_role.created_by IS '创建人';
-COMMENT ON COLUMN sys_user_role.user_id IS '用户ID';
-COMMENT ON COLUMN sys_user_role.role_id IS '角色ID';
-COMMENT ON COLUMN sys_user_role.effective_from IS '生效时间';
-COMMENT ON COLUMN sys_user_role.effective_to IS '失效时间';
+COMMENT ON TABLE sys_user_role IS 'User-role relation';
+COMMENT ON COLUMN sys_user_role.id IS 'Primary key';
+COMMENT ON COLUMN sys_user_role.created_at IS 'Created at';
+COMMENT ON COLUMN sys_user_role.created_by IS 'Created by';
+COMMENT ON COLUMN sys_user_role.user_id IS 'User ID';
+COMMENT ON COLUMN sys_user_role.role_id IS 'Role ID';
+COMMENT ON COLUMN sys_user_role.effective_from IS 'Effective from';
+COMMENT ON COLUMN sys_user_role.effective_to IS 'Effective to';
 -- Add the created_by index only when querying records created by a specific user becomes common and row count is expected to grow
 -- CREATE INDEX idx_sys_user_role__created_by ON sys_user_role (created_by);
 CREATE INDEX idx_sys_user_role__role_id ON sys_user_role (role_id);
