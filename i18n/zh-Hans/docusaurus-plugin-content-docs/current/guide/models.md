@@ -13,7 +13,7 @@ sidebar_position: 1
 ```go
 type User struct {
 	bun.BaseModel `bun:"table:sys_user,alias:su"`
-	orm.Model
+	orm.FullAuditedModel
 
 	Username string `json:"username" validate:"required,alphanum,max=32" label:"Username"`
 	Email    string `json:"email" validate:"omitempty,email,max=128" label:"Email"`
@@ -24,82 +24,208 @@ type User struct {
 这里同时组合了两类职责：
 
 - `bun.BaseModel`：Bun 的表元信息
-- `orm.Model`：框架标准化的 ID 和审计字段
+- `orm.FullAuditedModel`：框架标准化的 ID、创建审计和更新审计字段
 
-## 常用基础模型类型
+## 基础模型类型
 
-VEF 通过 `orm` 暴露了几种常见基础模型：
+VEF 通过 `orm` 暴露了 **五种** 可复用的模型类型。它们是为匿名嵌入设计的可组合字段片段。
 
-- `orm.Model`：ID + 创建/更新审计字段
-- `orm.IDModel`：只有 ID
-- `orm.CreatedModel`：只有创建相关字段
-- `orm.AuditedModel`：只有创建/更新审计字段，不包含主键
+### 不含主键的类型
 
-按你的实体生命周期选择最小但够用的那个。
+| 类型 | 字段 | 使用场景 |
+| --- | --- | --- |
+| `orm.CreationTrackedModel` | `CreatedAt`、`CreatedBy`、`CreatedByName` | 需要创建追踪的复合主键表 |
+| `orm.FullTrackedModel` | `CreatedAt`、`CreatedBy`、`CreatedByName`、`UpdatedAt`、`UpdatedBy`、`UpdatedByName` | 需要完整审计追踪的复合主键表 |
 
-这些类型本身就是给匿名嵌入准备的可复用字段片段，不只是几个互斥的“基础父类”。`orm.Model` 是最常见场景下的便利组合，而更小的类型则让你只拼装实体真正需要的字段。
+### 含主键的类型
 
-可以这样理解它们：
+| 类型 | 字段 | 使用场景 |
+| --- | --- | --- |
+| `orm.Model` | 仅 `ID` | 字典表、关联表、最简记录 |
+| `orm.CreationAuditedModel` | `ID`、`CreatedAt`、`CreatedBy`、`CreatedByName` | 追加写入型记录、日志、outbox 表 |
+| `orm.FullAuditedModel` | `ID`、`CreatedAt`、`CreatedBy`、`CreatedByName`、`UpdatedAt`、`UpdatedBy`、`UpdatedByName` | 标准可变实体，需要完整审计追踪 |
 
-- `orm.IDModel`：只补一个主键字段
-- `orm.CreatedModel`：只补 `created_*` 这一组创建审计字段
-- `orm.AuditedModel`：补 `created_*` 和 `updated_*` 两组审计字段，但不带主键
-- `orm.Model`：补主键，再加上与 `orm.AuditedModel` 相同的审计字段
+### 如何选择
 
-从语义上说，`orm.Model` 可以看成是 `orm.IDModel + orm.AuditedModel` 的预组合版本。
+按实体的生命周期选择最小但够用的类型：
+
+- **`orm.Model`**：只需要主键，完全不需要审计追踪
+- **`orm.CreationAuditedModel`**：追加写入型记录——写入就不再更新
+- **`orm.FullAuditedModel`**：最常见的选择——标准可变实体，需要同时追踪创建和更新信息
+- **`orm.CreationTrackedModel`**：和 `CreationAuditedModel` 一样但不含主键——适合复合主键表
+- **`orm.FullTrackedModel`**：和 `FullAuditedModel` 一样但不含主键——适合复合主键表
+
+从语义上说，`orm.FullAuditedModel` 可以看成是 `orm.Model` + `orm.FullTrackedModel` 的预组合版本。
+
+### 内部字段定义
+
+以下是每个类型的完整字段定义，包含所有结构体标签：
+
+```go
+// orm.Model — 仅主键
+type Model struct {
+	ID string `json:"id" bun:"id,pk"`
+}
+
+// orm.CreationTrackedModel — 创建审计（无主键）
+type CreationTrackedModel struct {
+	CreatedAt     timex.DateTime `json:"createdAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP,skipupdate"`
+	CreatedBy     string         `json:"createdBy" bun:",notnull,skipupdate" mold:"translate=user?"`
+	CreatedByName string         `json:"createdByName" bun:",scanonly"`
+}
+
+// orm.FullTrackedModel — 完整审计（无主键）
+type FullTrackedModel struct {
+	CreatedAt     timex.DateTime `json:"createdAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP,skipupdate"`
+	CreatedBy     string         `json:"createdBy" bun:",notnull,skipupdate" mold:"translate=user?"`
+	CreatedByName string         `json:"createdByName" bun:",scanonly"`
+	UpdatedAt     timex.DateTime `json:"updatedAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP"`
+	UpdatedBy     string         `json:"updatedBy" bun:",notnull" mold:"translate=user?"`
+	UpdatedByName string         `json:"updatedByName" bun:",scanonly"`
+}
+
+// orm.CreationAuditedModel — 主键 + 创建审计
+type CreationAuditedModel struct {
+	ID            string         `json:"id" bun:"id,pk"`
+	CreatedAt     timex.DateTime `json:"createdAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP,skipupdate"`
+	CreatedBy     string         `json:"createdBy" bun:",notnull,skipupdate" mold:"translate=user?"`
+	CreatedByName string         `json:"createdByName" bun:",scanonly"`
+}
+
+// orm.FullAuditedModel — 主键 + 完整审计
+type FullAuditedModel struct {
+	ID            string         `json:"id" bun:"id,pk"`
+	CreatedAt     timex.DateTime `json:"createdAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP,skipupdate"`
+	CreatedBy     string         `json:"createdBy" bun:",notnull,skipupdate" mold:"translate=user?"`
+	CreatedByName string         `json:"createdByName" bun:",scanonly"`
+	UpdatedAt     timex.DateTime `json:"updatedAt" bun:",notnull,type:timestamp,default:CURRENT_TIMESTAMP"`
+	UpdatedBy     string         `json:"updatedBy" bun:",notnull" mold:"translate=user?"`
+	UpdatedByName string         `json:"updatedByName" bun:",scanonly"`
+}
+```
+
+### 关键标签说明
+
+- **`bun:",skipupdate"`**：`created_at` 和 `created_by` 仅在插入时设置，更新操作不会覆盖
+- **`bun:",scanonly"`**：`created_by_name` 和 `updated_by_name` 是读侧辅助字段——它们通过 JOIN 查询填充，不作为独立列持久化
+- **`mold:"translate=user?"`**：`mold` 变换器通过数据字典将用户 ID 翻译为显示名称，自动填充 `*ByName` 字段
+- **`timex.DateTime`**：框架自定义的时间戳类型（参见 [Timex](../utilities/timex)），而不是标准库的 `time.Time`
 
 ## 匿名嵌入与组合
 
-当实体不需要完整的 `orm.Model` 字段集合时，更小的基础模型片段就很有用。
+当实体不需要完整的 `orm.FullAuditedModel` 字段集合时，更小的基础模型片段就很有用。
 
 ```go
+// 最简：仅主键
 type Tag struct {
 	bun.BaseModel `bun:"table:tag,alias:t"`
-	orm.IDModel
+	orm.Model
 
 	Name string `json:"name" bun:"name,notnull"`
 }
 
-type EventOutbox struct {
-	bun.BaseModel `bun:"table:event_outbox,alias:eo"`
-	orm.IDModel
-	orm.CreatedModel
+// 追加写入：主键 + 创建审计
+type ActionLog struct {
+	bun.BaseModel `bun:"table:apv_action_log,alias:aal"`
+	orm.Model
+	orm.CreationTrackedModel
 
-	EventType string `json:"eventType" bun:"event_type,notnull"`
+	InstanceID string `json:"instanceId" bun:"instance_id"`
+	Action     string `json:"action" bun:"action"`
 }
 
-type Delegation struct {
-	bun.BaseModel `bun:"table:delegation,alias:d"`
-	orm.Model
+// 标准可变实体：主键 + 完整审计
+type Role struct {
+	bun.BaseModel `bun:"table:sys_role,alias:sr"`
+	orm.FullAuditedModel
 
-	DelegatorID string `json:"delegatorId" bun:"delegator_id,notnull"`
+	Name     string `json:"name" bun:"name,notnull"`
+	IsActive bool   `json:"isActive" bun:"is_active"`
+}
+
+// 复合主键：审计字段但主键需要单独定义
+type UserRole struct {
+	bun.BaseModel `bun:"table:sys_user_role,alias:sur"`
+	orm.Model
+	orm.CreationTrackedModel
+
+	UserID string `json:"userId" bun:"user_id,notnull"`
+	RoleID string `json:"roleId" bun:"role_id,notnull"`
 }
 ```
 
-常见选择大致可以这样分：
+常见选择：
 
-- `orm.IDModel`：字典表、关联表，或者根本不需要审计列的记录
-- `orm.IDModel` + `orm.CreatedModel`：追加写入型记录、快照、日志、outbox 之类的表
-- `orm.Model`：标准可变实体，需要同时跟踪创建和更新信息
-- `orm.AuditedModel`：主键字段要自己定义，但仍想复用框架标准审计列的实体
+- `orm.Model`：字典表、关联表，或根本不需要审计列的记录
+- `orm.Model` + `orm.CreationTrackedModel`：追加写入型记录、快照、日志、outbox 表
+- `orm.FullAuditedModel`：标准可变实体，需要同时追踪创建和更新信息
+- `orm.FullTrackedModel`：复合主键实体，但仍需要完整审计追踪
+
+## Bun 模型钩子
+
+VEF 通过 `orm` 重导出了 Bun 的模型生命周期钩子接口：
+
+| 钩子接口 | 调用时机 |
+| --- | --- |
+| `orm.BeforeSelectHook` | SELECT 查询执行前 |
+| `orm.AfterSelectHook` | SELECT 查询执行后 |
+| `orm.BeforeInsertHook` | INSERT 查询执行前 |
+| `orm.AfterInsertHook` | INSERT 查询执行后 |
+| `orm.BeforeUpdateHook` | UPDATE 查询执行前 |
+| `orm.AfterUpdateHook` | UPDATE 查询执行后 |
+| `orm.BeforeDeleteHook` | DELETE 查询执行前 |
+| `orm.AfterDeleteHook` | DELETE 查询执行后 |
+| `orm.BeforeScanRowHook` | 扫描行之前 |
+| `orm.AfterScanRowHook` | 扫描行之后 |
+
+在模型结构体上实现这些接口即可加入生命周期行为：
+
+```go
+func (u *User) BeforeInsert(ctx context.Context, query *orm.BunInsertQuery) error {
+	// 在插入前设置默认值、验证或记录日志
+	return nil
+}
+```
 
 ## 审计字段
 
 框架统一约定了这些常见审计列：
 
-- `id`
-- `created_at`
-- `created_by`
-- `created_by_name`
-- `updated_at`
-- `updated_by`
-- `updated_by_name`
+| 列名 | JSON 名 | 是否持久化 | 说明 |
+| --- | --- | --- | --- |
+| `id` | `id` | ✅ | 主键 |
+| `created_at` | `createdAt` | ✅ | 创建时间 |
+| `created_by` | `createdBy` | ✅ | 创建者用户 ID |
+| `created_by_name` | `createdByName` | ❌ scanonly | 创建者显示名（通过 mold 或 JOIN 填充）|
+| `updated_at` | `updatedAt` | ✅ | 最后更新时间 |
+| `updated_by` | `updatedBy` | ✅ | 最后更新者用户 ID |
+| `updated_by_name` | `updatedByName` | ❌ scanonly | 更新者显示名（通过 mold 或 JOIN 填充）|
 
-并不是每个模型都会带上全部这些字段。`orm.CreatedModel` 只提供 `created_*` 这一组，`orm.AuditedModel` 和 `orm.Model` 才会同时提供 `created_*` 与 `updated_*` 两组。
+并不是每个模型都会带上全部这些字段。`orm.CreationTrackedModel` 只提供 `created_*` 这一组，`orm.FullTrackedModel` 和 `orm.FullAuditedModel` 才会同时提供 `created_*` 与 `updated_*` 两组。
 
-当你嵌入 `orm.Model` 时，VEF 的上下文与 CRUD 行为会围绕这些字段协同工作。
+框架还导出了审计列名和字段名常量：
 
-这里有个容易忽略的细节：`created_by_name` 和 `updated_by_name` 在当前模型定义中是 `scanonly` 字段，更适合视为查询结果辅助字段，而不是框架会直接持久化写入的数据库列。
+```go
+orm.ColumnID            // "id"
+orm.ColumnCreatedAt     // "created_at"
+orm.ColumnUpdatedAt     // "updated_at"
+orm.ColumnCreatedBy     // "created_by"
+orm.ColumnUpdatedBy     // "updated_by"
+orm.ColumnCreatedByName // "created_by_name"
+orm.ColumnUpdatedByName // "updated_by_name"
+
+orm.FieldID             // "ID"
+orm.FieldCreatedAt      // "CreatedAt"
+// ... 以此类推
+```
+
+系统操作者常量（用于 `created_by` / `updated_by`）：
+
+```go
+orm.OperatorSystem    // "system" — 系统初始化使用
+orm.OperatorCronJob   // "cron_job" — 定时任务使用
+orm.OperatorAnonymous // "anonymous" — 未认证操作使用
+```
 
 ## 最常见的标签
 
@@ -126,6 +252,10 @@ type Delegation struct {
 ### `meta`
 
 用于存储 promoter，识别上传文件字段、富文本字段和 Markdown 字段。
+
+### `mold`
+
+用于结构体变换器进行字段级数据转换。最常见的内置用法是 `*ByName` 字段上的 `mold:"translate=user?"`。
 
 ## 搜索模型通常单独定义
 
@@ -166,9 +296,10 @@ type UserMeta struct {
 - 持久化模型尽量小而明确
 - 写操作和读操作分别使用独立 params / search 结构体
 - 当实体不需要完整字段集时，优先组合更小的基础嵌入模型
-- 只有确实想接入框架标准审计行为时，再嵌入 `orm.Model`
+- 只有确实想接入框架标准审计行为时，再嵌入 `orm.FullAuditedModel`
 - 数据库标签、验证标签和搜索标签尽量跟字段放在一起，保持规则可见
+- 记住 `*ByName` 字段是 scanonly 的——它们永远不会被写入数据库
 
 ## 下一步
 
-继续阅读 [泛型 CRUD](./crud)，看这些模型如何接入类型化操作 builder。
+继续阅读 [泛型 CRUD](./crud) 了解这些模型如何接入类型化操作 builder，或阅读 [ORM SQL 构造器](./orm-builder) 获取 SQL 查询构造的完整参考。

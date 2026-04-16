@@ -33,6 +33,37 @@ func NewUserResource() api.Resource {
 
 The framework collects embedded CRUD builders automatically because they implement `api.OperationsProvider`.
 
+### Complete Model / Params / Search Definitions
+
+```go
+// Model — the persistence layer
+type User struct {
+	orm.FullAuditedModel
+
+	Username     string `json:"username" bun:"username"`
+	Email        string `json:"email" bun:"email"`
+	DepartmentID string `json:"departmentId" bun:"department_id"`
+	IsActive     bool   `json:"isActive" bun:"is_active"`
+	Avatar       string `json:"avatar" bun:"avatar" storage:"promote"`
+}
+
+// Params — write-side request body
+type UserParams struct {
+	Username     string `json:"username" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	DepartmentID string `json:"departmentId"`
+	IsActive     *bool  `json:"isActive"`
+	Avatar       string `json:"avatar"`
+}
+
+// Search — read-side query filters
+type UserSearch struct {
+	Keyword      string  `json:"keyword" search:"contains,column=username|email"`
+	DepartmentID *string `json:"departmentId" search:"eq"`
+	IsActive     *bool   `json:"isActive" search:"eq"`
+}
+```
+
 ## Generic Parameter Meanings
 
 Most CRUD builders only use one of these generic shapes:
@@ -115,6 +146,71 @@ Runtime defaults for most find-style builders:
 - data permission filtering is enabled by default
 - sort defaults to primary key descending when the model has a single PK
 - if no single PK exists, the fallback sort is `created_at DESC` when available
+
+### Find Control Examples
+
+#### WithCondition
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithCondition(func(cb orm.ConditionBuilder) {
+		cb.IsTrue("is_active")
+	})
+```
+
+#### WithQueryApplier
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) {
+		if search.DepartmentID != nil {
+			q.Where(func(cb orm.ConditionBuilder) {
+				cb.Equals("department_id", *search.DepartmentID)
+			})
+		}
+	})
+```
+
+#### WithRelation
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithRelation(&orm.RelationSpec{
+		Model: (*Department)(nil),
+		SelectedColumns: []orm.ColumnInfo{
+			{Name: "name", Alias: "department_name"},
+		},
+	})
+```
+
+#### WithAuditUserNames
+
+```go
+// Automatically join sys_user to populate created_by_name and updated_by_name
+crud.NewFindPage[User, UserSearch]().
+	WithAuditUserNames((*User)(nil), "username")
+```
+
+#### WithProcessor
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithProcessor(func(users []User, search UserSearch, ctx fiber.Ctx) any {
+		// Transform models before serialization
+		result := make([]UserDTO, len(users))
+		for i, u := range users {
+			result[i] = toDTO(u)
+		}
+		return result
+	})
+```
+
+#### WithDefaultSort
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithDefaultSort(orm.SortDesc("created_at"))
+```
 
 ### Query Parts For Tree Builders
 
@@ -259,6 +355,33 @@ Hook responsibilities:
 | `WithPreCreate` | before insert, inside the same transaction | normalization, validation, derived fields, extra query shaping |
 | `WithPostCreate` | after insert, inside the same transaction | side effects that belong to the same transaction |
 
+#### Create Hook Examples
+
+```go
+crud.NewCreate[User, UserParams]().
+	WithPreCreate(func(model *User, params *UserParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// Set derived field before insert
+		model.Username = strings.ToLower(model.Username)
+
+		// Validate uniqueness
+		exists, err := tx.NewSelect().Model((*User)(nil)).
+			Where(func(cb orm.ConditionBuilder) { cb.Equals("email", model.Email) }).
+			Exists(ctx.Context())
+		if err != nil {
+			return err
+		}
+		if exists {
+			return result.NewBusinessError("Email already exists")
+		}
+		return nil
+	}).
+	WithPostCreate(func(model *User, params *UserParams, ctx fiber.Ctx, tx orm.DB) error {
+		// Create related records in the same transaction
+		role := &UserRole{UserID: model.ID, RoleID: "default"}
+		_, err := tx.NewInsert().Model(role).Exec(ctx.Context())
+		return err
+	})
+
 ### `Update[TModel, TParams]`
 
 Use `Update` for single-record update.
@@ -275,6 +398,34 @@ Important detail:
 
 - `Update` uses `copier.WithIgnoreEmpty()` when merging the incoming model into the loaded model
 
+#### Update Hook Examples
+
+```go
+crud.NewUpdate[User, UserParams]().
+	WithPreUpdate(func(oldModel, model *User, params *UserParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// Compare old vs new to enforce business rules
+		if oldModel.IsActive && !model.IsActive {
+			// Deactivation: check for pending tasks
+			count, err := tx.NewSelect().Model((*Task)(nil)).
+				Where(func(cb orm.ConditionBuilder) {
+					cb.Equals("assignee_id", model.ID).
+						Equals("status", "pending")
+				}).Count(ctx.Context())
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				return result.NewBusinessError("Cannot deactivate: user has pending tasks")
+			}
+		}
+		return nil
+	}).
+	WithPostUpdate(func(oldModel, model *User, params *UserParams, ctx fiber.Ctx, tx orm.DB) error {
+		// Log the change
+		return nil
+	})
+```
+
 ### `Delete[TModel]`
 
 Use `Delete` for single-record deletion.
@@ -286,6 +437,24 @@ Use `Delete` for single-record deletion.
 | Output | success result |
 | Default behavior | validates PK input, loads the model, applies data permissions, deletes in a transaction, then cleans up promoted files |
 | Special configuration | `WithPreDelete(...)`, `WithPostDelete(...)`, `DisableDataPerm()` |
+
+#### Delete Hook Example
+
+```go
+crud.NewDelete[User]().
+	WithPreDelete(func(model *User, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// Prevent deleting admin users
+		if model.Username == "admin" {
+			return result.NewBusinessError("Cannot delete the admin user")
+		}
+		// Cascade: delete related records
+		_, err := tx.NewDelete().Model((*UserRole)(nil)).
+			Where(func(cb orm.ConditionBuilder) {
+				cb.Equals("user_id", model.ID)
+			}).Exec(ctx.Context())
+		return err
+	})
+```
 
 ### Batch Builders
 
@@ -366,6 +535,52 @@ Important details:
 - JSON requests are rejected for import
 - if row-level import validation fails, the response contains an `errors` payload instead of partial persistence
 - import format defaults to `excel`
+
+## Processor Type Signatures
+
+All hook / processor types are defined in the `crud` package:
+
+### Read Processor
+
+```go
+// Transforms query results before response serialization
+type Processor[TIn, TSearch any] func(input TIn, search TSearch, ctx fiber.Ctx) any
+```
+
+### Write Processors (Single)
+
+```go
+type PreCreateProcessor[TModel, TParams any]  func(model *TModel, params *TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostCreateProcessor[TModel, TParams any] func(model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreUpdateProcessor[TModel, TParams any]  func(oldModel, model *TModel, params *TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostUpdateProcessor[TModel, TParams any] func(oldModel, model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreDeleteProcessor[TModel any]  func(model *TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostDeleteProcessor[TModel any] func(model *TModel, ctx fiber.Ctx, tx orm.DB) error
+```
+
+### Write Processors (Batch)
+
+```go
+type PreCreateManyProcessor[TModel, TParams any]  func(models []TModel, paramsList []TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostCreateManyProcessor[TModel, TParams any] func(models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreUpdateManyProcessor[TModel, TParams any]  func(oldModels, models []TModel, paramsList []TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostUpdateManyProcessor[TModel, TParams any] func(oldModels, models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreDeleteManyProcessor[TModel any]  func(models []TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostDeleteManyProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
+```
+
+### Export / Import Processors
+
+```go
+type PreExportProcessor[TModel, TSearch any] func(models []TModel, search TSearch, ctx fiber.Ctx, db orm.DB) error
+
+type PreImportProcessor[TModel any]  func(models []TModel, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostImportProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
+```
 
 ## Practical Advice
 

@@ -3,7 +3,7 @@
 
 # Production
 /build
-
+/plans
 # Generated files
 .docusaurus
 .cache-loader

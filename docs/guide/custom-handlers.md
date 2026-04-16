@@ -188,7 +188,7 @@ func (*UserResource) ResetPassword(
 ### Raw proxy-style handler
 
 ```go
-func (*DebugResource) Echo(params api.Params, meta api.Meta) error {
+func (*DebugResource) Echo(ctx fiber.Ctx, params api.Params, meta api.Meta) error {
 	return result.Ok(fiber.Map{
 		"params": params,
 		"meta":   meta,
