@@ -33,6 +33,37 @@ func NewUserResource() api.Resource {
 
 框架之所以能自动收集这些 CRUD builder，是因为它们本身实现了 `api.OperationsProvider`。
 
+### 完整的 Model / Params / Search 定义
+
+```go
+// Model — 持久化层
+type User struct {
+	orm.FullAuditedModel
+
+	Username     string `json:"username" bun:"username"`
+	Email        string `json:"email" bun:"email"`
+	DepartmentID string `json:"departmentId" bun:"department_id"`
+	IsActive     bool   `json:"isActive" bun:"is_active"`
+	Avatar       string `json:"avatar" bun:"avatar" storage:"promote"`
+}
+
+// Params — 写操作请求体
+type UserParams struct {
+	Username     string `json:"username" validate:"required"`
+	Email        string `json:"email" validate:"required,email"`
+	DepartmentID string `json:"departmentId"`
+	IsActive     *bool  `json:"isActive"`
+	Avatar       string `json:"avatar"`
+}
+
+// Search — 读操作查询条件
+type UserSearch struct {
+	Keyword      string  `json:"keyword" search:"contains,column=username|email"`
+	DepartmentID *string `json:"departmentId" search:"eq"`
+	IsActive     *bool   `json:"isActive" search:"eq"`
+}
+```
+
 ## 泛型参数含义
 
 大多数 CRUD builder 只会用到下面这几种泛型形状：
@@ -115,6 +146,71 @@ func NewUserResource() api.Resource {
 - 默认启用数据权限过滤
 - 如果模型有单主键，默认按主键倒序排序
 - 如果没有单主键，但有 `created_at`，则回退为 `created_at DESC`
+
+### Find 控制示例
+
+#### WithCondition
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithCondition(func(cb orm.ConditionBuilder) {
+		cb.IsTrue("is_active")
+	})
+```
+
+#### WithQueryApplier
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) {
+		if search.DepartmentID != nil {
+			q.Where(func(cb orm.ConditionBuilder) {
+				cb.Equals("department_id", *search.DepartmentID)
+			})
+		}
+	})
+```
+
+#### WithRelation
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithRelation(&orm.RelationSpec{
+		Model: (*Department)(nil),
+		SelectedColumns: []orm.ColumnInfo{
+			{Name: "name", Alias: "department_name"},
+		},
+	})
+```
+
+#### WithAuditUserNames
+
+```go
+// 自动 join sys_user 填充 created_by_name 和 updated_by_name
+crud.NewFindPage[User, UserSearch]().
+	WithAuditUserNames((*User)(nil), "username")
+```
+
+#### WithProcessor
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithProcessor(func(users []User, search UserSearch, ctx fiber.Ctx) any {
+		// 在序列化前转换模型
+		result := make([]UserDTO, len(users))
+		for i, u := range users {
+			result[i] = toDTO(u)
+		}
+		return result
+	})
+```
+
+#### WithDefaultSort
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	WithDefaultSort(orm.SortDesc("created_at"))
+```
 
 ### Tree Builder 的 QueryPart
 
@@ -259,6 +355,33 @@ Hook 的作用分别是：
 | `WithPreCreate` | 插入前，且仍在同一事务内 | 归一化、校验、补默认值、追加查询控制 |
 | `WithPostCreate` | 插入后，且仍在同一事务内 | 同事务内的业务联动、副作用 |
 
+#### Create Hook 示例
+
+```go
+crud.NewCreate[User, UserParams]().
+	WithPreCreate(func(model *User, params *UserParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// 插入前设置派生字段
+		model.Username = strings.ToLower(model.Username)
+
+		// 唯一性校验
+		exists, err := tx.NewSelect().Model((*User)(nil)).
+			Where(func(cb orm.ConditionBuilder) { cb.Equals("email", model.Email) }).
+			Exists(ctx.Context())
+		if err != nil {
+			return err
+		}
+		if exists {
+			return result.NewBusinessError("邮箱已存在")
+		}
+		return nil
+	}).
+	WithPostCreate(func(model *User, params *UserParams, ctx fiber.Ctx, tx orm.DB) error {
+		// 在同一事务中创建关联记录
+		role := &UserRole{UserID: model.ID, RoleID: "default"}
+		_, err := tx.NewInsert().Model(role).Exec(ctx.Context())
+		return err
+	})
+
 ### `Update[TModel, TParams]`
 
 单条更新时使用 `Update`。
@@ -275,6 +398,34 @@ Hook 的作用分别是：
 
 - `Update` 合并新值时使用的是 `copier.WithIgnoreEmpty()`，也就是空值字段不会覆盖旧值
 
+#### Update Hook 示例
+
+```go
+crud.NewUpdate[User, UserParams]().
+	WithPreUpdate(func(oldModel, model *User, params *UserParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// 比较新旧值来执行业务规则
+		if oldModel.IsActive && !model.IsActive {
+			// 停用：检查是否有待办任务
+			count, err := tx.NewSelect().Model((*Task)(nil)).
+				Where(func(cb orm.ConditionBuilder) {
+					cb.Equals("assignee_id", model.ID).
+						Equals("status", "pending")
+				}).Count(ctx.Context())
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				return result.NewBusinessError("无法停用：用户有待办任务")
+			}
+		}
+		return nil
+	}).
+	WithPostUpdate(func(oldModel, model *User, params *UserParams, ctx fiber.Ctx, tx orm.DB) error {
+		// 记录变更日志
+		return nil
+	})
+```
+
 ### `Delete[TModel]`
 
 单条删除时使用 `Delete`。
@@ -286,6 +437,24 @@ Hook 的作用分别是：
 | 输出 | 成功结果 |
 | 默认行为 | 校验主键输入，加载模型，应用数据权限，在事务中删除，并在成功后清理已提升文件 |
 | 特有配置 | `WithPreDelete(...)`、`WithPostDelete(...)`、`DisableDataPerm()` |
+
+#### Delete Hook 示例
+
+```go
+crud.NewDelete[User]().
+	WithPreDelete(func(model *User, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error {
+		// 禁止删除管理员
+		if model.Username == "admin" {
+			return result.NewBusinessError("无法删除管理员账户")
+		}
+		// 级联：删除关联记录
+		_, err := tx.NewDelete().Model((*UserRole)(nil)).
+			Where(func(cb orm.ConditionBuilder) {
+				cb.Equals("user_id", model.ID)
+			}).Exec(ctx.Context())
+		return err
+	})
+```
 
 ### 批量 Builder
 
@@ -366,6 +535,52 @@ Hook 的作用分别是：
 - Import 不接受 JSON 请求
 - 如果导入校验失败，响应会返回 `errors` 载荷，而不是部分写入
 - 导入格式默认是 `excel`
+
+## Processor 类型签名
+
+所有 hook / processor 类型都定义在 `crud` 包中：
+
+### 读操作 Processor
+
+```go
+// 在响应序列化前转换查询结果
+type Processor[TIn, TSearch any] func(input TIn, search TSearch, ctx fiber.Ctx) any
+```
+
+### 写操作 Processor（单条）
+
+```go
+type PreCreateProcessor[TModel, TParams any]  func(model *TModel, params *TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostCreateProcessor[TModel, TParams any] func(model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreUpdateProcessor[TModel, TParams any]  func(oldModel, model *TModel, params *TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostUpdateProcessor[TModel, TParams any] func(oldModel, model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreDeleteProcessor[TModel any]  func(model *TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostDeleteProcessor[TModel any] func(model *TModel, ctx fiber.Ctx, tx orm.DB) error
+```
+
+### 写操作 Processor（批量）
+
+```go
+type PreCreateManyProcessor[TModel, TParams any]  func(models []TModel, paramsList []TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostCreateManyProcessor[TModel, TParams any] func(models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreUpdateManyProcessor[TModel, TParams any]  func(oldModels, models []TModel, paramsList []TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostUpdateManyProcessor[TModel, TParams any] func(oldModels, models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error
+
+type PreDeleteManyProcessor[TModel any]  func(models []TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostDeleteManyProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
+```
+
+### 导出 / 导入 Processor
+
+```go
+type PreExportProcessor[TModel, TSearch any] func(models []TModel, search TSearch, ctx fiber.Ctx, db orm.DB) error
+
+type PreImportProcessor[TModel any]  func(models []TModel, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
+type PostImportProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
+```
 
 ## 实践建议
 

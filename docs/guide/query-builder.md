@@ -49,9 +49,9 @@ The `search` tag supports these patterns:
 | Pattern | Meaning |
 | --- | --- |
 | `search:"eq"` | operator only |
-| `search:"contains,column=username|email"` | operator plus explicit target columns |
+| `search:"contains,column=username\|email"` | operator plus explicit target columns |
 | `search:"operator=gte,column=price"` | fully explicit key/value form |
-| `search:"operator=in,params=delimiter:|,type:int"` | operator with extra params |
+| `search:"operator=in,params=delimiter:\|,type:int"` | operator with extra params |
 | `search:"dive"` | recurse into nested struct fields |
 | `search:"-"` | ignore this field completely |
 
@@ -60,7 +60,7 @@ Supported tag attributes:
 | Attribute | Meaning |
 | --- | --- |
 | default value or `operator` | query operator |
-| `column` | one or more target columns, separated by `|` |
+| `column` | one or more target columns, separated by \| |
 | `alias` | table alias used when qualifying columns |
 | `params` | extra operator parameters |
 | `dive` | recurse into nested struct fields |
@@ -172,7 +172,7 @@ Currently relevant parameter keys:
 | Param key | Meaning |
 | --- | --- |
 | `delimiter` | custom delimiter for parsing string-based sets or ranges |
-| `type` | explicit parsing type such as `int`, `dec`, `date`, `datetime`, or `time` |
+| `type` | explicit parsing type such as `int`, `str`, `bool`, `dec`, `date`, `datetime`, or `time` |
 
 ## `between` Input Forms
 
@@ -201,7 +201,7 @@ Set operators support:
 | --- | --- |
 | slice field | `[]string{"a", "b"}` |
 | delimited string | `"a,b,c"` |
-| delimited string with custom delimiter | `"1|2|3"` + `params=delimiter:|,type:int` |
+| delimited string with custom delimiter | `"1\|\2\|3"` + `params=delimiter:\|,type:int` |
 
 ## Sorting
 

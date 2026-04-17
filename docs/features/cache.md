@@ -44,6 +44,24 @@ That gives you:
 - duplicate-load suppression
 - a single API for “read-through cache” behavior
 
+### LoaderFunc
+
+The loader passed to `GetOrLoad` has this signature:
+
+```go
+type LoaderFunc[T any] func(ctx context.Context) (T, error)
+```
+
+Example:
+
+```go
+value, err := myCache.GetOrLoad(ctx, "user:1001", func(ctx context.Context) (User, error) {
+    return db.NewSelect().Model(&User{}).Where(func(cb orm.ConditionBuilder) {
+        cb.PKEquals("1001")
+    }).ScanOne(ctx)
+}, 10*time.Minute)
+```
+
 ## Memory Cache Options
 
 `cache.NewMemory[T](...)` supports these options:
@@ -78,9 +96,33 @@ Redis caches build prefixed keys internally so namespaces remain isolated.
 
 ## Store-Level Abstraction
 
-The package also exposes a lower-level `cache.Store` interface for raw byte storage backends.
+The package also exposes a lower-level `cache.Store` interface for raw byte storage backends. This is useful if you want to implement a custom cache backend.
 
-This interface is useful if you want to implement a custom cache backend under the same higher-level cache model.
+```go
+type Store interface {
+    Name() string
+    Get(ctx context.Context, key string) ([]byte, bool)
+    Set(ctx context.Context, key string, data []byte, ttl ...time.Duration) error
+    Contains(ctx context.Context, key string) bool
+    Delete(ctx context.Context, key string) error
+    Clear(ctx context.Context, prefix string) error
+    Keys(ctx context.Context, prefix string) ([]string, error)
+    ForEach(ctx context.Context, prefix string, callback func(key string, data []byte) bool) error
+    Size(ctx context.Context, prefix string) (int64, error)
+    Close(ctx context.Context) error
+}
+```
+
+The key difference from `Cache[T]`: `Store` works with raw `[]byte` and takes explicit `prefix` parameters, while `Cache[T]` handles serialization and prefix management automatically.
+
+## Error Types
+
+| Error | Meaning |
+| --- | --- |
+| `ErrMemoryLimitExceeded` | Memory cache cannot accept entries due to max size limit and no eviction candidates |
+| `ErrCacheClosed` | Operation attempted after `Close()` was called |
+| `ErrLoaderRequired` | `GetOrLoad` called without providing a loader function |
+| `ErrStoreRequiresName` | Store was created without a name |
 
 ## Minimal Example
 

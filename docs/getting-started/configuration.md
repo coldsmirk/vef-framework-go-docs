@@ -59,8 +59,25 @@ Supported `type` values:
 - `postgres`
 - `mysql`
 - `sqlite`
+- `oracle`
+- `sqlserver`
 
 For SQLite, `path` is optional. When it is omitted, the framework uses a shared in-memory database.
+
+### `vef.cors`
+
+CORS middleware settings:
+
+```toml
+[vef.cors]
+enabled = true
+allow_origins = ["http://localhost:3000", "https://my-app.com"]
+```
+
+Key fields:
+
+- `enabled`: enable CORS middleware
+- `allow_origins`: list of allowed origins
 
 ### `vef.security`
 
@@ -120,6 +137,25 @@ Monitoring configuration is injected into the monitor module. The module also ap
 ### `vef.mcp`
 
 MCP support is present in the runtime, but the MCP server only activates when enabled in configuration.
+
+### `vef.approval`
+
+Approval workflow engine settings:
+
+```toml
+[vef.approval]
+auto_migrate = true
+outbox_relay_interval = 5
+outbox_max_retries = 10
+outbox_batch_size = 100
+```
+
+Key fields:
+
+- `auto_migrate`: automatically create approval tables on startup
+- `outbox_relay_interval`: polling interval in seconds (default: 5)
+- `outbox_max_retries`: max retry attempts for outbox events (default: 10)
+- `outbox_batch_size`: max events per poll (default: 100)
 
 ## Environment overrides
 

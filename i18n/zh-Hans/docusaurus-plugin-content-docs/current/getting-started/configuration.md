@@ -59,8 +59,25 @@ enable_sql_guard = true
 - `postgres`
 - `mysql`
 - `sqlite`
+- `oracle`
+- `sqlserver`
 
 对 SQLite 来说，`path` 可以省略；省略后框架会使用共享内存数据库。
+
+### `vef.cors`
+
+CORS 中间件配置：
+
+```toml
+[vef.cors]
+enabled = true
+allow_origins = ["http://localhost:3000", "https://my-app.com"]
+```
+
+关键字段：
+
+- `enabled`：是否启用 CORS 中间件
+- `allow_origins`：允许的来源列表
 
 ### `vef.security`
 
@@ -120,6 +137,25 @@ root = "./data/files"
 ### `vef.mcp`
 
 MCP 相关代码默认在运行时里，但 MCP server 只有在配置里显式启用后才会真正生效。
+
+### `vef.approval`
+
+审批工作流引擎配置：
+
+```toml
+[vef.approval]
+auto_migrate = true
+outbox_relay_interval = 5
+outbox_max_retries = 10
+outbox_batch_size = 100
+```
+
+关键字段：
+
+- `auto_migrate`：启动时自动创建审批相关表
+- `outbox_relay_interval`：outbox 轮询间隔，单位秒（默认 5）
+- `outbox_max_retries`：outbox 事件最大重试次数（默认 10）
+- `outbox_batch_size`：单次轮询最大事件数（默认 100）
 
 ## 环境变量覆盖
 

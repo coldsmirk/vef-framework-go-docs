@@ -49,9 +49,9 @@ Age int `search:"eq,column=age"`
 | 模式 | 含义 |
 | --- | --- |
 | `search:"eq"` | 只写操作符 |
-| `search:"contains,column=username|email"` | 写操作符和目标列 |
+| `search:"contains,column=username\|email"` | 写操作符和目标列 |
 | `search:"operator=gte,column=price"` | 完整 key/value 形式 |
-| `search:"operator=in,params=delimiter:|,type:int"` | 携带额外参数 |
+| `search:"operator=in,params=delimiter:\|,type:int"` | 携带额外参数 |
 | `search:"dive"` | 递归进入嵌套结构体 |
 | `search:"-"` | 完全忽略该字段 |
 
@@ -60,7 +60,7 @@ Age int `search:"eq,column=age"`
 | 属性 | 含义 |
 | --- | --- |
 | 默认值或 `operator` | 查询操作符 |
-| `column` | 一个或多个目标列，列之间用 `|` 分隔 |
+| `column` | 一个或多个目标列，列之间用\|分隔 |
 | `alias` | 表别名，用于列限定 |
 | `params` | 操作符的额外参数 |
 | `dive` | 递归进入嵌套结构 |
@@ -172,7 +172,7 @@ Name string `search:"alias=u,column=name,operator=contains"`
 | 参数键 | 含义 |
 | --- | --- |
 | `delimiter` | 解析字符串区间或集合时使用的分隔符 |
-| `type` | 显式解析类型，例如 `int`、`dec`、`date`、`datetime`、`time` |
+| `type` | 显式解析类型，例如 `int`、`str`、`bool`、`dec`、`date`、`datetime`、`time` |
 
 ## `between` 的输入形态
 
@@ -201,7 +201,7 @@ DateRange string `search:"operator=between,column=created_at,params=type:date,de
 | --- | --- |
 | slice 字段 | `[]string{"a", "b"}` |
 | 分隔字符串 | `"a,b,c"` |
-| 自定义分隔符字符串 | `"1|2|3"` + `params=delimiter:|,type:int` |
+| 自定义分隔符字符串 | `"1\|2\|3"` + `params=delimiter:\|,type:int` |
 
 ## 排序
 

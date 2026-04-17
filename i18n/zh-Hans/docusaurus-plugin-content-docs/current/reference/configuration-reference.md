@@ -43,7 +43,7 @@ type = "sqlite"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite` | 当前运行时真实支持的数据库类型。 |
+| `type` | `postgres \| mysql \| sqlite \| oracle \| sqlserver` | 当前运行时支持的数据库类型。 |
 | `host` | `string` | 网络数据库主机。 |
 | `port` | `uint16` | 网络数据库端口。 |
 | `user` | `string` | 数据库用户名。 |
@@ -55,7 +55,7 @@ type = "sqlite"
 
 说明：
 
-- 尽管 `config.DBKind` 中还定义了更宽的枚举值，但当前运行时实际注册的 provider 只有 `postgres`、`mysql`、`sqlite`
+- 当前运行时注册的 provider 支持 `postgres`、`mysql`、`sqlite`、`oracle`、`sqlserver`
 
 ## `vef.cors`
 

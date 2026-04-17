@@ -37,7 +37,7 @@ type = "sqlite"
 
 Runtime note:
 
-- the current runtime provider registry supports `postgres`, `mysql`, and `sqlite`
+- the current runtime provider registry supports `postgres`, `mysql`, `sqlite`, `oracle`, and `sqlserver`
 
 ## `vef.cors`
 
