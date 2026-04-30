@@ -196,7 +196,7 @@ Behavior worth noting:
 
 - Unknown headers in the source are **skipped silently** — extra columns won't break the import.
 - Schema columns missing from the source simply do not appear in the parsed row map (the key is absent rather than zero-valued). This lets `Required` and row-level validators distinguish "missing" from "explicitly zero".
-- After `TrimSpace` (CSV option, on by default) and `Default` substitution, an empty cell causes `Set` to be skipped: structs keep zero values, maps leave the key absent.
+- After `TrimSpace` (on by default for both CSV and Excel; toggle with `WithoutTrimSpace()`) and `Default` substitution, an empty cell causes `Set` to be skipped: structs keep zero values, maps leave the key absent.
 - Per-cell parse errors, per-row commit errors, and validator errors all aggregate into `[]tabular.ImportError`; the rest of the file is still processed.
 
 ### Row-Level Validation
@@ -341,7 +341,7 @@ CSV options:
 | `WithImportDelimiter(r)` | `,` | Field delimiter for import |
 | `WithoutHeader()` | header on | Treat first row as data; columns mapped positionally in schema order |
 | `WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
-| `WithoutTrimSpace()` | trim on | Disable cell trimming during import |
+| `WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
 | `WithComment(r)` | none | Lines starting with this rune are ignored |
 | `WithExportDelimiter(r)` | `,` | Field delimiter for export |
 | `WithoutWriteHeader()` | header on | Skip the header row on export |
@@ -366,9 +366,10 @@ Excel options:
 | --- | --- | --- |
 | `WithSheetName(name)` | `Sheet1` | Worksheet name on export |
 | `WithImportSheetName(name)` | none | Read a worksheet by name |
-| `WithImportSheetIndex(i)` | `0` | Read a worksheet by index (returns `excel.ErrSheetIndexOutOfRange` if out of range) |
+| `WithImportSheetIndex(i)` | `0` | Read a worksheet by index (returns `excel.ErrSheetIndexOutOfRange` if negative or out of range) |
 | `WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
 | `WithoutHeader()` | header on | First non-skipped row is data; positional mapping |
+| `WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
 
 `Column.Width` set on a `ColumnSpec` (or via the struct tag `width=…`) is applied to the generated worksheet.
 

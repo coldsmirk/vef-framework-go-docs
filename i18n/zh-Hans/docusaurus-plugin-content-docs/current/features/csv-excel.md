@@ -196,7 +196,7 @@ rows := result.([]map[string]any)
 
 - 源文件中未知的 header **直接跳过**——多余的列不会让导入失败。
 - schema 中存在但源文件没有的列，**不会**出现在解析结果的 map 中（key 不存在，而不是零值）。这样 `Required` 与行级校验可以区分「缺失」和「显式零值」。
-- 单元格经 `TrimSpace`（CSV 默认开启）+ `Default` 兜底后，仍为空字符串时会跳过 `Set`：结构体保持零值，map 保留 key 缺失。
+- 单元格经 `TrimSpace`（CSV 与 Excel 默认均开启，可用 `WithoutTrimSpace()` 关闭）+ `Default` 兜底后，仍为空字符串时会跳过 `Set`：结构体保持零值，map 保留 key 缺失。
 - 单元格解析错误、行 Commit 错误、校验错误都会聚合到 `[]tabular.ImportError`，文件其余部分继续处理。
 
 ### 行级校验
@@ -341,7 +341,7 @@ CSV 选项：
 | `WithImportDelimiter(r)` | `,` | 导入时的字段分隔符 |
 | `WithoutHeader()` | 含 header | 第一行作为数据，按 schema 顺序按位置映射 |
 | `WithSkipRows(n)` | `0` | 读取前跳过 n 行 |
-| `WithoutTrimSpace()` | 自动 trim | 关闭单元格首尾空白裁剪 |
+| `WithoutTrimSpace()` | 自动 trim | 关闭单元格首尾空白裁剪（同时影响空行检测与 header 匹配） |
 | `WithComment(r)` | 无 | 以该字符开头的行被忽略 |
 | `WithExportDelimiter(r)` | `,` | 导出时的字段分隔符 |
 | `WithoutWriteHeader()` | 写 header | 导出时不写 header 行 |
@@ -366,9 +366,10 @@ Excel 选项：
 | --- | --- | --- |
 | `WithSheetName(name)` | `Sheet1` | 导出工作表名 |
 | `WithImportSheetName(name)` | 无 | 按名称读取工作表 |
-| `WithImportSheetIndex(i)` | `0` | 按索引读取工作表（越界返回 `excel.ErrSheetIndexOutOfRange`） |
+| `WithImportSheetIndex(i)` | `0` | 按索引读取工作表（负数或越界返回 `excel.ErrSheetIndexOutOfRange`） |
 | `WithSkipRows(n)` | `0` | 读取前跳过 n 行 |
 | `WithoutHeader()` | 含 header | 第一行作为数据，按位置映射 |
+| `WithoutTrimSpace()` | 自动 trim | 关闭单元格首尾空白裁剪（同时影响空行检测与 header 匹配） |
 
 `ColumnSpec` 中设置的 `Width`（或结构体标签 `width=…`）会作用到生成的工作表列宽。
 
