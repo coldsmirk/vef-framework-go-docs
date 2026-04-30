@@ -52,13 +52,13 @@ buf, err := exporter.Export(employees)
 | --- | --- | --- |
 | `csv.WithExportDelimiter(rune)` | `,` | Field delimiter character |
 | `csv.WithoutWriteHeader()` | write header | Skip the header row |
-| `csv.WithCrlf()` | LF only | Use Windows-style CRLF line endings |
+| `csv.WithCRLF()` | LF only | Use Windows-style CRLF line endings |
 
 ```go
 // TSV export with Windows line endings
 exporter := csv.NewExporterFor[Employee](
     csv.WithExportDelimiter('\t'),
-    csv.WithCrlf(),
+    csv.WithCRLF(),
 )
 
 // Export without header row

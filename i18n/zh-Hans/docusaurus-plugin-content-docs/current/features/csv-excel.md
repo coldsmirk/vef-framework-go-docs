@@ -345,7 +345,7 @@ CSV 选项：
 | `WithComment(r)` | 无 | 以该字符开头的行被忽略 |
 | `WithExportDelimiter(r)` | `,` | 导出时的字段分隔符 |
 | `WithoutWriteHeader()` | 写 header | 导出时不写 header 行 |
-| `WithCrlf()` | LF | 使用 Windows 风格的换行符 |
+| `WithCRLF()` | LF | 使用 Windows 风格的换行符 |
 
 ## Excel 包
 

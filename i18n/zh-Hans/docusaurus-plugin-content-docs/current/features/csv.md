@@ -52,13 +52,13 @@ buf, err := exporter.Export(employees)
 | --- | --- | --- |
 | `csv.WithExportDelimiter(rune)` | `,` | 字段分隔符 |
 | `csv.WithoutWriteHeader()` | 写入表头 | 跳过表头行 |
-| `csv.WithCrlf()` | 仅 LF | 使用 Windows 风格 CRLF 换行符 |
+| `csv.WithCRLF()` | 仅 LF | 使用 Windows 风格 CRLF 换行符 |
 
 ```go
 // TSV 导出，使用 Windows 换行符
 exporter := csv.NewExporterFor[Employee](
     csv.WithExportDelimiter('\t'),
-    csv.WithCrlf(),
+    csv.WithCRLF(),
 )
 
 // 不写入表头行

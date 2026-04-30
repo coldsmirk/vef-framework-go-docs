@@ -345,7 +345,7 @@ CSV options:
 | `WithComment(r)` | none | Lines starting with this rune are ignored |
 | `WithExportDelimiter(r)` | `,` | Field delimiter for export |
 | `WithoutWriteHeader()` | header on | Skip the header row on export |
-| `WithCrlf()` | LF | Use Windows-style line endings |
+| `WithCRLF()` | LF | Use Windows-style line endings |
 
 ## Excel Package
 
