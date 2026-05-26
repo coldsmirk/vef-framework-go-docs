@@ -37,7 +37,7 @@ type = "sqlite"
 
 Runtime note:
 
-- the current runtime provider registry supports `postgres`, `mysql`, `sqlite`, `oracle`, and `sqlserver`
+- the current runtime provider registry supports `postgres`, `mysql`, and `sqlite`. `oracle` and `sqlserver` are declared as `DBKind` constants for future use but have no runtime provider yet.
 
 ## `vef.cors`
 
@@ -98,9 +98,28 @@ Runtime note:
 ## `vef.approval`
 
 - `auto_migrate`
-- `outbox_relay_interval`
-- `outbox_max_retries`
-- `outbox_batch_size`
+- `timeout_scan_interval`
+- `pre_warning_scan_interval`
+- `cleanup_scan_interval`
+- `delegation_max_depth`
+- `form_snapshot_retention`
+- `urge_record_retention`
+- `cc_record_retention`
+
+> Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../features/event-bus).
+
+## `vef.event`
+
+- `default_transport`
+- `async_queue_size`
+- `async_workers`
+- `publish_timeout`
+- `transports.memory.queue_size` / `full_policy` / `publish_timeout`
+- `transports.outbox.enabled` / `relay_interval` / `max_retries` / `batch_size` / `lease_multiplier` / `min_lease` / `sink` / `cleanup_interval` / `completed_ttl`
+- `transports.redis_stream.enabled` / `stream_prefix` / `max_len_approx` / `block_timeout` / `claim_idle` / `claim_interval` / `claim_batch_size` / `consumer_id` / `start_id`
+- `middleware.logging` / `tracing` / `tracing_strict` / `metrics` / `recover` / `inbox`
+- `inbox.retention` / `processing_lease` / `cleanup_interval`
+- `routing` (list of `{pattern, transports}`)
 
 ## See also
 

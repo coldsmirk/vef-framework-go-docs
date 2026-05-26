@@ -106,28 +106,24 @@ Typical uses:
 | `alphanum_us_slash` | RPC resource names or slash-separated identifiers |
 | `alphanum_us_dot` | file names, module names, dotted identifiers |
 
-## Supported Null Types
+## Nullable / Optional Fields
 
-VEF registers custom type functions so that these null wrappers participate correctly in validation:
+VEF uses pointer types for nullable fields (the older `null.*` wrapper package was removed in v0.21 in favor of pointers).
 
-| Supported null type |
-| --- |
-| `null.String` |
-| `null.Int` |
-| `null.Int16` |
-| `null.Int32` |
-| `null.Float` |
-| `null.Bool` |
-| `null.Byte` |
-| `null.DateTime` |
-| `null.Date` |
-| `null.Time` |
-| `null.Decimal` |
+```go
+type UserParams struct {
+    // Required: validation runs against the value directly
+    Username string `json:"username" validate:"required,min=3"`
 
-Practical effect:
+    // Optional: validation only runs when the pointer is non-nil
+    Phone *string `json:"phone" validate:"omitempty,phone_number"`
 
-- when a null wrapper is valid, validation runs against the wrapped value
-- when it is invalid, the value is treated as `nil`
+    // Optional with explicit "may be empty" semantics
+    Bio *string `json:"bio" validate:"omitempty,max=500"`
+}
+```
+
+The standard `omitempty` validator tag handles nullable cases — when the pointer is `nil`, subsequent rules are skipped; when it points to a value, the rest of the tag chain applies to that value. If you need to register a custom type that should participate in validation, use `validator.RegisterTypeFunc(...)` to teach the validator how to extract a comparable value from your type.
 
 ## Error Behavior
 

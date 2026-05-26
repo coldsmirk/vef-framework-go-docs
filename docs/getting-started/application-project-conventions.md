@@ -36,7 +36,7 @@ These rules combine:
 | Interfaces | Interface names must express a capability or role. Prefer clear domain names or `-er` style when it reads naturally | `UserLoader`, `TokenGenerator`, `PermissionChecker` |
 | Variables | Variable names must use lowerCamelCase. Very short names are only acceptable in tiny, obvious scopes | `userID`, `requestMeta`, `authManager` |
 | Constants | Constants must follow normal Go identifier naming. For grouped constants, keep a consistent domain prefix when it improves clarity | `DefaultRPCEndpoint`, `AuthTypePassword`, `UserMenuTypeDirectory` |
-| Struct fields | Struct fields must use PascalCase in Go code. External naming styles belong in tags, not in Go identifiers | `CreatedAt`, `UserID`, `PermTokens` |
+| Struct fields | Struct fields must use PascalCase in Go code. External naming styles belong in tags, not in Go identifiers | `CreatedAt`, `UserID`, `PermissionTokens` |
 
 Additional required guidance:
 

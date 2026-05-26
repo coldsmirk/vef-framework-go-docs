@@ -24,13 +24,13 @@ The `tabular` struct tag controls how model fields map to Excel columns.
 | Attribute | Meaning | Example |
 | --- | --- | --- |
 | (default value) | Column header name | `tabular:"Username"` |
-| `name` | Explicit column name | `tabular:"name:Username"` |
-| `width` | Column width hint | `tabular:"width:20"` |
-| `order` | Column order (0-based) | `tabular:"order:1"` |
-| `default` | Default value for empty cells on import | `tabular:"default:N/A"` |
-| `format` | Format template (date/number) | `tabular:"format:2006-01-02"` |
-| `formatter` | Custom formatter name for export | `tabular:"formatter:status"` |
-| `parser` | Custom parser name for import | `tabular:"parser:date"` |
+| `name` | Explicit column name | `tabular:"name=Username"` |
+| `width` | Column width hint | `tabular:"width=20"` |
+| `order` | Column order (0-based) | `tabular:"order=1"` |
+| `default` | Default value for empty cells on import | `tabular:"default=N/A"` |
+| `format` | Format template (date/number) | `tabular:"format=2006-01-02"` |
+| `formatter` | Custom formatter name for export | `tabular:"formatter=status"` |
+| `parser` | Custom parser name for import | `tabular:"parser=date"` |
 | `dive` | Recurse into embedded struct | `tabular:"dive"` |
 | `-` | Ignore this field | `tabular:"-"` |
 
@@ -40,12 +40,12 @@ The `tabular` struct tag controls how model fields map to Excel columns.
 type Employee struct {
     orm.FullAuditedModel `tabular:"-"`
 
-    Name       string          `json:"name" bun:"name" tabular:"姓名,width:20"`
-    Email      string          `json:"email" bun:"email" tabular:"邮箱,width:30"`
-    Department string          `json:"department" bun:"department" tabular:"部门,width:15"`
-    JoinDate   timex.Date      `json:"joinDate" bun:"join_date" tabular:"入职日期,format:2006-01-02,width:15"`
-    Salary     decimal.Decimal `json:"salary" bun:"salary" tabular:"薪资,width:12"`
-    IsActive   bool            `json:"isActive" bun:"is_active" tabular:"是否在职,width:10"`
+    Name       string          `json:"name" bun:"name" tabular:"姓名,width=20"`
+    Email      string          `json:"email" bun:"email" tabular:"邮箱,width=30"`
+    Department string          `json:"department" bun:"department" tabular:"部门,width=15"`
+    JoinDate   timex.Date      `json:"joinDate" bun:"join_date" tabular:"入职日期,format=2006-01-02,width=15"`
+    Salary     decimal.Decimal `json:"salary" bun:"salary" tabular:"薪资,width=12"`
+    IsActive   bool            `json:"isActive" bun:"is_active" tabular:"是否在职,width=10"`
 }
 ```
 
@@ -94,7 +94,7 @@ exporter.RegisterFormatter("status", tabular.FormatterFunc(func(value any) (stri
 Then reference it in the struct tag:
 
 ```go
-IsActive bool `tabular:"Status,formatter:status"`
+IsActive bool `tabular:"Status,formatter=status"`
 ```
 
 ### Export in HTTP Handler
@@ -178,7 +178,7 @@ Register a parser to customize how cell values are parsed:
 ```go
 importer := excel.NewImporterFor[Employee]()
 
-importer.RegisterParser("date", tabular.ValueParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
+importer.RegisterParser("date", tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
     return time.Parse("01/02/2006", cellValue)
 }))
 ```
@@ -186,7 +186,7 @@ importer.RegisterParser("date", tabular.ValueParserFunc(func(cellValue string, t
 Then reference it in the struct tag:
 
 ```go
-JoinDate time.Time `tabular:"Join Date,parser:date"`
+JoinDate time.Time `tabular:"Join Date,parser=date"`
 ```
 
 ### Validation
@@ -208,8 +208,8 @@ type Employee struct {
 | --- | --- |
 | `ErrSheetIndexOutOfRange` | Sheet index exceeds available sheets |
 | `ErrNoDataRowsFound` | File has no data rows (only header or empty) |
-| `ErrDuplicateColumnName` | Duplicate column names in header row |
-| `ErrFieldNotSettable` | Struct field cannot be set (unexported) |
+| `ErrDuplicateHeaderName` | Duplicate column names in header row |
+| `ErrUnsetField` | Struct field cannot be set (unexported) |
 
 Row-level errors are returned as `[]tabular.ImportError` (non-fatal):
 

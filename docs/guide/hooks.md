@@ -92,17 +92,18 @@ If a CRUD hook returns an error:
 
 This makes CRUD hooks a good place for business invariants that must be enforced atomically.
 
-## CRUD Hooks And File Promotion
+## CRUD Hooks And File Lifecycle
 
-Create, update, and delete builders also integrate with the storage promoter.
+Create, update, and delete builders integrate with the `storage.Files` / `FilesFor[T]` lifecycle facade (the replacement for the old `Promoter[T]`).
 
 That means:
 
-- file promotion happens within the same CRUD flow
-- update rollback can restore replaced files
-- delete cleanup can remove promoted files after successful deletion
+- `meta`-tagged file fields are reconciled inside the same transaction as the business write
+- update reconciliation enqueues asynchronous deletes for replaced file values
+- delete reconciliation enqueues every referenced file for asynchronous removal
+- on transaction rollback no claim is consumed and no deletion is enqueued — there is nothing to "restore"
 
-Hooks and file promotion therefore share one transactional lifecycle, even though the storage cleanup itself may happen as a follow-up action inside that flow.
+Hooks and file lifecycle therefore share one transactional lifecycle; the actual backend deletion happens asynchronously through the storage delete worker (see [Storage](../features/storage)).
 
 ## Bun Model Hook Surface
 

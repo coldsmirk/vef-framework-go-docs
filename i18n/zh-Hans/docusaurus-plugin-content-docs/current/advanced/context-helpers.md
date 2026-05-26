@@ -55,7 +55,9 @@ ctx = contextx.SetPrincipal(ctx, principal)
 // 常见用法
 if p := contextx.Principal(ctx); p != nil {
     userID := p.ID
-    tenantID := p.TenantID
+    roles := p.Roles
+    // Principal 本身不带 TenantID —— 需要租户信息的应用把它放进
+    // Principal.Details，并通过 approval.PrincipalTenantResolver 读出。
 }
 ```
 

@@ -24,7 +24,6 @@ The public schema service exposes:
 | `ListTables(ctx)` | `[]schema.Table` | list tables in the current schema or database |
 | `GetTableSchema(ctx, name)` | `*schema.TableSchema` | inspect one table in detail |
 | `ListViews(ctx)` | `[]schema.View` | list views |
-| `ListTriggers(ctx)` | `[]schema.Trigger` | list triggers |
 
 ## Built-In Resource
 
@@ -41,13 +40,12 @@ Current actions:
 | `list_tables` | none | `[]schema.Table` | list current tables |
 | `get_table_schema` | `name: string` | `schema.TableSchema` | returns a dedicated schema-table-not-found business error when the table does not exist |
 | `list_views` | none | `[]schema.View` | list current views |
-| `list_triggers` | none | `[]schema.Trigger` | list current triggers |
 
 Implementation details visible in source:
 
 - each action currently sets a per-operation rate-limit max of `60`
 - `get_table_schema` validates that `name` is present
-- missing tables are mapped to `result.ErrCodeSchemaTableNotFound`
+- missing tables are mapped to `schema.ErrCodeTableNotFound` (the dedicated `schema.ErrTableNotFound` sentinel)
 
 ## Public Schema Types
 
@@ -133,19 +131,6 @@ Implementation details visible in source:
 | `definition` | `string` | view definition SQL |
 | `comment` | `string` | view comment |
 | `columns` | `[]string` | projected columns |
-| `materialized` | `bool` | whether the view is materialized |
-
-### `schema.Trigger`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `name` | `string` | trigger name |
-| `table` | `string` | target table when applicable |
-| `view` | `string` | target view when applicable |
-| `actionTime` | `string` | before/after/instead-of timing |
-| `events` | `[]string` | trigger events such as insert or update |
-| `forEachRow` | `bool` | row-level or statement-level trigger |
-| `body` | `string` | trigger body definition |
 
 ## Minimal Request Example
 

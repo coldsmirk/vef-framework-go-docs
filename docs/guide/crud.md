@@ -23,10 +23,10 @@ type UserResource struct {
 func NewUserResource() api.Resource {
 	return &UserResource{
 		Resource: api.NewRPCResource("sys/user"),
-		FindPage: crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query"),
-		Create:   crud.NewCreate[User, UserParams]().PermToken("sys:user:create"),
-		Update:   crud.NewUpdate[User, UserParams]().PermToken("sys:user:update"),
-		Delete:   crud.NewDelete[User]().PermToken("sys:user:delete"),
+		FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
+		Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
+		Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
+		Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
 	}
 }
 ```
@@ -44,7 +44,7 @@ type User struct {
 	Email        string `json:"email" bun:"email"`
 	DepartmentID string `json:"departmentId" bun:"department_id"`
 	IsActive     bool   `json:"isActive" bun:"is_active"`
-	Avatar       string `json:"avatar" bun:"avatar" storage:"promote"`
+	Avatar       string `json:"avatar" bun:"avatar" meta:"uploaded_file"`
 }
 
 // Params — write-side request body
@@ -113,7 +113,7 @@ Every CRUD builder inherits the common controls from `Builder[T]`:
 | `ResourceKind(kind)` | switches the builder between RPC and REST naming/validation rules |
 | `Action(action)` | overrides the default action name |
 | `Public()` | marks the operation as unauthenticated |
-| `PermToken(token)` | requires a permission token for access |
+| `RequiredPermission(token)` | requires a permission token for access |
 | `Timeout(duration)` | sets the request timeout |
 | `EnableAudit()` | enables audit logging for the operation |
 | `RateLimit(max, period)` | applies per-operation rate limiting |
@@ -162,12 +162,13 @@ crud.NewFindPage[User, UserSearch]().
 
 ```go
 crud.NewFindPage[User, UserSearch]().
-	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) {
+	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) error {
 		if search.DepartmentID != nil {
 			q.Where(func(cb orm.ConditionBuilder) {
 				cb.Equals("department_id", *search.DepartmentID)
 			})
 		}
+		return nil
 	})
 ```
 
@@ -209,7 +210,7 @@ crud.NewFindPage[User, UserSearch]().
 
 ```go
 crud.NewFindPage[User, UserSearch]().
-	WithDefaultSort(orm.SortDesc("created_at"))
+	WithDefaultSort(&sortx.OrderSpec{Column: "created_at", Direction: sortx.OrderDesc})
 ```
 
 ### Query Parts For Tree Builders
@@ -371,7 +372,7 @@ crud.NewCreate[User, UserParams]().
 			return err
 		}
 		if exists {
-			return result.NewBusinessError("Email already exists")
+			return result.Err("Email already exists")
 		}
 		return nil
 	}).
@@ -381,6 +382,7 @@ crud.NewCreate[User, UserParams]().
 		_, err := tx.NewInsert().Model(role).Exec(ctx.Context())
 		return err
 	})
+```
 
 ### `Update[TModel, TParams]`
 
@@ -415,7 +417,7 @@ crud.NewUpdate[User, UserParams]().
 				return err
 			}
 			if count > 0 {
-				return result.NewBusinessError("Cannot deactivate: user has pending tasks")
+				return result.Err("Cannot deactivate: user has pending tasks")
 			}
 		}
 		return nil
@@ -445,7 +447,7 @@ crud.NewDelete[User]().
 	WithPreDelete(func(model *User, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error {
 		// Prevent deleting admin users
 		if model.Username == "admin" {
-			return result.NewBusinessError("Cannot delete the admin user")
+			return result.Err("Cannot delete the admin user")
 		}
 		// Cascade: delete related records
 		_, err := tx.NewDelete().Model((*UserRole)(nil)).

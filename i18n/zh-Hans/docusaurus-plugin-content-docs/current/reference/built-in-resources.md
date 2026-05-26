@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # 内置资源
 
 当对应模块处于默认启动链中时，VEF 会自动注册一批 RPC 资源。
@@ -15,7 +19,7 @@
 | 资源 | 来源模块 | 默认访问模型 | 说明 |
 | --- | --- | --- | --- |
 | `security/auth` | `security` | 混合：部分 action 公开，部分需要 Bearer 认证 | 登录、刷新令牌、登出、挑战校验、当前用户信息 |
-| `sys/storage` | `storage` | 默认 Bearer 认证 | 文件上传、预签名 URL、临时文件删除、对象元数据、对象列表 |
+| `sys/storage` | `storage` | 默认 Bearer 认证 | 多片上传 session 生命周期（init / part / list / complete / abort）。下载走 `/storage/files/<key>` app 代理，不通过 RPC。 |
 | `sys/schema` | `schema` | 默认 Bearer 认证 | 数据库结构检查 |
 | `sys/monitor` | `monitor` | 默认 Bearer 认证 | 运行时与宿主机监控信息 |
 
@@ -86,79 +90,78 @@
 
 ## `sys/storage`
 
-由 storage 模块提供的存储资源。
+由 storage 模块提供的存储资源。v0.21 起单次 PUT 形式的 `upload` 动作已废弃，所有上传都走下面的多片 session 协议。围绕的生命周期（claim、pending-delete、ACL）见 [文件存储](../features/storage)。
 
 ### 操作列表
 
 | Action | 访问方式 | 限流 | 作用 | 参数 |
 | --- | --- | --- | --- | --- |
-| `upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 上传一个文件并返回对象元数据 | 通过 multipart form 解码的 `UploadParams` |
-| `get_presigned_url` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 生成对象访问的临时预签名 URL | `GetPresignedURLParams` |
-| `delete_temp` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 仅当对象 key 位于 `temp/` 前缀下时才允许删除 | `DeleteTempParams` |
-| `stat` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 返回单个对象的元数据 | `StatParams` |
-| `list` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 按前缀列出对象 | `ListParams` |
-
-只有上面这些 action 会作为内置 RPC 接口注册出来。底层 `storage.Service` 还有 copy、move 等能力，但默认不会从这个资源直接暴露。
+| `init_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 开启新的多片 session，服务端返回协商好的 part 计划和不透明 `claimId` | `InitUploadParams` |
+| `upload_part` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 上传一片（multipart form） | `UploadPartParams` |
+| `list_parts` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 列出当前 session 已上传的 parts | `ListPartsParams` |
+| `complete_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 用顺序 part 清单完成上传 | `CompleteUploadParams` |
+| `abort_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 中止并释放 session | `AbortUploadParams` |
 
 相关 HTTP 路由：
 
-- `/storage/files/<key>` 是 app-level 下载代理路由，不是 RPC action
-- 它不会自动继承 RPC 层的 Bearer 认证
+- `/storage/files/<key>` 是 app-level 下载代理路由，不是 RPC action。
+- 它不会自动继承 RPC 层 Bearer 认证；访问权限由 `storage.FileACL` 决定。
 
-### `upload` 参数
-
-这个 action 要求使用 `multipart/form-data`，不能用 JSON RPC body。multipart 字段会被解码到 `params` 中。
+### `init_upload` 参数
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `file` | `file` | 是 | 上传的文件内容，对应 `*multipart.FileHeader` |
-| `contentType` | `string` | 否 | 显式覆盖内容类型；不传时会优先使用上传文件头里的内容类型 |
-| `metadata` | `object<string, string>` | 否 | 传给底层存储服务的附加元数据 |
+| `filename` | `string` | 是 | 原始文件名（≤ 255 字符），用于推断安全扩展名并写入 metadata。 |
+| `size` | `int` | 是 | 对象总字节数（≥ 1），服务端按 `vef.storage.max_upload_size` 校验上限。 |
+| `contentType` | `string` | 否 | 客户端 MIME（≤ 127 字符）。服务端会做白名单清洗——不安全的值会被扩展名探测结果或 `application/octet-stream` 覆盖。 |
+| `public` | `bool` | 否 | 把 key 放到 `pub/` 而不是 `priv/`，需要 `vef.storage.allow_public_uploads = true`。 |
 
-补充说明：
+响应包含 `key`、`claimId`、`originalFilename`、`partSize`、`partCount`、`expiresAt`。后端的 multipart `UploadID` 不会返回给客户端——服务端通过 claim 行自己还原。
 
-- 对象 key 由服务端自动生成，路径格式类似 `temp/YYYY/MM/DD/...`
-- 原始文件名会自动写入 metadata
-- JSON 请求会被拒绝
+### `upload_part` 参数
 
-### `get_presigned_url` 参数
-
-| 参数名 | 类型 | 必填 | 含义 |
-| --- | --- | --- | --- |
-| `key` | `string` | 是 | 目标对象 key |
-| `expires` | `int` | 否 | URL 过期时间，单位秒，默认 `3600` |
-| `method` | `string` | 否 | 参与签名的 HTTP 方法，默认 `GET` |
-
-### `delete_temp` 参数
+此 action 要求使用 `multipart/form-data`，不能用 JSON。multipart 字段会被解码到 `params`：
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `key` | `string` | 是 | 要删除的对象 key，且必须以 `temp/` 开头 |
+| `file` | file | 是 | part 原始字节。 |
+| `claimId` | `string` | 是 | `init_upload` 返回的 `claimId`。 |
+| `partNumber` | `int` | 是 | 1 起的 part 序号，必须 `≤ partCount`；除最后一片外尺寸必须等于服务端 `partSize`。 |
 
-### `stat` 参数
+后端 ETag 不会返回给客户端——服务端自己持久化记录，并在 `complete_upload` 时使用。
 
-| 参数名 | 类型 | 必填 | 含义 |
-| --- | --- | --- | --- |
-| `key` | `string` | 是 | 要查询元数据的对象 key |
-
-### `list` 参数
+### `list_parts` 参数
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `prefix` | `string` | 否 | 列表前缀过滤条件 |
-| `recursive` | `bool` | 否 | 是否递归列出，而不是只列当前层级 |
-| `maxKeys` | `int` | 否 | 最多返回多少个对象 |
+| `claimId` | `string` | 是 | 要查询的 session，返回 `{partNumber, size}` 列表。 |
+
+### `complete_upload` 参数
+
+| 参数名 | 类型 | 必填 | 含义 |
+| --- | --- | --- | --- |
+| `claimId` | `string` | 是 | 要完成的 session。服务端会从自家 part-store 还原 part 清单——不接受客户端传入 ETag。 |
+
+成功后服务端写入最终的 `upload_claim` 行（业务未采纳，处于隔离），并返回 object key。同 claim 后续重复调用是幂等快速路径。
+
+### `abort_upload` 参数
+
+| 参数名 | 类型 | 必填 | 含义 |
+| --- | --- | --- | --- |
+| `claimId` | `string` | 是 | 要中止的 session。幂等——已关闭的 session 再次 abort 也返回成功。 |
 
 最小请求示例：
 
 ```json
 {
   "resource": "sys/storage",
-  "action": "list",
+  "action": "init_upload",
   "version": "v1",
   "params": {
-    "prefix": "temp/",
-    "recursive": false
+    "filename": "report.pdf",
+    "size": 25600000,
+    "contentType": "application/pdf",
+    "public": false
   }
 }
 ```
@@ -174,7 +177,6 @@
 | `list_tables` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回当前数据库或 schema 下的所有表 | 无 |
 | `get_table_schema` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回单个表的详细结构信息 | `GetTableSchemaParams` |
 | `list_views` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回当前数据库或 schema 下的所有视图 | 无 |
-| `list_triggers` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回当前数据库或 schema 下的所有触发器 | 无 |
 
 ### `get_table_schema` 参数
 

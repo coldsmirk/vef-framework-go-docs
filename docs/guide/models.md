@@ -149,8 +149,8 @@ type UserRole struct {
 	orm.Model
 	orm.CreationTrackedModel
 
-	UserID varchar `json:"userId" bun:"user_id,notnull"`
-	RoleID string  `json:"roleId" bun:"role_id,notnull"`
+	UserID string `json:"userId" bun:"user_id,notnull"`
+	RoleID string `json:"roleId" bun:"role_id,notnull"`
 }
 ```
 
@@ -251,7 +251,7 @@ Used by the search parser and CRUD query builders to translate search payloads i
 
 ### `meta`
 
-Used by the storage promoter to detect uploaded file fields, rich text fields, and markdown fields that need temp-file promotion.
+Used by the `storage.Files` / `FilesFor[T]` lifecycle facade to detect uploaded file fields, rich text, and markdown content that participate in the upload-claim / pending-delete lifecycle. See [Storage](../features/storage) for the tag values and how the reconciliation runs.
 
 ### `mold`
 

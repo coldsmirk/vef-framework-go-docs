@@ -92,17 +92,18 @@ crud.NewCreate[User, UserParams]().
 
 因此，CRUD hook 很适合承载“必须原子化生效”的业务约束。
 
-## CRUD Hook 与文件提升
+## CRUD Hook 与文件生命周期
 
-Create、Update、Delete 这几个 builder 还会和 storage promoter 协同工作。
+Create、Update、Delete builder 会和 `storage.Files` / `FilesFor[T]` 生命周期门面（旧 `Promoter[T]` 的替代品）协同工作。
 
 这意味着：
 
-- 文件提升和 CRUD 操作处于同一生命周期
-- Update 回滚时可以恢复被替换文件
-- Delete 成功后可以清理已提升文件
+- 带 `meta` 标签的文件字段会在业务写入的同一事务里完成对账
+- Update 时被替换的字段值会被入队为异步删除
+- Delete 时每个被引用的文件都会被入队为异步删除
+- 事务回滚时不会消费 claim、也不会入队删除 —— 没有什么需要"恢复"
 
-因此 hook 与文件提升是共享同一条 CRUD 生命周期的。
+因此 hook 与文件生命周期共享同一条事务；真正的后端删除则由 storage delete worker 异步执行（见 [存储](../features/storage)）。
 
 ## Bun 模型 Hook 面
 

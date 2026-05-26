@@ -21,10 +21,10 @@ CSV uses the same `tabular` struct tag as Excel. See the [Excel documentation](.
 type Employee struct {
     orm.FullAuditedModel `tabular:"-"`
 
-    Name       string          `tabular:"Name,width:20"`
-    Email      string          `tabular:"Email,width:30"`
+    Name       string          `tabular:"Name,width=20"`
+    Email      string          `tabular:"Email,width=30"`
     Department string          `tabular:"Department"`
-    JoinDate   timex.Date      `tabular:"Join Date,format:2006-01-02"`
+    JoinDate   timex.Date      `tabular:"Join Date,format=2006-01-02"`
     Salary     decimal.Decimal `tabular:"Salary"`
     IsActive   bool            `tabular:"Active"`
 }
@@ -142,9 +142,9 @@ When using `WithoutHeader()`, columns are matched by position. Use the `order` t
 
 ```go
 type Record struct {
-    Name  string `tabular:"Name,order:0"`
-    Email string `tabular:"Email,order:1"`
-    Age   int    `tabular:"Age,order:2"`
+    Name  string `tabular:"Name,order=0"`
+    Email string `tabular:"Email,order=1"`
+    Age   int    `tabular:"Age,order=2"`
 }
 ```
 
@@ -153,7 +153,7 @@ type Record struct {
 ```go
 importer := csv.NewImporterFor[Employee]()
 
-importer.RegisterParser("date", tabular.ValueParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
+importer.RegisterParser("date", tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
     return time.Parse("01/02/2006", cellValue)
 }))
 ```
@@ -168,8 +168,8 @@ Imported records are automatically validated using `validator.Validate(...)`, sa
 | --- | --- |
 | `ErrDataMustBeSlice` | Export data must be a slice |
 | `ErrNoDataRowsFound` | No data rows in the file |
-| `ErrDuplicateColumnName` | Duplicate column names in header |
-| `ErrFieldNotSettable` | Struct field cannot be set |
+| `ErrDuplicateHeaderName` | Duplicate column names in header |
+| `ErrUnsetField` | Struct field cannot be set |
 
 ## CSV vs Excel
 

@@ -4,57 +4,109 @@ sidebar_position: 1
 
 # ID 生成
 
-`id` 包提供可插拔的唯一标识符生成，内置两种策略。
+`id` 包提供可插拔的唯一标识符生成。框架内置 4 种策略：XID、UUID v7、Snowflake、随机/Nano。
 
 ## 快速开始
 
 ```go
 import "github.com/coldsmirk/vef-framework-go/id"
 
-// 默认：XID（大多数场景推荐）
+// XID（模型主键的默认值）
 xid := id.Generate()
-// → "9m4e2mr0ui3e8a215n4g"（20 字符，base32 编码）
+// → "9m4e2mr0ui3e8a215n4g"（20 字符 base32）
 
 // UUID v7（需要 RFC 4122 兼容时使用）
 uuid := id.GenerateUUID()
-// → "018f4e42-832a-7123-9abc-def012345678"（36 字符）
+// → "018f4e42-832a-7123-9abc-def012345678"
 ```
 
 ## 内置生成器
 
-### XID（默认）
+### XID
 
-XID 是框架的默认 ID 生成策略，在性能和唯一性之间取得了最佳平衡。
+XID 是框架模型主键的默认值——在性能与唯一性之间取得最佳平衡。
 
 | 属性 | 值 |
 | --- | --- |
-| 格式 | 20 字符 base32 字符串（`0-9, a-v`）|
-| 可排序 | ✅ 基于时间排序 |
-| 全局唯一 | ✅ 机器 ID + 计数器 |
-| 性能 | 所有策略中最优 |
+| 格式 | 20 字符 base32 字符串（`0-9, a-v`） |
+| 可排序 | 时间序 |
+| 全局唯一 | 机器 ID + 计数器 |
+| 性能 | 四种策略中最快 |
 
 ```go
 xid := id.Generate()
+// 或
+xid := id.DefaultXIDGenerator.Generate()
 ```
 
 ### UUID v7
 
-UUID v7 提供基于时间的排序，遵循 RFC 4122 标准。
+时间序、符合 RFC 4122 的 UUID —— 对接外部系统时使用。
 
 | 属性 | 值 |
 | --- | --- |
-| 格式 | 36 字符 UUID（`xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx`）|
-| 可排序 | ✅ 基于时间排序 |
-| RFC 兼容 | ✅ RFC 4122 |
-| 使用场景 | 外部系统需要 UUID 时 |
+| 格式 | 36 字符 UUID（`xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx`） |
+| 可排序 | 时间序 |
+| RFC 兼容 | RFC 4122 |
 
 ```go
 uuid := id.GenerateUUID()
+// 或
+uuid := id.DefaultUUIDGenerator.Generate()
+```
+
+### Snowflake
+
+Twitter 风格 Snowflake ID —— 64 位整数编码为十进制字符串。需要分布式、有序的整数 ID 时使用。
+
+| 属性 | 值 |
+| --- | --- |
+| 编码 | 自定义：6 位节点（0-63）、12 位步进（每毫秒每节点 4096 个 ID） |
+| Epoch | `1754582400000`（包内固化的自定义起点） |
+| 节点 ID | 启动时读取 `VEF_NODE_ID` 环境变量 |
+| 默认实例 | `id.DefaultSnowflakeIDGenerator` |
+
+```go
+snow := id.DefaultSnowflakeIDGenerator.Generate()
+// → "7234567890123456789"
+```
+
+如需自定义节点 ID，构造一个新生成器：
+
+```go
+gen, err := id.NewSnowflakeIDGenerator(int64(42))
+if err != nil {
+    return err
+}
+sid := gen.Generate()
+```
+
+> Snowflake 最多支持 64 个节点、每毫秒每节点 4096 个 ID。每个进程必须配置唯一的 `VEF_NODE_ID`，避免冲突。
+
+### 随机 / Nano 风格
+
+可配置字符表的密码学随机 ID —— 适合短小、不透明的令牌。
+
+| 属性 | 值 |
+| --- | --- |
+| 默认字符表 | `0-9 a-z A-Z`（62 字符，`id.DefaultRandomIDGeneratorAlphabet`） |
+| 默认长度 | 32（`id.DefaultRandomIDGeneratorLength`） |
+
+```go
+// 默认 32 字符的字母数字 token
+gen := id.NewRandomIDGenerator()
+token := gen.Generate()
+
+// 自定义：16 位纯数字
+gen = id.NewRandomIDGenerator(
+    id.WithAlphabet("0123456789"),
+    id.WithLength(16),
+)
 ```
 
 ## IDGenerator 接口
 
-通过实现 `IDGenerator` 接口来自定义 ID 生成器：
+所有内置生成器都实现同一个接口：
 
 ```go
 type IDGenerator interface {
@@ -62,19 +114,22 @@ type IDGenerator interface {
 }
 ```
 
-框架使用默认的 XID 生成器（`id.DefaultXIDGenerator`）来生成模型主键。`orm` 包在插入 ID 为空的记录时会自动调用 `id.Generate()`。
-
-## 预构建生成器实例
+预构建单例：
 
 ```go
-id.DefaultXIDGenerator  // *XIDGenerator 单例
-id.DefaultUUIDGenerator // *UUIDGenerator 单例
+id.DefaultXIDGenerator         // IDGenerator
+id.DefaultUUIDGenerator        // IDGenerator
+id.DefaultSnowflakeIDGenerator // IDGenerator
 ```
+
+`orm` 包在插入主键为空的记录时会自动调用 `id.Generate()`（即 XID）。
 
 ## 何时使用哪种
 
 | 场景 | 建议 |
 | --- | --- |
-| 通用应用 ID | `id.Generate()`（XID）|
-| 外部 API 集成 | `id.GenerateUUID()`（UUID v7）|
-| 需要自定义格式 | 实现 `IDGenerator` 接口 |
+| 普通应用 ID（主键） | `id.Generate()`（XID） |
+| 对外 API 需要 UUID | `id.GenerateUUID()` |
+| 分布式、有序的整数 ID | `id.DefaultSnowflakeIDGenerator` |
+| 短令牌 / 邀请码 / 分享链接 | `id.NewRandomIDGenerator(...)` |
+| 自定义格式 | 实现 `IDGenerator` 接口 |

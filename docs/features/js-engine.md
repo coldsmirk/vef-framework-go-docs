@@ -75,7 +75,7 @@ program, err := js.Compile("my-script", `
         return a + b;
     }
     calculate(x, y);
-`)
+`, true) // third argument enables strict mode
 
 vm.Set("x", 10)
 vm.Set("y", 20)

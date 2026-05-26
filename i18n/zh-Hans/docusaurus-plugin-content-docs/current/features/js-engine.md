@@ -75,7 +75,7 @@ program, err := js.Compile("my-script", `
         return a + b;
     }
     calculate(x, y);
-`)
+`, true) // 第三个参数开启严格模式
 
 vm.Set("x", 10)
 vm.Set("y", 20)

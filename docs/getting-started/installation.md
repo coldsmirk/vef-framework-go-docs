@@ -10,7 +10,7 @@ This page covers the minimum environment and project setup required to boot a VE
 
 The current framework version requires:
 
-- Go `1.26.0`
+- Go `1.26.1`
 
 For application development, Go is the only mandatory runtime dependency.
 

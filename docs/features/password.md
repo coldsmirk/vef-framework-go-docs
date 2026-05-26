@@ -24,12 +24,12 @@ The composite encoder stores the algorithm identifier as a prefix in the encoded
 import "github.com/coldsmirk/vef-framework-go/password"
 
 encoder := password.NewCompositeEncoder(
-    password.Bcrypt, // default for new passwords
+    password.EncoderBcrypt, // default for new passwords
     map[password.EncoderID]password.Encoder{
-        password.Bcrypt:  password.NewBcryptEncoder(),
-        password.Argon2:  password.NewArgon2Encoder(),
-        password.Scrypt:  password.NewScryptEncoder(),
-        password.SHA256:  password.NewSHA256Encoder(),
+        password.EncoderBcrypt: password.NewBcryptEncoder(),
+        password.EncoderArgon2: password.NewArgon2Encoder(),
+        password.EncoderScrypt: password.NewScryptEncoder(),
+        password.EncoderSha256: password.NewSha256Encoder(),
     },
 )
 ```
@@ -65,11 +65,29 @@ needsUpgrade := encoder.UpgradeEncoding("{sha256}abc123...")
 
 | Encoder ID | Constructor | Security Level |
 | --- | --- | --- |
-| `password.Bcrypt` | `NewBcryptEncoder()` | ⭐⭐⭐⭐ Recommended |
-| `password.Argon2` | `NewArgon2Encoder()` | ⭐⭐⭐⭐⭐ Strongest |
-| `password.Scrypt` | `NewScryptEncoder()` | ⭐⭐⭐⭐ Strong |
-| `password.SHA256` | `NewSHA256Encoder()` | ⭐⭐ Legacy only |
-| `password.Plaintext` | `NewPlaintextEncoder()` | ⭐ Testing only |
+| `password.EncoderBcrypt` | `password.NewBcryptEncoder()` | ⭐⭐⭐⭐ Recommended |
+| `password.EncoderArgon2` | `password.NewArgon2Encoder()` | ⭐⭐⭐⭐⭐ Strongest |
+| `password.EncoderScrypt` | `password.NewScryptEncoder()` | ⭐⭐⭐⭐ Strong |
+| `password.EncoderPbkdf2` | `password.NewPbkdf2Encoder()` | ⭐⭐⭐ Standard (FIPS-friendly) |
+| `password.EncoderSha256` | `password.NewSha256Encoder()` | ⭐⭐ Legacy only |
+| `password.EncoderMd5` | `password.NewMd5Encoder()` | ⭐ Legacy / interop only |
+| `password.EncoderPlaintext` | `password.NewPlaintextEncoder()` | ⭐ Testing only |
+
+The `{prefix}` segment is derived from the `EncoderID` constant value, so `EncoderBcrypt` → `{bcrypt}`, `EncoderSha256` → `{sha256}`, etc.
+
+## Wrapping an Encoder With a Cipher
+
+If the client hashes / encrypts the password before sending (a common "front-end encrypts, backend rehashes" pattern), wrap the underlying encoder with `NewCipherEncoder`:
+
+```go
+inner := password.NewBcryptEncoder()
+encoder := password.NewCipherEncoder(rsaCipher, inner)
+
+// `encoded` is what reaches the server (e.g. RSA-encrypted by the browser).
+// The encoder decrypts it through `rsaCipher` first, then hashes the
+// plaintext through `inner`.
+hashed, err := encoder.Encode(encoded)
+```
 
 ## Password Format
 

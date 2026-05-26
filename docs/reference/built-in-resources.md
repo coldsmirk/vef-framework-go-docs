@@ -19,7 +19,7 @@ Unless noted otherwise:
 | Resource | Module | Default access model | Notes |
 | --- | --- | --- | --- |
 | `security/auth` | `security` | Mixed: some actions are public, some require Bearer auth | Login flow, token refresh, logout, challenge resolution, current-user info |
-| `sys/storage` | `storage` | Bearer auth by default | File upload, presigned URL generation, temporary object cleanup, object metadata, object listing |
+| `sys/storage` | `storage` | Bearer auth by default | Multipart upload session lifecycle (init / part / list / complete / abort). Downloads are served via the `/storage/files/<key>` app proxy, not via RPC. |
 | `sys/schema` | `schema` | Bearer auth by default | Database schema inspection |
 | `sys/monitor` | `monitor` | Bearer auth by default | Runtime and host monitoring data |
 
@@ -90,79 +90,78 @@ Notes:
 
 ## `sys/storage`
 
-Storage resource provided by the storage module.
+Storage resource provided by the storage module. The single-PUT `upload` action was retired in v0.21; every upload now goes through the multipart session lifecycle below. See [File Storage](../features/storage) for the surrounding lifecycle (claim, pending-delete, ACL).
 
 ### Operations
 
 | Action | Access | Rate limit | Purpose | Params |
 | --- | --- | --- | --- | --- |
-| `upload` | Bearer auth required | API engine default | Uploads one file into storage and returns object metadata | `UploadParams` via multipart form |
-| `get_presigned_url` | Bearer auth required | API engine default | Generates a temporary presigned URL for object access | `GetPresignedURLParams` |
-| `delete_temp` | Bearer auth required | API engine default | Deletes an object only when its key is under the `temp/` prefix | `DeleteTempParams` |
-| `stat` | Bearer auth required | API engine default | Returns metadata for one object | `StatParams` |
-| `list` | Bearer auth required | API engine default | Lists objects under a prefix | `ListParams` |
-
-Only the actions above are registered as built-in RPC operations. The underlying service supports more capabilities such as copy and move, but they are not exposed here by default.
+| `init_upload` | Bearer auth required | API engine default | Open a new multipart session. Server returns the negotiated part plan and an opaque `claimId`. | `InitUploadParams` |
+| `upload_part` | Bearer auth required | API engine default | Upload one part of an open session (multipart form). | `UploadPartParams` |
+| `list_parts` | Bearer auth required | API engine default | List parts already uploaded for a session. | `ListPartsParams` |
+| `complete_upload` | Bearer auth required | API engine default | Seal a session by submitting the ordered part manifest. | `CompleteUploadParams` |
+| `abort_upload` | Bearer auth required | API engine default | Abort and release a session. | `AbortUploadParams` |
 
 Related HTTP route:
 
-- `/storage/files/<key>` is an app-level download proxy route, not an RPC action
-- it does not automatically inherit RPC Bearer authentication
+- `/storage/files/<key>` is an app-level download proxy route, not an RPC action.
+- It does not automatically inherit RPC Bearer authentication; access is governed by `storage.FileACL`.
 
-### `upload` parameters
-
-This action expects `multipart/form-data`, not a JSON RPC body. Multipart fields are decoded into `params`.
+### `init_upload` parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `file` | `file` | Yes | Uploaded file content. This is required and maps to `*multipart.FileHeader` |
-| `contentType` | `string` | No | Explicit content type override. If omitted, the server uses the uploaded file header content type |
-| `metadata` | `object<string, string>` | No | Optional storage metadata map passed to the storage service |
+| `filename` | `string` | Yes | Original filename (≤ 255 chars). Used to derive the safe extension and stored as metadata. |
+| `size` | `int` | Yes | Total object size in bytes (≥ 1). The server validates against `vef.storage.max_upload_size`. |
+| `contentType` | `string` | No | Client-supplied MIME (≤ 127 chars). Sanitized server-side — unsafe values are overridden by extension-based detection or fall back to `application/octet-stream`. |
+| `public` | `bool` | No | Place the key under `pub/` instead of `priv/`. Requires `vef.storage.allow_public_uploads = true`. |
 
-Notes:
+Response shape includes `key`, `claimId`, `originalFilename`, `partSize`, `partCount`, and `expiresAt`. The backend's multipart `UploadID` is intentionally not returned to the client; the server reloads it from the claim row.
 
-- object keys are generated server-side under a date-based `temp/YYYY/MM/DD/...` path
-- the original filename is automatically stored in metadata
-- JSON requests are rejected for this action
+### `upload_part` parameters
 
-### `get_presigned_url` parameters
-
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `key` | `string` | Yes | Object key to access |
-| `expires` | `int` | No | Expiration time in seconds. Defaults to `3600` |
-| `method` | `string` | No | HTTP method used when signing the URL. Defaults to `GET` |
-
-### `delete_temp` parameters
+This action expects `multipart/form-data`, not JSON. Multipart fields decode into `params`:
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `key` | `string` | Yes | Object key to delete. Must start with `temp/` |
+| `file` | file | Yes | Raw part bytes. |
+| `claimId` | `string` | Yes | The `claimId` returned by `init_upload`. |
+| `partNumber` | `int` | Yes | 1-indexed part position. Must be `≤ partCount` and the size must equal the server's `partSize` (the final part may be smaller). |
 
-### `stat` parameters
+The backend ETag is intentionally not returned to the client — the server records it server-side and reuses it during `complete_upload`.
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `key` | `string` | Yes | Object key whose metadata should be returned |
-
-### `list` parameters
+### `list_parts` parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `prefix` | `string` | No | Prefix filter used for object listing |
-| `recursive` | `bool` | No | Whether to list recursively instead of only the current prefix level |
-| `maxKeys` | `int` | No | Maximum number of objects to return |
+| `claimId` | `string` | Yes | Session to inspect. Response is a list of `{partNumber, size}` entries. |
+
+### `complete_upload` parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `claimId` | `string` | Yes | Session to seal. The server reassembles the manifest from its own part-store records — no client-supplied ETags are accepted. |
+
+On success the server writes the final `upload_claim` row (still pending business adoption) and returns the object key. Subsequent calls against the same claim are idempotent fast-paths.
+
+### `abort_upload` parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `claimId` | `string` | Yes | Session to abort. Idempotent — re-aborting an already-closed session returns success. |
 
 Minimal request example:
 
 ```json
 {
   "resource": "sys/storage",
-  "action": "list",
+  "action": "init_upload",
   "version": "v1",
   "params": {
-    "prefix": "temp/",
-    "recursive": false
+    "filename": "report.pdf",
+    "size": 25600000,
+    "contentType": "application/pdf",
+    "public": false
   }
 }
 ```

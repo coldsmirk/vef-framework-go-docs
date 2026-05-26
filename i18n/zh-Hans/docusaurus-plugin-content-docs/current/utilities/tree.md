@@ -76,10 +76,24 @@ if found {
 
 ## 框架集成
 
-`tree` 包被 CRUD 的 `FindTree` 构建器使用。创建树端点时：
+`tree` 包被 CRUD 的 `FindTree` 构建器使用。`NewFindTree[T, S]` 需要一个 `func([]T) []T` 形状的 builder，所以你写一个薄包装，把模型的 adapter 闭进去：
 
 ```go
-crud.NewFindTree[Department, DepartmentSearch](tree.Build)
+func buildDepartmentTree(flat []Department) []Department {
+    adapter := tree.Adapter[Department]{
+        GetID:       func(d Department) string { return d.ID },
+        GetParentID: func(d Department) string { return d.ParentID },
+        SetChildren: func(d *Department, children []Department) { d.Children = children },
+        // GetChildren 只在调用 tree.FindNode / tree.FindNodePath 时使用；
+        // tree.Build 本身不会调它。
+        GetChildren: func(d Department) []Department { return d.Children },
+    }
+    return tree.Build(flat, adapter)
+}
+
+// 然后把这个 wrapper 传给 CRUD builder。
+crud.NewFindTree[Department, DepartmentSearch](buildDepartmentTree)
 ```
 
-框架会将 `tree.Build` 作为树构建函数传入，使用模型的树适配器配置。
+> `tree.Build` 的签名是 `Build[T any](nodes []T, adapter Adapter[T]) []T`，多了 `adapter` 参数，不能直接传给 `NewFindTree`，需要靠上面的 wrapper 桥接。
+> 当 `GetID` 返回 `""` 时，该节点会被跳过索引；它的 children 也不会被填充。

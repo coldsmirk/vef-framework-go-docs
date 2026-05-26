@@ -24,7 +24,6 @@ schema 模块会提供：
 | `ListTables(ctx)` | `[]schema.Table` | 列出当前 schema / database 下的表 |
 | `GetTableSchema(ctx, name)` | `*schema.TableSchema` | 检查单张表的详细结构 |
 | `ListViews(ctx)` | `[]schema.View` | 列出视图 |
-| `ListTriggers(ctx)` | `[]schema.Trigger` | 列出触发器 |
 
 ## 内置资源
 
@@ -41,13 +40,12 @@ schema 模块会注册：
 | `list_tables` | 无 | `[]schema.Table` | 列出当前表 |
 | `get_table_schema` | `name: string` | `schema.TableSchema` | 表不存在时会返回专门的 schema-table-not-found 业务错误 |
 | `list_views` | 无 | `[]schema.View` | 列出当前视图 |
-| `list_triggers` | 无 | `[]schema.Trigger` | 列出当前触发器 |
 
 源码层面的实现细节：
 
 - 每个 action 当前都单独设置了 `Max = 60` 的限流上限
 - `get_table_schema` 会校验 `name` 必填
-- 表不存在时会映射到 `result.ErrCodeSchemaTableNotFound`
+- 表不存在时会映射到 `schema.ErrCodeTableNotFound`（对应 `schema.ErrTableNotFound` sentinel）
 
 ## 公共 Schema 类型
 
@@ -133,19 +131,6 @@ schema 模块会注册：
 | `definition` | `string` | 视图定义 SQL |
 | `comment` | `string` | 视图注释 |
 | `columns` | `[]string` | 输出列 |
-| `materialized` | `bool` | 是否物化视图 |
-
-### `schema.Trigger`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `name` | `string` | 触发器名 |
-| `table` | `string` | 目标表（如适用） |
-| `view` | `string` | 目标视图（如适用） |
-| `actionTime` | `string` | before / after / instead-of 时机 |
-| `events` | `[]string` | 触发事件，如 insert / update |
-| `forEachRow` | `bool` | 行级还是语句级触发器 |
-| `body` | `string` | 触发器定义体 |
 
 ## 最小请求示例
 

@@ -76,10 +76,24 @@ if found {
 
 ## Framework Integration
 
-The `tree` package is used by the CRUD `FindTree` builder. When you create a tree endpoint:
+The `tree` package is used by the CRUD `FindTree` builder. `NewFindTree[T, S]` requires a builder of signature `func([]T) []T`, so you provide a thin wrapper that closes over the model's adapter:
 
 ```go
-crud.NewFindTree[Department, DepartmentSearch](tree.Build)
+func buildDepartmentTree(flat []Department) []Department {
+    adapter := tree.Adapter[Department]{
+        GetID:       func(d Department) string { return d.ID },
+        GetParentID: func(d Department) string { return d.ParentID },
+        SetChildren: func(d *Department, children []Department) { d.Children = children },
+        // GetChildren is only needed if you intend to call tree.FindNode /
+        // tree.FindNodePath on the resulting tree; tree.Build itself doesn't use it.
+        GetChildren: func(d Department) []Department { return d.Children },
+    }
+    return tree.Build(flat, adapter)
+}
+
+// Then plug the wrapper into the CRUD builder.
+crud.NewFindTree[Department, DepartmentSearch](buildDepartmentTree)
 ```
 
-The framework passes `tree.Build` as the tree builder function, using the model's tree adapter configuration.
+> `tree.Build` has signature `Build[T any](nodes []T, adapter Adapter[T]) []T`, so it cannot be passed directly to `NewFindTree` — the wrapper bridges the two signatures.
+> Nodes whose `GetID` returns `""` are skipped during indexing and won't have their children populated.

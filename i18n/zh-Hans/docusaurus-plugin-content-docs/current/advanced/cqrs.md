@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # CQRS
 
 VEF 内置了一套轻量级 CQRS bus，用来承载 command、query 和统一行为（behavior）中间件。

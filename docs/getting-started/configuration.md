@@ -29,14 +29,14 @@ Application-level settings:
 [vef.app]
 name = "my-app"
 port = 8080
-body_limit = "10mib"
+body_limit = "32mib"
 ```
 
 Key fields:
 
 - `name`: used as the app name and as input to JWT audience generation
 - `port`: HTTP port for the Fiber app
-- `body_limit`: parsed by Fiber; defaults to `10mib` when omitted
+- `body_limit`: parsed by Fiber; defaults to `32mib` when omitted
 
 ### `vef.data_source`
 
@@ -54,15 +54,15 @@ schema = "public"
 enable_sql_guard = true
 ```
 
-Supported `type` values:
+Supported `type` values (drivers registered in the framework runtime):
 
 - `postgres`
 - `mysql`
 - `sqlite`
-- `oracle`
-- `sqlserver`
 
-For SQLite, `path` is optional. When it is omitted, the framework uses a shared in-memory database.
+For SQLite, `path` is optional. When omitted, the framework uses a shared in-memory database.
+
+> The `config.DBKind` enum also declares `oracle` and `sqlserver` constants for future use, but the framework does not currently ship runtime providers for them — configuring those values returns `database.ErrUnsupportedDBKind` at boot.
 
 ### `vef.cors`
 
@@ -144,18 +144,26 @@ Approval workflow engine settings:
 
 ```toml
 [vef.approval]
-auto_migrate = true
-outbox_relay_interval = 5
-outbox_max_retries = 10
-outbox_batch_size = 100
+auto_migrate              = true
+timeout_scan_interval     = "1m"
+pre_warning_scan_interval = "5m"
+cleanup_scan_interval     = "24h"
+delegation_max_depth      = 10
+form_snapshot_retention   = "2160h"  # 90 days
+urge_record_retention     = "720h"   # 30 days
+cc_record_retention       = "2160h"  # 90 days
 ```
 
 Key fields:
 
-- `auto_migrate`: automatically create approval tables on startup
-- `outbox_relay_interval`: polling interval in seconds (default: 5)
-- `outbox_max_retries`: max retry attempts for outbox events (default: 10)
-- `outbox_batch_size`: max events per poll (default: 100)
+- `auto_migrate`: run the approval DDL migration on startup
+- `timeout_scan_interval`: cadence of the timeout scanner (default: 1m)
+- `pre_warning_scan_interval`: cadence of the pre-warning scanner (default: 5m)
+- `cleanup_scan_interval`: cadence of the retention cleanup job (default: 24h)
+- `delegation_max_depth`: maximum delegation chain depth (default: 10)
+- `form_snapshot_retention` / `urge_record_retention` / `cc_record_retention`: retention windows for the corresponding tables
+
+> The outbox-related fields previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`). They have moved to `[vef.event.transports.outbox]` so the framework-wide outbox transport can serve any module — see [Event Bus](../features/event-bus).
 
 ## Environment overrides
 

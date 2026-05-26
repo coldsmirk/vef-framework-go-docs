@@ -35,7 +35,7 @@ title: 应用项目规范
 | 接口 | 接口名必须表达能力或职责。能自然读通时优先使用领域名词或 `-er` 风格 | `UserLoader`、`TokenGenerator`、`PermissionChecker` |
 | 变量 | 变量名必须使用 lowerCamelCase。只有在作用域极小且语义非常明显时才允许很短的名字 | `userID`、`requestMeta`、`authManager` |
 | 常量 | 常量必须遵循 Go 风格命名。成组常量在有助于理解时保持统一领域前缀 | `DefaultRPCEndpoint`、`AuthTypePassword`、`UserMenuTypeDirectory` |
-| 结构体字段 | 结构体字段在 Go 代码中必须使用 PascalCase。外部命名风格应通过 tag 映射 | `CreatedAt`、`UserID`、`PermTokens` |
+| 结构体字段 | 结构体字段在 Go 代码中必须使用 PascalCase。外部命名风格应通过 tag 映射 | `CreatedAt`、`UserID`、`PermissionTokens` |
 
 补充要求：
 

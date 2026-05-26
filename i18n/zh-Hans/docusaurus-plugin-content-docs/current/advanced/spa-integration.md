@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # SPA 集成
 
 VEF 可以在同一个 Fiber 服务里同时托管 API 和单页应用。公开入口是 `middleware.SPAConfig`，以及 `di.go` 中的两个 DI helper。

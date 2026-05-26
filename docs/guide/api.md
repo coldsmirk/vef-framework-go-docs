@@ -93,13 +93,13 @@ When using CRUD builders, you typically embed `api.Resource` and CRUD providers.
 
 ```go
 type OperationSpec struct {
-    Action      string             // Action name (e.g., "create", "find_page")
-    EnableAudit bool               // Enable audit logging
-    Timeout     time.Duration      // Request timeout
-    Public      bool               // No authentication required
-    PermToken   string             // Required permission token
-    RateLimit   *RateLimitConfig   // Rate limiting config
-    Handler     any                // Business logic handler
+    Action             string            // Action name (e.g., "create", "find_page")
+    EnableAudit        bool              // Enable audit logging
+    Timeout            time.Duration     // Request timeout
+    Public             bool              // No authentication required
+    RequiredPermission string            // Required permission token (renamed from PermToken in v0.24)
+    RateLimit          *RateLimitConfig  // Rate limiting config
+    Handler            any               // Business logic handler
 }
 ```
 
@@ -120,10 +120,10 @@ type UserResource struct {
 func NewUserResource() *UserResource {
     return &UserResource{
         Resource: api.NewRPCResource("sys/user"),
-        FindPage: crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query"),
-        Create:   crud.NewCreate[User, UserParams]().PermToken("sys:user:create"),
-        Update:   crud.NewUpdate[User, UserParams]().PermToken("sys:user:update"),
-        Delete:   crud.NewDelete[User]().PermToken("sys:user:delete"),
+        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
+        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
+        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
+        Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
     }
 }
 ```
@@ -136,9 +136,9 @@ For non-CRUD operations, use `WithOperations` or implement `OperationsProvider`:
 resource := api.NewRPCResource("sys/user",
     api.WithOperations(
         api.OperationSpec{
-            Action:  "reset_password",
-            Handler: resetPasswordHandler,
-            PermToken: "sys:user:reset_password",
+            Action:             "reset_password",
+            Handler:            resetPasswordHandler,
+            RequiredPermission: "sys:user:reset_password",
         },
     ),
 )
@@ -246,7 +246,7 @@ api.NewRPCResource("external/webhook", api.WithAuth(api.SignatureAuth()))
 
 // Operation-level: override per operation
 crud.NewCreate[User, UserParams]().Public()                    // No auth
-crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query") // Bearer + permission
+crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query") // Bearer + permission
 ```
 
 ## Rate Limiting

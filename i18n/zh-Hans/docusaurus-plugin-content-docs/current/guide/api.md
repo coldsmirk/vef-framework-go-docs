@@ -93,13 +93,13 @@ type Resource interface {
 
 ```go
 type OperationSpec struct {
-    Action      string             // Action 名（如 "create"、"find_page"）
-    EnableAudit bool               // 启用审计日志
-    Timeout     time.Duration      // 请求超时
-    Public      bool               // 无需认证
-    PermToken   string             // 所需权限令牌
-    RateLimit   *RateLimitConfig   // 限流配置
-    Handler     any                // 业务处理函数
+    Action             string            // Action 名（如 "create"、"find_page"）
+    EnableAudit        bool              // 启用审计日志
+    Timeout            time.Duration     // 请求超时
+    Public             bool              // 无需认证
+    RequiredPermission string            // 所需权限令牌（v0.24 起从 PermToken 重命名）
+    RateLimit          *RateLimitConfig  // 限流配置
+    Handler            any               // 业务处理函数
 }
 ```
 
@@ -120,10 +120,10 @@ type UserResource struct {
 func NewUserResource() *UserResource {
     return &UserResource{
         Resource: api.NewRPCResource("sys/user"),
-        FindPage: crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query"),
-        Create:   crud.NewCreate[User, UserParams]().PermToken("sys:user:create"),
-        Update:   crud.NewUpdate[User, UserParams]().PermToken("sys:user:update"),
-        Delete:   crud.NewDelete[User]().PermToken("sys:user:delete"),
+        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
+        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
+        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
+        Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
     }
 }
 ```
@@ -136,9 +136,9 @@ func NewUserResource() *UserResource {
 resource := api.NewRPCResource("sys/user",
     api.WithOperations(
         api.OperationSpec{
-            Action:  "reset_password",
-            Handler: resetPasswordHandler,
-            PermToken: "sys:user:reset_password",
+            Action:             "reset_password",
+            Handler:            resetPasswordHandler,
+            RequiredPermission: "sys:user:reset_password",
         },
     ),
 )
@@ -246,7 +246,7 @@ api.NewRPCResource("external/webhook", api.WithAuth(api.SignatureAuth()))
 
 // 操作级：按操作覆盖
 crud.NewCreate[User, UserParams]().Public()                      // 无认证
-crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query") // Bearer + 权限
+crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query") // Bearer + 权限
 ```
 
 ## 限流

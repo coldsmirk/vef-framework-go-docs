@@ -55,7 +55,10 @@ ctx = contextx.SetPrincipal(ctx, principal)
 // Common usage
 if p := contextx.Principal(ctx); p != nil {
     userID := p.ID
-    tenantID := p.TenantID
+    roles := p.Roles
+    // Tenant info isn't part of the core Principal — apps that need it
+    // store it on Principal.Details and read it back via the
+    // approval.PrincipalTenantResolver helper.
 }
 ```
 

@@ -159,7 +159,7 @@ specs := []tabular.ColumnSpec{
 | `Required` | 否 | 导入时空值会触发 `ErrRequiredMissing` |
 | `Validators` | 否 | 解析后执行的 `[]CellValidator` |
 
-`NewSchemaFromSpecs` 会立即校验输入：缺 `Key`、缺 `Type`、`Key` 重复都会在构造期返回错误（`tabular.ErrMissingColumnKey`、`ErrMissingColumnType`、`ErrDuplicateColumnName`）。
+`NewSchemaFromSpecs` 会立即校验输入：缺 `Key`、缺 `Type`、`Key` 重复都会在构造期返回错误（`tabular.ErrMissingColumnKey`、`ErrMissingColumnType`、`ErrDuplicateHeaderName`）。
 
 ### 导出
 
@@ -380,7 +380,7 @@ Excel 选项：
 - Header 单元格按 `Column.Name` 匹配。
 - 空 Header 单元格被跳过。
 - 未知 Header 单元格被跳过（不会因为多余列失败）。
-- 重复的非空 Header 是致命错误：`tabular.ErrDuplicateColumnName`。
+- 重复的非空 Header 是致命错误：`tabular.ErrDuplicateHeaderName`。
 - 当 importer 配置为 `WithoutHeader()` 时，引擎回退到 `tabular.DefaultPositionalMapping`——第 0 列对应 schema 的第一列，依此类推。
 
 ## 错误
@@ -393,7 +393,7 @@ Excel 选项：
 | `ErrSchemaMismatch` | 元素类型与适配器 schema 不匹配（结构体 / map 不一致） |
 | `ErrUnknownColumn` | 调用方引用了 schema 中不存在的列 |
 | `ErrRequiredMissing` | 动态导入时 `Required` 单元格为空 |
-| `ErrDuplicateColumnName` | Header 行存在重复非空名 |
+| `ErrDuplicateHeaderName` | Header 行存在重复非空名 |
 | `ErrUnsetField` | 结构体字段不可写（通常是未导出字段） |
 | `ErrMissingColumnKey` / `ErrMissingColumnType` | `ColumnSpec` 缺关键字段 |
 | `ErrTypedRowMismatch` | `TypedImporter[T]` 收到的元素类型不是 `T` |

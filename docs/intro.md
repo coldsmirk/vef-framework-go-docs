@@ -71,7 +71,7 @@ The rest of the framework exists mostly to support those user-facing entry point
 The framework also ships with several built-in resources and modules:
 
 - `security/auth` for login, refresh, logout, challenge resolution, and optional user info loading
-- `sys/storage` for upload, presigned URLs, temporary file cleanup, object listing, and object metadata
+- `sys/storage` for multipart upload (init/part/list/complete/abort) plus a `/storage/files/<key>` download proxy
 - `sys/schema` for schema inspection
 - `sys/monitor` for runtime and host monitoring
 - MCP middleware and server integration when enabled

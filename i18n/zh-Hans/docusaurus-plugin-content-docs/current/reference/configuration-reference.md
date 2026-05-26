@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # 配置参考
 
 这一页按区块汇总 VEF 在启动期间会读取的配置项。
@@ -43,7 +47,7 @@ type = "sqlite"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite \| oracle \| sqlserver` | 当前运行时支持的数据库类型。 |
+| `type` | `postgres \| mysql \| sqlite` | 当前运行时支持的数据库类型。`oracle` / `sqlserver` 暂未实现。 |
 | `host` | `string` | 网络数据库主机。 |
 | `port` | `uint16` | 网络数据库端口。 |
 | `user` | `string` | 数据库用户名。 |
@@ -55,7 +59,7 @@ type = "sqlite"
 
 说明：
 
-- 当前运行时注册的 provider 支持 `postgres`、`mysql`、`sqlite`、`oracle`、`sqlserver`
+- 当前运行时注册的 provider 支持 `postgres`、`mysql`、`sqlite`。`oracle` 和 `sqlserver` 是 `DBKind` 常量留作未来扩展，目前未实现，配置后会在启动时报 `database.ErrUnsupportedDBKind`。
 
 ## `vef.cors`
 
@@ -121,10 +125,31 @@ type = "sqlite"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `auto_migrate` | `bool` | approval 模块是否自动迁移。 |
-| `outbox_relay_interval` | `int` | outbox relay 轮询间隔，单位秒。 |
-| `outbox_max_retries` | `int` | outbox 最大重试次数。 |
-| `outbox_batch_size` | `int` | outbox 单批次最大数量。 |
+| `auto_migrate` | `bool` | 是否在启动时执行 approval DDL 迁移。 |
+| `timeout_scan_interval` | `duration` | 超时扫描器轮询节奏，默认 1m。 |
+| `pre_warning_scan_interval` | `duration` | 预警扫描器轮询节奏，默认 5m。 |
+| `cleanup_scan_interval` | `duration` | 保留期清理任务节奏，默认 24h。 |
+| `delegation_max_depth` | `int` | 委托链最大深度，默认 10。 |
+| `form_snapshot_retention` | `duration` | apv_form_snapshot 保留期，默认 90 天。 |
+| `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
+| `cc_record_retention` | `duration` | apv_cc_record 保留期，默认 90 天。 |
+
+> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../features/event-bus)。
+
+## `vef.event`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `default_transport` | `string` | 路由回退使用的 transport 名（默认 `memory`）。 |
+| `async_queue_size` | `int` | `WithAsync` 异步队列容量。 |
+| `async_workers` | `int` | 异步队列 worker 数量。 |
+| `publish_timeout` | `duration` | 单次 Publish 调用上限。 |
+| `transports.memory.*` | — | 内存 transport 配置：`queue_size`、`full_policy`、`publish_timeout`。 |
+| `transports.outbox.*` | — | outbox transport 配置：`enabled`、`relay_interval`、`max_retries`、`batch_size`、`lease_multiplier`、`min_lease`、`sink`、`cleanup_interval`、`completed_ttl`。 |
+| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix`、`max_len_approx`、`block_timeout`、`claim_idle`、`claim_interval`、`claim_batch_size`、`consumer_id`、`start_id`。 |
+| `middleware.*` | `bool` | 中间件开关：`logging`、`tracing`、`tracing_strict`、`metrics`、`recover`、`inbox`。 |
+| `inbox.*` | — | Inbox 去重表配置：`retention`、`processing_lease`、`cleanup_interval`。 |
+| `routing` | `[]{pattern, transports}` | 路由规则列表，自顶向下匹配。 |
 
 ## 延伸阅读
 

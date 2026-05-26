@@ -1,10 +1,16 @@
+---
+sidebar_position: 2
+---
+
 # 事务
 
-VEF 通过 `orm.DB` 提供事务能力。对大多数用户来说，`RunInTX` 就已经够用了，而且不少 CRUD 写操作本身就已经在事务里执行。
+VEF 通过 `orm.DB` 提供事务能力。对大多数用户来说，`RunInTx` 就已经够用了，而且不少 CRUD 写操作本身就已经在事务里执行。
+
+> v0.24 起，`RunInTX` / `RunInReadOnlyTX` 改名为 `RunInTx` / `RunInReadOnlyTx`，保持与框架其他地方一致的大小写。
 
 ## 默认模式
 
-当你需要多次写操作一起成功或一起失败时，使用 `RunInTX`：
+当你需要多次写操作一起成功或一起失败时，使用 `RunInTx`：
 
 ```go
 import (
@@ -14,7 +20,7 @@ import (
 )
 
 func SaveAll(ctx context.Context, db orm.DB) error {
-  return db.RunInTX(ctx, func(txCtx context.Context, tx orm.DB) error {
+  return db.RunInTx(ctx, func(txCtx context.Context, tx orm.DB) error {
     if _, err := tx.NewInsert().Model(&User{}).Exec(txCtx); err != nil {
       return err
     }
@@ -35,7 +41,7 @@ func SaveAll(ctx context.Context, db orm.DB) error {
 如果你只想要只读事务，可以用：
 
 ```go
-db.RunInReadOnlyTX(...)
+db.RunInReadOnlyTx(...)
 ```
 
 ## 手动事务
@@ -44,7 +50,7 @@ db.RunInReadOnlyTX(...)
 
 ## CRUD 自带事务
 
-当前不少泛型 CRUD 写路径内部已经包了 `RunInTX`，包括：
+当前不少泛型 CRUD 写路径内部已经包了 `RunInTx`，包括：
 
 - create
 - update

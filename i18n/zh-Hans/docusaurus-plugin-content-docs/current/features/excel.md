@@ -24,13 +24,13 @@ sidebar_position: 4
 | 属性 | 含义 | 示例 |
 | --- | --- | --- |
 | （默认值） | 列标题名称 | `tabular:"用户名"` |
-| `name` | 显式列名 | `tabular:"name:用户名"` |
-| `width` | 列宽度提示 | `tabular:"width:20"` |
-| `order` | 列顺序（从 0 开始） | `tabular:"order:1"` |
-| `default` | 导入时空单元格的默认值 | `tabular:"default:N/A"` |
-| `format` | 格式化模板（日期/数字） | `tabular:"format:2006-01-02"` |
-| `formatter` | 导出时的自定义格式化器名 | `tabular:"formatter:status"` |
-| `parser` | 导入时的自定义解析器名 | `tabular:"parser:date"` |
+| `name` | 显式列名 | `tabular:"name=用户名"` |
+| `width` | 列宽度提示 | `tabular:"width=20"` |
+| `order` | 列顺序（从 0 开始） | `tabular:"order=1"` |
+| `default` | 导入时空单元格的默认值 | `tabular:"default=N/A"` |
+| `format` | 格式化模板（日期/数字） | `tabular:"format=2006-01-02"` |
+| `formatter` | 导出时的自定义格式化器名 | `tabular:"formatter=status"` |
+| `parser` | 导入时的自定义解析器名 | `tabular:"parser=date"` |
 | `dive` | 递归进入嵌入结构体 | `tabular:"dive"` |
 | `-` | 忽略该字段 | `tabular:"-"` |
 
@@ -40,12 +40,12 @@ sidebar_position: 4
 type Employee struct {
     orm.FullAuditedModel `tabular:"-"`
 
-    Name       string          `json:"name" bun:"name" tabular:"姓名,width:20"`
-    Email      string          `json:"email" bun:"email" tabular:"邮箱,width:30"`
-    Department string          `json:"department" bun:"department" tabular:"部门,width:15"`
-    JoinDate   timex.Date      `json:"joinDate" bun:"join_date" tabular:"入职日期,format:2006-01-02,width:15"`
-    Salary     decimal.Decimal `json:"salary" bun:"salary" tabular:"薪资,width:12"`
-    IsActive   bool            `json:"isActive" bun:"is_active" tabular:"是否在职,width:10"`
+    Name       string          `json:"name" bun:"name" tabular:"姓名,width=20"`
+    Email      string          `json:"email" bun:"email" tabular:"邮箱,width=30"`
+    Department string          `json:"department" bun:"department" tabular:"部门,width=15"`
+    JoinDate   timex.Date      `json:"joinDate" bun:"join_date" tabular:"入职日期,format=2006-01-02,width=15"`
+    Salary     decimal.Decimal `json:"salary" bun:"salary" tabular:"薪资,width=12"`
+    IsActive   bool            `json:"isActive" bun:"is_active" tabular:"是否在职,width=10"`
 }
 ```
 
@@ -94,7 +94,7 @@ exporter.RegisterFormatter("status", tabular.FormatterFunc(func(value any) (stri
 然后在结构体标签中引用：
 
 ```go
-IsActive bool `tabular:"状态,formatter:status"`
+IsActive bool `tabular:"状态,formatter=status"`
 ```
 
 ### HTTP Handler 中导出
@@ -178,7 +178,7 @@ importer := excel.NewImporterFor[Employee](
 ```go
 importer := excel.NewImporterFor[Employee]()
 
-importer.RegisterParser("date", tabular.ValueParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
+importer.RegisterParser("date", tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) {
     return time.Parse("01/02/2006", cellValue)
 }))
 ```
@@ -186,7 +186,7 @@ importer.RegisterParser("date", tabular.ValueParserFunc(func(cellValue string, t
 然后在结构体标签中引用：
 
 ```go
-JoinDate time.Time `tabular:"入职日期,parser:date"`
+JoinDate time.Time `tabular:"入职日期,parser=date"`
 ```
 
 ### 验证
@@ -208,8 +208,8 @@ type Employee struct {
 | --- | --- |
 | `ErrSheetIndexOutOfRange` | 工作表索引超出可用范围 |
 | `ErrNoDataRowsFound` | 文件没有数据行（仅有表头或为空）|
-| `ErrDuplicateColumnName` | 表头中存在重复列名 |
-| `ErrFieldNotSettable` | 结构体字段无法设置（未导出）|
+| `ErrDuplicateHeaderName` | 表头中存在重复列名 |
+| `ErrUnsetField` | 结构体字段无法设置（未导出）|
 
 行级错误以 `[]tabular.ImportError` 返回（非致命）：
 

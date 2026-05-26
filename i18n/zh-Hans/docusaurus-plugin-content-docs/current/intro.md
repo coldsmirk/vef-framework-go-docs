@@ -71,7 +71,7 @@ VEF **不会** 从一个 RPC 资源自动生成 REST 路由。如果你需要两
 框架当前已经内置了几类可直接使用的资源和模块：
 
 - `security/auth`：登录、刷新令牌、登出、挑战流程解析、可选的用户信息读取
-- `sys/storage`：上传、预签名 URL、临时文件清理、对象列表和对象元信息
+- `sys/storage`：分片上传（init / part / list / complete / abort）以及 `/storage/files/<key>` 下载代理
 - `sys/schema`：数据库 schema 检查
 - `sys/monitor`：运行时与主机监控
 - MCP 中间件与 MCP server 集成

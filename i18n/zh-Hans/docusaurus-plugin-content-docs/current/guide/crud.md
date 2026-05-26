@@ -23,10 +23,10 @@ type UserResource struct {
 func NewUserResource() api.Resource {
 	return &UserResource{
 		Resource: api.NewRPCResource("sys/user"),
-		FindPage: crud.NewFindPage[User, UserSearch]().PermToken("sys:user:query"),
-		Create:   crud.NewCreate[User, UserParams]().PermToken("sys:user:create"),
-		Update:   crud.NewUpdate[User, UserParams]().PermToken("sys:user:update"),
-		Delete:   crud.NewDelete[User]().PermToken("sys:user:delete"),
+		FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
+		Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
+		Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
+		Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
 	}
 }
 ```
@@ -113,7 +113,7 @@ type UserSearch struct {
 | `ResourceKind(kind)` | 切换为 RPC 或 REST 命名/校验规则 |
 | `Action(action)` | 覆盖默认 action 名 |
 | `Public()` | 将该操作标记为无需认证 |
-| `PermToken(token)` | 要求调用方具备某个权限点 |
+| `RequiredPermission(token)` | 要求调用方具备某个权限点 |
 | `Timeout(duration)` | 设置请求超时 |
 | `EnableAudit()` | 为该操作启用审计记录 |
 | `RateLimit(max, period)` | 对该操作单独配置限流 |

@@ -106,28 +106,24 @@ VEF 当前内置了以下自定义验证规则：
 | `alphanum_us_slash` | RPC resource name、斜杠分段标识 |
 | `alphanum_us_dot` | 文件名、模块名、点分标识 |
 
-## 支持的 Null 类型
+## 可空 / 可选字段
 
-VEF 已注册自定义 type func，因此以下 null 包装类型都能正确参与验证：
+VEF 使用指针类型表达可空字段（老的 `null.*` 包装包在 v0.21 已经被移除，统一改用指针）。
 
-| 支持的 null 类型 |
-| --- |
-| `null.String` |
-| `null.Int` |
-| `null.Int16` |
-| `null.Int32` |
-| `null.Float` |
-| `null.Bool` |
-| `null.Byte` |
-| `null.DateTime` |
-| `null.Date` |
-| `null.Time` |
-| `null.Decimal` |
+```go
+type UserParams struct {
+    // 必填：校验直接作用在值上
+    Username string `json:"username" validate:"required,min=3"`
 
-实际效果：
+    // 可选：指针为 nil 时跳过后续校验
+    Phone *string `json:"phone" validate:"omitempty,phone_number"`
 
-- 当 null 包装值有效时，校验作用于内部真实值
-- 当 null 包装值无效时，该值会被视为 `nil`
+    // 可选 + "可为空" 语义
+    Bio *string `json:"bio" validate:"omitempty,max=500"`
+}
+```
+
+标准的 `omitempty` validator tag 已经能处理可空场景——指针为 `nil` 时跳过后续规则；指向具体值时则按链上规则继续校验。如果某个自定义类型需要参与校验，用 `validator.RegisterTypeFunc(...)` 告诉校验器如何从该类型里取出可比较的值。
 
 ## 错误行为
 

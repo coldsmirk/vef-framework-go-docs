@@ -8,11 +8,11 @@ Authentication tells VEF who the caller is. Authorization decides what that call
 
 ## Permission Checks In Operations
 
-The most common authorization entry point is `PermToken` on an operation:
+The most common authorization entry point is `RequiredPermission` on an operation (renamed from `PermToken` in v0.24):
 
 ```go
 crud.NewUpdate[User, UserParams]().
-	PermToken("sys:user:update")
+	RequiredPermission("sys:user:update")
 ```
 
 When the operation runs, the API auth middleware extracts the permission token and asks the configured permission checker whether the current principal is allowed.
@@ -31,7 +31,7 @@ Applications commonly provide:
 
 The built-in checker depends on the role-permission loader. In practice, that means:
 
-- if your operations use `PermToken(...)`
+- if your operations use `RequiredPermission(...)`
 - and you rely on the default RBAC checker
 - then you must provide a working `security.RolePermissionsLoader`
 

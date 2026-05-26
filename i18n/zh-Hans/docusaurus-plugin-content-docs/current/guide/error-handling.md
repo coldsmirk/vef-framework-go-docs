@@ -78,78 +78,70 @@ return result.Err(
 
 ## 内置错误族
 
-VEF 在 `result` 包里预置了大量常用错误。
+VEF 在框架各处预置了一批 `result.Error`。v0.25 起，模块专属错误从 `result` 包迁出到各自模块包中，`result` 包只保留跨模块通用错误。错误码本身不变，只是 import 路径改了。
 
-### 认证错误
-
-| 错误值 | 业务码 | 默认 HTTP 状态 |
-| --- | --- | --- |
-| `result.ErrUnauthenticated` | `ErrCodeUnauthenticated` | `401` |
-| `result.ErrTokenExpired` | `ErrCodeTokenExpired` | `401` |
-| `result.ErrTokenInvalid` | `ErrCodeTokenInvalid` | `401` |
-| `result.ErrTokenNotValidYet` | `ErrCodeTokenNotValidYet` | `401` |
-| `result.ErrTokenInvalidIssuer` | `ErrCodeTokenInvalidIssuer` | `401` |
-| `result.ErrTokenInvalidAudience` | `ErrCodeTokenInvalidAudience` | `401` |
-| `result.ErrTokenMissingSubject` | `ErrCodeTokenMissingSubject` | `401` |
-| `result.ErrTokenMissingTokenType` | `ErrCodeTokenMissingTokenType` | `401` |
-
-### Signature / 外部应用认证错误
+### 通用错误（`result` 包）
 
 | 错误值 | 业务码 | 默认 HTTP 状态 |
 | --- | --- | --- |
-| `result.ErrAppIDRequired` | `ErrCodeAppIDRequired` | `401` |
-| `result.ErrTimestampRequired` | `ErrCodeTimestampRequired` | `401` |
-| `result.ErrSignatureRequired` | `ErrCodeSignatureRequired` | `401` |
-| `result.ErrTimestampInvalid` | `ErrCodeTimestampInvalid` | `401` |
-| `result.ErrSignatureExpired` | `ErrCodeSignatureExpired` | `401` |
-| `result.ErrSignatureInvalid` | `ErrCodeSignatureInvalid` | `401` |
-| `result.ErrExternalAppNotFound` | `ErrCodeExternalAppNotFound` | `401` |
-| `result.ErrExternalAppDisabled` | `ErrCodeExternalAppDisabled` | `401` |
-| `result.ErrIPNotAllowed` | `ErrCodeIPNotAllowed` | `401` |
-| `result.ErrNonceRequired` | `ErrCodeNonceRequired` | `401` |
-| `result.ErrNonceInvalid` | `ErrCodeNonceInvalid` | `401` |
-| `result.ErrNonceAlreadyUsed` | `ErrCodeNonceAlreadyUsed` | `401` |
-| `result.ErrAuthHeaderMissing` | `ErrCodeAuthHeaderMissing` | `401` |
-| `result.ErrAuthHeaderInvalid` | `ErrCodeAuthHeaderInvalid` | `401` |
+| `result.ErrAccessDenied` | `result.ErrCodeAccessDenied`（1100） | `403` |
+| `result.ErrTooManyRequests` | `result.ErrCodeTooManyRequests`（1401） | `429` |
+| `result.ErrRequestTimeout` | `result.ErrCodeRequestTimeout`（1402） | `408` |
+| `result.ErrUnknown` | `result.ErrCodeUnknown`（1900） | `500` |
+| `result.ErrRecordNotFound` | `result.ErrCodeRecordNotFound`（2001） | `200` |
+| `result.ErrRecordAlreadyExists` | `result.ErrCodeRecordAlreadyExists`（2002） | `200` |
+| `result.ErrForeignKeyViolation` | `result.ErrCodeForeignKeyViolation`（2003） | `200` |
+| `result.ErrDangerousSQL` | `result.ErrCodeDangerousSQL`（1600） | `200` |
+| `result.ErrNotImplemented(message)` | `result.ErrCodeNotImplemented`（1500） | `501` |
 
-### Challenge 流错误
+### 安全错误（`security` 包）
+
+认证、签名、challenge 流相关的错误现在位于 `github.com/coldsmirk/vef-framework-go/security`，对应的 `ErrCodeXxx` 常量也跟着搬过去了（编号 1000-1038）。
 
 | 错误值 | 业务码 | 默认 HTTP 状态 |
 | --- | --- | --- |
-| `result.ErrChallengeTokenInvalid` | `ErrCodeChallengeTokenInvalid` | `401` |
-| `result.ErrChallengeTypeInvalid` | `ErrCodeChallengeTypeInvalid` | `400` |
-| `result.ErrOTPCodeRequired` | `ErrCodeOTPCodeRequired` | `400` |
-| `result.ErrOTPCodeInvalid` | `ErrCodeOTPCodeInvalid` | `401` |
-| `result.ErrNewPasswordRequired` | `ErrCodeNewPasswordRequired` | `400` |
-| `result.ErrDepartmentRequired` | `ErrCodeDepartmentRequired` | `400` |
+| `security.ErrUnauthenticated` | `security.ErrCodeUnauthenticated`（1000） | `401` |
+| `security.ErrTokenExpired` | `security.ErrCodeTokenExpired`（1002） | `401` |
+| `security.ErrTokenInvalid` | `security.ErrCodeTokenInvalid`（1003） | `401` |
+| `security.ErrTokenNotValidYet` | `security.ErrCodeTokenNotValidYet`（1004） | `401` |
+| `security.ErrTokenInvalidIssuer` | `security.ErrCodeTokenInvalidIssuer`（1005） | `401` |
+| `security.ErrTokenInvalidAudience` | `security.ErrCodeTokenInvalidAudience`（1006） | `401` |
+| `security.ErrAppIDRequired` | `security.ErrCodeAppIDRequired`（1009） | `401` |
+| `security.ErrTimestampRequired` | `security.ErrCodeTimestampRequired`（1010） | `401` |
+| `security.ErrSignatureRequired` | `security.ErrCodeSignatureRequired`（1011） | `401` |
+| `security.ErrTimestampInvalid` | `security.ErrCodeTimestampInvalid`（1012） | `401` |
+| `security.ErrSignatureExpired` | `security.ErrCodeSignatureExpired`（1013） | `401` |
+| `security.ErrSignatureInvalid` | `security.ErrCodeSignatureInvalid`（1017） | `401` |
+| `security.ErrExternalAppNotFound` | `security.ErrCodeExternalAppNotFound`（1014） | `401` |
+| `security.ErrExternalAppDisabled` | `security.ErrCodeExternalAppDisabled`（1015） | `401` |
+| `security.ErrIPNotAllowed` | `security.ErrCodeIPNotAllowed`（1016） | `401` |
+| `security.ErrNonceRequired` | `security.ErrCodeNonceRequired`（1018） | `401` |
+| `security.ErrNonceInvalid` | `security.ErrCodeNonceInvalid`（1019） | `401` |
+| `security.ErrNonceAlreadyUsed` | `security.ErrCodeNonceAlreadyUsed`（1020） | `401` |
+| `security.ErrAuthHeaderMissing` | `security.ErrCodeAuthHeaderMissing`（1021） | `401` |
+| `security.ErrAuthHeaderInvalid` | `security.ErrCodeAuthHeaderInvalid`（1022） | `401` |
+| `security.ErrChallengeTokenInvalid` | `security.ErrCodeChallengeTokenInvalid`（1031） | `401` |
+| `security.ErrChallengeTypeInvalid` | `security.ErrCodeChallengeTypeInvalid`（1033） | `400` |
+| `security.ErrOTPCodeRequired` | `security.ErrCodeOTPCodeRequired`（1035） | `400` |
+| `security.ErrOTPCodeInvalid` | `security.ErrCodeOTPCodeInvalid`（1036） | `401` |
+| `security.ErrNewPasswordRequired` | `security.ErrCodeNewPasswordRequired`（1037） | `400` |
+| `security.ErrDepartmentRequired` | `security.ErrCodeDepartmentRequired`（1038） | `400` |
+| `security.ErrCredentialsInvalid(message)` | `security.ErrCodeCredentialsInvalid`（1008） | `401` |
+| `security.ErrPrincipalInvalid(message)` | `security.ErrCodePrincipalInvalid`（1007） | `401` |
 
-### 授权与请求错误
+> v0.25.1 删除了未使用的 `ErrTokenMissingSubject` / `ErrTokenMissingTokenType` sentinel，并对周围的错误码做了压缩。框架没有为旧版本保留兼容层，请直接更新调用点。
 
-| 错误值 | 业务码 | 默认 HTTP 状态 |
+### 其他模块错误
+
+| 模块包 | 错误值 | 编号区间 |
 | --- | --- | --- |
-| `result.ErrAccessDenied` | `ErrCodeAccessDenied` | `403` |
-| `result.ErrTooManyRequests` | `ErrCodeTooManyRequests` | `429` |
-| `result.ErrRequestTimeout` | `ErrCodeRequestTimeout` | `408` |
-| `result.ErrUnknown` | `ErrCodeUnknown` | `500` |
+| `api` | `api.ErrInvalidRequestParams`、`api.ErrInvalidRequestMeta` | 1400（`result.ErrCodeBadRequest`） |
+| `monitor` | `monitor.ErrNotReady` | 2100 |
+| `storage` | `storage.ErrInvalidFileKey`、`storage.ErrFileNotFound`、`storage.ErrFailedToGetFile` | 2200-2202 |
+| `schema` | `schema.ErrTableNotFound` | 2300 |
+| `crud` | `crud.ErrCodeProcessorInvalidReturn`（`result.Error` 编码），以及普通 sentinel：`crud.ErrModelNoPrimaryKey`、`crud.ErrAuditUserCompositePK`、`crud.ErrSearchTypeMismatch`、`crud.ErrColumnNotFound` | 2400 |
 
-### 业务错误
-
-| 错误值 | 业务码 | 默认 HTTP 状态 |
-| --- | --- | --- |
-| `result.ErrRecordNotFound` | `ErrCodeRecordNotFound` | `200` |
-| `result.ErrRecordAlreadyExists` | `ErrCodeRecordAlreadyExists` | `200` |
-| `result.ErrForeignKeyViolation` | `ErrCodeForeignKeyViolation` | `200` |
-| `result.ErrDangerousSQL` | `ErrCodeDangerousSQL` | `200` |
-
-### 错误构造器
-
-以下 helper 会生成具有特定语义的结构化错误：
-
-| 构造器 | 典型输出 |
-| --- | --- |
-| `result.ErrNotImplemented(message)` | `501 Not Implemented` |
-| `result.ErrCredentialsInvalid(message)` | `401 Unauthorized`，并带 credentials-invalid 业务码 |
-| `result.ErrPrincipalInvalid(message)` | `401 Unauthorized`，并带 principal-invalid 业务码 |
+> `approval` 包当前导出了两个 `errors.New` 风格的 sentinel（`approval.ErrCrossTenantAccess`、`approval.ErrInvalidBusinessIdentifier`）。它们是普通的 Go 错误，**不**是 `result.Error`，没有 code/status 字段——如果要从 API 返回它们，请用 `result.Err(...)` 包一层。完整的审批域错误目录见 [Approval 模块](../modules/approval)（大部分位于 internal 子包）。
 
 ## 业务码范围
 
@@ -173,11 +165,11 @@ VEF 在 `result` 包里预置了大量常用错误。
 
 | Fiber HTTP 状态 | Result 业务码 | Message key |
 | --- | --- | --- |
-| `401` | `ErrCodeUnauthenticated` | `ErrMessageUnauthenticated` |
-| `403` | `ErrCodeAccessDenied` | `ErrMessageAccessDenied` |
-| `404` | `ErrCodeNotFound` | `ErrMessageNotFound` |
-| `415` | `ErrCodeUnsupportedMediaType` | `ErrMessageUnsupportedMediaType` |
-| `408` | `ErrCodeRequestTimeout` | `ErrMessageRequestTimeout` |
+| `401` | `security.ErrCodeUnauthenticated` | `security.ErrMessageUnauthenticated` |
+| `403` | `result.ErrCodeAccessDenied` | `result.ErrMessageAccessDenied` |
+| `404` | `result.ErrCodeNotFound` | `result.ErrMessageNotFound` |
+| `415` | `result.ErrCodeUnsupportedMediaType` | `result.ErrMessageUnsupportedMediaType` |
+| `408` | `result.ErrCodeRequestTimeout` | `result.ErrMessageRequestTimeout` |
 
 如果某个 `fiber.Error` 状态码没有映射，VEF 会先记录日志，再回退为通用 unknown error。
 

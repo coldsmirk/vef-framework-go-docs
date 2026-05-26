@@ -78,78 +78,70 @@ Available result options:
 
 ## Predefined Error Families
 
-VEF ships a large set of predefined errors in the `result` package.
+VEF ships ready-made `result.Error` values across the framework. Starting from v0.25, module-specific errors live next to the module that owns them — the `result` package now only keeps cross-cutting errors. The codes themselves stay stable; just the import path changes.
 
-### Authentication errors
-
-| Error value | Business code | Default HTTP status |
-| --- | --- | --- |
-| `result.ErrUnauthenticated` | `ErrCodeUnauthenticated` | `401` |
-| `result.ErrTokenExpired` | `ErrCodeTokenExpired` | `401` |
-| `result.ErrTokenInvalid` | `ErrCodeTokenInvalid` | `401` |
-| `result.ErrTokenNotValidYet` | `ErrCodeTokenNotValidYet` | `401` |
-| `result.ErrTokenInvalidIssuer` | `ErrCodeTokenInvalidIssuer` | `401` |
-| `result.ErrTokenInvalidAudience` | `ErrCodeTokenInvalidAudience` | `401` |
-| `result.ErrTokenMissingSubject` | `ErrCodeTokenMissingSubject` | `401` |
-| `result.ErrTokenMissingTokenType` | `ErrCodeTokenMissingTokenType` | `401` |
-
-### Signature or external-app auth errors
+### Cross-cutting errors (`result` package)
 
 | Error value | Business code | Default HTTP status |
 | --- | --- | --- |
-| `result.ErrAppIDRequired` | `ErrCodeAppIDRequired` | `401` |
-| `result.ErrTimestampRequired` | `ErrCodeTimestampRequired` | `401` |
-| `result.ErrSignatureRequired` | `ErrCodeSignatureRequired` | `401` |
-| `result.ErrTimestampInvalid` | `ErrCodeTimestampInvalid` | `401` |
-| `result.ErrSignatureExpired` | `ErrCodeSignatureExpired` | `401` |
-| `result.ErrSignatureInvalid` | `ErrCodeSignatureInvalid` | `401` |
-| `result.ErrExternalAppNotFound` | `ErrCodeExternalAppNotFound` | `401` |
-| `result.ErrExternalAppDisabled` | `ErrCodeExternalAppDisabled` | `401` |
-| `result.ErrIPNotAllowed` | `ErrCodeIPNotAllowed` | `401` |
-| `result.ErrNonceRequired` | `ErrCodeNonceRequired` | `401` |
-| `result.ErrNonceInvalid` | `ErrCodeNonceInvalid` | `401` |
-| `result.ErrNonceAlreadyUsed` | `ErrCodeNonceAlreadyUsed` | `401` |
-| `result.ErrAuthHeaderMissing` | `ErrCodeAuthHeaderMissing` | `401` |
-| `result.ErrAuthHeaderInvalid` | `ErrCodeAuthHeaderInvalid` | `401` |
+| `result.ErrAccessDenied` | `result.ErrCodeAccessDenied` (1100) | `403` |
+| `result.ErrTooManyRequests` | `result.ErrCodeTooManyRequests` (1401) | `429` |
+| `result.ErrRequestTimeout` | `result.ErrCodeRequestTimeout` (1402) | `408` |
+| `result.ErrUnknown` | `result.ErrCodeUnknown` (1900) | `500` |
+| `result.ErrRecordNotFound` | `result.ErrCodeRecordNotFound` (2001) | `200` |
+| `result.ErrRecordAlreadyExists` | `result.ErrCodeRecordAlreadyExists` (2002) | `200` |
+| `result.ErrForeignKeyViolation` | `result.ErrCodeForeignKeyViolation` (2003) | `200` |
+| `result.ErrDangerousSQL` | `result.ErrCodeDangerousSQL` (1600) | `200` |
+| `result.ErrNotImplemented(message)` | `result.ErrCodeNotImplemented` (1500) | `501` |
 
-### Challenge flow errors
+### Security errors (`security` package)
+
+Authentication, signature, and challenge flow errors live in `github.com/coldsmirk/vef-framework-go/security` with their own `ErrCodeXxx` constants (1000-1038 range).
 
 | Error value | Business code | Default HTTP status |
 | --- | --- | --- |
-| `result.ErrChallengeTokenInvalid` | `ErrCodeChallengeTokenInvalid` | `401` |
-| `result.ErrChallengeTypeInvalid` | `ErrCodeChallengeTypeInvalid` | `400` |
-| `result.ErrOTPCodeRequired` | `ErrCodeOTPCodeRequired` | `400` |
-| `result.ErrOTPCodeInvalid` | `ErrCodeOTPCodeInvalid` | `401` |
-| `result.ErrNewPasswordRequired` | `ErrCodeNewPasswordRequired` | `400` |
-| `result.ErrDepartmentRequired` | `ErrCodeDepartmentRequired` | `400` |
+| `security.ErrUnauthenticated` | `security.ErrCodeUnauthenticated` (1000) | `401` |
+| `security.ErrTokenExpired` | `security.ErrCodeTokenExpired` (1002) | `401` |
+| `security.ErrTokenInvalid` | `security.ErrCodeTokenInvalid` (1003) | `401` |
+| `security.ErrTokenNotValidYet` | `security.ErrCodeTokenNotValidYet` (1004) | `401` |
+| `security.ErrTokenInvalidIssuer` | `security.ErrCodeTokenInvalidIssuer` (1005) | `401` |
+| `security.ErrTokenInvalidAudience` | `security.ErrCodeTokenInvalidAudience` (1006) | `401` |
+| `security.ErrAppIDRequired` | `security.ErrCodeAppIDRequired` (1009) | `401` |
+| `security.ErrTimestampRequired` | `security.ErrCodeTimestampRequired` (1010) | `401` |
+| `security.ErrSignatureRequired` | `security.ErrCodeSignatureRequired` (1011) | `401` |
+| `security.ErrTimestampInvalid` | `security.ErrCodeTimestampInvalid` (1012) | `401` |
+| `security.ErrSignatureExpired` | `security.ErrCodeSignatureExpired` (1013) | `401` |
+| `security.ErrSignatureInvalid` | `security.ErrCodeSignatureInvalid` (1017) | `401` |
+| `security.ErrExternalAppNotFound` | `security.ErrCodeExternalAppNotFound` (1014) | `401` |
+| `security.ErrExternalAppDisabled` | `security.ErrCodeExternalAppDisabled` (1015) | `401` |
+| `security.ErrIPNotAllowed` | `security.ErrCodeIPNotAllowed` (1016) | `401` |
+| `security.ErrNonceRequired` | `security.ErrCodeNonceRequired` (1018) | `401` |
+| `security.ErrNonceInvalid` | `security.ErrCodeNonceInvalid` (1019) | `401` |
+| `security.ErrNonceAlreadyUsed` | `security.ErrCodeNonceAlreadyUsed` (1020) | `401` |
+| `security.ErrAuthHeaderMissing` | `security.ErrCodeAuthHeaderMissing` (1021) | `401` |
+| `security.ErrAuthHeaderInvalid` | `security.ErrCodeAuthHeaderInvalid` (1022) | `401` |
+| `security.ErrChallengeTokenInvalid` | `security.ErrCodeChallengeTokenInvalid` (1031) | `401` |
+| `security.ErrChallengeTypeInvalid` | `security.ErrCodeChallengeTypeInvalid` (1033) | `400` |
+| `security.ErrOTPCodeRequired` | `security.ErrCodeOTPCodeRequired` (1035) | `400` |
+| `security.ErrOTPCodeInvalid` | `security.ErrCodeOTPCodeInvalid` (1036) | `401` |
+| `security.ErrNewPasswordRequired` | `security.ErrCodeNewPasswordRequired` (1037) | `400` |
+| `security.ErrDepartmentRequired` | `security.ErrCodeDepartmentRequired` (1038) | `400` |
+| `security.ErrCredentialsInvalid(message)` | `security.ErrCodeCredentialsInvalid` (1008) | `401` |
+| `security.ErrPrincipalInvalid(message)` | `security.ErrCodePrincipalInvalid` (1007) | `401` |
 
-### Authorization and request errors
+> v0.25.1 dropped the unused `ErrTokenMissingSubject` / `ErrTokenMissingTokenType` sentinels and compacted the surrounding codes. Bumps from older snapshots have no compatibility shim — update call sites to the current names.
 
-| Error value | Business code | Default HTTP status |
+### Other module errors
+
+| Module package | Error values | Code range |
 | --- | --- | --- |
-| `result.ErrAccessDenied` | `ErrCodeAccessDenied` | `403` |
-| `result.ErrTooManyRequests` | `ErrCodeTooManyRequests` | `429` |
-| `result.ErrRequestTimeout` | `ErrCodeRequestTimeout` | `408` |
-| `result.ErrUnknown` | `ErrCodeUnknown` | `500` |
+| `api` | `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta` | 1400 (`result.ErrCodeBadRequest`) |
+| `monitor` | `monitor.ErrNotReady` | 2100 |
+| `storage` | `storage.ErrInvalidFileKey`, `storage.ErrFileNotFound`, `storage.ErrFailedToGetFile` | 2200-2202 |
+| `schema` | `schema.ErrTableNotFound` | 2300 |
+| `crud` | `crud.ErrCodeProcessorInvalidReturn` (a `result.Error` code) plus plain sentinels `crud.ErrModelNoPrimaryKey`, `crud.ErrAuditUserCompositePK`, `crud.ErrSearchTypeMismatch`, `crud.ErrColumnNotFound` | 2400 |
 
-### Business errors
-
-| Error value | Business code | Default HTTP status |
-| --- | --- | --- |
-| `result.ErrRecordNotFound` | `ErrCodeRecordNotFound` | `200` |
-| `result.ErrRecordAlreadyExists` | `ErrCodeRecordAlreadyExists` | `200` |
-| `result.ErrForeignKeyViolation` | `ErrCodeForeignKeyViolation` | `200` |
-| `result.ErrDangerousSQL` | `ErrCodeDangerousSQL` | `200` |
-
-### Error constructors
-
-These helpers create structured errors with specific semantics:
-
-| Constructor | Typical output |
-| --- | --- |
-| `result.ErrNotImplemented(message)` | `501 Not Implemented` |
-| `result.ErrCredentialsInvalid(message)` | `401 Unauthorized` with credentials-invalid business code |
-| `result.ErrPrincipalInvalid(message)` | `401 Unauthorized` with principal-invalid business code |
+> The `approval` package currently exports two `errors.New`-style sentinels (`approval.ErrCrossTenantAccess`, `approval.ErrInvalidBusinessIdentifier`). These are plain Go errors, **not** `result.Error` values, so they have no code/status fields — wrap them in `result.Err(...)` if you need to return them through the API envelope. See the [Approval module](../modules/approval) for the full domain error catalog (most live in the internal sub-packages).
 
 ## Business Codes
 
@@ -173,11 +165,11 @@ Current built-in mappings:
 
 | Fiber HTTP status | Result code | Message key |
 | --- | --- | --- |
-| `401` | `ErrCodeUnauthenticated` | `ErrMessageUnauthenticated` |
-| `403` | `ErrCodeAccessDenied` | `ErrMessageAccessDenied` |
-| `404` | `ErrCodeNotFound` | `ErrMessageNotFound` |
-| `415` | `ErrCodeUnsupportedMediaType` | `ErrMessageUnsupportedMediaType` |
-| `408` | `ErrCodeRequestTimeout` | `ErrMessageRequestTimeout` |
+| `401` | `security.ErrCodeUnauthenticated` | `security.ErrMessageUnauthenticated` |
+| `403` | `result.ErrCodeAccessDenied` | `result.ErrMessageAccessDenied` |
+| `404` | `result.ErrCodeNotFound` | `result.ErrMessageNotFound` |
+| `415` | `result.ErrCodeUnsupportedMediaType` | `result.ErrMessageUnsupportedMediaType` |
+| `408` | `result.ErrCodeRequestTimeout` | `result.ErrMessageRequestTimeout` |
 
 If a `fiber.Error` status code is not mapped, VEF logs it and falls back to the generic unknown error result.
 

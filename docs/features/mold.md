@@ -91,18 +91,43 @@ Multiple transformations:
 mold:"function1=param1,function2=param2"
 ```
 
-## Data Dictionary Resolution
+## Dictionary Resolution
 
-The `translate` transformer resolves field values through a data dictionary:
+The `translate` transformer resolves field values through the `Translator` interface. The framework ships one built-in translator — `DictionaryTranslator` — that handles `kind` strings prefixed with `dict:` (e.g. `mold:"translate=dict:gender"`).
+
+Custom translators implement:
 
 ```go
-type DataDictResolver interface {
-    Resolve(ctx context.Context, dictType string, keys []string) (map[string]string, error)
+type Translator interface {
+    Supports(kind string) bool
+    Translate(ctx context.Context, kind, value string) (string, error)
 }
 ```
 
-The `?` suffix in `translate=user?` means the translation is optional — if the lookup fails, the original value is kept instead of returning an error.
+The dictionary-style resolver and loader interfaces:
+
+```go
+type DictionaryResolver interface {
+    Resolve(ctx context.Context, key, code string) (string, error)
+}
+
+type DictionaryLoader interface {
+    Load(ctx context.Context, key string) (map[string]string, error)
+}
+```
+
+### What `?` actually means
+
+The `?` suffix in `mold:"translate=user?"` makes the lookup **silently skip** when **no translator supports the `kind`** (here, `user`). If a translator matches but its `Translate` call returns an error, the error is still propagated — the `?` is not a "swallow all errors" switch.
+
+So `translate=user?` requires that you register a `Translator` whose `Supports("user")` returns true. Without one, the field is left untouched (no error).
 
 ## Cached Resolution
 
-The `CachedDataDictResolver` wraps a `DataDictResolver` with in-request caching to avoid redundant lookups when the same dict type is resolved multiple times in a single request.
+`CachedDictionaryResolver` wraps a `DictionaryLoader` (not a `DictionaryResolver`) with in-process caching, and subscribes to `mold.DictionaryChangedEvent` for invalidation:
+
+```go
+resolver := mold.NewCachedDictionaryResolver(loader, bus)
+```
+
+The cache holds entire dictionaries keyed by the loader's `key`. When the data underlying a dictionary changes, publish `mold.DictionaryChangedEvent{Key: "..."}` through the event bus to invalidate the matching cache entry.

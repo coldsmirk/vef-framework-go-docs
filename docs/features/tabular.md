@@ -29,12 +29,12 @@ Use struct tags to define how fields map to columns in Excel/CSV files:
 type Employee struct {
     orm.FullAuditedModel `tabular:"-"`
 
-    Name       string          `tabular:"姓名,width:20"`
-    Email      string          `tabular:"邮箱,width:30"`
-    Department string          `tabular:"name:部门,order:2,width:15"`
-    JoinDate   timex.Date      `tabular:"入职日期,format:2006-01-02,width:15"`
-    Salary     decimal.Decimal `tabular:"薪资,width:12,format:#,##0.00"`
-    Status     string          `tabular:"状态,default:active,formatter:status"`
+    Name       string          `tabular:"姓名,width=20"`
+    Email      string          `tabular:"邮箱,width=30"`
+    Department string          `tabular:"name=部门,order=2,width=15"`
+    JoinDate   timex.Date      `tabular:"入职日期,format=2006-01-02,width=15"`
+    Salary     decimal.Decimal `tabular:"薪资,width=12,formatter=money"` // format strings containing commas (e.g. "#,##0.00") can't be set via tag — register a custom formatter
+    Status     string          `tabular:"状态,default=active,formatter=status"`
 }
 ```
 
@@ -113,7 +113,7 @@ type ValueParser interface {
 }
 
 // Convenience adapter
-tabular.ValueParserFunc(func(cellValue string, targetType reflect.Type) (any, error) { ... })
+tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) { ... })
 ```
 
 ## Default Type Support

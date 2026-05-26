@@ -251,7 +251,7 @@ orm.OperatorAnonymous // "anonymous" — 未认证操作使用
 
 ### `meta`
 
-用于存储 promoter，识别上传文件字段、富文本字段和 Markdown 字段。
+由 `storage.Files` / `FilesFor[T]` 生命周期门面识别上传文件字段、富文本和 Markdown 内容，进入 upload-claim / pending-delete 生命周期。tag 取值和对账流程见 [存储](../features/storage)。
 
 ### `mold`
 

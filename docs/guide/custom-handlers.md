@@ -123,7 +123,7 @@ The framework ships these built-in handler parameter resolvers:
 | --- | --- | --- |
 | `fiber.Ctx` | request context | direct access to Fiber request/response APIs |
 | `orm.DB` | request context | query and transaction entry point |
-| `log.Logger` | request context | request-aware logging |
+| `logx.Logger` | request context | request-aware logging |
 | `*security.Principal` | request context | current authenticated principal |
 | `api.Params` | request body/query/form | raw params map |
 | `api.Meta` | request meta | raw meta map |
@@ -131,7 +131,7 @@ The framework ships these built-in handler parameter resolvers:
 | typed struct embedding `api.M` | request meta | strongly typed meta decoding + validation |
 | `page.Pageable` | request meta | paging metadata helper |
 | `cron.Scheduler` | DI container | scheduler access |
-| `event.Publisher` | DI container | event publishing |
+| `event.Bus` | DI container | event publishing |
 | `mold.Transformer` | DI container | output transformation |
 | `storage.Service` | DI container | storage access |
 
@@ -163,7 +163,7 @@ Startup-time factory resolvers are narrower than request-time handler resolvers.
 | --- | --- |
 | `orm.DB` | DI container |
 | `cron.Scheduler` | DI container |
-| `event.Publisher` | DI container |
+| `event.Bus` | DI container |
 | `mold.Transformer` | DI container |
 | `storage.Service` | DI container |
 

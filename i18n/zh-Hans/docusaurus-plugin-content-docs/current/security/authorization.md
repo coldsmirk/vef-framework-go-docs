@@ -8,11 +8,11 @@ sidebar_position: 2
 
 ## 操作级权限检查
 
-最常见的授权入口，就是在操作上配置 `PermToken`：
+最常见的授权入口，就是在操作上配置 `RequiredPermission`（v0.24 起从 `PermToken` 重命名）：
 
 ```go
 crud.NewUpdate[User, UserParams]().
-	PermToken("sys:user:update")
+	RequiredPermission("sys:user:update")
 ```
 
 当操作执行时，API auth 中间件会取出这个 permission token，并交给当前配置的 permission checker 判断当前 principal 是否有权访问。
@@ -31,7 +31,7 @@ crud.NewUpdate[User, UserParams]().
 
 内置 checker 依赖 role-permission loader。换句话说：
 
-- 如果你的接口用了 `PermToken(...)`
+- 如果你的接口用了 `RequiredPermission(...)`
 - 并且你依赖的是默认 RBAC checker
 - 那你就必须提供一个可工作的 `security.RolePermissionsLoader`
 

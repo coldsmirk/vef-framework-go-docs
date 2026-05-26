@@ -30,7 +30,7 @@ When enabled, the MCP module provides:
 | HTTP handler | adapts the MCP server to HTTP |
 | app middleware | mounts `/mcp` into the Fiber app |
 | built-in tool | `database_query` |
-| built-in prompts | `data-dict-assistant`, `naming-master` |
+| built-in prompts | `naming-master` |
 
 The module does not currently ship built-in static MCP resources or built-in resource templates.
 
@@ -94,7 +94,6 @@ The framework currently registers these built-in prompts:
 
 | Prompt name | Purpose |
 | --- | --- |
-| `data-dict-assistant` | data dictionary management assistant |
 | `naming-master` | naming assistant for code and database naming |
 
 ## Schema Helpers

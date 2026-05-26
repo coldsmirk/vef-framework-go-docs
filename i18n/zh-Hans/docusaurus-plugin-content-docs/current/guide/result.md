@@ -137,17 +137,24 @@ r.IsOk() // false
 
 错误和成功消息通过 `i18n` 模块自动本地化。消息键（如 `"record_not_found"`、`"success"`）会在运行时从配置的语言包中查找。
 
-## 预构建错误构造函数
+## 预置错误 Sentinel
 
-框架提供常用的错误构造函数：
+VEF 把常用错误暴露为可以直接返回的 `result.Error` **值**（不是构造函数）：
 
 ```go
-result.ErrRecordNotFound()       // code: 2001
-result.ErrRecordAlreadyExists()  // code: 2002
-result.ErrForeignKeyViolation()  // code: 2003
-result.ErrAccessDenied()         // code: 1100
-result.ErrUnauthenticated()      // code: 1000
-result.ErrBadRequest(msg)        // code: 1400
-result.ErrNotFound()             // code: 1200
-result.ErrTooManyRequests()      // code: 1401
+return result.ErrRecordNotFound       // code: 2001
+return result.ErrRecordAlreadyExists  // code: 2002
+return result.ErrForeignKeyViolation  // code: 2003
+return result.ErrAccessDenied         // code: 1100
+return result.ErrTooManyRequests      // code: 1401
+return result.ErrRequestTimeout       // code: 1402
+return result.ErrUnknown              // code: 1900
 ```
+
+少数 sentinel 仍然需要传入消息（因为消息由应用层决定）：
+
+```go
+return result.ErrNotImplemented("尚不支持多租户导出")
+```
+
+v0.25 起，安全相关的错误已搬到 `security` 包（如 `security.ErrUnauthenticated`、`security.ErrTokenExpired`）。完整的跨模块错误表见 [错误处理](./error-handling)。

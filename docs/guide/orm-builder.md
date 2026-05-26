@@ -17,7 +17,7 @@ This page is a comprehensive reference for building SQL queries in VEF projects.
 | UPDATE | `db.NewUpdate()` | Modify records |
 | DELETE | `db.NewDelete()` | Delete records |
 | MERGE | `db.NewMerge()` | Upsert operations |
-| Raw SQL | `db.NewRawQuery()` | Execute raw SQL |
+| Raw SQL | `db.NewRaw(query, args...)` | Execute raw SQL |
 
 ## Getting Started
 
@@ -912,7 +912,7 @@ eb.ExprByDialect(orm.DialectExprs{
 
 ```go
 // Automatic transaction (recommended)
-err := db.RunInTX(ctx, func(ctx context.Context, tx orm.DB) error {
+err := db.RunInTx(ctx, func(ctx context.Context, tx orm.DB) error {
 	_, err := tx.NewInsert().Model(order).Exec(ctx)
 	if err != nil {
 		return err // auto rollback
@@ -928,7 +928,7 @@ err := db.RunInTX(ctx, func(ctx context.Context, tx orm.DB) error {
 })
 
 // Read-only transaction
-err := db.RunInReadOnlyTX(ctx, func(ctx context.Context, tx orm.DB) error {
+err := db.RunInReadOnlyTx(ctx, func(ctx context.Context, tx orm.DB) error {
 	return tx.NewSelect().Model(&report).Scan(ctx)
 })
 
@@ -1015,7 +1015,10 @@ _, err := db.NewCreateIndex().
 ```go
 db.NewDropTable().Model((*User)(nil)).IfExists().Exec(ctx)
 db.NewTruncateTable().Model((*User)(nil)).Exec(ctx)
-db.NewAddColumn().Model((*User)(nil)).ColumnExpr("phone VARCHAR(20)").Exec(ctx)
+db.NewAddColumn().Model((*User)(nil)).
+    Column("phone", orm.DataType.Varchar(20)).
+    IfNotExists().
+    Exec(ctx)
 db.NewDropColumn().Model((*User)(nil)).Column("phone").Exec(ctx)
 ```
 

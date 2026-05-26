@@ -159,7 +159,7 @@ specs := []tabular.ColumnSpec{
 | `Required` | no | Empty cells are reported as `ErrRequiredMissing` during import. |
 | `Validators` | no | `[]CellValidator` run after parsing. |
 
-`NewSchemaFromSpecs` validates the slice eagerly — missing `Key`, missing `Type` and duplicate keys all surface as construction-time errors (`tabular.ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrDuplicateColumnName`).
+`NewSchemaFromSpecs` validates the slice eagerly — missing `Key`, missing `Type` and duplicate keys all surface as construction-time errors (`tabular.ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrDuplicateHeaderName`).
 
 ### Export
 
@@ -380,7 +380,7 @@ Both drivers route header resolution through `tabular.BuildHeaderMapping`:
 - Header cells are matched against `Column.Name`.
 - An empty header cell is skipped.
 - An unknown header cell is skipped (extra columns won't fail the import).
-- A duplicate non-empty header is fatal: `tabular.ErrDuplicateColumnName`.
+- A duplicate non-empty header is fatal: `tabular.ErrDuplicateHeaderName`.
 - When the importer is configured `WithoutHeader()`, the engine falls back to `tabular.DefaultPositionalMapping` — column 0 ↔ first schema column, etc.
 
 ## Errors
@@ -393,7 +393,7 @@ Both drivers route header resolution through `tabular.BuildHeaderMapping`:
 | `ErrSchemaMismatch` | Element type doesn't match the adapter's schema (struct vs map vs other) |
 | `ErrUnknownColumn` | Caller addresses a column that isn't in the schema |
 | `ErrRequiredMissing` | A `Required` cell is empty during dynamic import |
-| `ErrDuplicateColumnName` | Header row contains a duplicate non-empty header |
+| `ErrDuplicateHeaderName` | Header row contains a duplicate non-empty header |
 | `ErrUnsetField` | Struct field cannot be set (typically unexported) |
 | `ErrMissingColumnKey` / `ErrMissingColumnType` | `ColumnSpec` is missing required attributes |
 | `ErrTypedRowMismatch` | A `TypedImporter[T]` received rows whose element type isn't `T` |

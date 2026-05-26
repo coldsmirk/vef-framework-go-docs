@@ -1,3 +1,7 @@
+---
+sidebar_position: 6
+---
+
 # 自定义参数解析器
 
 VEF 不只支持注入 `fiber.Ctx` 和请求结构体。如果内置参数集合不够，你可以自己注册 handler 参数解析器和 factory 参数解析器。
