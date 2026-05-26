@@ -3,10 +3,13 @@
 
 # Production
 /build
-/plans
+
 # Generated files
 .docusaurus
 .cache-loader
+
+# Local planning notes
+/plans
 
 # IDE
 .idea/
