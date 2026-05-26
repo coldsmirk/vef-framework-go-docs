@@ -17,8 +17,12 @@
   "homepage.stats.rate.label": {
     "message": "默认限流"
   },
-  "homepage.hero.kicker": {
-    "message": "FX 装配、资源驱动 API 与内置基础设施"
+  "homepage.hero.headline": {
+    "message": "{accent}的 Go API 框架，端到端就绪。",
+    "description": "Hero h1. {accent} is rendered with a primary→warm gradient."
+  },
+  "homepage.hero.headline.accent": {
+    "message": "资源驱动"
   },
   "homepage.hero.description": {
     "message": "围绕显式资源、类型化处理器和源码可见的默认行为来构建 Go 服务，而不是依赖隐藏在脚手架后的黑盒约定。"

@@ -234,13 +234,22 @@ function Home() {
         <div className="home-shell">
           <section className="home-hero">
             <div className="home-hero-copy">
-              <p className="home-kicker">
-                <Translate id="homepage.hero.kicker">
-                  FX assembly, resource-driven APIs, and built-in infrastructure
-                </Translate>
-              </p>
+              <p className="home-kicker">{siteConfig.title}</p>
               <Heading as="h1" className="home-title">
-                {siteConfig.title}
+                <Translate
+                  id="homepage.hero.headline"
+                  description="Hero h1. {accent} is rendered with a primary→warm gradient."
+                  values={{
+                    accent: (
+                      <span className="home-title-accent">
+                        <Translate id="homepage.hero.headline.accent">
+                          Resource-driven
+                        </Translate>
+                      </span>
+                    ),
+                  }}>
+                  {'{accent} Go APIs, end to end.'}
+                </Translate>
               </Heading>
               <p className="home-description">
                 <Translate id="homepage.hero.description">
@@ -292,15 +301,19 @@ function Home() {
               </p>
             </div>
 
-            <div className="workflow-grid">
+            <ol className="workflow-stepper">
               {workflowList.map((item) => (
-                <article className="home-panel workflow-card" key={item.index}>
-                  <span className="workflow-index">{item.index}</span>
-                  <Heading as="h3">{item.title}</Heading>
-                  <p>{item.description}</p>
-                </article>
+                <li className="workflow-step" key={item.index}>
+                  <div className="workflow-step-marker">
+                    <span className="workflow-step-index">{item.index}</span>
+                  </div>
+                  <Heading as="h3" className="workflow-step-title">
+                    {item.title}
+                  </Heading>
+                  <p className="workflow-step-description">{item.description}</p>
+                </li>
               ))}
-            </div>
+            </ol>
           </section>
 
           <section className="home-section">
@@ -320,15 +333,19 @@ function Home() {
               </p>
             </div>
 
-            <div className="feature-grid">
+            <ul className="feature-list">
               {featureList.map((item) => (
-                <article className="home-panel feature-card" key={item.title}>
-                  <span className="feature-badge">{item.badge}</span>
-                  <Heading as="h3">{item.title}</Heading>
-                  <p>{item.description}</p>
-                </article>
+                <li className="feature-item" key={item.title}>
+                  <div className="feature-item-meta">
+                    <span className="feature-badge">{item.badge}</span>
+                  </div>
+                  <Heading as="h3" className="feature-item-title">
+                    {item.title}
+                  </Heading>
+                  <p className="feature-item-description">{item.description}</p>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
 
           <section className="home-section">
@@ -350,7 +367,7 @@ function Home() {
 
             <div className="link-grid">
               {pathList.map((item) => (
-                <Link className="home-panel link-card" key={item.title} to={item.to}>
+                <Link className="link-card" key={item.title} to={item.to}>
                   <span className="link-card-arrow" aria-hidden="true">
                     →
                   </span>
