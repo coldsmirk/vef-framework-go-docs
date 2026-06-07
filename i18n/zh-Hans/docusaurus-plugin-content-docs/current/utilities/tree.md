@@ -43,10 +43,46 @@ type Adapter[T any] struct {
 }
 ```
 
+公开 surface：
+
+| API | Signature |
+| --- | --- |
+| `Adapter[T]` | `type Adapter[T any] struct` |
+| `Adapter.GetID` | `func(T) string` |
+| `Adapter.GetParentID` | `func(T) *string` |
+| `Adapter.GetChildren` | `func(T) []T` |
+| `Adapter.SetChildren` | `func(*T, []T)` |
+| `Build` | `tree.Build[T any](nodes []T, adapter tree.Adapter[T]) []T` |
+| `FindNode` | `tree.FindNode[T any](roots []T, targetID string, adapter tree.Adapter[T]) (T, bool)` |
+| `FindNodePath` | `tree.FindNodePath[T any](roots []T, targetID string, adapter tree.Adapter[T]) ([]T, bool)` |
+
+Surface count：4 个 top-level exported symbols、4 个 exported fields，没有
+exported methods、没有 exported constants，也没有 exported variables。
+
+## Build 契约
+
+`Build` 将扁平切片转换成嵌套根节点列表。
+
 关键规则：
-- `ParentID` 为 `nil` 的节点被视为根节点
-- `ParentID` 引用不存在的节点时也被视为根节点
-- 通过已访问标记防止循环引用
+
+- `Build(nil, adapter)` 和 `Build([]T{}, adapter)` 返回非 nil 空切片
+  (`[]T{}`)
+- `GetID` 的值按原始 string key 使用；特殊字符和 Unicode 不会被 normalize
+  或 escape
+- `GetID` 应返回唯一且非空的 ID；空 ID 节点不会进入 parent lookup 的索引，
+  其自身 children 也不会被填充
+- 空 ID 节点仍可能因为自身 parent 关系出现在返回的 roots 中，或出现在某个
+  parent 的 children 中
+- `GetParentID(node) == nil` 时，该节点是 root
+- 非 nil parent ID 如果不存在于已索引 node map，也会让该节点成为 root
+- 如果一组节点形成 parent chain 永远到不了 root 的闭环，它们不会出现在返回的
+  roots 中
+- `Build` 在设置 children 时使用 visited tracking，避免 cyclic parent data
+  无限递归
+- `Build` 会对输入 slice 的元素调用 `SetChildren`，然后返回 root 元素的值拷贝；
+  调用方应把输入 slice 元素视为可被修改
+- `Build` 不会调用 `GetChildren`，所以只用于构建树的 wrapper 可以不提供它
+- adapter callback 缺失时，代码执行到对应 callback 会自然 panic
 
 ## 查找节点
 
@@ -61,6 +97,14 @@ if found {
 }
 ```
 
+契约：
+
+- 空 `targetID` 返回 `T` 的零值和 `false`
+- 目标不存在时也返回 `T` 的零值和 `false`
+- 遍历是 depth-first，并沿着 `GetChildren` 返回的 slice 继续
+- duplicate IDs 不会被去重；返回第一个遍历命中的节点
+- `FindNode` 不会围绕 `GetChildren` 额外加 cycle protection，因此应传入无环树
+
 ### FindNodePath
 
 获取从根节点到目标节点的完整路径：
@@ -74,6 +118,13 @@ if found {
 }
 ```
 
+契约：
+
+- 空 `targetID`、目标不存在或空树都会返回 `nil, false`
+- 命中目标时返回完整 root-to-node path 和 `true`
+- 遍历是 depth-first，并沿着 `GetChildren` 返回的 slice 继续
+- `FindNodePath` 不会围绕 `GetChildren` 额外加 cycle protection，因此应传入无环树
+
 ## 框架集成
 
 `tree` 包被 CRUD 的 `FindTree` 构建器使用。`NewFindTree[T, S]` 需要一个 `func([]T) []T` 形状的 builder，所以你写一个薄包装，把模型的 adapter 闭进去：
@@ -82,7 +133,7 @@ if found {
 func buildDepartmentTree(flat []Department) []Department {
     adapter := tree.Adapter[Department]{
         GetID:       func(d Department) string { return d.ID },
-        GetParentID: func(d Department) string { return d.ParentID },
+        GetParentID: func(d Department) *string { return d.ParentID },
         SetChildren: func(d *Department, children []Department) { d.Children = children },
         // GetChildren 只在调用 tree.FindNode / tree.FindNodePath 时使用；
         // tree.Build 本身不会调它。

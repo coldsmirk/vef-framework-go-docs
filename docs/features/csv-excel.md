@@ -15,9 +15,9 @@ share one importer / exporter pipeline. You pick the adapter; the format driver 
 
 | Scenario | Recommended factory |
 | --- | --- |
-| You already have a Go struct (e.g. a model) describing every column | `csv.NewImporterFor[T]` / `excel.NewExporterFor[T]` (and `*Typed*` variants) |
-| Columns are decided at runtime — multi-tenant tables, user-defined templates, dynamic forms | `csv.NewMapImporter` / `excel.NewMapExporter` driven by `[]tabular.ColumnSpec` |
-| You build the row source yourself (channels, custom domain types) | Implement `tabular.RowAdapter` and pass it to `csv.NewImporter` / `excel.NewExporter` |
+| You already have a Go struct (e.g. a model) describing every column | `csv.NewImporterFor[T]` / `csv.NewExporterFor[T]` or `excel.NewImporterFor[T]` / `excel.NewExporterFor[T]` (and `*Typed*` variants) |
+| Columns are decided at runtime — multi-tenant tables, user-defined templates, dynamic forms | `csv.NewMapImporter` / `csv.NewMapExporter` or `excel.NewMapImporter` / `excel.NewMapExporter` driven by `[]tabular.ColumnSpec` |
+| You build the row source yourself (channels, custom domain types) | Implement `tabular.RowAdapter` and pass it to `csv.NewImporter` / `csv.NewExporter` or `excel.NewImporter` / `excel.NewExporter` |
 
 The import return type follows the adapter:
 
@@ -51,10 +51,10 @@ Tag your fields with `tabular`:
 
 ```go
 type User struct {
-    ID       int       `tabular:"name=用户ID;order=1"`
-    Name     string    `tabular:"name=姓名;order=2" validate:"required"`
-    Birthday time.Time `tabular:"name=生日;format=2006-01-02;order=3"`
-    Active   bool      `tabular:"name=激活;default=false;order=4"`
+    ID       int       `tabular:"name=用户ID,order=1"`
+    Name     string    `tabular:"name=姓名,order=2" validate:"required"`
+    Birthday time.Time `tabular:"name=生日,format=2006-01-02,order=3"`
+    Active   bool      `tabular:"name=激活,default=false,order=4"`
     Internal string    `tabular:"-"` // ignored
 }
 ```
@@ -72,6 +72,10 @@ Recognised tag attributes (see `tabular/constants.go`):
 | `parser` | Name of a registered parser (import side) |
 | `dive` | Recursively visit an embedded struct |
 | `-` | Skip this field entirely |
+
+The tag parser uses comma-separated `key=value` pairs. Semicolons are not
+separators; a tag such as `tabular:"name=ID;order=1"` is parsed as one `name`
+value, not as a name plus an order.
 
 Validation is delegated to the framework `validator` package — add `validate:"…"` tags as usual; they run automatically when each row is committed.
 
@@ -159,7 +163,11 @@ specs := []tabular.ColumnSpec{
 | `Required` | no | Empty cells are reported as `ErrRequiredMissing` during import. |
 | `Validators` | no | `[]CellValidator` run after parsing. |
 
-`NewSchemaFromSpecs` validates the slice eagerly — missing `Key`, missing `Type` and duplicate keys all surface as construction-time errors (`tabular.ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrDuplicateHeaderName`).
+`NewSchemaFromSpecs` validates the slice eagerly — missing `Key`, missing
+`Type`, duplicate keys, and duplicate resolved names all surface as
+construction-time errors (`tabular.ErrMissingColumnKey`,
+`ErrMissingColumnType`, `ErrDuplicateColumnKey`,
+`ErrDuplicateHeaderName`).
 
 ### Export
 
@@ -336,16 +344,18 @@ csv.NewMapExporter(specs, opts...)           // dynamic map exporter
 
 CSV options:
 
+The CSV option marker types are `csv.ExportOption` and `csv.ImportOption`.
+
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `WithImportDelimiter(r)` | `,` | Field delimiter for import |
-| `WithoutHeader()` | header on | Treat first row as data; columns mapped positionally in schema order |
-| `WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
-| `WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
-| `WithComment(r)` | none | Lines starting with this rune are ignored |
-| `WithExportDelimiter(r)` | `,` | Field delimiter for export |
-| `WithoutWriteHeader()` | header on | Skip the header row on export |
-| `WithCRLF()` | LF | Use Windows-style line endings |
+| `csv.WithImportDelimiter(r)` | `,` | Field delimiter for import |
+| `csv.WithoutHeader()` | header on | Treat first row as data; columns mapped positionally in schema order |
+| `csv.WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
+| `csv.WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
+| `csv.WithComment(r)` | none | Lines starting with this rune are ignored |
+| `csv.WithExportDelimiter(r)` | `,` | Field delimiter for export |
+| `csv.WithoutWriteHeader()` | header on | Skip the header row on export |
+| `csv.WithCRLF()` | LF | Use Windows-style line endings |
 
 ## Excel Package
 
@@ -362,16 +372,26 @@ excel.NewMapExporter(specs, opts...)
 
 Excel options:
 
+The Excel option marker types are `excel.ExportOption` and
+`excel.ImportOption`.
+
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `WithSheetName(name)` | `Sheet1` | Worksheet name on export |
-| `WithImportSheetName(name)` | none | Read a worksheet by name |
-| `WithImportSheetIndex(i)` | `0` | Read a worksheet by index (returns `excel.ErrSheetIndexOutOfRange` if negative or out of range) |
-| `WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
-| `WithoutHeader()` | header on | First non-skipped row is data; positional mapping |
-| `WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
+| `excel.WithSheetName(name)` | `Sheet1` | Worksheet name on export |
+| `excel.WithImportSheetName(name)` | none | Read a worksheet by name |
+| `excel.WithImportSheetIndex(i)` | `0` | Read a worksheet by index (returns `excel.ErrSheetIndexOutOfRange` if negative or out of range) |
+| `excel.WithSkipRows(n)` | `0` | Skip the first `n` rows before reading |
+| `excel.WithoutHeader()` | header on | First non-skipped row is data; positional mapping |
+| `excel.WithoutTrimSpace()` | trim on | Disable cell trimming (also affects empty-row detection and header matching) |
 
 `Column.Width` set on a `ColumnSpec` (or via the struct tag `width=…`) is applied to the generated worksheet.
+
+Excel export writes native typed cells when a column uses the default formatter
+and has no explicit `Format`, `Formatter`, or `FormatterFn`; integers, floats,
+booleans, `time.Time`, `timex.Date`, and `timex.DateTime` remain
+sortable/summable in Excel. Columns with an explicit `Format`, `Formatter`, or
+`FormatterFn` are rendered as text. `timex.Time` is left textual to avoid
+creating a bogus zero-date Excel cell.
 
 ## Header → Column Mapping Rules
 
@@ -408,7 +428,7 @@ If you used the older signatures, update as follows:
 | --- | --- |
 | `csv.NewImporter(typ, opts...)` | `csv.NewImporterFor[T](opts...)` _or_ `csv.NewImporter(tabular.NewStructAdapter(typ), opts...)` |
 | `excel.NewExporter(typ, opts...)` | `excel.NewExporterFor[T](opts...)` |
-| `csv.ErrDataMustBeSlice`, etc. | `tabular.ErrDataMustBeSlice` (and other shared sentinels) |
+| CSV package-specific error sentinels | `tabular.ErrDataMustBeSlice` (and other shared sentinels) |
 
 `excel.ErrSheetIndexOutOfRange` is unchanged — it stays in the `excel` package because it is Excel-specific.
 

@@ -17,6 +17,12 @@ The monitor module provides:
 
 The service is initialized and closed through lifecycle hooks when needed.
 
+The grouped-family audit locks 188 grouped monitor field/method entries across
+22 monitor DTO/service families: 179 exported DTO fields and 9 exported service
+methods. These entries cover the JSON response shapes, service interface, build
+metadata, runtime summaries, and sample-backed metrics; the verifier pins their
+sorted signatures and receiver/type distribution.
+
 ## `monitor.Service` Interface
 
 The public monitoring service exposes:
@@ -60,6 +66,13 @@ Implementation details visible in source:
 - each action currently sets a per-operation rate-limit max of `60`
 - `get_cpu` and `get_process` use a specific monitor-not-ready business error when samples are not ready
 
+## Error API
+
+| API | Meaning |
+| --- | --- |
+| `monitor.ErrNotReady` / `ErrCodeNotReady` | sample-backed data such as CPU or process metrics is not ready yet |
+| `monitor.ErrCollectionFailed` / `ErrCodeCollectionFailed` | a monitor probe failed while collecting runtime data |
+
 ## Default Sampling Configuration
 
 When no explicit monitor config is supplied, the module uses:
@@ -79,9 +92,9 @@ Fallback behavior:
 
 | Field | Fallback value when app does not supply build info |
 | --- | --- |
-| `appVersion` | `v0.0.0` |
-| `buildTime` | `2022-08-08 01:00:00` |
-| `gitCommit` | `-` |
+| `appVersion` | `unknown` |
+| `buildTime` | `unknown` |
+| `gitCommit` | `unknown` |
 | `vefVersion` | current framework version |
 
 ## Data Shapes

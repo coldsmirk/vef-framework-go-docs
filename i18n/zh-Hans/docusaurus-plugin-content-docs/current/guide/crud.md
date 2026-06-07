@@ -33,6 +33,12 @@ func NewUserResource() api.Resource {
 
 框架之所以能自动收集这些 CRUD builder，是因为它们本身实现了 `api.OperationsProvider`。
 
+Grouped-family audit 固定了 315 grouped CRUD builder entries，覆盖 27
+receiver families：其中 36 public field entries、279 public method entries。
+这些 entries 覆盖预置 builder families、通用 builder controls、query-shaping
+helpers、批量 params、tree/data-option DTOs、import/export customization 和
+processor hooks；verifier 会锁定排序后的签名和 receiver/type 分布。
+
 ### 完整的 Model / Params / Search 定义
 
 ```go
@@ -44,7 +50,7 @@ type User struct {
 	Email        string `json:"email" bun:"email"`
 	DepartmentID string `json:"departmentId" bun:"department_id"`
 	IsActive     bool   `json:"isActive" bun:"is_active"`
-	Avatar       string `json:"avatar" bun:"avatar" storage:"promote"`
+	Avatar       string `json:"avatar" bun:"avatar" meta:"uploaded_file"`
 }
 
 // Params — 写操作请求体
@@ -87,22 +93,55 @@ type UserSearch struct {
 
 ## 预置 Builder 总览
 
-| Builder | 默认 RPC action | 默认 REST action | 输入契约 | 输出契约 | 典型用途 |
+| Builder | 默认 RPC action | 可用 REST override 示例 | 输入契约 | 输出契约 | 典型用途 |
 | --- | --- | --- | --- | --- | --- |
-| `NewCreate[TModel, TParams]` | `create` | `post /` | `params` 中的 `TParams` | 主键 map | 创建单条记录 |
-| `NewUpdate[TModel, TParams]` | `update` | `put /:id` | `params` 中的 `TParams`，且需要包含主键字段 | 成功结果 | 更新单条记录 |
-| `NewDelete[TModel]` | `delete` | `delete /:id` | `params` 中的原始主键值 | 成功结果 | 删除单条记录 |
-| `NewCreateMany[TModel, TParams]` | `create_many` | `post /many` | `CreateManyParams[TParams]`，包含 `list` | 主键 map 列表 | 批量创建 |
-| `NewUpdateMany[TModel, TParams]` | `update_many` | `put /many` | `UpdateManyParams[TParams]`，包含 `list` | 成功结果 | 批量更新 |
-| `NewDeleteMany[TModel]` | `delete_many` | `delete /many` | `DeleteManyParams`，包含 `pks` | 成功结果 | 批量删除 |
-| `NewFindOne[TModel, TSearch]` | `find_one` | `get /:id` | `params` 中的 `TSearch` | 单个模型 | 单条查询 |
-| `NewFindAll[TModel, TSearch]` | `find_all` | `get /` | `params` 中的 `TSearch` | `[]TModel` | 不带分页元数据的列表查询 |
-| `NewFindPage[TModel, TSearch]` | `find_page` | `get /page` | `params` 中的 `TSearch` + `meta` 中的 `page.Pageable` | `page.Page[T]` | 后台分页列表 |
-| `NewFindOptions[TModel, TSearch]` | `find_options` | `get /options` | `params` 中的 `TSearch` + `meta` 中的 `DataOptionConfig` | `[]DataOption` | 下拉选项 |
-| `NewFindTree[TModel, TSearch](treeBuilder)` | `find_tree` | `get /tree` | `params` 中的 `TSearch` | 分层 `[]TModel` | 树形数据 |
-| `NewFindTreeOptions[TModel, TSearch]` | `find_tree_options` | `get /tree/options` | `params` 中的 `TSearch` + `meta` 中的 `DataOptionConfig` | `[]TreeDataOption` | 树形选项 |
-| `NewExport[TModel, TSearch]` | `export` | `get /export` | `params` 中的 `TSearch` + `meta` 中的导出格式 | 文件下载 | Excel / CSV 导出 |
-| `NewImport[TModel]` | `import` | `post /import` | multipart 上传文件 + `meta` 中的导入格式 | `{total: n}` | Excel / CSV 导入 |
+| `NewCreate[TModel, TParams]` | `create` | `post` | `params` 中的 `TParams` | 主键 map | 创建单条记录 |
+| `NewUpdate[TModel, TParams]` | `update` | `put` | `params` 中的 `TParams`，且需要包含主键字段 | 成功结果 | 更新单条记录 |
+| `NewDelete[TModel]` | `delete` | `delete` | `params` 中的原始主键值 | 成功结果 | 删除单条记录 |
+| `NewCreateMany[TModel, TParams]` | `create_many` | `post many` | `CreateManyParams[TParams]`，包含 `list` | 主键 map 列表 | 批量创建 |
+| `NewUpdateMany[TModel, TParams]` | `update_many` | `put many` | `UpdateManyParams[TParams]`，包含 `list` | 成功结果 | 批量更新 |
+| `NewDeleteMany[TModel]` | `delete_many` | `delete many` | `DeleteManyParams`，包含 `pks` | 成功结果 | 批量删除 |
+| `NewFindOne[TModel, TSearch]` | `find_one` | `get one` | `params` 中的 `TSearch` | 单个模型 | 单条查询 |
+| `NewFindAll[TModel, TSearch]` | `find_all` | `get` | `params` 中的 `TSearch` | `[]TModel` | 不带分页元数据的列表查询 |
+| `NewFindPage[TModel, TSearch]` | `find_page` | `get page` | `params` 中的 `TSearch` + `meta` 中的 `page.Pageable` | `page.Page[T]` | 后台分页列表 |
+| `NewFindOptions[TModel, TSearch]` | `find_options` | `get options` | `params` 中的 `TSearch` + `meta` 中的 `DataOptionConfig` | `[]DataOption` | 下拉选项 |
+| `NewFindTree[TModel, TSearch](treeBuilder)` | `find_tree` | `get tree` | `params` 中的 `TSearch` | 分层 `[]TModel` | 树形数据 |
+| `NewFindTreeOptions[TModel, TSearch]` | `find_tree_options` | `get tree-options` | `params` 中的 `TSearch` + `meta` 中的 `DataOptionConfig` | `[]TreeDataOption` | 树形选项 |
+| `NewExport[TModel, TSearch]` | `export` | `get export` | `params` 中的 `TSearch` + `meta` 中的导出格式 | 文件下载 | Excel / CSV 导出 |
+| `NewImport[TModel]` | `import` | `post import` | multipart 上传文件 + `meta` 中的导入格式 | `{total: n}` | Excel / CSV 导入 |
+
+当前源码中导出的 `RESTAction*` constants 包含 `post /`、`put /:id`、
+`get /page` 这类 slash route pattern。这些常量会出现在公开 API 索引中，
+但 public `api.ValidateActionName` / `api.NewRESTResource` 校验只接受小写
+HTTP verb，以及可选的 kebab-case 子资源。因此在当前源码下，直接把
+`api.KindREST` 传给预置 CRUD 构造器，会在默认 action 校验时 panic。若要
+构建 REST 风格 CRUD 操作，应先用普通构造器创建 builder，再显式设置一个
+可通过公开 REST 语法的 action：
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	ResourceKind(api.KindREST).
+	Action("get page")
+```
+
+导出的 REST action 常量值如下：
+
+| 常量 | 值 |
+| --- | --- |
+| `RESTActionCreate` | `post /` |
+| `RESTActionUpdate` | `put /:id` |
+| `RESTActionDelete` | `delete /:id` |
+| `RESTActionCreateMany` | `post /many` |
+| `RESTActionUpdateMany` | `put /many` |
+| `RESTActionDeleteMany` | `delete /many` |
+| `RESTActionFindOne` | `get /:id` |
+| `RESTActionFindAll` | `get /` |
+| `RESTActionFindPage` | `get /page` |
+| `RESTActionFindOptions` | `get /options` |
+| `RESTActionFindTree` | `get /tree` |
+| `RESTActionFindTreeOptions` | `get /tree/options` |
+| `RESTActionImport` | `post /import` |
+| `RESTActionExport` | `get /export` |
 
 ## 共享 Builder 配置
 
@@ -121,7 +160,8 @@ type UserSearch struct {
 一个容易忽略的点：
 
 - `Action(...)` 会按当前 `ResourceKind(...)` 进行校验
-- 如果你要覆盖 REST action，应该先调用 `ResourceKind(api.KindREST)`
+- 如果你要覆盖 REST action，应该先调用 `ResourceKind(api.KindREST)`，
+  并使用公开 REST 语法：`method` 或 `method kebab-sub-resource`
 
 ## Find 系列共享配置
 
@@ -162,12 +202,13 @@ crud.NewFindPage[User, UserSearch]().
 
 ```go
 crud.NewFindPage[User, UserSearch]().
-	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) {
+	WithQueryApplier(func(q orm.SelectQuery, search UserSearch, ctx fiber.Ctx) error {
 		if search.DepartmentID != nil {
 			q.Where(func(cb orm.ConditionBuilder) {
 				cb.Equals("department_id", *search.DepartmentID)
 			})
 		}
+		return nil
 	})
 ```
 
@@ -209,7 +250,7 @@ crud.NewFindPage[User, UserSearch]().
 
 ```go
 crud.NewFindPage[User, UserSearch]().
-	WithDefaultSort(orm.SortDesc("created_at"))
+	WithDefaultSort(&sortx.OrderSpec{Column: "created_at", Direction: sortx.OrderDesc})
 ```
 
 ### Tree Builder 的 QueryPart
@@ -304,8 +345,31 @@ crud.NewFindPage[User, UserSearch]().
 构造器形态和其他 Find builder 不同：
 
 ```go
-crud.NewFindTree[Category, CategorySearch](tree.Build)
+func buildCategoryTree(flat []Category) []Category {
+	adapter := tree.Adapter[Category]{
+		GetID: func(c Category) string {
+			return c.ID
+		},
+		GetParentID: func(c Category) *string {
+			return c.ParentID
+		},
+		GetChildren: func(c Category) []Category {
+			return c.Children
+		},
+		SetChildren: func(c *Category, children []Category) {
+			c.Children = children
+		},
+	}
+
+	return tree.Build(flat, adapter)
+}
+
+crud.NewFindTree[Category, CategorySearch](buildCategoryTree)
 ```
+
+`tree.Build` 的签名是 `func([]T, tree.Adapter[T]) []T`，而 `NewFindTree`
+需要 `func([]T) []T`；应传入闭包里包含模型 adapter 的 wrapper，不要直接传
+`tree.Build`。
 
 | 维度 | 说明 |
 | --- | --- |
@@ -371,7 +435,7 @@ crud.NewCreate[User, UserParams]().
 			return err
 		}
 		if exists {
-			return result.NewBusinessError("邮箱已存在")
+			return result.Err("邮箱已存在")
 		}
 		return nil
 	}).
@@ -381,6 +445,7 @@ crud.NewCreate[User, UserParams]().
 		_, err := tx.NewInsert().Model(role).Exec(ctx.Context())
 		return err
 	})
+```
 
 ### `Update[TModel, TParams]`
 
@@ -415,7 +480,7 @@ crud.NewUpdate[User, UserParams]().
 				return err
 			}
 			if count > 0 {
-				return result.NewBusinessError("无法停用：用户有待办任务")
+				return result.Err("无法停用：用户有待办任务")
 			}
 		}
 		return nil
@@ -445,7 +510,7 @@ crud.NewDelete[User]().
 	WithPreDelete(func(model *User, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error {
 		// 禁止删除管理员
 		if model.Username == "admin" {
-			return result.NewBusinessError("无法删除管理员账户")
+			return result.Err("无法删除管理员账户")
 		}
 		// 级联：删除关联记录
 		_, err := tx.NewDelete().Model((*UserRole)(nil)).
@@ -492,6 +557,10 @@ crud.NewDelete[User]().
 | 单主键 | `["id1", "id2"]` |
 | 复合主键 | `[{"user_id":"u1","role_id":"r1"}]` |
 
+`Sortable.Sort` 从 `meta.sort` 解码。`TreeDataOption.ID` 和
+`TreeDataOption.ParentID` 是树构建内部字段：它们从 `id` 和 `parent_id`
+选出，但因为 JSON tag 是 `json:"-"`，不会作为 JSON 字段输出。
+
 ## 导出与导入 Builder
 
 ### `Export[TModel, TSearch]`
@@ -525,7 +594,7 @@ crud.NewDelete[User]().
 | 维度 | 说明 |
 | --- | --- |
 | 泛型 | `TModel` 是导入后要持久化的模型类型 |
-| 输入 | multipart 上传文件 `params.file`，以及 `meta` 中可选的 `format` |
+| 输入 | `multipart` 上传文件 `params.file`，以及 `meta` 中可选的 `format` |
 | 输出 | 成功时返回 `{total: n}` |
 | 默认行为 | 强制要求 multipart 请求，把文件解析成模型，校验导入结果，并在事务中写入 |
 | 特有配置 | `WithDefaultFormat(...)`、`WithExcelOptions(...)`、`WithCsvOptions(...)`、`WithPreImport(...)`、`WithPostImport(...)` |
@@ -577,10 +646,41 @@ type PostDeleteManyProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx
 
 ```go
 type PreExportProcessor[TModel, TSearch any] func(models []TModel, search TSearch, ctx fiber.Ctx, db orm.DB) error
+type FilenameBuilder[TSearch any] func(search TSearch, ctx fiber.Ctx) string
 
 type PreImportProcessor[TModel any]  func(models []TModel, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
 type PostImportProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
 ```
+
+## Supporting 公开 API
+
+| API 组 | 公开 surface |
+| --- | --- |
+| 直接构造器 | `NewBuilder`、`NewFind`，以及上文列出的 `NewCreate` / `NewUpdate` / `NewDelete` / read / import / export 构造器 |
+| action 常量 | RPC action：`RPCActionCreate`, `RPCActionUpdate`, `RPCActionDelete`, `RPCActionCreateMany`, `RPCActionUpdateMany`, `RPCActionDeleteMany`, `RPCActionFindOne`, `RPCActionFindAll`, `RPCActionFindPage`, `RPCActionFindOptions`, `RPCActionFindTree`, `RPCActionFindTreeOptions`, `RPCActionImport`, `RPCActionExport`；REST action：`RESTActionCreate`, `RESTActionUpdate`, `RESTActionDelete`, `RESTActionCreateMany`, `RESTActionUpdateMany`, `RESTActionDeleteMany`, `RESTActionFindOne`, `RESTActionFindAll`, `RESTActionFindPage`, `RESTActionFindOptions`, `RESTActionFindTree`, `RESTActionFindTreeOptions`, `RESTActionImport`, `RESTActionExport` |
+| 格式 | `FormatExcel`, `FormatCsv`, `TabularFormat` |
+| option payload | `CreateManyParams`, `UpdateManyParams`, `DeleteManyParams`, `DataOption`, `TreeDataOption`, `DataOptionConfig`, `DataOptionColumnMapping` |
+| 查询塑形 | `FindOperationConfig`, `FindOperationOption`, `QueryPartsConfig`, `QueryPart`, `Sortable`, `ApplyDataPermission` |
+| 审计/树 helper | `GetAuditUserNameRelations`，以及 `IDColumn`, `ParentIDColumn`, `LabelColumn`, `ValueColumn`, `DescriptionColumn` |
+| import/export hook | `FilenameBuilder`, `PreExportProcessor`, `PreImportProcessor`, `PostImportProcessor` |
+| 错误 helper | `ErrPrimaryKeyRequired(...)`、`ErrFieldNotExistInModel(...)`，以及 `ErrModelNoPrimaryKey`、`ErrCompositePrimaryKeyRequiresMap`、`ErrUnsupportedExportFormat`、`ErrUnsupportedImportFormat`、`ErrImportRequiresFile`、`ErrImportRequiresMultipart`、`ErrFileOpenFailed`、`ErrImportTypeAssertionFailed`、`ErrAuditUserCompositePK` 等 sentinel |
+| 错误码 | `ErrCodeProcessorInvalidReturn`, `ErrCodeFieldNotExistInModel`, `ErrCodePrimaryKeyRequired`, `ErrCodeCompositePrimaryKeyRequiresMap`, `ErrCodeUnsupportedExportFormat`, `ErrCodeImportRequiresMultipart`, `ErrCodeImportRequiresFile`, `ErrCodeUnsupportedImportFormat`, `ErrCodeFileOpenFailed`, `ErrCodeImportTypeAssertionFailed`, `ErrCodeImportValidationFailed` |
+
+CRUD 错误码值如下：
+
+| 常量 | 值 |
+| --- | --- |
+| `ErrCodeProcessorInvalidReturn` | `2400` |
+| `ErrCodeFieldNotExistInModel` | `2401` |
+| `ErrCodePrimaryKeyRequired` | `2402` |
+| `ErrCodeCompositePrimaryKeyRequiresMap` | `2403` |
+| `ErrCodeUnsupportedExportFormat` | `2404` |
+| `ErrCodeImportRequiresMultipart` | `2405` |
+| `ErrCodeImportRequiresFile` | `2406` |
+| `ErrCodeUnsupportedImportFormat` | `2407` |
+| `ErrCodeFileOpenFailed` | `2408` |
+| `ErrCodeImportTypeAssertionFailed` | `2409` |
+| `ErrCodeImportValidationFailed` | `2410` |
 
 ## 实践建议
 

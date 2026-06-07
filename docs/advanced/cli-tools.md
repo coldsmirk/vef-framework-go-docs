@@ -8,7 +8,11 @@ VEF includes a CLI, but its current scope is narrower than a full project scaffo
 
 ## Current commands
 
-The CLI currently registers these commands:
+The root command is `vef-cli`. `vef-cli --version` prints the CLI banner plus
+`Version: ...`; when build-date metadata is available it also prints
+`Built: ...`, and dirty VCS builds append `-dirty` to the version string.
+
+The CLI currently registers these subcommands:
 
 - `create`
 - `generate-build-info`
@@ -17,15 +21,43 @@ The CLI currently registers these commands:
 ## Minimal command examples
 
 ```bash
+vef-cli --version
 vef-cli generate-build-info -o internal/vef/build_info.go -p vef
 vef-cli generate-model-schema -i models -o schemas -p schemas
 ```
+
+`cmd/vef-cli/**` appears in the [Public API Index](../reference/public-api-index)
+for export-audit completeness, but application code should consume the CLI
+through these commands instead of importing command implementation packages.
+
+Audited CLI implementation packages:
+
+| Package | Public entries | Fingerprint | User-facing contract |
+| --- | ---: | --- | --- |
+| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd` | 10 | `6a01b8fdcb43f6842164be353432a6dbc7849601835c454228aab6cb5ef046ef` | root command, registered subcommands, `--version` output |
+| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo` | 2 | `a9f40a22aaf4f4e6313cea5a7fcd439a5dcde2d0b13f977e954753c1317ab33e` | `generate-build-info` |
+| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create` | 2 | `26171a8454bd55208efc47d3ba16ce5744a971956d17bfac4972c1468619cd3b` | `create` placeholder and not-implemented error |
+| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema` | 21 | `19164973da27a846f72a4df3b55d320998b55e57ee2b3dc40dd7abc4868e8735` | `generate-model-schema` |
 
 ## Important reality check
 
 `vef-cli create` exists as a command, but it is currently **not implemented**.
 
 Do not treat it as a working project generator yet.
+
+The command returns this error:
+
+```text
+vef-cli create is not implemented yet, please generate the project manually
+```
+
+The command still defines these flags because the planned command shape exists:
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--name`, `-n` | required | project name |
+| `--path`, `-p` | `.` | directory path where the project would be created |
+| `--module`, `-m` | empty | Go module path |
 
 ## `generate-build-info`
 
@@ -37,6 +69,30 @@ This command generates a Go source file containing build metadata such as:
 
 It is designed to be used from `go:generate` or from your build pipeline.
 
+Flags:
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--output`, `-o` | `build_info.go` | output Go file |
+| `--package`, `-p` | `main` | package name for the generated file |
+
+The generated file exports `BuildInfo = &monitor.BuildInfo{...}` and fills:
+
+- `AppVersion` from `git describe --tags --always --dirty`, falling back to `dev`
+- `BuildTime` from `timex.Now().String()`
+- `GitCommit` from `git rev-parse HEAD`, falling back to `none`
+
+The generator creates the output directory when needed. The public shape of the
+generated file is:
+
+```go
+var BuildInfo = &monitor.BuildInfo{
+	AppVersion: "...",
+	BuildTime:  "...",
+	GitCommit:  "...",
+}
+```
+
 ## `generate-model-schema`
 
 This command inspects model files and generates type-safe schema helpers for ORM usage.
@@ -47,6 +103,55 @@ It supports:
 - directory-to-directory generation
 
 The goal is to reduce hard-coded column-name strings in query code.
+
+Flags:
+
+| Flag | Default | Purpose |
+| --- | --- | --- |
+| `--input`, `-i` | required | input model file or directory |
+| `--output`, `-o` | required | output schema file or directory |
+| `--package`, `-p` | `schemas` | package name for generated schema files |
+
+Directory input writes one schema file per input file. Directory mode processes
+only `*.go` files directly inside the input directory; it is not recursive. A
+directory input may point at an existing output directory or a directory path
+that does not exist yet. If the output path already exists as a file,
+directory-to-file generation is rejected.
+
+The generator reads structs in the target file that embed `orm.BaseModel`.
+Table metadata comes from the embedded `orm.BaseModel` field's `bun` tag:
+`table:...` sets the table name and `alias:...` sets the default alias. Without
+those tag parts, the table defaults to the model name in snake_case and the
+alias defaults to the table name.
+
+Field handling is source-compatible with these rules:
+
+- only exported fields generate accessors
+- `bun:"-"` fields are skipped
+- `bun:"rel:*"` relationship fields are skipped
+- a first `bun` tag component such as `bun:"user_name"` sets the column name
+- fields without a column tag use the field name in snake_case
+- embedded structs are expanded
+- `bun:"embed:prefix_"` expands nested fields with the prefix
+- `label:"..."` becomes a method comment in generated code
+- `bun:",scanonly"` fields still get accessors but are excluded from `Columns()`
+
+The generated public API exposes an exported schema variable named after the
+model, for example `User`, backed by an unexported schema type such as
+`userSchema`. Each schema has field accessors plus `Table()`, `Alias()`,
+`As(alias)`, and `Columns()`.
+
+Field accessors return alias-qualified columns with `dbx.ColumnWithAlias` by
+default. Passing `raw=true` returns the raw column name:
+
+```go
+schemas.User.Name()     // e.g. "u.name"
+schemas.User.Name(true) // "name"
+```
+
+If a model field would collide with `Table`, `Alias`, `As`, or `Columns`, the
+generated accessor is prefixed with `Col`, for example `ColTable`. Generated
+struct-field identifiers that would be Go keywords are prefixed with `__`.
 
 ## Common `go:generate` pattern
 

@@ -6,6 +6,8 @@ sidebar_position: 6
 
 VEF query building is centered around typed search structs, `search` tags, and CRUD find options. The goal is to keep query rules close to the fields they belong to instead of scattering stringly typed conditions across handlers.
 
+Audit note: this page covers 46 public search entries, including 1 grouped search method entry across 1 search receiver/type family. The grouped search surface contains 0 exported search field entries and 1 exported search method entry.
+
 ## Search Struct Model
 
 The usual shape is:
@@ -51,7 +53,7 @@ The `search` tag supports these patterns:
 | `search:"eq"` | operator only |
 | `search:"contains,column=username\|email"` | operator plus explicit target columns |
 | `search:"operator=gte,column=price"` | fully explicit key/value form |
-| `search:"operator=in,params=delimiter:\|,type:int"` | operator with extra params |
+| `search:"operator=in,params=delimiter:\| type:int"` | operator with extra params |
 | `search:"dive"` | recurse into nested struct fields |
 | `search:"-"` | ignore this field completely |
 
@@ -65,7 +67,16 @@ Supported tag attributes:
 | `params` | extra operator parameters |
 | `dive` | recurse into nested struct fields |
 
+The outer `search` tag is comma-separated. The `params` value itself is parsed
+as space-separated `key:value` pairs, for example
+`params=delimiter:| type:int`. Internally this uses
+`WithSpacePairDelimiter` with `:` as the value delimiter. An anonymous embedded
+`api.P` field is skipped by the parser instead of becoming a search condition.
+The ignored-field marker value is `-`.
+
 ## Supported Operators
+
+These values share the public type `search.Operator`.
 
 The framework currently supports all of these operators:
 
@@ -174,6 +185,9 @@ Currently relevant parameter keys:
 | `delimiter` | custom delimiter for parsing string-based sets or ranges |
 | `type` | explicit parsing type such as `int`, `str`, `bool`, `dec`, `date`, `datetime`, or `time` |
 
+String ranges use `type:int`, `type:dec`, `type:date`, `type:datetime`, or
+`type:time` to select the parser.
+
 ## `between` Input Forms
 
 `between` and `notBetween` support multiple input shapes:
@@ -189,8 +203,8 @@ For string input, parsing can be controlled through `params`.
 Examples:
 
 ```go
-Price string `search:"operator=between,column=price,params=type:int,delimiter:,"`
-DateRange string `search:"operator=between,column=created_at,params=type:date,delimiter:|"`
+Price string `search:"operator=between,column=price,params=type:int"`
+DateRange string `search:"operator=between,column=created_at,params=type:date delimiter:|"`
 ```
 
 ## `in` / `notIn` Input Forms
@@ -201,7 +215,25 @@ Set operators support:
 | --- | --- |
 | slice field | `[]string{"a", "b"}` |
 | delimited string | `"a,b,c"` |
-| delimited string with custom delimiter | `"1\|\2\|3"` + `params=delimiter:\|,type:int` |
+| delimited string with custom delimiter | `"1\|2\|3"` + `params=delimiter:\| type:int` |
+
+String-based `in` values default to `delimiter=","`. When `type:int` is
+present in `params`, each delimited value is cast to `int`; otherwise values
+remain strings.
+
+## Apply Semantics
+
+`Search.Apply(...)` adds conditions only for values that the selected operator
+can use. nil pointer fields are skipped before extraction. `between` /
+`notBetween` require a `monad.Range[T]`-style value, a two-item slice, or a
+typed string range; malformed or unsupported ranges add no condition. `in` /
+`notIn` skip empty strings and empty parsed value lists. `isNull` and
+`isNotNull` apply only when the field value is boolean `true`.
+
+String matching operators require a non-empty string value. When one field
+targets multiple columns, the generated conditions are grouped and ORed across
+those columns. Unknown operators are logged and ignored. Calling `Apply` with a
+non-struct target is also logged and becomes a no-op.
 
 ## Sorting
 
@@ -272,6 +304,19 @@ When search tags are not expressive enough, CRUD find builders support these ext
 
 For tree APIs, these escape hatches can also be targeted at different query parts such as `QueryBase`, `QueryRecursive`, and `QueryRoot`.
 
+## Public `search` Package APIs
+
+| API group | Public surface |
+| --- | --- |
+| parser | `search.New`, `search.NewFor[T]`, `search.Search`, `search.Applier` |
+| tag constants | `TagSearch`, `IgnoreField`, `AttrOperator`, `AttrColumn`, `AttrAlias`, `AttrParams`, `AttrDive` |
+| operators | `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `Between`, `NotBetween`, `In`, `NotIn`, `IsNull`, `IsNotNull`, `Contains`, `NotContains`, `ContainsIgnoreCase`, `NotContainsIgnoreCase`, `StartsWith`, `NotStartsWith`, `StartsWithIgnoreCase`, `NotStartsWithIgnoreCase`, `EndsWith`, `NotEndsWith`, `EndsWithIgnoreCase`, `NotEndsWithIgnoreCase` |
+| parameter constants | `ParamDelimiter`, `ParamType`, `TypeString`, `TypeInt`, `TypeBool`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
+
+`Search.Apply(...)` applies a parsed search schema to an ORM condition builder;
+CRUD find builders call it internally when they translate `search` tags into SQL
+conditions.
+
 ## Practical Patterns
 
 ### Simple equality and keyword search
@@ -291,7 +336,7 @@ type UserSearch struct {
 type ProductSearch struct {
 	api.P
 
-	PriceRange string `json:"priceRange" search:"operator=between,column=price,params=type:int,delimiter:,"`
+	PriceRange string `json:"priceRange" search:"operator=between,column=price,params=type:int"`
 	Statuses   string `json:"statuses" search:"operator=in,column=status,params=delimiter:|"`
 }
 ```

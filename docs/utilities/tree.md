@@ -43,10 +43,48 @@ type Adapter[T any] struct {
 }
 ```
 
+Public surface:
+
+| API | Signature |
+| --- | --- |
+| `Adapter[T]` | `type Adapter[T any] struct` |
+| `Adapter.GetID` | `func(T) string` |
+| `Adapter.GetParentID` | `func(T) *string` |
+| `Adapter.GetChildren` | `func(T) []T` |
+| `Adapter.SetChildren` | `func(*T, []T)` |
+| `Build` | `tree.Build[T any](nodes []T, adapter tree.Adapter[T]) []T` |
+| `FindNode` | `tree.FindNode[T any](roots []T, targetID string, adapter tree.Adapter[T]) (T, bool)` |
+| `FindNodePath` | `tree.FindNodePath[T any](roots []T, targetID string, adapter tree.Adapter[T]) ([]T, bool)` |
+
+Surface count: 4 top-level exported symbols, 4 exported fields, no exported
+methods, no exported constants, and no exported variables.
+
+## Build Contract
+
+`Build` converts a flat slice into nested roots.
+
 Key rules:
-- Nodes with `nil` parent ID are treated as roots
-- Nodes whose parent ID references a non-existent node are also treated as roots
-- Circular references are protected against via visited tracking
+
+- `Build(nil, adapter)` and `Build([]T{}, adapter)` return a non-nil empty
+  slice (`[]T{}`)
+- `GetID` values are raw string keys; special characters and Unicode are not
+  normalized or escaped
+- `GetID` is expected to return a unique non-empty ID; empty-ID nodes are not
+  indexed for parent lookup and their own children are not populated
+- empty-ID nodes can still appear in the returned roots or in a parent's
+  children when their parent relationship puts them there
+- `GetParentID(node) == nil` makes the node a root
+- a non-nil parent ID that does not exist in the indexed node map also makes the
+  node a root
+- closed cycles whose parent chain never reaches a root are omitted from the
+  returned roots
+- `Build` uses visited tracking while assigning children so cyclic parent data
+  does not recurse forever
+- `Build` calls `SetChildren` on elements of the input slice and returns value
+  copies of the root elements; treat the input slice elements as mutable
+- `GetChildren` is not called by `Build`, so a wrapper that only builds a tree
+  can omit it
+- missing adapter callbacks panic naturally when the operation reaches them
 
 ## Finding Nodes
 
@@ -61,6 +99,15 @@ if found {
 }
 ```
 
+Contract:
+
+- an empty `targetID` returns the zero value of `T` and `false`
+- a missing target also returns the zero value of `T` and `false`
+- traversal is depth-first and follows the slices returned by `GetChildren`
+- duplicate IDs are not de-duplicated; the first traversal match wins
+- `FindNode` does not add cycle protection around `GetChildren`, so pass an
+  acyclic tree
+
 ### FindNodePath
 
 Get the full path from root to a target node:
@@ -74,6 +121,14 @@ if found {
 }
 ```
 
+Contract:
+
+- an empty `targetID`, a missing target, or an empty tree returns `nil, false`
+- a found target returns the full root-to-node path and `true`
+- traversal is depth-first and follows the slices returned by `GetChildren`
+- `FindNodePath` does not add cycle protection around `GetChildren`, so pass an
+  acyclic tree
+
 ## Framework Integration
 
 The `tree` package is used by the CRUD `FindTree` builder. `NewFindTree[T, S]` requires a builder of signature `func([]T) []T`, so you provide a thin wrapper that closes over the model's adapter:
@@ -82,7 +137,7 @@ The `tree` package is used by the CRUD `FindTree` builder. `NewFindTree[T, S]` r
 func buildDepartmentTree(flat []Department) []Department {
     adapter := tree.Adapter[Department]{
         GetID:       func(d Department) string { return d.ID },
-        GetParentID: func(d Department) string { return d.ParentID },
+        GetParentID: func(d Department) *string { return d.ParentID },
         SetChildren: func(d *Department, children []Department) { d.Children = children },
         // GetChildren is only needed if you intend to call tree.FindNode /
         // tree.FindNodePath on the resulting tree; tree.Build itself doesn't use it.

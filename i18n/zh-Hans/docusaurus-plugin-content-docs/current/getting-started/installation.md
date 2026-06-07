@@ -11,8 +11,11 @@ sidebar_position: 1
 当前框架版本要求：
 
 - Go `1.26.1`
+- `CGO_ENABLED=1`
+- 可用的 C 工具链
 
-对 VEF 应用本身来说，Go 是唯一必须的运行时依赖。
+内置表达式引擎会链接基于 cgo 的 `zen-go` 库，所以框架当前不能在
+`CGO_ENABLED=0` 下构建。
 
 ## 运行前提
 
@@ -93,16 +96,18 @@ my-app/
 name = "my-app"
 port = 8080
 
-[vef.data_source]
+[vef.data_sources.primary]
 type = "sqlite"
 ```
+
+`primary` 数据源是必填项，它为全框架注入的 `orm.DB` 提供来源；其他命名数据源也放在同一个 `vef.data_sources` map 下。
 
 这里没有写存储配置也没关系，因为框架会默认回退到内存存储。
 只有当应用真的使用 Redis 相关能力时，再补 `vef.redis` 即可。
 
 ## 启动时实际会发生什么
 
-当你调用 `vef.Run(...)` 时，框架会依次初始化配置、数据库、ORM、中间件、API、安全、事件、CQRS、定时任务、Redis、mold、存储、sequence、schema、监控、MCP 以及最终的 HTTP 服务。
+当你调用 `vef.Run(...)` 时，框架会依次初始化配置、数据源 registry 和 primary `orm.DB`、中间件、API、安全、事件、表达式引擎、CQRS、定时任务、Redis、mold、存储、sequence、schema、监控、MCP 以及最终的 HTTP 服务。
 
 所以对 VEF 来说，“安装完成”不只是把包 import 进来，而是要准备好能支撑这条启动链的最小配置。
 

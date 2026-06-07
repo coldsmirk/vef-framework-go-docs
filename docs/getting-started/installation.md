@@ -11,8 +11,11 @@ This page covers the minimum environment and project setup required to boot a VE
 The current framework version requires:
 
 - Go `1.26.1`
+- `CGO_ENABLED=1`
+- a working C toolchain
 
-For application development, Go is the only mandatory runtime dependency.
+The built-in expression engine links the cgo-based `zen-go` library, so the
+framework does not currently build with `CGO_ENABLED=0`.
 
 ## Runtime prerequisites
 
@@ -93,16 +96,23 @@ This is enough to boot an application with SQLite and the default in-memory stor
 name = "my-app"
 port = 8080
 
-[vef.data_source]
+[vef.data_sources.primary]
 type = "sqlite"
 ```
+
+The `primary` data source is mandatory. It powers the framework-wide `orm.DB`
+injection; additional named data sources live under the same `vef.data_sources`
+map.
 
 If you omit `vef.storage.provider`, the framework falls back to memory storage.
 Add `vef.redis` only when the application really uses Redis-backed features.
 
 ## What happens during startup
 
-When you call `vef.Run(...)`, the framework initializes configuration, database access, ORM, middleware, API routing, security, events, CQRS, cron, Redis, mold, storage, sequence, schema, monitoring, MCP, and finally the HTTP application.
+When you call `vef.Run(...)`, the framework initializes configuration, the data
+source registry and primary `orm.DB`, middleware, API routing, security, events,
+the expression engine, CQRS, cron, Redis, mold, storage, sequence, schema,
+monitoring, MCP, and finally the HTTP application.
 
 That is why installation in VEF is not just “import the package”. A valid config file is part of installation.
 

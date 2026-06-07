@@ -21,6 +21,25 @@ All three types implement:
 - `sql.Scanner` / `driver.Valuer` — database compatibility
 - `encoding.TextMarshaler` / `encoding.TextUnmarshaler`
 
+The timex package audit currently locks **156 public timex entries** in the
+generated API ledger. The grouped member surface covers **136 grouped timex
+method entries** across **3 timex receiver/type families**: `DateTime: 60
+methods`, `Date: 45 methods`, and `Time: 31 methods`. The generated public API
+index remains the complete method signature list.
+
+Top-level public symbols are the three types (`DateTime`, `Date`, `Time`), the
+constructors/converters (`Now`, `NowDate`, `NowTime`, `Of`, `DateOf`, `TimeOf`,
+`FromUnix`, `FromUnixMilli`, `FromUnixMicro`), the parsers (`Parse`,
+`ParseDate`, `ParseTime`), and the error sentinels (`ErrInvalidDateTimeFormat`,
+`ErrInvalidDateFormat`, `ErrInvalidTimeFormat`, `ErrFailedScan`,
+`ErrUnsupportedDestType`).
+
+The shared method families include conversion (`Unwrap`, `Format`, `String`),
+wire/database integration (`MarshalJSON`, `UnmarshalJSON`, `MarshalText`,
+`UnmarshalText`, `Scan`, `Value`), comparison (`Between`, an open interval),
+and timestamp helpers (`UnixMilli`, `UnixMicro`, `UnixNano` on `DateTime`;
+`ToDuration` on `Time`). JSON uses plain layouts with no `T` separator.
+
 ## DateTime
 
 ### Creating
@@ -56,6 +75,7 @@ dt.Second()     // 0
 dt.Weekday()    // time.Friday
 dt.YearDay()    // 75
 dt.Location()   // *time.Location
+dt.Nanosecond() // nanosecond component
 ```
 
 ### Arithmetic
@@ -77,7 +97,7 @@ dt.AddSeconds(90)         // Add seconds
 dt.Equal(other)           // Equality
 dt.Before(other)          // Before check
 dt.After(other)           // After check
-dt.Between(start, end)    // Range check
+dt.Between(start, end)    // Open-interval range check: start < dt < end
 dt.IsZero()               // Zero value check
 ```
 
@@ -173,10 +193,15 @@ t.AddNanoseconds(1000000)
 t.Hour()
 t.Minute()
 t.Second()
+t.Nanosecond()
+t.ToDuration()
 t.BeginOfMinute()
 t.EndOfHour()
 t.Between(start, end)
 ```
+
+`Between` uses an open interval for all three types: values equal to `start` or
+`end` return `false`.
 
 ## JSON Behavior
 
@@ -189,6 +214,19 @@ t.Between(start, end)
 ```
 
 No timezone suffix, no `T` separator — clean, human-readable formats.
+
+The concrete methods are `MarshalJSON`, `UnmarshalJSON`, `MarshalText`, and
+`UnmarshalText`; database integration uses `Scan` and `Value`.
+
+## Error Sentinels
+
+| Error | Meaning |
+| --- | --- |
+| `ErrInvalidDateTimeFormat` | `DateTime` parsing or JSON/text decoding received an invalid format |
+| `ErrInvalidDateFormat` | `Date` parsing or JSON/text decoding received an invalid format |
+| `ErrInvalidTimeFormat` | `Time` parsing or JSON/text decoding received an invalid format |
+| `ErrFailedScan` | database `Scan` received an invalid value |
+| `ErrUnsupportedDestType` | scan destination type is unsupported |
 
 ## Database Usage
 

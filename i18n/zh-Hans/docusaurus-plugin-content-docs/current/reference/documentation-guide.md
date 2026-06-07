@@ -148,6 +148,22 @@ sidebar_position: 1    # 侧边栏位置（必需）
 - 仅翻译文字内容，不翻译代码或技术标识符
 - `sidebar_position` 值必须保持一致
 
+### 公开 API 审计
+
+所有用户可见 API 都必须无遗漏审查。审计以源码为准，包含三层必需产物：
+
+- [公开 API 索引](./public-api-index) 列出所有非 `internal/` 源码包中的 exported top-level symbol、exported field 和 exported method
+- [运行时 API 索引](./runtime-api-index) 列出用户可见的运行时 contract，例如路由、CLI command 和 flag、配置键、JSON 字段、事件 topic、tag grammar、MCP contract 和错误码
+- `scripts/api-contract-ledger.json` 记录 package 级语义审查，并固定每个 package 已审查的 top-level/field/method 数量和 fingerprint
+
+框架公开面变化时，更新受影响的专题文档，并重新生成或验证审计产物：
+
+```bash
+(cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/gen-api-index.go -source . -out ../vef-framework-go-docs)
+(cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs -write)
+(cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-api-audit.go -source . -manifest ../vef-framework-go-docs/scripts/api-audit-manifest.json -ledger ../vef-framework-go-docs/scripts/api-audit-ledger.json -contract-ledger ../vef-framework-go-docs/scripts/api-contract-ledger.json)
+```
+
 ## 侧边栏配置
 
 本项目使用**自动生成的侧边栏**（`sidebars.ts`）：

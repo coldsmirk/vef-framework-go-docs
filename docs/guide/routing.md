@@ -16,7 +16,7 @@ RPC and REST are both explicit resource kinds. An RPC resource does not automati
 | Strategy | Entry path | Operation identity source |
 | --- | --- | --- |
 | RPC | `POST /api` | request body fields `resource`, `action`, `version` |
-| REST | `/api/<resource>` | resource name + action-defined HTTP method and sub-path |
+| REST | `/api/<resource>` | resource name + action-defined HTTP method and sub-resource path |
 
 ## RPC Routing
 
@@ -25,6 +25,10 @@ RPC requests go to a single endpoint:
 ```text
 POST /api
 ```
+
+The internal router constant `DefaultRPCEndpoint` is `/api`. Form and multipart
+RPC transports read JSON-encoded `params` and `meta` from the `FormKeyParams`
+and `FormKeyMeta` form fields.
 
 RPC request shape:
 
@@ -71,7 +75,11 @@ REST routes are mounted under:
 /api/<resource>
 ```
 
-The HTTP method and optional sub-path come from the action string.
+At mount time, REST routes are built as `/api/<resource>/<subpath>` after the
+action method is uppercased and the optional sub-resource path is prefixed with
+`/`.
+
+The HTTP method and optional sub-resource path come from the action string.
 
 Examples:
 
@@ -80,8 +88,8 @@ Examples:
 | `users` | `get` | `GET /api/users` |
 | `users` | `post` | `POST /api/users` |
 | `users` | `get profile` | `GET /api/users/profile` |
-| `users` | `put /:id` | `PUT /api/users/:id` |
-| `users` | `delete /many` | `DELETE /api/users/many` |
+| `users` | `put profile` | `PUT /api/users/profile` |
+| `users` | `delete many` | `DELETE /api/users/many` |
 
 ### REST action parsing
 
@@ -90,13 +98,16 @@ REST action strings support:
 | Pattern | Meaning |
 | --- | --- |
 | `<method>` | root route under the resource path |
-| `<method> <sub-path>` | extra path segment or Fiber-style parameter path |
+| `<method> <sub-resource>` | extra kebab-case sub-resource path |
 
 Parsing rules:
 
 - the method token is uppercased when mounted
-- if the sub-path does not start with `/`, the router adds it automatically
-- Fiber-style params such as `/:id` are preserved
+- the public resource validator accepts only lowercase HTTP verbs and optional
+  kebab-case sub-resource paths; slash-separated sub-resources such as
+  `admin/users` are allowed, but each segment must be kebab-case
+- dynamic Fiber-style route params such as `/:id` are not accepted by
+  `api.ValidateActionName` / `api.NewRESTResource`
 
 ### REST naming rules
 
@@ -104,7 +115,7 @@ Parsing rules:
 | --- | --- | --- |
 | resource name | slash-separated lowercase path segments, kebab-case within segments when needed | `users`, `sys/user`, `user-profiles` |
 | action method token | lowercase HTTP verb | `get`, `post`, `put`, `delete`, `patch` |
-| action sub-path | kebab-case or explicit route pattern | `profile`, `admin`, `/:id`, `/tree/options` |
+| action sub-resource | optional slash-separated kebab-case path | `profile`, `admin/users`, `user-friends` |
 
 ## How `params` Are Collected
 
@@ -148,6 +159,9 @@ X-Meta-format: excel
 ```
 
 These values are stored in `api.Meta`.
+
+The stored meta key is lowercased after removing the `X-Meta-` prefix. For
+example, both `X-Meta-page` and `X-Meta-Page` become `meta["page"]`.
 
 Important consequence:
 

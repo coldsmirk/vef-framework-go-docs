@@ -61,7 +61,7 @@ func main() {
 name = "my-app"
 port = 8080
 
-[vef.data_source]
+[vef.data_sources.primary]
 type = "sqlite"
 ```
 

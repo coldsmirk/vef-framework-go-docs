@@ -6,7 +6,7 @@ sidebar_position: 4
 
 VEF ships a provider-neutral storage abstraction, three built-in providers, a multipart upload protocol, a typed CRUD lifecycle facade for keeping model file references in sync with the backend, and a transactional outbox for downstream cleanup.
 
-> The storage module went through a heavy overhaul between v0.21 and v0.26: the legacy `Promoter[T]` was replaced by `Files` / `FilesFor[T]`, the upload protocol unified on chunked multipart with an explicit claim/queue lifecycle, principal authorization was threaded through the lifecycle, and the on-the-wire `Consume` / `Enqueue` surface was renamed and pruned. This page reflects the v0.26 surface — older snapshots are not API-compatible.
+> The storage module went through a heavy overhaul after v0.21: the legacy `Promoter[T]` was replaced by `Files` / `FilesFor[T]`, the upload protocol unified on chunked multipart with an explicit claim/queue lifecycle, principal authorization was threaded through the lifecycle, and the on-the-wire `Consume` / `Enqueue` surface was renamed and pruned. This page describes the current public surface; older snapshots are not API-compatible.
 
 ## Supported Providers
 
@@ -16,7 +16,13 @@ VEF ships a provider-neutral storage abstraction, three built-in providers, a mu
 | `filesystem` | local filesystem |
 | `minio` | MinIO / S3-compatible object storage |
 
-`storage.provider` selects the backend. Without configuration the module defaults to `memory`.
+`storage.provider` selects the backend. Without configuration the module
+defaults to `memory` and logs a warning; objects are lost on restart.
+
+Set `vef.storage.auto_migrate = true` when the storage tables should be created
+by the module at startup. The migration is idempotent and checks
+`sys_storage_upload_claim`, `sys_storage_upload_part`, and
+`sys_storage_pending_delete`.
 
 ## `storage.Service` Interface
 
@@ -57,7 +63,7 @@ Obtain the typed handle with `storage.MultipartFor(svc)` (returns `nil` when the
 - `CompleteMultipart` verifies every recorded `(PartNumber, ETag)` and that parts cover `1..N` contiguously.
 - Sessions close after `CompleteMultipart` or `AbortMultipart`; further calls return `ErrUploadSessionNotFound`. `AbortMultipart` is idempotent.
 
-> The `sys/storage.list_parts` RPC action exists to let clients resume an in-flight upload, but it is served from the framework's part-store table, not from a `Multipart.ListParts` method — the backend interface itself only exposes the five methods above.
+> The `sys/storage.list_parts` RPC action exists to let clients resume an in-flight upload, but it is served from the framework's part-store table, not from a `ListParts` method on `storage.Multipart` — the backend interface itself only exposes the six methods above.
 
 ## Built-In Resource: `sys/storage`
 
@@ -65,13 +71,24 @@ The storage module registers an RPC resource with the multipart upload actions:
 
 | Action | Purpose |
 | --- | --- |
-| `init_upload` | open a new multipart session (returns opaque `uploadId` and the negotiated `partSize`) |
+| `init_upload` | create a pending claim, open a multipart session, and return opaque `claimId` plus the negotiated `partSize` |
 | `upload_part` | upload one part of an open session |
 | `list_parts` | inspect parts already uploaded for a session |
-| `complete_upload` | seal a session with the final part manifest |
+| `complete_upload` | seal a session; the server assembles the final manifest from recorded parts |
 | `abort_upload` | abort and release a session |
 
 Download is served via the proxy middleware described below.
+
+All HTTP uploads use this same protocol: `init_upload -> upload_part ->
+complete_upload`. Small files still return `partCount = 1`; there is no
+single-PUT HTTP action. The `public` flag defaults to private behavior, and
+`vef.storage.allow_public_uploads` must be true before clients can request
+`pub/` keys.
+
+Client `contentType` values are sanitized. Safe binary, image, audio, video,
+font, archive, and PDF types are accepted; unsafe same-origin types such as
+`text/html` and `application/javascript` are replaced by extension detection or
+`application/octet-stream`.
 
 ## Visibility Prefixes
 
@@ -82,7 +99,7 @@ Object keys carry their intended visibility as a prefix:
 | `storage.PublicPrefix` | `pub/` | world-readable; default ACL grants read |
 | `storage.PrivatePrefix` | `priv/` | controlled by business state via `FileACL` |
 
-The storage resource emits keys under `pub/` or `priv/` depending on the upload's `public` flag. The convention is enforced by `FileACL`, not the storage backend.
+The storage resource emits keys under `pub/` or `priv/` depending on the upload's `public` flag. Proxy downloads serve `pub/*` anonymously and call `FileACL` for non-public keys; the storage backend itself does not enforce visibility.
 
 ## FileACL
 
@@ -94,7 +111,7 @@ type FileACL interface {
 }
 ```
 
-Default behavior (`storage.DefaultFileACL`): grant read access only to keys under `pub/`. Business code overrides it via `vef.SupplyFileACL(...)` to consult its own ownership tables. The default keeps the framework safe — without an override no private keys ever surface to authenticated callers.
+Default behavior (`storage.DefaultFileACL`): grant read access only to keys under `pub/`. The proxy short-circuits `pub/*` before calling the ACL so public files work without an auth token; business code overrides `FileACL` via `vef.SupplyFileACL(...)` for private keys and ownership-aware reads.
 
 ## Storage Proxy Middleware
 
@@ -106,20 +123,35 @@ GET /storage/files/<key>
 
 Behavior:
 
-- not an RPC action — app middleware, not API engine
-- consults `FileACL.CanRead` before serving
-- URL-decodes the key, fetches the object, sets `Content-Type`, emits cache headers, and streams
+| Surface | Behavior |
+| --- | --- |
+| Routing | app middleware named `storage_proxy` at order `900`; not an RPC action and not dispatched by the API engine |
+| Key validation | URL-decodes `<key>` once; rejects empty keys, absolute paths, `..` segments, backslashes, NUL bytes, redundant slashes, and trailing slashes |
+| Access | serves `pub/*` anonymously; every other key calls `FileACL.CanRead` with the request principal |
+| Content type | uses backend metadata or extension detection, then sanitizes unsafe types to `application/octet-stream`; always sends `X-Content-Type-Options: nosniff` |
+| Cache headers | `pub/*` gets `Cache-Control: public, max-age=3600, immutable` and an `ETag` when stat data has one; non-public keys get `Cache-Control: private, no-store` and no `ETag` |
 
 ## Upload Claims and Pending Delete (Lifecycle)
 
-After a successful `complete_upload`, the framework persists an `upload_claim` row owned by the calling principal. Until the business model adopts the key (via `Files.OnCreate` / `OnUpdate`), the object lives in a quarantined state — a periodic sweeper enqueues expired claims for asynchronous deletion (`DeleteReasonClaimExpired`).
+`init_upload` persists an `upload_claim` row owned by the calling principal with
+status `pending`. `complete_upload` marks that same claim as `uploaded`. Until
+the business model adopts the key (via `Files.OnCreate` / `OnUpdate`), the
+object lives in a quarantined state — a periodic sweeper either recovers an
+expired-but-completed multipart object by marking it uploaded, or enqueues the
+abandoned object for asynchronous deletion (`DeleteReasonClaimExpired`).
 
 Business writes therefore split into two transactional surfaces:
 
 - **Claim consumer**: deletes the `upload_claim` row in the same transaction as the business insert.
 - **Delete enqueuer**: inserts a `pending_delete` row for objects that should be reclaimed asynchronously (replaced field values, deleted business rows).
 
-A background `DeleteWorker` then drains `pending_delete` rows against the backend, applies retry/backoff, and parks exhausted rows for manual investigation. Successfully drained rows emit `vef.storage.file.deleted`; exhausted rows emit `vef.storage.delete.dead_letter`.
+A background `DeleteWorker` then drains `pending_delete` rows against the backend and applies retry/backoff. Successfully drained rows emit `vef.storage.file.deleted`; rows that exhaust the retry budget are removed from the queue after emitting `vef.storage.delete.dead_letter`, which is the durable signal for manual investigation.
+
+Storage fails fast at startup unless `vef.storage.file.claimed`,
+`vef.storage.file.deleted`, and `vef.storage.delete.dead_letter` route through a
+transactional event transport. In practice, enable the outbox transport and add
+a route for `vef.storage.*` to `outbox`, or set the default event transport to
+`outbox`.
 
 ## `Files` and `FilesFor[T]`
 
@@ -254,25 +286,61 @@ type User struct {
 
 > v0.21 added `map[string]string` support for `uploaded_file` fields (`feat(storage): support map[string]string for uploaded_file fields`).
 
-`URLKeyMapper` translates rich-text/markdown URLs to storage keys during reconciliation. Pass `&storage.IdentityURLKeyMapper{}` (or `nil`, normalized to identity) when business code embeds bare keys directly.
+Use `meta:"dive"` on a nested struct field when the file references live inside that nested struct; the scanner will recurse into the nested value and pick up its own `meta:"uploaded_file"`, `meta:"rich_text"`, and `meta:"markdown"` fields. Unsupported field shapes are ignored instead of producing refs.
+
+`URLKeyMapper` translates rich-text/markdown URLs to storage keys during reconciliation. The framework DI graph supplies `storage.ProxyURLKeyMapper` by default, so content that embeds `/storage/files/<key>` is reconciled without extra wiring. If you call `storage.NewFiles(...)` directly, a nil mapper is normalized to `IdentityURLKeyMapper`; pass `&storage.IdentityURLKeyMapper{}` only when business content embeds bare keys directly.
+
+The mapper surface is explicit in both directions: `URLToKey` consumes content
+URLs during reconciliation, and `KeyToURL` is used when code needs to render
+stored keys back into URLs.
+
+Use `storage.ProxyURLKeyMapper{Prefix: storage.DefaultProxyPrefix}` when content
+embeds the framework proxy URL form (`/storage/files/<key>`). The public helpers
+`ReplaceHtmlURLs(content, replacements)` and `ReplaceMarkdownURLs(content,
+replacements)` rewrite embedded URLs in rendered content, typically after mapping
+storage keys through `URLKeyMapper.KeyToURL`.
 
 ## Storage Events
 
-| Event type | Trigger |
-| --- | --- |
-| `vef.storage.file.claimed` (`storage.FileClaimedEvent`) | a previously pending claim was adopted by a business transaction (`Files.OnCreate` or update new-side) |
-| `vef.storage.file.deleted` (`storage.FileDeletedEvent`) | the delete worker successfully removed an object from the backend |
-| `vef.storage.delete.dead_letter` (`storage.DeleteDeadLetterEvent`) | the delete worker exhausted retries for a row; the row is parked, not removed |
+| Type constant / topic | Payload / constructor | JSON payload | Trigger |
+| --- | --- | --- | --- |
+| `EventTypeFileClaimed` / `vef.storage.file.claimed` | `FileClaimedEvent`; `NewFileClaimedEvent(key)` | `fileKey` | a previously pending claim was adopted by a business transaction (`Files.OnCreate` or update new-side) |
+| `EventTypeFileDeleted` / `vef.storage.file.deleted` | `FileDeletedEvent`; `NewFileDeletedEvent(key, reason)` | `fileKey`, `reason` | the delete worker successfully removed an object from the backend |
+| `EventTypeDeleteDeadLetter` / `vef.storage.delete.dead_letter` | `DeleteDeadLetterEvent`; `NewDeleteDeadLetterEvent(id, key, reason, attempts, lastErr)` | `pendingDeleteId`, `fileKey`, `reason`, `attempts`, optional `lastError` | the delete worker exhausted retries for a row; the queue row is removed after this event is published |
 
-All three are published through the outbox transport from inside the producing business transaction. Subscribers attach with `event.WithGroup("...")` and rely on the Inbox middleware for dedupe.
+All three are published through the outbox transport with `event.WithTx(...)`. `FileClaimedEvent` shares the caller's business transaction; `FileDeletedEvent` and `DeleteDeadLetterEvent` share the delete worker's bookkeeping transaction. Subscribers attach with `event.WithGroup("...")` on the downstream sink transport and rely on the Inbox middleware for dedupe.
 
 `DeleteReason` values forwarded onto the events:
 
-| Reason | Meaning |
+| Reason | Wire value | Meaning |
+| --- | --- | --- |
+| `DeleteReasonReplaced` | `replaced` | an `uploaded_file` field was overwritten with a new key |
+| `DeleteReasonDeleted` | `deleted` | the owning business row was deleted |
+| `DeleteReasonClaimExpired` | `claim_expired` | a pending claim expired (framework-internal sweeper only) |
+
+Dead-letter events carry a sanitized `lastError` classification rather than raw
+backend errors. Current values are `access_denied`, `bucket_not_found`,
+`session_not_found`, and `transient`.
+
+Public supporting APIs:
+
+| API group | Public surface |
 | --- | --- |
-| `DeleteReasonReplaced` | an `uploaded_file` field was overwritten with a new key |
-| `DeleteReasonDeleted` | the owning business row was deleted |
-| `DeleteReasonClaimExpired` | a pending claim expired (framework-internal sweeper only) |
+| event constructors | `EventTypeFileClaimed`, `EventTypeFileDeleted`, `EventTypeDeleteDeadLetter`, `NewFileClaimedEvent`, `NewFileDeletedEvent`, `NewDeleteDeadLetterEvent` |
+| facade constructors | `NewFiles`, `NewFilesFor`, `MultipartFor` |
+| lifecycle services | `ClaimConsumer`, `DeleteEnqueuer`, `Files`, `FilesFor[T]` |
+| storage interfaces | `Service`, `Multipart`, `FileACL`, `URLKeyMapper` |
+| URL mappers | `DefaultFileACL`, `IdentityURLKeyMapper`, `ProxyURLKeyMapper`, `DefaultProxyPrefix` |
+| option structs | `PutObjectOptions`, `GetObjectOptions`, `DeleteObjectOptions`, `DeleteObjectsOptions`, `CopyObjectOptions`, `StatObjectOptions`, `InitMultipartOptions`, `PutPartOptions`, `CompleteMultipartOptions`, `AbortMultipartOptions` |
+| result structs | `ObjectInfo`, `MultipartSession`, `PartInfo`, `CompletedPart`, `FileRef` |
+| meta constants | `MetaType`, `MetaTypeUploadedFile`, `MetaTypeRichText`, `MetaTypeMarkdown` |
+
+The storage package audit currently locks **181 public storage entries** in the
+generated API ledger. The grouped member surface covers **81 grouped storage
+field/method entries** across **29 storage receiver/type families**: **50
+exported storage field entries** and **31 exported storage method entries**.
+The generated public API index remains the complete signature list; this page
+documents the semantic families and user-facing runtime behavior.
 
 ## Error Sentinels
 
@@ -281,12 +349,32 @@ All three are published through the outbox transport from inside the producing b
 | `storage.ErrInvalidFileKey` | malformed object key on a stat/download request |
 | `storage.ErrFileNotFound` | object missing from the backend |
 | `storage.ErrFailedToGetFile` | backend read failed |
-| `storage.ErrUploadSessionNotFound` | multipart `UploadID` already closed or never opened |
+| `storage.ErrUploadSessionNotFound` | multipart session already closed or never opened |
 | `storage.ErrPartTooSmall` | non-final part smaller than `PartSize()` |
-| `storage.ErrPartETagMismatch` | `complete_upload` part list disagrees with recorded ETag |
+| `storage.ErrPartETagMismatch` | recorded part ETag disagrees with backend state during completion |
 | `storage.ErrPartNumberOutOfRange` | parts don't cover `1..N` contiguously |
 | `storage.ErrClaimNotFound` | a claim referenced by `Consume` doesn't exist or belongs to another principal |
 | `storage.ErrAccessDenied` | anonymous / nil principal passed to a lifecycle method |
+
+Upload API errors also expose matching `ErrCode*` constants in the `2200-2299`
+range: `ErrCodeInvalidFileKey`, `ErrCodeFileNotFound`,
+`ErrCodeFailedToGetFile`, `ErrCodeClaimNotPending`, `ErrCodeClaimExpired`,
+`ErrCodeUploadSizeExceedsLimit`, `ErrCodeMultipartNotSupported`,
+`ErrCodePublicUploadsNotAllowed`, `ErrCodeUploadTooManyParts`,
+`ErrCodeTooManyPendingUploads`, `ErrCodeUploadRequiresMultipart`,
+`ErrCodeUploadRequiresFile`, `ErrCodeClaimNotMultipart`,
+`ErrCodeUploadPartNumberOutOfRange`, `ErrCodeUploadPartTooLarge`,
+`ErrCodeUploadPartTooSmall`, `ErrCodeUploadPartsIncomplete`,
+`ErrCodeUploadObjectNotFound`, `ErrCodeUploadSizeMismatch`, and
+`ErrCodeAbortFailed`. Additional public sentinels include `ErrClaimNotPending`,
+`ErrClaimExpired`, `ErrUploadSizeExceedsLimit`, `ErrMultipartNotSupported`,
+`ErrPublicUploadsNotAllowed`, `ErrUploadTooManyParts`,
+`ErrTooManyPendingUploads`, `ErrUploadRequiresMultipart`,
+`ErrUploadRequiresFile`, `ErrClaimNotMultipart`,
+`ErrUploadPartNumberOutOfRange`, `ErrUploadPartTooLarge`,
+`ErrUploadPartTooSmall`, `ErrUploadPartsIncomplete`,
+`ErrUploadObjectNotFound`, `ErrUploadSizeMismatch`, `ErrAbortFailed`,
+`ErrBucketNotFound`, `ErrObjectNotFound`, and `ErrInvalidBucketName`.
 
 ## Minimal Service Example
 
@@ -333,7 +421,8 @@ Generic CRUD already wires `FilesFor[T]` for the standard write builders (see [H
 - Keep all `Files` / `FilesFor[T]` calls inside the business transaction — that is the whole point of the facade.
 - Treat unconfirmed objects as quarantined: the claim sweeper will eventually evict them; relying on raw `PutObject` keys without a claim bypasses lifecycle tracking.
 - Register a real `FileACL` once you store private files; the default denies every `priv/*` read.
-- Subscribe to `vef.storage.delete.dead_letter` for ops dashboards — those rows need human attention.
+- Subscribe to `vef.storage.delete.dead_letter` for ops dashboards — the queue row is already retired, and the event carries the details operators need.
+- Extension group names used by the module are `vef:api:resources` and `vef:app:middlewares`; use `vef.SupplyURLKeyMapper(...)` when replacing URL mapping.
 
 ## Next Step
 

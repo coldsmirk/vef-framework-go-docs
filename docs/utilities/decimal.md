@@ -4,89 +4,149 @@ sidebar_position: 3
 
 # Decimal
 
-The `decimal` package provides a re-exported `shopspring/decimal` interface with additional convenience constructors and constants for arbitrary-precision decimal arithmetic.
+The `decimal` package re-exports `shopspring/decimal v1.4.0` for
+arbitrary-precision decimal arithmetic and adds the `NewFromAny` /
+`MustFromAny` conversion helpers.
 
-## Type
+Reviewed public surface for `github.com/coldsmirk/vef-framework-go/decimal`:
+
+- 22 top-level symbols
+- 0 exported fields
+- 70 exported methods
+- fingerprint `ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401`
+
+## Alias Contract
 
 ```go
 import "github.com/coldsmirk/vef-framework-go/decimal"
 
-// decimal.Decimal is an alias for shopspring/decimal.Decimal
 var price decimal.Decimal
 ```
 
-## Constants
+`decimal.Decimal` is a type alias for `shopspring/decimal.Decimal`, not a
+wrapper. All `Decimal.*` methods are the upstream methods with the same
+signatures and behavior. The type has no exported fields.
 
-Pre-defined decimal values for common arithmetic:
+VEF re-exports constructors, constants, and aggregators, but it does not
+re-export upstream package-level knobs such as `DivisionPrecision`,
+`MarshalJSONWithoutQuotes`, `PowPrecisionNegativeExponent`, or
+`ExpMaxIterations`. Import `github.com/shopspring/decimal` directly if an app
+must change those globals.
+
+## Top-Level APIs
+
+Constants:
 
 ```go
 decimal.Zero   // 0
 decimal.One    // 1
-decimal.Two    // 2
-decimal.Three  // 3
-decimal.Four   // 4
-decimal.Five   // 5
-decimal.Six    // 6
-decimal.Seven  // 7
-decimal.Eight  // 8
-decimal.Nine   // 9
-decimal.Ten    // 10
 ```
 
-## Constructors
+Do not compare `decimal.Zero` with `==`; use `Decimal.Equal` or `Decimal.Cmp`.
 
-All standard `shopspring/decimal` constructors are re-exported:
+Re-exported constructors:
 
 ```go
-decimal.New(value, exp)                   // Raw constructor
-decimal.NewFromInt(42)                    // From int64
-decimal.NewFromInt32(42)                  // From int32
-decimal.NewFromUint64(42)                // From uint64
-decimal.NewFromFloat(3.14)               // From float64
-decimal.NewFromFloat32(3.14)             // From float32
+decimal.New(value, exp)                    // raw value and exponent
+decimal.NewFromInt(42)                     // int64
+decimal.NewFromInt32(42)                   // int32
+decimal.NewFromUint64(42)                  // uint64
+decimal.NewFromFloat(3.14)                 // float64
+decimal.NewFromFloat32(3.14)               // float32
 decimal.NewFromFloatWithExponent(3.14, -2) // With specific exponent
-decimal.NewFromBigInt(bigInt, exp)        // From *big.Int
-decimal.NewFromBigRat(bigRat, precision)  // From *big.Rat
-decimal.NewFromString("123.45")          // From string (returns error)
-decimal.NewFromFormattedString("1,234.56", ",") // From formatted string
-decimal.RequireFromString("123.45")      // From string (panics on error)
+decimal.NewFromBigInt(bigInt, exp)         // *big.Int
+decimal.NewFromBigRat(bigRat, precision)   // *big.Rat
+decimal.NewFromString("123.45")            // string, returns error
+decimal.RequireFromString("123.45")        // string, panics on error
 ```
 
-## `NewFromAny` — Universal Converter
+`decimal.NewFromFormattedString` takes a `*regexp.Regexp` that removes matched
+formatting characters before parsing:
 
-Convert any Go value to a Decimal:
+```go
+cleanup := regexp.MustCompile("[$,]")
+amount, err := decimal.NewFromFormattedString("$1,234.56", cleanup)
+```
+
+Re-exported aggregators:
+
+```go
+decimal.Max(a, b, c...)
+decimal.Min(a, b, c...)
+decimal.Sum(a, b, c...)
+decimal.Avg(a, b, c...)
+decimal.RescalePair(a, b)
+```
+
+VEF-specific helpers:
 
 ```go
 d, err := decimal.NewFromAny(value)
+d = decimal.MustFromAny(value)
 ```
 
-Supported input types:
+Complete top-level checklist:
+
+| Group | APIs |
+| --- | --- |
+| Alias and constants | `decimal.Decimal`, `decimal.Zero`, `decimal.One` |
+| Constructors | `decimal.New`, `decimal.NewFromInt`, `decimal.NewFromInt32`, `decimal.NewFromUint64`, `decimal.NewFromFloat`, `decimal.NewFromFloat32`, `decimal.NewFromFloatWithExponent`, `decimal.NewFromBigInt`, `decimal.NewFromBigRat`, `decimal.NewFromString`, `decimal.NewFromFormattedString`, `decimal.RequireFromString` |
+| Conversion helpers | `decimal.NewFromAny`, `decimal.MustFromAny` |
+| Aggregators | `decimal.Max`, `decimal.Min`, `decimal.Sum`, `decimal.Avg`, `decimal.RescalePair` |
+
+## `NewFromAny`
+
+`decimal.NewFromAny` converts common Go values into `decimal.Decimal`.
+
+Supported input families:
 
 | Type | Behavior |
 | --- | --- |
-| `Decimal`, `*Decimal` | Direct pass-through |
+| `Decimal`, `*Decimal` | Direct pass-through; nil `*Decimal` returns `decimal.Zero` |
 | `int`, `int8`–`int64` | Integer conversion |
 | `uint`, `uint8`–`uint64` | Unsigned integer conversion |
 | `float32`, `float64` | Float conversion |
-| `string`, `[]byte` | String parsing |
-| `bool` | `true` → 1, `false` → 0 |
-| `fmt.Stringer` | Uses `.String()` method |
+| `string`, `[]byte` | Parsed through `NewFromString` |
+| `bool` | `true` becomes `decimal.One`; `false` becomes `decimal.Zero` |
+| `fmt.Stringer` | Parses the returned `String()` value |
 
-Panic variant for when you know the conversion will succeed:
+Unsupported inputs return an error whose message starts with
+`decimal: unsupported type`; the sentinel is not exported. `decimal.MustFromAny`
+panics on any conversion error.
 
-```go
-d := decimal.MustFromAny(value) // Panics on error
-```
+## Method Families
 
-## Utility Functions
+Since `decimal.Decimal` is a type alias, the method set is inherited from
+`shopspring/decimal.Decimal`. The public API index lists exact signatures; this
+table is the reviewed completeness checklist for all 70 methods.
 
-```go
-decimal.Max(a, b, c...)       // Maximum of multiple decimals
-decimal.Min(a, b, c...)       // Minimum of multiple decimals
-decimal.Sum(a, b, c...)       // Sum of multiple decimals
-decimal.Avg(a, b, c...)       // Average of multiple decimals
-decimal.RescalePair(a, b)     // Rescale two decimals to same exponent
-```
+| Family | Methods |
+| --- | --- |
+| Arithmetic | `Decimal.Abs`, `Decimal.Neg`, `Decimal.Add`, `Decimal.Sub`, `Decimal.Mul`, `Decimal.Div`, `Decimal.DivRound`, `Decimal.Mod`, `Decimal.QuoRem` |
+| Powers and transcendental functions | `Decimal.Pow`, `Decimal.PowBigInt`, `Decimal.PowInt32`, `Decimal.PowWithPrecision`, `Decimal.Sin`, `Decimal.Cos`, `Decimal.Tan`, `Decimal.Atan`, `Decimal.Ln`, `Decimal.ExpTaylor`, `Decimal.ExpHullAbrham` |
+| Comparison and sign | `Decimal.Cmp`, `Decimal.Compare`, `Decimal.Equal`, `Decimal.Equals`, `Decimal.GreaterThan`, `Decimal.GreaterThanOrEqual`, `Decimal.LessThan`, `Decimal.LessThanOrEqual`, `Decimal.Sign` |
+| Rounding and scale | `Decimal.Ceil`, `Decimal.Floor`, `Decimal.Round`, `Decimal.RoundBank`, `Decimal.RoundCash`, `Decimal.RoundCeil`, `Decimal.RoundDown`, `Decimal.RoundFloor`, `Decimal.RoundUp`, `Decimal.Shift`, `Decimal.Truncate` |
+| Inspection and conversion | `Decimal.BigFloat`, `Decimal.BigInt`, `Decimal.Rat`, `Decimal.Float64`, `Decimal.InexactFloat64`, `Decimal.IntPart`, `Decimal.Coefficient`, `Decimal.CoefficientInt64`, `Decimal.Exponent`, `Decimal.NumDigits`, `Decimal.IsInteger`, `Decimal.IsNegative`, `Decimal.IsPositive`, `Decimal.IsZero`, `Decimal.Copy` |
+| String formatting | `Decimal.String`, `Decimal.StringFixed`, `Decimal.StringFixedBank`, `Decimal.StringFixedCash`, `Decimal.StringScaled` |
+| Encoding, database, and scanner interfaces | `Decimal.MarshalBinary`, `Decimal.UnmarshalBinary`, `Decimal.MarshalJSON`, `Decimal.UnmarshalJSON`, `Decimal.MarshalText`, `Decimal.UnmarshalText`, `Decimal.GobEncode`, `Decimal.GobDecode`, `Decimal.Scan`, `Decimal.Value` |
+
+## Runtime Notes
+
+- `Decimal.Div` uses upstream `DivisionPrecision` when the quotient does not
+  divide exactly. The upstream default is 16 digits after the decimal point.
+- `Decimal.Div`, `Decimal.DivRound`, `Decimal.Mod`, and `Decimal.QuoRem` panic
+  on division by zero.
+- `Decimal.MarshalJSON` emits a quoted JSON string by default, for example
+  `"123.45"`. The upstream `MarshalJSONWithoutQuotes` global switches it to a
+  JSON number, but that can lose precision in JavaScript clients.
+- `Decimal.UnmarshalJSON` accepts both quoted and numeric JSON input.
+- `decimal.NewFromFloat` and `decimal.NewFromFloat32` convert from binary
+  floating-point values; use `decimal.NewFromString`, integer constructors, or
+  scaled integer storage for money-like inputs.
+- `Decimal.Float64` returns `(value, exact)`; `Decimal.InexactFloat64` returns
+  only the nearest `float64`.
+- `decimal.NewFromFloat`, `decimal.NewFromFloat32`, and
+  `decimal.NewFromFloatWithExponent` panic for NaN or infinity.
 
 ## Usage in Models
 

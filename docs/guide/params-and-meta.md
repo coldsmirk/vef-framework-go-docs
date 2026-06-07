@@ -106,7 +106,7 @@ For REST requests:
 | query string | `params` | used for read filters and plain request fields |
 | JSON body on `POST` / `PUT` / `PATCH` | `params` | write payload |
 | multipart fields on `POST` / `PUT` / `PATCH` | `params` | includes uploaded files |
-| `X-Meta-*` headers | `meta` | request-level control values |
+| `X-Meta-*` headers | `meta` | request-level control values; keys are lowercased after the prefix is removed |
 
 That means paging and sorting are not automatically pulled from query string into built-in meta helpers. If a handler expects meta-based controls such as `page.Pageable`, the caller should provide them through `X-Meta-*` headers or a typed meta contract.
 
@@ -124,6 +124,8 @@ This is how built-in storage and import endpoints receive uploaded files.
 ## Validation Behavior
 
 Typed params and typed meta values are automatically validated after decoding.
+`Params.Decode` and `Meta.Decode` require the target to be a pointer to a
+struct; non-struct or non-pointer targets fail before validation.
 
 | Target type | Validation |
 | --- | --- |

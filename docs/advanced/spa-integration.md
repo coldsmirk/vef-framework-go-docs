@@ -10,9 +10,17 @@ VEF can serve single-page applications through app middleware rather than requir
 
 SPA integration is driven by `middleware.SPAConfig`:
 
-- `Path`
-- `Fs`
-- `ExcludePaths`
+Audited public surface for `github.com/coldsmirk/vef-framework-go/middleware`:
+
+- 1 exported top-level symbol, 3 exported fields, 0 exported methods
+- fingerprint `2b84c28d70bf6ca996dc263173670f3e39ddf36493968f0d68c951af3d6bdb8e`
+
+The canonical public entries are:
+
+- `middleware.SPAConfig`
+- `SPAConfig.Path` (`Path string`): mount path for the SPA. An empty value defaults to `/`.
+- `SPAConfig.Fs` (`Fs fs.FS`): file system that contains `index.html` and the `/static/*` assets.
+- `SPAConfig.ExcludePaths` (`ExcludePaths []string`): path prefixes that the SPA fallback should not rewrite, such as `/api` or `/ws`.
 
 ## Registration helpers
 
@@ -71,13 +79,14 @@ The SPA middleware:
 
 - serves the app entry at the configured path
 - serves static assets under the configured path prefix at `/static/*`
-- performs SPA-style fallback routing for non-API GET paths
+- performs SPA-style fallback routing for non-API GET paths to `index.html`
+- honors `ExcludePaths` before fallback routing so excluded prefixes keep their normal route or 404 behavior
 
 This lets one VEF process own both the API and the SPA shell when that deployment model is useful.
 
-## Current limitation
+## Exclusions
 
-`ExcludePaths` exists on the public config type, but the current internal SPA middleware does not actively use that field yet. Do not document it as an already-enforced exclusion mechanism.
+`ExcludePaths` entries are matched on path-segment boundaries. For example, `/api` excludes `/api` and `/api/users`, but it does not exclude `/apidocs`. empty exclusion prefixes are ignored, and a trailing slash in an exclusion prefix is normalized.
 
 ## Next step
 

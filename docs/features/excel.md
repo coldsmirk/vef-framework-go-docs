@@ -15,6 +15,41 @@ The `excel` package provides Excel import/export capabilities based on the `tabu
 
 Both importer and exporter use `tabular` struct tags to define column mapping, formatting, and parsing rules.
 
+Other public constructors:
+
+| Constructor | Purpose |
+| --- | --- |
+| `excel.NewImporter(adapter, opts...)` / `excel.NewExporter(adapter, opts...)` | use an explicit `tabular.RowAdapter` |
+| `excel.NewMapImporter(specs, mapOpts, opts...)` / `excel.NewMapExporter(specs, opts...)` | import/export map rows with an explicit schema |
+| `excel.NewTypedImporterFor[T]()` / `excel.NewTypedExporterFor[T]()` | typed wrappers over the generic tabular interfaces |
+
+## Reviewed Public Surface
+
+This page covers the complete public surface of
+`github.com/coldsmirk/vef-framework-go/excel`: 17 top-level symbols, 0 exported
+fields, 0 exported methods. Public API fingerprint:
+`a449ebeda509ae9b0a2c7bfa083c70b45bc4635bdb49ff1d674400aced129324`.
+
+| Symbol | Contract |
+| --- | --- |
+| `excel.ErrSheetIndexOutOfRange` | Sentinel returned through the top-level error when the configured sheet index is negative or outside the workbook's sheet list. |
+| `excel.ExportOption` | Option function type consumed by Excel exporters. |
+| `excel.ImportOption` | Option function type consumed by Excel importers. |
+| `excel.NewExporter` | Builds a `tabular.Exporter` from an explicit `tabular.RowAdapter`. |
+| `excel.NewExporterFor` | Builds a struct-backed `tabular.Exporter` using `tabular.NewStructAdapterFor[T]()`. |
+| `excel.NewImporter` | Builds a `tabular.Importer` from an explicit `tabular.RowAdapter`. |
+| `excel.NewImporterFor` | Builds a struct-backed `tabular.Importer` using `tabular.NewStructAdapterFor[T]()`. |
+| `excel.NewMapExporter` | Validates `[]tabular.ColumnSpec` with `tabular.NewMapAdapterFromSpecs(specs)` and returns a map-backed exporter or the validation error. |
+| `excel.NewMapImporter` | Validates `[]tabular.ColumnSpec` with `tabular.NewMapAdapterFromSpecs(specs, mapOpts...)`; pass `nil` for the `[]tabular.MapOption` argument when no row validators are needed. |
+| `excel.NewTypedExporterFor` | Wraps the struct exporter in `tabular.TypedExporter[T]` so export accepts `[]T`. |
+| `excel.NewTypedImporterFor` | Wraps the struct importer in `tabular.TypedImporter[T]` so import returns `[]T`. |
+| `excel.WithImportSheetIndex` | Selects the worksheet by 0-based index; ignored when `excel.WithImportSheetName` is set. |
+| `excel.WithImportSheetName` | Selects the worksheet by name and takes precedence over index selection. |
+| `excel.WithSheetName` | Sets the export worksheet name; default is `Sheet1`, and export renames the default sheet rather than creating a second sheet. |
+| `excel.WithSkipRows` | Skips leading rows before header/data processing; negative values are clamped to `0`. |
+| `excel.WithoutHeader` | Treats the first non-skipped row as data and maps columns positionally in schema order. |
+| `excel.WithoutTrimSpace` | Disables default trimming; this affects empty-row detection, header matching, and cell parsing. |
+
 ## `tabular` Tag
 
 The `tabular` struct tag controls how model fields map to Excel columns.
@@ -74,6 +109,14 @@ exporter := excel.NewExporterFor[Employee](
     excel.WithSheetName("Employees"),
 )
 ```
+
+Excel export writes native typed cells when a column uses the default formatter
+and has no explicit `format`, `formatter`, or `FormatterFn`. Numeric, boolean,
+`time.Time`, `timex.Date`, and `timex.DateTime` values remain sortable or
+summable in Excel. Once a column sets a format string or custom formatter, the
+exporter writes the formatted result as text. Nil pointers become empty cells,
+non-nil pointers are dereferenced, and `timex.Time` is intentionally left as
+text because its zero-date component predates the Excel epoch.
 
 ### Custom Formatter
 
@@ -169,7 +212,23 @@ importer := excel.NewImporterFor[Employee](
 importer := excel.NewImporterFor[Employee](
     excel.WithSkipRows(2),
 )
+
+// Treat the first non-skipped row as data, mapped by schema position
+importer := excel.NewImporterFor[Employee](
+    excel.WithoutHeader(),
+)
+
+// Preserve leading/trailing spaces in headers and cells
+importer := excel.NewImporterFor[Employee](
+    excel.WithoutTrimSpace(),
+)
 ```
+
+`WithImportSheetName` takes precedence over `WithImportSheetIndex`. Negative
+`WithSkipRows` values are clamped to `0`. With headers enabled, skipped rows are
+ignored before header resolution; without headers, the first non-skipped row is
+parsed as data with positional mapping. Like CSV, Excel import trims cell values
+by default and reads the workbook rows into memory before parsing.
 
 ### Custom Parser
 
@@ -206,10 +265,19 @@ type Employee struct {
 
 | Error | Meaning |
 | --- | --- |
-| `ErrSheetIndexOutOfRange` | Sheet index exceeds available sheets |
-| `ErrNoDataRowsFound` | File has no data rows (only header or empty) |
-| `ErrDuplicateHeaderName` | Duplicate column names in header row |
-| `ErrUnsetField` | Struct field cannot be set (unexported) |
+| `excel.ErrSheetIndexOutOfRange` | Configured sheet index is negative or exceeds available sheets |
+| `tabular.ErrNoDataRowsFound` | File has no data rows after `WithSkipRows` and optional header handling |
+| `tabular.ErrDuplicateHeaderName` | Duplicate non-empty column names in the header row |
+| `tabular.ErrUnsetField` | Struct field cannot be set, typically because it is unexported |
+
+The Excel package exposes `ImportOption` and `ExportOption` as the option
+function types behind `WithSheetName`, `WithImportSheetName`,
+`WithImportSheetIndex`, `WithSkipRows`, `WithoutHeader`, and
+`WithoutTrimSpace`.
+
+Top-level import errors are fatal file or worksheet failures. Parse failures,
+validator failures, and adapter commit failures are collected as
+`[]tabular.ImportError`; affected rows are skipped while later rows continue.
 
 Row-level errors are returned as `[]tabular.ImportError` (non-fatal):
 
@@ -239,6 +307,11 @@ type ExportError struct {
 2. Unmatched Excel columns are silently ignored
 3. Missing Excel columns leave the struct field at its zero value (or `default` if specified)
 4. Empty rows are automatically skipped
+
+When `excel.WithoutHeader()` is used, header matching is bypassed and the
+importer uses `tabular.DefaultPositionalMapping`: the first source column maps
+to the first schema column, the second source column maps to the second schema
+column, and so on.
 
 ## Default Type Support
 

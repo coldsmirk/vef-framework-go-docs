@@ -15,6 +15,39 @@ sidebar_position: 4
 
 导入器和导出器都使用 `tabular` 结构体标签来定义列映射、格式化和解析规则。
 
+其他公开构造器：
+
+| 构造器 | 作用 |
+| --- | --- |
+| `excel.NewImporter(adapter, opts...)` / `excel.NewExporter(adapter, opts...)` | 使用显式 `tabular.RowAdapter` |
+| `excel.NewMapImporter(specs, mapOpts, opts...)` / `excel.NewMapExporter(specs, opts...)` | 使用显式 schema 导入/导出 map 行 |
+| `excel.NewTypedImporterFor[T]()` / `excel.NewTypedExporterFor[T]()` | 对通用 tabular interface 的 typed wrapper |
+
+## 已审查公开 API 面
+
+本页覆盖 `github.com/coldsmirk/vef-framework-go/excel` 的完整公开面：17 个顶层符号、0 个导出字段、0 个导出方法。Public API fingerprint:
+`a449ebeda509ae9b0a2c7bfa083c70b45bc4635bdb49ff1d674400aced129324`。
+
+| 符号 | 契约 |
+| --- | --- |
+| `excel.ErrSheetIndexOutOfRange` | 配置的工作表索引为负数或超出 workbook sheet 列表时，通过顶层错误返回的 sentinel。 |
+| `excel.ExportOption` | Excel exporter 使用的 option function 类型。 |
+| `excel.ImportOption` | Excel importer 使用的 option function 类型。 |
+| `excel.NewExporter` | 通过显式 `tabular.RowAdapter` 构造 `tabular.Exporter`。 |
+| `excel.NewExporterFor` | 使用 `tabular.NewStructAdapterFor[T]()` 构造结构体驱动的 `tabular.Exporter`。 |
+| `excel.NewImporter` | 通过显式 `tabular.RowAdapter` 构造 `tabular.Importer`。 |
+| `excel.NewImporterFor` | 使用 `tabular.NewStructAdapterFor[T]()` 构造结构体驱动的 `tabular.Importer`。 |
+| `excel.NewMapExporter` | 使用 `tabular.NewMapAdapterFromSpecs(specs)` 校验 `[]tabular.ColumnSpec`，成功后返回 map exporter，否则返回校验错误。 |
+| `excel.NewMapImporter` | 使用 `tabular.NewMapAdapterFromSpecs(specs, mapOpts...)` 校验 `[]tabular.ColumnSpec`；不需要 row validator 时，`[]tabular.MapOption` 参数传 `nil`。 |
+| `excel.NewTypedExporterFor` | 把结构体 exporter 包装成 `tabular.TypedExporter[T]`，让 export 直接接受 `[]T`。 |
+| `excel.NewTypedImporterFor` | 把结构体 importer 包装成 `tabular.TypedImporter[T]`，让 import 直接返回 `[]T`。 |
+| `excel.WithImportSheetIndex` | 按 0-based index 选择工作表；设置了 `excel.WithImportSheetName` 时会被忽略。 |
+| `excel.WithImportSheetName` | 按名称选择工作表，并优先于 index 选择。 |
+| `excel.WithSheetName` | 设置导出的工作表名；默认是 `Sheet1`，导出时会重命名默认 sheet，而不是创建第二个 sheet。 |
+| `excel.WithSkipRows` | 在 header/data 处理前跳过前导行；负数会归零。 |
+| `excel.WithoutHeader` | 把第一个未跳过的行当作数据，并按 schema 顺序做位置映射。 |
+| `excel.WithoutTrimSpace` | 关闭默认 trim；这会影响空行检测、header 匹配和单元格解析。 |
+
 ## `tabular` 标签
 
 `tabular` 结构体标签控制模型字段如何映射到 Excel 列。
@@ -74,6 +107,13 @@ exporter := excel.NewExporterFor[Employee](
     excel.WithSheetName("员工列表"),
 )
 ```
+
+Excel 导出在列使用默认 formatter，且没有显式 `format`、`formatter` 或
+`FormatterFn` 时，会写入 native typed cell。数字、布尔值、`time.Time`、
+`timex.Date` 和 `timex.DateTime` 在 Excel 里仍可排序或求和。一旦列设置了格式
+字符串或自定义 formatter，导出器会把格式化结果按文本写入。nil pointer 会写成
+空单元格，非 nil pointer 会先解引用；`timex.Time` 会被刻意保留为文本，因为它的
+zero-date 部分早于 Excel epoch。
 
 ### 自定义格式化器
 
@@ -169,7 +209,20 @@ importer := excel.NewImporterFor[Employee](
 importer := excel.NewImporterFor[Employee](
     excel.WithSkipRows(2),
 )
+
+// 不读取表头：第一个未跳过的行按 schema 位置当作数据解析
+importer := excel.NewImporterFor[Employee](
+    excel.WithoutHeader(),
+)
+
+// 保留 header 与单元格首尾空白
+importer := excel.NewImporterFor[Employee](
+    excel.WithoutTrimSpace(),
+)
 ```
+
+`WithImportSheetName` 优先于 `WithImportSheetIndex`。负数 `WithSkipRows` 会归零。
+启用表头时，跳过行会在 header 解析前生效；关闭表头时，第一个未跳过的行会按位置映射作为数据解析。和 CSV 一样，Excel 导入默认会 trim 单元格值，并在解析前把 workbook rows 读入内存。
 
 ### 自定义解析器
 
@@ -206,10 +259,17 @@ type Employee struct {
 
 | 错误 | 含义 |
 | --- | --- |
-| `ErrSheetIndexOutOfRange` | 工作表索引超出可用范围 |
-| `ErrNoDataRowsFound` | 文件没有数据行（仅有表头或为空）|
-| `ErrDuplicateHeaderName` | 表头中存在重复列名 |
-| `ErrUnsetField` | 结构体字段无法设置（未导出）|
+| `excel.ErrSheetIndexOutOfRange` | 配置的工作表索引为负数或超出可用范围 |
+| `tabular.ErrNoDataRowsFound` | 经 `WithSkipRows` 与可选表头处理后没有数据行 |
+| `tabular.ErrDuplicateHeaderName` | 表头中存在重复的非空列名 |
+| `tabular.ErrUnsetField` | 结构体字段无法设置，通常是未导出字段 |
+
+Excel 包还公开 `ImportOption` 和 `ExportOption`，它们是 `WithSheetName`、
+`WithImportSheetName`、`WithImportSheetIndex`、`WithSkipRows`、
+`WithoutHeader`、`WithoutTrimSpace` 背后的 option function 类型。
+
+顶层 import error 表示致命的文件或工作表错误。解析失败、validator 失败和 adapter
+commit 失败会聚合进 `[]tabular.ImportError`；对应行会被跳过，后续行继续处理。
 
 行级错误以 `[]tabular.ImportError` 返回（非致命）：
 
@@ -239,6 +299,10 @@ type ExportError struct {
 2. 未匹配的 Excel 列会被静默忽略
 3. 缺失的 Excel 列会让结构体字段保持零值（如指定了 `default` 则使用默认值）
 4. 空行会被自动跳过
+
+使用 `excel.WithoutHeader()` 时会绕过 header 匹配，改用
+`tabular.DefaultPositionalMapping`：源文件第 1 列映射 schema 第 1 列，第 2 列映射
+schema 第 2 列，依此类推。
 
 ## 默认类型支持
 

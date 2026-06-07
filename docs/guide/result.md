@@ -4,11 +4,52 @@ sidebar_position: 9
 
 # Result
 
-The `result` package defines the unified API response envelope used across the framework.
+The `result` package defines VEF's shared API response envelope and the
+structured business-error type that the app layer turns into that envelope.
+
+## Reviewed Public Surface
+
+The current source audit for `github.com/coldsmirk/vef-framework-go/result`
+covers 48 top-level exported symbols, 6 exported fields, and 4 exported
+methods. The reviewed public-surface fingerprint is
+`f91600ccb5960c2a405fb3ec5b2b84b38676c6488f4bf2dd45c8c22544b96892`.
+
+Reviewed APIs:
+
+| API | Contract |
+| --- | --- |
+| `result.Result` | Client response envelope type. Only this type has JSON field tags for the public wire shape. |
+| `Result.Code` | Business result code, serialized as `code`. `0` means success. |
+| `Result.Message` | Human-readable or i18n-resolved message, serialized as `message`. |
+| `Result.Data` | Optional response payload, serialized as `data`; `nil` data is preserved as JSON `null`. |
+| `Result.Response(ctx, status...)` | Sends the result as JSON; HTTP status defaults to `200 OK`, or the first supplied status value. |
+| `Result.IsOk()` | Returns true only when `Code == result.OkCode`. |
+| `result.Ok(dataOrOptions...)` | Builds a success `Result`; accepts zero args, one data arg, option-only, or data before `OkOption` values. |
+| `result.OkOption` | Function type `func(*Result)` used by success-result options. |
+| `result.WithMessage(message)` | Sets `Result.Message` exactly to `message`, including an empty string. |
+| `result.WithMessagef(format, args...)` | Sets `Result.Message` with `fmt.Sprintf(format, args...)`. |
+| `result.Error` | Structured application error with business code, message, and transport status. It is not the public JSON envelope. |
+| `Error.Code` | Business error code used in the response envelope and in `errors.Is` comparisons. |
+| `Error.Message` | Error message returned by `Error.Error()` and copied into the response envelope. |
+| `Error.Status` | HTTP status used by the app error handler when converting the error into a `Result`. |
+| `Error.Error()` | Implements `error` by returning `Message`. |
+| `Error.Is(target)` | Matches another `result.Error` by `Code` only; `Message` and `Status` do not affect identity. |
+| `result.Err(messageOrOptions...)` | Builds an `Error`; optional message string must be first, followed by `ErrOption` values. |
+| `result.Errf(format, args...)` | Builds an `Error` with `fmt.Sprintf`; format args must come before any `ErrOption`. |
+| `result.ErrOption` | Function type `func(*Error)` used by error options. |
+| `result.WithCode(code)` | Sets `Error.Code`; default is `result.ErrCodeDefault` (`2000`). |
+| `result.WithStatus(status)` | Sets `Error.Status`; default is `200 OK`. |
+| `result.AsErr(err)` | Extracts a `result.Error` from an error chain. |
+| `result.IsRecordNotFound(err)` | Uses `errors.Is(err, result.ErrRecordNotFound)`. |
+| `result.ErrNotImplemented(message)` | Builds code `1500` with HTTP `501 Not Implemented`. |
+| `result.OkCode` / `result.OkMessage` | Success code `0` and success message key `"ok"`. |
+| `ErrCode*` family | Cross-cutting error-code constants listed below. |
+| `ErrMessage*` family | Cross-cutting i18n message-key constants listed below. |
+| `result.ErrAccessDenied`, `result.ErrTooManyRequests`, `result.ErrRequestTimeout`, `result.ErrUnknown`, `result.ErrRecordNotFound`, `result.ErrRecordAlreadyExists`, `result.ErrForeignKeyViolation`, `result.ErrDangerousSQL` | Ready-to-return `result.Error` values with fixed codes, message keys, and default HTTP statuses. |
 
 ## Response Shape
 
-Every API response uses the same envelope:
+Every API response uses the same `result.Result` envelope:
 
 ```json
 {
@@ -25,6 +66,11 @@ type Result struct {
     Data    any    `json:"data"`
 }
 ```
+
+`result.Error` intentionally has no JSON tags. Application code returns it as
+an `error`; the app error handler converts it to `result.Result{Code, Message}`
+and uses `Error.Status` as the HTTP status. Do not serialize `result.Error`
+directly when you want the public `code / message / data` envelope.
 
 ## Success Responses
 
@@ -47,18 +93,24 @@ return result.Ok(user, result.WithMessage("User created")).Response(ctx)
 return result.Ok(user).Response(ctx, 201)
 ```
 
-### Ok options
+`result.Ok(...)` accepts at most one data argument. If data is supplied, it must
+come before `OkOption` values. Passing more than one data argument, or passing
+data after an option, panics.
+
+### Ok Options
 
 | Option | Effect |
 | --- | --- |
-| `result.WithMessage(msg)` | Override the default success message. |
-| `result.WithMessagef(format, args...)` | Same as `WithMessage` but with `fmt.Sprintf`-style formatting. |
+| `result.WithMessage(msg)` | Overrides the default success message with `msg`. |
+| `result.WithMessagef(format, args...)` | Overrides the success message with `fmt.Sprintf(format, args...)`. |
 
-> `result.Ok(...)` only accepts data **before** options, and at most one data argument. Mixing `WithCode` here would not compile — that option belongs to `Err`.
+The default success code is `result.OkCode` (`0`), and the default success
+message is `i18n.T(result.OkMessage)`.
 
 ## Error Responses
 
-`result.Err(...)` builds a `result.Error` value. Just return it — the framework's error handler renders it into the response envelope:
+`result.Err(...)` builds a `result.Error` value. Just return it; the framework's
+error handler renders it into the response envelope:
 
 ```go
 // Default business error (code 2000, message from i18n catalog)
@@ -70,14 +122,19 @@ return result.Err("something went wrong")
 // Business error with a specific code
 return result.Err("not found", result.WithCode(result.ErrCodeRecordNotFound))
 
-// Override the HTTP status (still keeps the structured envelope)
+// Override the HTTP status while keeping the structured envelope
 return result.Err("forbidden",
     result.WithCode(result.ErrCodeAccessDenied),
     result.WithStatus(fiber.StatusForbidden),
 )
 ```
 
-`result.Errf(format, args...)` is the same with `fmt.Sprintf`-style formatting:
+`result.Err(...)` accepts an optional message string only as the first argument.
+Any following arguments must be `ErrOption` values; invalid argument types panic.
+There is no error-message option: use the first `Err(...)` argument or
+`Errf(...)` for the error message.
+
+`result.Errf(format, args...)` is the formatted version:
 
 ```go
 return result.Errf("user %s not found", username,
@@ -85,94 +142,108 @@ return result.Errf("user %s not found", username,
 )
 ```
 
-### Err options
+`Errf` requires at least one format argument. `ErrOption` values must come after
+all format arguments; putting an option before or between format arguments
+panics.
+
+### Err Options
 
 | Option | Effect |
 | --- | --- |
-| `result.WithCode(code)` | Sets the business code (defaults to `ErrCodeDefault` = 2000). |
-| `result.WithStatus(status)` | Sets the HTTP status code (defaults to 200). |
+| `result.WithCode(code)` | Sets the business code. |
+| `result.WithStatus(status)` | Sets the HTTP status code. |
 
-> `result.Error` is meant to be returned, not chained with `.Response(ctx)` — that method only exists on `result.Result`. The framework's error handler turns the returned `Error` into the JSON envelope automatically.
+Default `Err(...)` and `Errf(...)` values use `result.ErrCodeDefault` (`2000`),
+message `i18n.T(result.ErrMessage)`, and HTTP status `200 OK`.
 
-## Checking Success
+## Error Identity
 
-`Result.IsOk()` reports whether the code indicates success:
+`result.Error` implements `errors.Is` through `Error.Is(target)`. Two
+`result.Error` values match when their `Code` values are equal; `Message` and
+`Status` are ignored.
 
 ```go
-r := result.Ok(data)
-if r.IsOk() {
-    // ...
+err := result.Errf("user %s missing", username,
+    result.WithCode(result.ErrCodeRecordNotFound),
+)
+
+if errors.Is(err, result.ErrRecordNotFound) {
+    // same business error code: 2001
 }
 ```
 
-`result.Error` does not have `IsOk()` — it always represents a failure.
+Use `result.AsErr(err)` when you need to read `Code`, `Message`, or `Status`
+from an error chain. `result.IsRecordNotFound(err)` is a convenience wrapper
+around `errors.Is(err, result.ErrRecordNotFound)`.
 
 ## Error Codes
 
-Codes are organized by range. The `security` and per-module errors live in their own packages (see [Error Handling](./error-handling) for the full table).
+Codes are organized by range. The `security` and per-module errors live in
+their own packages (see [Error Handling](./error-handling) for the cross-module
+table).
 
-### Cross-cutting codes (`result` package)
-
-| Code | Constant | Meaning |
-| --- | --- | --- |
-| 1100 | `result.ErrCodeAccessDenied` | Access denied |
-| 1200 | `result.ErrCodeNotFound` | Resource not found |
-| 1300 | `result.ErrCodeUnsupportedMediaType` | Unsupported media type |
-| 1400 | `result.ErrCodeBadRequest` | Bad request |
-| 1401 | `result.ErrCodeTooManyRequests` | Rate limited |
-| 1402 | `result.ErrCodeRequestTimeout` | Request timeout |
-| 1500 | `result.ErrCodeNotImplemented` | Not implemented |
-| 1600 | `result.ErrCodeDangerousSQL` | Dangerous SQL detected |
-| 1900 | `result.ErrCodeUnknown` | Unknown / unwrapped error |
-| 2000 | `result.ErrCodeDefault` | Default business error |
-| 2001 | `result.ErrCodeRecordNotFound` | Record not found |
-| 2002 | `result.ErrCodeRecordAlreadyExists` | Duplicate record |
-| 2003 | `result.ErrCodeForeignKeyViolation` | Foreign-key constraint violation |
-
-### Security codes (`security` package, 1000-1038)
-
-Since v0.25 these moved out of `result` and now live in `security`. Examples:
+### Cross-Cutting Codes
 
 | Code | Constant | Meaning |
 | --- | --- | --- |
-| 1000 | `security.ErrCodeUnauthenticated` | Not authenticated |
-| 1001 | `security.ErrCodeUnsupportedAuthenticationType` | Unsupported auth type |
-| 1002 | `security.ErrCodeTokenExpired` | Token expired |
-| 1003 | `security.ErrCodeTokenInvalid` | Token invalid |
-| 1004 | `security.ErrCodeTokenNotValidYet` | Token not valid yet |
-| 1007 | `security.ErrCodePrincipalInvalid` | Principal invalid |
-| 1008 | `security.ErrCodeCredentialsInvalid` | Credentials invalid |
-| 1017 | `security.ErrCodeSignatureInvalid` | Signature invalid |
-| 1030 | `security.ErrCodeChallengeRequired` | Challenge required |
-| 1035 | `security.ErrCodeOTPCodeRequired` | OTP code required |
-| 1036 | `security.ErrCodeOTPCodeInvalid` | OTP code invalid |
-| 1037 | `security.ErrCodeNewPasswordRequired` | New password required |
+| `0` | `result.OkCode` | Success |
+| `1100` | `result.ErrCodeAccessDenied` | Access denied |
+| `1200` | `result.ErrCodeNotFound` | Resource not found; standalone constant used by Fiber error mapping or custom `Err(WithCode(...))` |
+| `1300` | `result.ErrCodeUnsupportedMediaType` | Unsupported media type; standalone constant used by Fiber error mapping or custom `Err(WithCode(...))` |
+| `1400` | `result.ErrCodeBadRequest` | Bad request; standalone constant used by validation/API packages or custom `Err(WithCode(...))` |
+| `1401` | `result.ErrCodeTooManyRequests` | Rate limited |
+| `1402` | `result.ErrCodeRequestTimeout` | Request timeout |
+| `1500` | `result.ErrCodeNotImplemented` | Not implemented |
+| `1600` | `result.ErrCodeDangerousSQL` | Dangerous SQL detected |
+| `1900` | `result.ErrCodeUnknown` | Unknown or unwrapped error |
+| `2000` | `result.ErrCodeDefault` | Default business error |
+| `2001` | `result.ErrCodeRecordNotFound` | Record not found |
+| `2002` | `result.ErrCodeRecordAlreadyExists` | Duplicate record |
+| `2003` | `result.ErrCodeForeignKeyViolation` | Foreign-key constraint violation |
 
-See [Error Handling](./error-handling) for the full security code list (1000-1038), and the `storage` (2200+), `schema` (2300+), `monitor` (2100+) module codes.
+`ErrCodeNotFound`, `ErrCodeUnsupportedMediaType`, and `ErrCodeBadRequest` do not
+have predefined `result.Error` values in this package. They are exported
+building blocks for app-layer Fiber mappings and package-specific errors.
 
-## I18n Integration
+### Message Keys
 
-Messages are looked up through the `i18n` module — `result.OkMessage` (`"ok"`), `result.ErrMessage` (`"error"`), and the various `ErrMessage*` constants resolve through the configured language bundle at runtime. Application code may pass an already-translated string directly to `Err("...")`.
+Messages are looked up through the `i18n` module at construction or error
+handling time. Application code may also pass an already-translated string
+directly to `Err("...")`.
 
-## Pre-built Error Sentinels
+| Constant | Key | Used by |
+| --- | --- | --- |
+| `result.OkMessage` | `"ok"` | default `Ok(...)` message |
+| `result.ErrMessage` | `"error"` | default `Err(...)` message |
+| `result.ErrMessageUnknown` | `"unknown_error"` | `ErrUnknown` and unmapped errors |
+| `result.ErrMessageNotFound` | `"not_found"` | app-layer Fiber `404` mapping |
+| `result.ErrMessageTooManyRequests` | `"too_many_requests"` | `ErrTooManyRequests` |
+| `result.ErrMessageAccessDenied` | `"access_denied"` | `ErrAccessDenied` and app-layer Fiber `403` mapping |
+| `result.ErrMessageUnsupportedMediaType` | `"unsupported_media_type"` | app-layer Fiber `415` mapping |
+| `result.ErrMessageRequestTimeout` | `"request_timeout"` | `ErrRequestTimeout` and app-layer Fiber `408` mapping |
+| `result.ErrMessageRecordNotFound` | `"record_not_found"` | `ErrRecordNotFound` |
+| `result.ErrMessageRecordAlreadyExists` | `"record_already_exists"` | `ErrRecordAlreadyExists` |
+| `result.ErrMessageForeignKeyViolation` | `"foreign_key_violation"` | `ErrForeignKeyViolation` |
+| `result.ErrMessageDangerousSQL` | `"dangerous_sql"` | `ErrDangerousSQL` |
 
-VEF exposes the common errors as ready-to-return `result.Error` values. Return them directly:
+## Pre-Built Error Sentinels
 
-```go
-return result.ErrRecordNotFound        // code 2001
-return result.ErrRecordAlreadyExists   // code 2002
-return result.ErrForeignKeyViolation   // code 2003
-return result.ErrAccessDenied          // code 1100
-return result.ErrTooManyRequests       // code 1401
-return result.ErrRequestTimeout        // code 1402
-return result.ErrUnknown               // code 1900
-return result.ErrDangerousSQL          // code 1600
-```
+VEF exposes common errors as ready-to-return `result.Error` values. The database
+and SQL-class business failures intentionally keep HTTP `200 OK`; clients should
+read the business `code` to distinguish the failure.
 
-A few sentinels are constructors because the message is application-defined:
+| Error value | Business code | Default HTTP status | Message key |
+| --- | --- | --- | --- |
+| `result.ErrAccessDenied` | `result.ErrCodeAccessDenied` (`1100`) | `403` | `result.ErrMessageAccessDenied` |
+| `result.ErrTooManyRequests` | `result.ErrCodeTooManyRequests` (`1401`) | `429` | `result.ErrMessageTooManyRequests` |
+| `result.ErrRequestTimeout` | `result.ErrCodeRequestTimeout` (`1402`) | `408` | `result.ErrMessageRequestTimeout` |
+| `result.ErrUnknown` | `result.ErrCodeUnknown` (`1900`) | `500` | `result.ErrMessageUnknown` |
+| `result.ErrRecordNotFound` | `result.ErrCodeRecordNotFound` (`2001`) | `200` | `result.ErrMessageRecordNotFound` |
+| `result.ErrRecordAlreadyExists` | `result.ErrCodeRecordAlreadyExists` (`2002`) | `200` | `result.ErrMessageRecordAlreadyExists` |
+| `result.ErrForeignKeyViolation` | `result.ErrCodeForeignKeyViolation` (`2003`) | `200` | `result.ErrMessageForeignKeyViolation` |
+| `result.ErrDangerousSQL` | `result.ErrCodeDangerousSQL` (`1600`) | `200` | `result.ErrMessageDangerousSQL` |
+| `result.ErrNotImplemented(message)` | `result.ErrCodeNotImplemented` (`1500`) | `501` | caller-supplied message |
 
-```go
-return result.ErrNotImplemented("multi-tenant export not yet supported")
-```
-
-Security-domain sentinels live in the `security` package (`security.ErrUnauthenticated`, `security.ErrTokenExpired`, …). See [Error Handling](./error-handling) for the complete cross-module list.
+Security-domain sentinels live in the `security` package
+(`security.ErrUnauthenticated`, `security.ErrTokenExpired`, and others). See
+[Error Handling](./error-handling) for the cross-module list.

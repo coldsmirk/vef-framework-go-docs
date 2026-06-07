@@ -9,7 +9,30 @@ VEF uses `go-playground/validator` as the base validation engine and layers fram
 - translated error messages
 - `label` / `label_i18n` support
 - custom validation rules
-- null-type support for framework null wrappers
+- pointer-based nullable field support through the standard `omitempty` flow
+
+## Reviewed Public Surface
+
+The current source audit for `github.com/coldsmirk/vef-framework-go/validator`
+covers 5 top-level exported symbols, 6 exported fields, and no exported
+methods. The reviewed public-surface fingerprint is
+`747c46e376e5a77e49d9266c675461dfca729dc5cb2e9b54b231c86aab67ddcf`.
+
+Reviewed APIs:
+
+| API | Contract |
+| --- | --- |
+| `validator.Validate(value)` | Runs the package-level validator against `value`; success returns `nil`, validation failure returns the first translated error as a bad-request `result.Error` |
+| `validator.RegisterValidationRules(rules...)` | Registers each `ValidationRule` with the shared validator and both built-in translators; returns the first registration error |
+| `validator.RegisterTypeFunc(fn, types...)` | Registers a custom type extractor by delegating to `RegisterCustomTypeFunc` |
+| `validator.CustomTypeFunc` | Alias-compatible function type `func(field reflect.Value) any` for custom type extraction |
+| `validator.ValidationRule` | Struct used to define custom validation tags and translation behavior |
+| `ValidationRule.RuleTag` | Validator tag name passed to `RegisterValidation` and `RegisterTranslation` |
+| `ValidationRule.ErrMessageTemplate` | Fallback message template registered with go-playground translators |
+| `ValidationRule.ErrMessageI18nKey` | Optional framework i18n key; if it resolves to a real message, that message wins over the fallback template |
+| `ValidationRule.Validate` | Actual rule predicate over go-playground `FieldLevel` values |
+| `ValidationRule.ParseParam` | Extracts placeholder values from go-playground `FieldError` values for message rendering |
+| `ValidationRule.CallValidationEvenIfNull` | Passed through to go-playground `RegisterValidation` |
 
 ## Validation Entry Point
 
@@ -47,7 +70,7 @@ Resolution order:
 | Source | Effect |
 | --- | --- |
 | `label:"..."` | uses the explicit label text directly |
-| `label_i18n:"..."` | resolves the label through i18n first, then falls back to the field name |
+| `label_i18n:"..."` | resolves the label through `i18n.T`; if the translation is missing, the i18n key may appear in the error message |
 | neither tag present | uses the Go field name |
 
 Example:
@@ -74,11 +97,14 @@ VEF currently ships these custom validation rules:
 | `alphanum_us_slash` | `string` | letters, numbers, underscore, slash only | `validate:"alphanum_us_slash"` |
 | `alphanum_us_dot` | `string` | letters, numbers, underscore, dot only | `validate:"alphanum_us_dot"` |
 
+These rules are registered during package initialization. If that registration
+fails, startup panics instead of leaving the validator partially configured.
+
 ### `phone_number`
 
 | Rule | Details |
 | --- | --- |
-| accepted values | `1[3-9]\\d{9}` |
+| accepted values | `^1[3-9]\d{9}$` |
 | intended use | mobile phone input validation |
 | common error shape | translated message meaning “format is invalid” |
 
@@ -89,6 +115,7 @@ VEF currently ships these custom validation rules:
 | accepted field type | `decimal.Decimal` |
 | parameter format | decimal string such as `10.5` |
 | behavior | compares the field value against the parsed decimal threshold |
+| failure modes | non-`decimal.Decimal` fields or invalid threshold params fail validation |
 
 ### `alphanum_us`
 
@@ -97,6 +124,9 @@ VEF currently ships these custom validation rules:
 | `alphanum_us` | letters, digits, `_` |
 | `alphanum_us_slash` | letters, digits, `_`, `/` |
 | `alphanum_us_dot` | letters, digits, `_`, `.` |
+
+All three alphanum rules require at least one character; an empty string does
+not match their regex.
 
 Typical uses:
 
@@ -123,7 +153,7 @@ type UserParams struct {
 }
 ```
 
-The standard `omitempty` validator tag handles nullable cases — when the pointer is `nil`, subsequent rules are skipped; when it points to a value, the rest of the tag chain applies to that value. If you need to register a custom type that should participate in validation, use `validator.RegisterTypeFunc(...)` to teach the validator how to extract a comparable value from your type.
+The standard `omitempty` validator tag handles nullable cases — when the pointer is `nil`, subsequent rules are skipped; when it points to a value, the rest of the tag chain applies to that value. If you need to register a custom type that should participate in validation, use `validator.RegisterTypeFunc(...)` with a `validator.CustomTypeFunc` to teach the validator how to extract a comparable value from your type.
 
 ## Error Behavior
 
@@ -142,6 +172,10 @@ HTTP behavior:
 | business code | `result.ErrCodeBadRequest` |
 | HTTP status | `400 Bad Request` |
 
+Built-in go-playground rules and VEF custom rules read the active
+`i18n.CurrentLanguage()` at validation time. Chinese (`zh-CN`) uses the Chinese
+translator; other supported languages use the English translator.
+
 ## Registering Additional Custom Rules
 
 Applications can register their own rules through `validator.RegisterValidationRules(...)`.
@@ -156,6 +190,11 @@ A rule is defined by `validator.ValidationRule`, which includes:
 | `Validate` | actual validation function |
 | `ParseParam` | parameter extraction for error message placeholders |
 | `CallValidationEvenIfNull` | whether the rule should run on null values |
+
+For custom rule messages, `ErrMessageI18nKey` is checked first. When
+`i18n.T(key)` returns a value different from the key, placeholders such as
+`{0}` and `{1}` are replaced with `ParseParam` values. If no framework i18n
+message is found, the go-playground translator renders `ErrMessageTemplate`.
 
 ## Practical Patterns
 
@@ -180,13 +219,13 @@ type PriceParams struct {
 }
 ```
 
-### Null wrapper validation
+### Optional pointer validation
 
 ```go
 type UserParams struct {
 	api.P
 
-	Phone null.String `json:"phone" validate:"omitempty,phone_number" label:"Phone"`
+	Phone *string `json:"phone" validate:"omitempty,phone_number" label:"Phone"`
 }
 ```
 
@@ -196,7 +235,7 @@ type UserParams struct {
 - use `label` or `label_i18n` so error messages remain user-facing
 - prefer framework custom rules when they match your contract
 - keep custom rules narrow and domain-specific
-- if the field type is a framework null wrapper, rely on built-in null-type support instead of manual unwrapping
+- use pointer fields plus `omitempty` for nullable input; register a custom type extractor only for application-specific wrapper types
 
 ## Next Step
 

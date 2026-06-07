@@ -6,6 +6,30 @@ sidebar_position: 1
 
 The `api` package is the foundation of VEF's request handling layer. It defines the core abstractions — resources, operations, request/response types, and handler resolution — that all other packages build upon.
 
+## Reviewed Public Surface
+
+The current source audit for `github.com/coldsmirk/vef-framework-go/api` covers
+66 top-level exported symbols, 45 exported fields, and 40 exported methods. The
+reviewed public-surface fingerprint is
+`a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e`.
+
+The generated [Public API Index](../reference/public-api-index) is the
+no-omissions checklist for every exported symbol, exported field, and exported
+method. This guide explains the supported behavior and runtime contracts behind
+that surface.
+
+Reviewed API groups in this guide:
+
+| Group | Public APIs |
+| --- | --- |
+| resource and kind | `api.Resource`, `api.Kind`, `api.KindRPC`, `api.KindREST`, `api.ValidateActionName(action, kind) error`, `api.NewRPCResource(name, opts...)`, `api.NewRESTResource(name, opts...)`, `api.WithVersion(v)`, `api.WithAuth(config)`, `api.WithOperations(specs...)` |
+| engine and routing extension | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
+| operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
+| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| handler extension | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
+| audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
+
 ## Architecture
 
 ```
@@ -55,6 +79,9 @@ resource := api.NewRPCResource("sys/user",
 | RPC | `api.KindRPC` | `snake_case` with `/` separators | `snake_case` | `sys/user` → `create`, `find_page` |
 | REST | `api.KindREST` | `kebab-case` with `/` separators | `<verb>` or `<verb> <sub-resource>` | `sys/user` → `get`, `post`, `get user-friends` |
 
+`Kind.String()` returns `rpc` for `KindRPC`, `rest` for `KindREST`, and
+`unknown` for any other value.
+
 ### Resource Name Rules
 
 | Rule | Valid | Invalid |
@@ -73,6 +100,17 @@ resource := api.NewRPCResource("sys/user",
 | `api.WithAuth(config)` | Set resource-level authentication |
 | `api.WithOperations(specs...)` | Provide operation specs directly |
 
+`api.NewRPCResource` and `api.NewRESTResource` validate the resource name,
+version, and any specs passed through direct `api.WithOperations(...)` at
+construction time. They panic when validation fails. `api.ValidateActionName(action, kind)`
+is public for code that builds resources dynamically and wants to apply the same
+RPC/REST action validation before constructing an `OperationSpec`.
+
+REST action validation accepts these lowercase method tokens: `get`, `post`,
+`put`, `delete`, `patch`, `head`, `options`, `trace`, `connect`, and `all`.
+Sub-resource paths may contain `/`, but each segment must use kebab-case;
+dynamic Fiber params such as `/:id` are not accepted by the public validator.
+
 ## Resource Interface
 
 ```go
@@ -85,7 +123,13 @@ type Resource interface {
 }
 ```
 
-When using CRUD builders, you typically embed `api.Resource` and CRUD providers. The framework automatically collects operations from all embedded `OperationsProvider` implementations.
+When using CRUD builders, you typically embed `api.Resource` and CRUD providers.
+The built-in collectors read direct `Resource.Operations()` specs and anonymous
+embedded `OperationsProvider` values. Direct `WithOperations(...)` specs are
+validated by the resource constructor. During engine registration, collected
+operation specs must have a non-empty action; custom `OperationsProvider`
+implementations should still produce action strings that already satisfy
+`api.ValidateActionName(...)`.
 
 ## OperationSpec
 
@@ -102,6 +146,23 @@ type OperationSpec struct {
     Handler            any               // Business logic handler
 }
 ```
+
+At runtime the engine materializes an `Operation`. Its `RequiresAuth()` and
+`HasRateLimit()` helpers are public for router strategies, middleware,
+diagnostics, and tests. `Operation` and `Request` both embed `Identifier`, so
+`Identifier.String()` is promoted to `Operation.String()` and `Request.String()`.
+
+Operation defaulting rules:
+
+| Field | Runtime behavior |
+| --- | --- |
+| `Action` | required; direct `WithOperations(...)` specs are validated against the resource kind by the resource constructor; engine registration rejects an empty action |
+| `EnableAudit` | copied directly to the runtime operation |
+| `Timeout` | non-positive values use the engine default, which is `30s` unless overridden |
+| `Public` | `true` resolves auth to `api.Public()` before resource/default auth |
+| `RequiredPermission` | copied into auth options as the required permission token when non-empty |
+| `RateLimit` | nil uses the engine default `Max=100`, `Period=5m`; a custom `RateLimitConfig` replaces the default |
+| `Handler` | RPC may infer from action when omitted; REST requires an explicit handler |
 
 ### Using with CRUD Builders
 
@@ -150,14 +211,18 @@ Every operation has a unique `Identifier`:
 
 ```go
 type Identifier struct {
-    Resource string  // e.g., "sys/user"
-    Action   string  // e.g., "create"
-    Version  string  // e.g., "v1"
+    Resource string `json:"resource" form:"resource" validate:"required,alphanum_us_slash" label_i18n:"api_request_resource"`
+    Action   string `json:"action" form:"action" validate:"required" label_i18n:"api_request_action"`
+    Version  string `json:"version" form:"version" validate:"required,alphanum" label_i18n:"api_request_version"`
 }
 
 // String format: "sys/user:create:v1"
 id.String()
 ```
+
+The same `Identifier` fields are used by JSON RPC bodies and form RPC
+requests. `Identifier.String()` always formats as
+`{resource}:{action}:{version}`.
 
 ## Request / Params / Meta
 
@@ -172,6 +237,9 @@ type Request struct {
     Meta   Meta   `json:"meta"`
 }
 ```
+
+Embed `api.P` in request parameter structs and `api.M` in metadata structs when
+you want handler injection to decode from `params` or `meta` explicitly.
 
 ### Params
 
@@ -222,6 +290,9 @@ type AuthConfig struct {
 }
 ```
 
+`AuthConfig.Clone()` returns a copy of the strategy/options pair. Use it when a
+resource or operation customizes auth without mutating shared config.
+
 ### Built-in Auth Strategies
 
 | Strategy | Constant | Description |
@@ -265,6 +336,15 @@ Usage via CRUD builder:
 crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
+The built-in rate limiter uses a sliding window. `Max <= 0` means
+`Operation.HasRateLimit()` returns false for that operation. The framework's
+default key includes resource, version, action, resolved client IP, and the
+principal ID; anonymous requests use the anonymous principal.
+
+`HasRateLimit()` returns true only when `RateLimit != nil` and
+`RateLimit.Max > 0`. `RequiresAuth()` assumes `Auth` is non-nil and returns the
+result of `Auth.Strategy != api.AuthStrategyNone`.
+
 ## Engine
 
 The `Engine` manages resource registration and HTTP routing:
@@ -301,6 +381,10 @@ func (r *UserResource) Create(ctx fiber.Ctx, params UserParams, db orm.DB) error
 | `HandlerAdapter` | Converts any handler signature to `fiber.Handler` |
 | `HandlerResolver` | Finds the handler function on a resource |
 
+`RouterStrategy` is also public for custom HTTP exposure. A strategy declares
+which `api.Kind` values it can handle, receives the Fiber router in `Setup`, and
+registers each resolved operation in `Route`.
+
 ## Error Types
 
 | Error | Meaning |
@@ -315,6 +399,27 @@ func (r *UserResource) Create(ctx fiber.Ctx, params UserParams, db orm.DB) error
 | `ErrInvalidActionName` | Action doesn't match kind-specific rules |
 | `ErrInvalidParamsType` | Params.Decode target is not a pointer to struct |
 | `ErrInvalidMetaType` | Meta.Decode target is not a pointer to struct |
+
+`Params.Decode` and `Meta.Decode` require a pointer to a struct. Passing any
+other target returns `ErrInvalidParamsType` or `ErrInvalidMetaType`.
+
+Additional public API surface:
+
+| API group | Public surface |
+| --- | --- |
+| versions | `api.VersionV1`, `api.VersionV2`, `api.VersionV3`, `api.VersionV4`, `api.VersionV5`, `api.VersionV6`, `api.VersionV7`, `api.VersionV8`, `api.VersionV9` |
+| request headers | `api.HeaderXAppID`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXMetaPrefix` |
+| audit | `api.AuditEvent`, `api.SubscribeAuditEvent` |
+| auth registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.ResourceOption` |
+| operation collection | `api.Operation`, `api.OperationSpec`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
+| request helpers | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, promoted `Operation.String()`, promoted `Request.String()`, `Request.GetParam(...)`, `Request.GetMeta(...)`, `Params.Decode(...)`, `Meta.Decode(...)` |
+| marker structs | `api.P` for params and `api.M` for meta |
+| handler/router extension | `api.Middleware`, `api.RouterStrategy`, `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver`, `api.ValidateActionName(action, kind) error` |
+| sentinel errors | also includes `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, and `ErrInvalidVersionFormat` for decoded request/runtime validation |
+
+`ErrInvalidRequestParams` and `ErrInvalidRequestMeta` use
+`result.ErrCodeBadRequest` (`1400`) and HTTP status `400`. They are returned
+when RPC form `params`/`meta` JSON or REST JSON body parsing fails.
 
 ## Next Step
 

@@ -6,6 +6,8 @@ sidebar_position: 10
 
 `cryptox` 包提供统一的加密/解密和数字签名接口，支持多种算法。
 
+审查说明：本页覆盖 85 public cryptox entries，其中包括 8 grouped cryptox method entries，分布在 3 cryptox receiver/type families；成组 cipher/signer surface 包含 0 exported cryptox field entries 和 8 exported cryptox method entries。
+
 ## 接口
 
 ### Cipher
@@ -43,7 +45,7 @@ type CipherSigner interface {
 
 ## 支持的算法
 
-所有构造函数返回框架的 `Cipher` / `Signer` / `CipherSigner` 接口。每个算法都另外提供 `*FromPem` / `*FromHex` / `*FromBase64` 三种变体，按需选用。
+所有构造函数返回框架的 `Cipher` / `Signer` / `CipherSigner` 接口。编码辅助构造器按算法提供：AES 和 SM4 提供 `*FromHex` / `*FromBase64`；RSA、SM2、ECDSA 提供 `*FromPEM` / `*FromHex` / `*FromBase64`；ECIES 提供 bytes、hex 和 base64 构造器。
 
 ### AES（对称加密）
 
@@ -55,7 +57,7 @@ cipher, err := cryptox.NewAES(key)
 
 // 切到 CBC 模式必须显式提供 IV：
 cbcCipher, err := cryptox.NewAES(key,
-    cryptox.WithAESMode(cryptox.AESModeCBC),
+    cryptox.WithAESMode(cryptox.AesModeCbc),
     cryptox.WithAESIv(iv), // 16 字节
 )
 
@@ -69,7 +71,7 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 ```go
 // 私钥在前。
-cipher, err := cryptox.NewRSAFromPem(privatePEM, publicPEM)
+cipher, err := cryptox.NewRSAFromPEM(privatePEM, publicPEM)
 
 encrypted, err := cipher.Encrypt("sensitive data")
 plaintext, err := cipher.Decrypt(encrypted)
@@ -79,6 +81,9 @@ valid, err := cipher.Verify("important message", signature)
 ```
 
 变体：`cryptox.NewRSA(privateKey, publicKey)`（直接接收 `*rsa.PrivateKey` / `*rsa.PublicKey`）、`cryptox.NewRSAFromHex`、`cryptox.NewRSAFromBase64`。
+
+RSA 默认加密模式是 `RsaModeOAEP`；默认签名模式是 `RsaSignModePSS`。
+`RsaModePKCS1v15` 和 `RsaSignModePKCS1v15` 是显式选择的 legacy interop 模式。
 
 ### SM2（国密 — 非对称）
 
@@ -114,7 +119,7 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 ```go
 // 私钥在前。
-signer, err := cryptox.NewECDSAFromPem(privatePEM, publicPEM)
+signer, err := cryptox.NewECDSAFromPEM(privatePEM, publicPEM)
 
 signature, err := signer.Sign("data to sign")
 valid, err := signer.Verify("data to sign", signature)
@@ -136,6 +141,9 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 变体：`cryptox.NewECIES(privateKey, publicKey)`（接收 `*ecdh.PrivateKey` / `*ecdh.PublicKey`）、`cryptox.NewECIESFromHex(..., curve)`、`cryptox.NewECIESFromBase64(..., curve)`。支持的曲线：`EciesCurveP256`、`EciesCurveP384`、`EciesCurveP521`、`EciesCurveX25519`。
 
+`GenerateECIESKey(curve)` 和 ECIES byte parser 会使用传入的 `ECIESCurve`；
+未知 curve 值会 fallback 到 P-256。`GenerateECDSAKey` 对 `ECDSACurve` 也是同样规则。
+
 ## 算法对比
 
 | 算法 | 类型 | 加密 | 签名 | 标准 |
@@ -146,3 +154,24 @@ plaintext, err := cipher.Decrypt(encrypted)
 | ECIES | 非对称 | ✅ | ❌ | 国际 |
 | SM2 | 非对称 | ✅ | ✅ | 国密 |
 | SM4 | 对称 | ✅ | ❌ | 国密 |
+
+## 选项、常量和密钥辅助函数
+
+| 范围 | 公开 API |
+| --- | --- |
+| AES modes/options | `AESMode`, `AesModeGcm`, `AesModeCbc`, `WithAESMode(mode)`, `WithAESIv(iv)` |
+| RSA modes/options | `RSAMode`, `RSASignMode`, `RsaModeOAEP`, `RsaModePKCS1v15`, `RsaSignModePSS`, `RsaSignModePKCS1v15`, `WithRSAMode(mode)`, `WithRSASignMode(mode)` |
+| SM4 modes/options | `SM4Mode`, `SM4ModeCBC`, `SM4ModeECB`, `WithSM4Mode(mode)`, `WithSM4Iv(iv)` |
+| ECDSA curves | `ECDSACurve`, `EcdsaCurveP224`, `EcdsaCurveP256`, `EcdsaCurveP384`, `EcdsaCurveP521` |
+| ECIES curves | `ECIESCurve`, `EciesCurveP256`, `EciesCurveP384`, `EciesCurveP521`, `EciesCurveX25519` |
+| key helpers | `GenerateECDSAKey(curve)`, `GenerateECIESKey(curve)` |
+| option types | `AESOption`, `RSAOption`, `SM4Option` |
+
+## 错误哨兵
+
+| 分组 | 错误 |
+| --- | --- |
+| key availability | `ErrAtLeastOneKeyRequired`, `ErrPublicKeyRequiredForEncrypt`, `ErrPrivateKeyRequiredForDecrypt`, `ErrPrivateKeyRequiredForSign`, `ErrPublicKeyRequiredForVerify` |
+| key parsing/type | `ErrFailedDecodePEMBlock`, `ErrUnsupportedPEMType`, `ErrNotRSAPrivateKey`, `ErrNotRSAPublicKey`, `ErrNotECDSAPrivateKey`, `ErrNotECDSAPublicKey` |
+| symmetric crypto | `ErrInvalidAESKeySize`, `ErrInvalidSM4KeySize`, `ErrInvalidIVSizeCBC`, `ErrCiphertextNotMultipleOfBlock`, `ErrCiphertextTooShort`, `ErrInvalidPadding` |
+| input/signature | `ErrDataEmpty`, `ErrInvalidSignature` |

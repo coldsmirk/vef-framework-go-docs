@@ -58,6 +58,9 @@ type Employee struct {
 | `tabular:"-"` | 完全忽略该字段 |
 | `tabular:"dive"` | 递归进入嵌入结构体字段 |
 
+tag parser 使用逗号分隔的 `key=value` 对。分号不是分隔符；
+`tabular:"name=ID;order=1"` 会被当作一个 `name` 值。
+
 ## Schema
 
 `Schema` 类型在初始化时从结构体字段预解析表格元数据：
@@ -71,6 +74,14 @@ count := schema.ColumnCount()     // 6
 ```
 
 列会按 `order` 属性自动排序。未显式指定 `order` 的字段使用其声明顺序。
+
+`NewSchemaFromSpecs` 会在构造期校验动态 schema：缺 `Key` 返回
+`ErrMissingColumnKey`，缺 `Type` 返回 `ErrMissingColumnType`，重复 key 返回
+`ErrDuplicateColumnKey`，解析后的 header name 重复返回 `ErrDuplicateHeaderName`。
+
+`ColumnSpec.Required`、每列的 `Validators`、以及 map 级 `RowValidator`
+会在 map-row 导入时执行。多个 map-row validation failure 会用
+`errors.Join` 合并，因此调用方可以继续用 `errors.Is` 检查合并后的错误。
 
 ## 接口
 
@@ -115,6 +126,18 @@ type ValueParser interface {
 // 便捷适配器
 tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) { ... })
 ```
+
+## Header 映射与行导入
+
+`BuildHeaderMapping` 是 CSV 和 Excel driver 共享的 header resolver。启用
+trim 时，它会先修剪 header name 再匹配；空 header 和未知 header 会跳过；
+重复的非空 header 会作为 fatal `ErrDuplicateHeaderName` 返回。Importer 配置
+`WithoutHeader()` 时，driver 使用 `DefaultPositionalMapping`，按输入列位置依次
+映射到 schema column。
+
+`ParseRow` 会先应用默认值再解析单元格；默认值替换后仍为空的 cell 会被跳过；
+parse、validation 和 commit failure 会作为行级 `ImportError` 返回。如果返回了
+row error，row builder 不会提交 partial row。
 
 ## 默认类型支持
 
@@ -163,6 +186,36 @@ type ExportError struct {
 | --- | --- | --- |
 | `excel` | `.xlsx`（Excel）| [Excel 文档](./excel) |
 | `csv` | `.csv`（CSV/TSV）| [CSV 文档](./csv) |
+
+## 公开核心 API
+
+| API 组 | 公开 surface |
+| --- | --- |
+| schema | `NewSchema`, `NewSchemaFor[T]`, `NewSchemaFromSpecs`, `Column`, `ColumnSpec`，以及 `Schema` lookup 方法 |
+| adapter | `NewStructAdapter`, `NewStructAdapterFor[T]`, `NewMapAdapter`, `NewMapAdapterFromSpecs`, `RowAdapter`, `RowReader`, `RowWriter`, `RowView`, `RowBuilder` |
+| typed wrapper | `NewTypedImporter[T]`, `NewTypedExporter[T]`, `TypedImporter[T]`, `TypedExporter[T]` |
+| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
+| formatter/parser registry | `ResolveFormatter`, `ResolveFormatters`, `ResolveParser`, `ResolveParsers`, `IsDefaultFormatter`, `NewDefaultFormatter`, `NewDefaultParser` |
+| 常量/错误 | `TagTabular`, `IgnoreField`, `AttrDive`, `AttrName`, `AttrOrder`, `AttrWidth`, `AttrDefault`, `AttrFormatter`, `AttrParser`, `AttrFormat`，以及 `ErrDataMustBeSlice`, `ErrDuplicateColumnKey`, `ErrDuplicateHeaderName`, `ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrNoDataRowsFound`, `ErrRequiredMissing`, `ErrSchemaMismatch`, `ErrTypedRowMismatch`, `ErrUnknownColumn`, `ErrUnsetField`, `ErrUnsupportedType` 等 tabular sentinel |
+
+当前 tabular 包审计在生成的 API ledger 中锁定 **143 public tabular
+entries**。分组 member surface 覆盖 **75 grouped tabular field/method
+entries**，分布在 **20 tabular receiver/type families** 中：其中包含 **37
+exported tabular field entries** 和 **38 exported tabular method entries**。
+生成的公开 API 索引仍是完整签名清单；本页负责说明 schema、mapping、
+parser/formatter、adapter 和错误契约家族。
+
+额外已审计字段和 adapter 方法：
+
+| Surface | Public API |
+| --- | --- |
+| column metadata | `Column.Default`, `Column.Width`, `Column.Order`, `Column.Parser`, `Column.ParserFn`, `Column.FormatterFn`, `Column.Index` |
+| dynamic specs | `ColumnSpec.Default`, `ColumnSpec.Width`, `ColumnSpec.Order`, `ColumnSpec.Parser`, `ColumnSpec.ParserFn`, `ColumnSpec.FormatterFn` |
+| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace` |
+| row adapter contract | `RowAdapter.Writer`, `RowReader.All`, `RowView.Get`, `RowBuilder.Set`, `RowBuilder.Validate`, `RowWriter.NewRow`, `RowWriter.Commit`, `RowWriter.Build` |
+| schema lookup | `Schema.ColumnByKey`, `Schema.ColumnByName` |
+| typed wrappers | `TypedExporter.Inner`, `TypedImporter.Inner` |
+| error wrapping | `ImportError.Unwrap`, `ExportError.Unwrap`；调用方可以使用 `errors.Unwrap` / `errors.Is` |
 
 ## CRUD 集成
 

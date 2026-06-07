@@ -6,6 +6,27 @@ sidebar_position: 4
 
 The `copier` package provides struct-to-struct field copying with built-in type converters for common VEF types.
 
+## Reviewed Public Surface
+
+The current source audit for `github.com/coldsmirk/vef-framework-go/copier`
+covers 9 top-level exported symbols, no exported fields, and no exported
+methods. The reviewed public-surface fingerprint is
+`44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58`.
+
+Reviewed APIs:
+
+| API | Contract |
+| --- | --- |
+| `copier.Copy(src, dst, options...)` | Copies from `src` into `dst` by calling `copier.CopyWithOption(dst, src, opt)` from `github.com/jinzhu/copier`; `dst` must be a pointer destination or the underlying copier returns an error |
+| `copier.CopyOption` | Function option type that mutates the underlying option struct from `github.com/jinzhu/copier` |
+| `copier.TypeConverter` | Alias for `github.com/jinzhu/copier.TypeConverter` |
+| `copier.FieldNameMapping` | Alias for `github.com/jinzhu/copier.FieldNameMapping` |
+| `copier.WithIgnoreEmpty()` | Sets `IgnoreEmpty = true` |
+| `copier.WithDeepCopy()` | Sets `DeepCopy = true` |
+| `copier.WithCaseInsensitive()` | Sets `CaseSensitive = false`; default copying remains case-sensitive |
+| `copier.WithFieldNameMapping(...)` | Appends mappings to `FieldNameMapping` |
+| `copier.WithTypeConverters(...)` | Appends custom converters after the built-in converters rather than replacing them |
+
 ## Quick Start
 
 ```go
@@ -30,6 +51,13 @@ err := copier.Copy(params, &user)
 ```
 
 ## Options
+
+All copier options use the public `CopyOption` type.
+
+`Copy(...)` is case-sensitive by default and always starts with the built-in
+converter list. Options are applied in the order they are passed.
+`WithTypeConverters(...)` appends custom converters instead of replacing those
+defaults. `WithFieldNameMapping(...)` also appends mappings.
 
 ### WithIgnoreEmpty
 
@@ -79,7 +107,7 @@ Adds custom type converters:
 err := copier.Copy(src, &dst, copier.WithTypeConverters(
     copier.TypeConverter{
         SrcType: MyCustomType{},
-        DstType: copier.String,
+        DstType: "",
         Fn: func(src interface{}) (interface{}, error) {
             return src.(MyCustomType).String(), nil
         },
@@ -106,6 +134,15 @@ The copier includes automatic converters for value ↔ pointer conversions of al
 
 This means you can freely use pointer types in params structs for optional fields without worrying about type conversion.
 
+Value-to-pointer converters allocate a new local value and return its address.
+Pointer-to-value converters dereference non-nil pointers. If the source pointer
+is nil, the converter returns the zero value for the destination type, for
+example `""`, `false`, `0`, `decimal.Zero`, or a zero `time.Time` /
+`timex.DateTime`.
+
 ## Framework Integration
 
-The `copier` package is used internally by the CRUD `Create` and `Update` builders to copy `TParams` fields into `TModel` instances. The `Update` builder specifically uses `WithIgnoreEmpty()` to support partial updates.
+The `copier` package is used internally by the CRUD `Create`, `CreateMany`,
+`Update`, and `UpdateMany` builders to copy `TParams` fields into `TModel`
+instances. The update builders use `WithIgnoreEmpty()` when merging incoming
+models into existing models for partial updates.

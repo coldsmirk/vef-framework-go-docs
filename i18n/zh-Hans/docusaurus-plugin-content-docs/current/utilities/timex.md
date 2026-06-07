@@ -21,6 +21,24 @@ sidebar_position: 2
 - `sql.Scanner` / `driver.Valuer` — 数据库兼容
 - `encoding.TextMarshaler` / `encoding.TextUnmarshaler`
 
+当前 timex 包审计在生成的 API ledger 中锁定 **156 public timex entries**。
+分组 member surface 覆盖 **136 grouped timex method entries**，分布在 **3
+timex receiver/type families** 中：`DateTime: 60 methods`、`Date: 45
+methods` 和 `Time: 31 methods`。生成的公开 API 索引仍是完整 method 签名清单。
+
+top-level 公开符号包括三个类型（`DateTime`、`Date`、`Time`）、构造/转换入口
+（`Now`、`NowDate`、`NowTime`、`Of`、`DateOf`、`TimeOf`、`FromUnix`、
+`FromUnixMilli`、`FromUnixMicro`）、解析入口（`Parse`、`ParseDate`、
+`ParseTime`）以及错误 sentinel（`ErrInvalidDateTimeFormat`、
+`ErrInvalidDateFormat`、`ErrInvalidTimeFormat`、`ErrFailedScan`、
+`ErrUnsupportedDestType`）。
+
+共享 method family 包括转换（`Unwrap`、`Format`、`String`）、wire / database
+集成（`MarshalJSON`、`UnmarshalJSON`、`MarshalText`、`UnmarshalText`、`Scan`、
+`Value`）、比较（`Between`，open interval）以及 timestamp helper（`DateTime`
+上的 `UnixMilli`、`UnixMicro`、`UnixNano`；`Time` 上的 `ToDuration`）。JSON
+使用普通 layout，没有时区后缀，并满足 no `T` separator 这一公开契约。
+
 ## DateTime
 
 ### 创建
@@ -32,6 +50,7 @@ dt, err := timex.Parse("2024-03-15 14:30:00")         // 从字符串解析
 dt, err := timex.Parse("15/03/2024 14:30", "02/01/2006 15:04") // 自定义格式
 dt := timex.FromUnix(1710510600, 0)                   // 从 Unix 时间戳
 dt := timex.FromUnixMilli(1710510600000)               // 从毫秒时间戳
+dt := timex.FromUnixMicro(1710510600000000)            // 从微秒时间戳
 ```
 
 ### 访问组件
@@ -45,6 +64,8 @@ dt.Minute()     // 30
 dt.Second()     // 0
 dt.Weekday()    // time.Friday
 dt.YearDay()    // 75
+dt.Location()   // *time.Location
+dt.Nanosecond() // 纳秒部分
 ```
 
 ### 算术运算
@@ -66,7 +87,7 @@ dt.AddSeconds(90)         // 加秒
 dt.Equal(other)           // 相等判断
 dt.Before(other)          // 早于
 dt.After(other)           // 晚于
-dt.Between(start, end)    // 范围判断
+dt.Between(start, end)    // 开区间范围判断：start < dt < end
 dt.IsZero()               // 零值判断
 ```
 
@@ -109,6 +130,10 @@ dt.String()      // → "2024-03-15 14:30:00"
 dt.Format(layout) // 自定义格式
 dt.Unix()        // Unix 秒
 dt.UnixMilli()   // Unix 毫秒
+dt.UnixMicro()   // Unix 微秒
+dt.UnixNano()    // Unix 纳秒
+dt.Since()       // 距离 dt 已经过了多久
+dt.Until()       // 距离 dt 还有多久
 dt.Sub(other)    // 两个时间的间隔
 ```
 
@@ -134,6 +159,7 @@ d.BeginOfWeek()
 d.EndOfMonth()
 d.Monday() // ... 到 Sunday()
 d.Between(start, end)
+d.Location()
 ```
 
 ## Time
@@ -153,13 +179,19 @@ t.AddHours(2)
 t.AddMinutes(30)
 t.AddSeconds(90)
 t.AddMilliseconds(500)
+t.AddMicroseconds(1000)
+t.AddNanoseconds(1000000)
 t.Hour()
 t.Minute()
 t.Second()
+t.Nanosecond()
+t.ToDuration()
 t.BeginOfMinute()
 t.EndOfHour()
 t.Between(start, end)
 ```
+
+三种类型的 `Between` 都使用开区间：等于 `start` 或 `end` 时返回 `false`。
 
 ## JSON 行为
 
@@ -172,6 +204,19 @@ t.Between(start, end)
 ```
 
 没有时区后缀，没有 `T` 分隔符——干净、人类可读的格式。
+
+具体方法是 `MarshalJSON`、`UnmarshalJSON`、`MarshalText`、`UnmarshalText`；
+数据库集成使用 `Scan` 和 `Value`。
+
+## 错误哨兵
+
+| 错误 | 含义 |
+| --- | --- |
+| `ErrInvalidDateTimeFormat` | `DateTime` 解析或 JSON/text 解码收到非法格式 |
+| `ErrInvalidDateFormat` | `Date` 解析或 JSON/text 解码收到非法格式 |
+| `ErrInvalidTimeFormat` | `Time` 解析或 JSON/text 解码收到非法格式 |
+| `ErrFailedScan` | 数据库 `Scan` 收到非法值 |
+| `ErrUnsupportedDestType` | scan 目标类型不支持 |
 
 ## 数据库使用
 

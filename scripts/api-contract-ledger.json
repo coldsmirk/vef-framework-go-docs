@@ -1,0 +1,4564 @@
+{
+  "source_module": "github.com/coldsmirk/vef-framework-go",
+  "scope": "Semantic public API contracts that are exposed through strings, tags, generated routes, event topics, DTO field semantics, or runtime registration rather than only exported Go symbols.",
+  "package_reviews": [
+    {
+      "package": "github.com/coldsmirk/vef-framework-go",
+      "disposition": "has-semantic-contracts",
+      "summary": "Application boot/module/DI helpers reviewed as the top-level framework entrypoint. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 48,
+        "fields": 0,
+        "methods": 1,
+        "entry_count": 49,
+        "fingerprint": "f6e930b1a97e64e84247232fbaa80f04392156dad68c8cb3a64bc19e9128fa2b",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/modules/overview.md",
+        "docs/reference/extension-points.md",
+        "docs/modules/lifecycle.md"
+      ],
+      "source_evidence": [
+        "bootstrap.go:16",
+        "bootstrap.go:27",
+        "bootstrap.go:37",
+        "bootstrap.go:41",
+        "start.go:17",
+        "di.go:12",
+        "di.go:21",
+        "di.go:54",
+        "di.go:66",
+        "di.go:104",
+        "di.go:207",
+        "di.go:212",
+        "di.go:239",
+        "di.go:276",
+        "di.go:296",
+        "di.go:309",
+        "di.go:329",
+        "di.go:347",
+        "di.go:380",
+        "log.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go#runtime-contract:di-extension-groups",
+        "github.com/coldsmirk/vef-framework-go#runtime-contract:run-lifecycle-and-optional-approval"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/ai",
+      "disposition": "has-semantic-contracts",
+      "summary": "AI provider, agent, tool, message, and option APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 56,
+        "fields": 50,
+        "methods": 36,
+        "entry_count": 142,
+        "fingerprint": "c88a2df20036b327fc2d3b02516445d94e320d60544ffb6911382a2361abde95",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/message.go:3",
+        "ai/provider.go:39",
+        "ai/tool.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/ai#runtime-contract:model-provider-and-tool-schema",
+        "github.com/coldsmirk/vef-framework-go/ai#error-contract:ai-structured-errors"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/ai/stream",
+      "disposition": "has-semantic-contracts",
+      "summary": "Streaming chunk/writer/builder APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 64,
+        "fields": 21,
+        "methods": 23,
+        "entry_count": 108,
+        "fingerprint": "23c6ed5f566561d0f0b4f9483f060bcc5653ead6bcd5a3fef09ee48b99859832",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/stream/chunk.go:8",
+        "ai/stream/writer.go:14"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/ai/stream#wire-contract:ui-message-sse-stream",
+        "github.com/coldsmirk/vef-framework-go/ai/stream#runtime-contract:stream-builder-paths"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/api",
+      "disposition": "has-semantic-contracts",
+      "summary": "Resource, operation, request, auth, router, and handler-extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 66,
+        "fields": 45,
+        "methods": 40,
+        "entry_count": 151,
+        "fingerprint": "a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/api.md",
+        "docs/guide/custom-handlers.md",
+        "docs/guide/params-and-meta.md",
+        "docs/guide/routing.md"
+      ],
+      "source_evidence": [
+        "api/resource.go:20",
+        "api/request.go:10",
+        "api/auth.go:7"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/api#string-contract:resource-action-request-wire"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "disposition": "has-semantic-contracts",
+      "summary": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 277,
+        "fields": 513,
+        "methods": 94,
+        "entry_count": 884,
+        "fingerprint": "f8086450d9790ea6cb76b9573942d917ab8fd8fe487c73b02fb9ea2a918e769c",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "approval/enums.go:13",
+        "approval/flow_definition.go:16",
+        "approval/events.go:4",
+        "internal/approval/resource/instance.go:44"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
+        "github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
+        "github.com/coldsmirk/vef-framework-go/approval#result-contract:approval-error-envelope",
+        "github.com/coldsmirk/vef-framework-go/approval#runtime-contract:tenant-and-business-binding",
+        "github.com/coldsmirk/vef-framework-go/approval#wire-contract:flow-definition-and-form-json"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
+      "disposition": "has-semantic-contracts",
+      "summary": "Admin response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 8,
+        "fields": 76,
+        "methods": 0,
+        "entry_count": 84,
+        "fingerprint": "08f3b53e9da4a840e3735ad92ccb4e95baadc897dd32e60cd32e68d529b53946",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/modules/approval.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "approval/admin/types.go:6",
+        "approval/admin/metrics.go:9"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/approval/admin#dto-wire-shape:approval-admin-dtos"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/approval/my",
+      "disposition": "has-semantic-contracts",
+      "summary": "Current-user approval response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 11,
+        "fields": 83,
+        "methods": 0,
+        "entry_count": 94,
+        "fingerprint": "1adf9b1e03bfc9c03db57fd2ad1884935bf43f5fedc62555564ce54922dd4e51",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/modules/approval.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "approval/my/types.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cache",
+      "disposition": "has-semantic-contracts",
+      "summary": "Cache interfaces, memory/Redis constructors, serializers, eviction, invalidation, and singleflight helpers. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 30,
+        "fields": 0,
+        "methods": 15,
+        "entry_count": 45,
+        "fingerprint": "f5ea48e0cd9f0fd5400e677a7045511f147fcbc4b76e82107212bf80ede83489",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/cache.md"
+      ],
+      "source_evidence": [
+        "cache/cache.go:8",
+        "cache/memory.go:18",
+        "cache/redis.go:14"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cache#runtime-contract:cache-options-and-invalidation"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd",
+      "disposition": "has-semantic-contracts",
+      "summary": "CLI implementation exports are not treated as import APIs, but the root command name, registered subcommands, and version output are user-facing command contracts. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger still cover exported implementation symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 6,
+        "fields": 3,
+        "methods": 1,
+        "entry_count": 10,
+        "fingerprint": "6a01b8fdcb43f6842164be353432a6dbc7849601835c454228aab6cb5ef046ef",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/root.go:8",
+        "cmd/vef-cli/cmd/root.go:27",
+        "cmd/vef-cli/cmd/version.go:43"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd#command-contract:root-command-and-version"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo",
+      "disposition": "has-semantic-contracts",
+      "summary": "The generate-build-info command exposes stable flags, defaults, Git fallbacks, generated directory behavior, and generated Go source shape. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger still cover exported implementation symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 2,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 2,
+        "fingerprint": "a9f40a22aaf4f4e6313cea5a7fcd439a5dcde2d0b13f977e954753c1317ab33e",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/buildinfo/command.go:8",
+        "cmd/vef-cli/cmd/buildinfo/generator.go:21",
+        "cmd/vef-cli/cmd/buildinfo/generator.go:76"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo#command-contract:build-info-generation"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create",
+      "disposition": "has-semantic-contracts",
+      "summary": "The create command exposes command name, planned flags, required name behavior, and current not-implemented error as user-facing command contracts. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger still cover exported implementation symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 2,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 2,
+        "fingerprint": "26171a8454bd55208efc47d3ba16ce5744a971956d17bfac4972c1468619cd3b",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/create/command.go:8",
+        "cmd/vef-cli/cmd/create/command.go:11",
+        "cmd/vef-cli/cmd/create/command.go:37"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create#command-contract:create-command-placeholder"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema",
+      "disposition": "has-semantic-contracts",
+      "summary": "The generate-model-schema command exposes stable flags, file/directory modes, model-selection rules, bun/label tag grammar, embedded-field traversal, and generated schema helper shape. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger still cover exported implementation symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 9,
+        "fields": 12,
+        "methods": 0,
+        "entry_count": 21,
+        "fingerprint": "19164973da27a846f72a4df3b55d320998b55e57ee2b3dc40dd7abc4868e8735",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/modelschema/command.go:8",
+        "cmd/vef-cli/cmd/modelschema/command.go:56",
+        "cmd/vef-cli/cmd/modelschema/generator.go:63",
+        "cmd/vef-cli/cmd/modelschema/generator.go:142",
+        "cmd/vef-cli/cmd/modelschema/generator.go:487"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema#command-contract:model-schema-generation"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "disposition": "has-semantic-contracts",
+      "summary": "All config structs, config keys, Effective methods, validation, and runtime defaults. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 48,
+        "fields": 106,
+        "methods": 23,
+        "entry_count": 177,
+        "fingerprint": "de693b52c579df70d9133046ba06aaa4045eafae8898eaf764405ee9d6973df8",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ],
+      "source_evidence": [
+        "config/app.go:4",
+        "config/approval.go:9",
+        "config/cors.go:4",
+        "config/data_sources.go:5",
+        "config/env.go:5",
+        "config/event.go:6",
+        "config/mcp.go:4",
+        "config/monitor.go:5",
+        "config/redis.go:4",
+        "config/security.go:5",
+        "config/storage.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/config#configuration-contract:config-keys-and-effective-defaults"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/contextx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Request context key/get/set helpers. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 25,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 25,
+        "fingerprint": "d78d2202b9b5a8734a1ea972b3d31c102d71e4aaf744ac1281a11e2783d7afa1",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/context-helpers.md"
+      ],
+      "source_evidence": [
+        "contextx/contextx.go:11"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/contextx#runtime-contract:request-scoped-context-values"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/copier",
+      "disposition": "has-semantic-contracts",
+      "summary": "Copy options, built-in converter families, default case sensitivity, custom converter append behavior, field-name mapping, and merge behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 9,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 9,
+        "fingerprint": "44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/copier.md"
+      ],
+      "source_evidence": [
+        "copier/copier.go:10",
+        "copier/converters.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/copier#runtime-contract:copy-options-and-built-in-converters"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cqrs",
+      "disposition": "has-semantic-contracts",
+      "summary": "CQRS action, bus, handler, and command/query APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 18,
+        "fields": 0,
+        "methods": 8,
+        "entry_count": 26,
+        "fingerprint": "8e803410abc8ee5fcc7939d8f3a04239564e4401893e1eccd0f8803d91032f4f",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/cqrs.md"
+      ],
+      "source_evidence": [
+        "cqrs/cqrs.go:9",
+        "internal/cqrs/cqrs.go:8",
+        "internal/cqrs/cqrs.go:34",
+        "internal/cqrs/bus.go:34",
+        "internal/cqrs/bus.go:57",
+        "internal/cqrs/bus.go:89",
+        "internal/cqrs/errors.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cqrs#runtime-contract:typed-action-handler-registry"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cron",
+      "disposition": "has-semantic-contracts",
+      "summary": "Scheduler, job descriptor, options, and monitor APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 25,
+        "fields": 0,
+        "methods": 15,
+        "entry_count": 40,
+        "fingerprint": "69d2f1604ebc241ac105aff2a678f1b36f45842895fd8cb38e3ac11c1a1666fe",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/cron.md"
+      ],
+      "source_evidence": [
+        "cron/scheduler.go:11",
+        "cron/job_definitions.go:16",
+        "cron/job_descriptor.go:26"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cron#runtime-contract:gocron-job-definition-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/crud",
+      "disposition": "has-semantic-contracts",
+      "summary": "CRUD builders, options, hooks, processors, import/export, tree, and query-extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 125,
+        "fields": 36,
+        "methods": 279,
+        "entry_count": 440,
+        "fingerprint": "38785e1c261925b26022f3f642f95dbd90acb67afaacaa1dc78ab38e2f37fe4f",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/crud.md",
+        "docs/guide/query-builder.md",
+        "docs/guide/hooks.md"
+      ],
+      "source_evidence": [
+        "crud/constants.go:3",
+        "crud/builder.go:12",
+        "crud/import.go:13",
+        "crud/export.go:10"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/crud#dynamic-resource:crud-action-format-import-export"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/cryptox",
+      "disposition": "has-semantic-contracts",
+      "summary": "Symmetric/asymmetric cipher interfaces, constructors, options, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 77,
+        "fields": 0,
+        "methods": 8,
+        "entry_count": 85,
+        "fingerprint": "10f32dd3a1d0db4bcce8f4dd13998ec92edcb6954a96ef80e3473f38b322718b",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/cryptox.md"
+      ],
+      "source_evidence": [
+        "cryptox/cipher.go:3",
+        "cryptox/aes_cipher.go:13",
+        "cryptox/rsa_cipher.go:16"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/cryptox#runtime-contract:crypto-algorithm-modes-and-encodings"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/csv",
+      "disposition": "has-semantic-contracts",
+      "summary": "CSV import/export helpers and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 18,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 18,
+        "fingerprint": "625d27224a8fbc9542243e3ffabba202710b5feba0b34d2d4e1ca0c43630f978",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/csv.md",
+        "docs/features/csv-excel.md"
+      ],
+      "source_evidence": [
+        "csv/importer.go:25",
+        "csv/options.go:8",
+        "csv/exporter.go:23"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/csv#runtime-contract:csv-options-and-memory"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/datasource",
+      "disposition": "has-semantic-contracts",
+      "summary": "Dynamic datasource provider, registry, reconcile, and registration option APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 17,
+        "fields": 9,
+        "methods": 13,
+        "entry_count": 39,
+        "fingerprint": "a8d1f60b94e7300151d3df0025eec3b3e387d732829ecfff0ecaf7a660ba3cc3",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "datasource/registry.go:14",
+        "datasource/provider.go:7",
+        "datasource/options.go:8",
+        "datasource/errors.go:5",
+        "internal/datasource/registry.go:53",
+        "internal/datasource/module.go:38"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/datasource#runtime-contract:dynamic-datasource-registry"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/dbx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Database-adjacent duplicate/foreign-key helper detection codes, fallback message matching, and column alias formatting. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 3,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 3,
+        "fingerprint": "9213a2344a6749703ef186eaa9f725c5e7f0cfbe8d2ae9c6bccdae4b33426552",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "dbx/common.go:8",
+        "dbx/error.go:7"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/dbx#runtime-contract:column-alias-and-db-error-detection"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/decimal",
+      "disposition": "has-semantic-contracts",
+      "summary": "Decimal wrapper, forwarded arithmetic/marshal methods, universal conversion input families, nil pointer handling, and unsupported-type error text. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 22,
+        "fields": 0,
+        "methods": 70,
+        "entry_count": 92,
+        "fingerprint": "ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/decimal.md"
+      ],
+      "source_evidence": [
+        "decimal/decimal.go:5",
+        "decimal/convert.go:8",
+        "decimal/errors.go:5",
+        "decimal/convert_test.go:16",
+        "go.mod:41"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/decimal#runtime-contract:any-conversion-and-error-behavior"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event",
+      "disposition": "has-semantic-contracts",
+      "summary": "Event bus, typed publish/subscribe, route inspector, metrics, and publish/subscribe options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 41,
+        "fields": 20,
+        "methods": 9,
+        "entry_count": 70,
+        "fingerprint": "1ed0983c15d2250edba8b970a25fce4f8684e1fa5c8fba518cd1223d4f72459d",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/event.go:7",
+        "event/publish.go:9",
+        "event/subscribe.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event#runtime-contract:event-routing-publish-subscribe"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/inbox",
+      "disposition": "has-semantic-contracts",
+      "summary": "Inbox repository and idempotency record APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 13,
+        "fields": 9,
+        "methods": 4,
+        "entry_count": 26,
+        "fingerprint": "ecaf2505c06ba2fd7420ff3912d385a68a1d6acd2a96983add3d9885e3426835",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/inbox/inbox.go:13",
+        "event/inbox/errors.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/inbox#runtime-contract:inbox-dedupe-record-status"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/middleware",
+      "disposition": "has-semantic-contracts",
+      "summary": "Publish/consume middleware, tracing, logging, metrics, recover, and inbox middleware APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 15,
+        "fields": 0,
+        "methods": 7,
+        "entry_count": 22,
+        "fingerprint": "30e45d70410a8b34acd03d590c3e2e6b9ee7dc6521bd713faed6b7859bf28946",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/middleware/middleware.go:15",
+        "event/middleware/tracing_context.go:10"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/middleware#runtime-contract:event-middleware-order-and-trace-context"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport",
+      "disposition": "has-semantic-contracts",
+      "summary": "Transport, delivery, transactional transport, and subscription contracts. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 10,
+        "fields": 18,
+        "methods": 17,
+        "entry_count": 45,
+        "fingerprint": "b7d275442c0cf34f0210bf9d1a9b3b7229c10cf9ebbf446fac80afad725b53af",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/transport.go:10"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/transport#runtime-contract:transport-frame-capabilities"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/memory",
+      "disposition": "has-semantic-contracts",
+      "summary": "In-process transport constructors and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 6,
+        "fields": 3,
+        "methods": 2,
+        "entry_count": 11,
+        "fingerprint": "81cbba959853c34db2310fa2a9933d0e45eee7a0dc8cc0b7e458f71e97a1e238",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/memory/memory.go:12",
+        "event/transport/memory/memory.go:19"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/transport/memory#runtime-contract:memory-transport-name-and-full-policy"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/outbox",
+      "disposition": "has-semantic-contracts",
+      "summary": "Persistent outbox transport, relay/repository contracts, rows, and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 10,
+        "fields": 23,
+        "methods": 12,
+        "entry_count": 45,
+        "fingerprint": "76ed794b65fe67f487f225c129d2802be55fbb448212a1a457b9740298ade2cc",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/outbox/outbox.go:12",
+        "event/transport/outbox/outbox.go:86"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/transport/outbox#runtime-contract:outbox-transport-status-and-sink"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/redisstream",
+      "disposition": "has-semantic-contracts",
+      "summary": "Redis Stream transport constructors and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 2,
+        "fields": 8,
+        "methods": 7,
+        "entry_count": 17,
+        "fingerprint": "6843fdec1f7a06d08d3097e6af2fbf21979f10f99513e7745e466759ffc21668",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/redisstream/redis_stream.go:6",
+        "event/transport/redisstream/redis_stream.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/event/transport/redisstream#runtime-contract:redis-stream-transport-config"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/excel",
+      "disposition": "has-semantic-contracts",
+      "summary": "Excel import/export helpers and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 17,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 17,
+        "fingerprint": "a449ebeda509ae9b0a2c7bfa083c70b45bc4635bdb49ff1d674400aced129324",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/excel.md",
+        "docs/features/csv-excel.md"
+      ],
+      "source_evidence": [
+        "excel/importer.go:66",
+        "excel/options.go:8",
+        "excel/exporter.go:23"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/excel#runtime-contract:excel-options-and-native-cells"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/expression",
+      "disposition": "has-semantic-contracts",
+      "summary": "Expression engine API, options, values, and HTTP error codes. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 13,
+        "fields": 1,
+        "methods": 8,
+        "entry_count": 22,
+        "fingerprint": "f504afc0dc34ea0387a44b75dbe39052cb257c93f0e25bc27346763f43f7ebba",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/expression.md"
+      ],
+      "source_evidence": [
+        "expression/engine.go:8",
+        "expression/value.go:11",
+        "internal/expression/transformer.go:16"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/expression#runtime-contract:expression-engine-and-mold-transformer"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/hashx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Hash and HMAC helpers expose stable algorithm choices, string/byte input families, and hex-encoded output lengths. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 15,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 15,
+        "fingerprint": "22e7f661d37170d375f54592fa00078a3ea92b1b93459672709422aab54d5a01",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/hashx.md"
+      ],
+      "source_evidence": [
+        "hashx/hashx.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/hashx#runtime-contract:hash-algorithms-and-hex-output"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/httpx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Fiber content-type and IP helpers. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 3,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 3,
+        "fingerprint": "13cf1d9e81ae9f552ec6fa1e0a4bcb9909dc231e6fc5f4878c9747cce6e54ef2",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "httpx/content_type.go:6",
+        "httpx/ip.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/httpx#runtime-contract:fiber-content-type-and-ip-resolution"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/i18n",
+      "disposition": "has-semantic-contracts",
+      "summary": "Translator, dictionary, setup, and error APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 12,
+        "fields": 1,
+        "methods": 2,
+        "entry_count": 15,
+        "fingerprint": "67076d160fa9ebb52302f2873faebeb52fd2be12e1386f8f2825b01130da74ae",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/i18n.md"
+      ],
+      "source_evidence": [
+        "i18n/i18n.go:8",
+        "i18n/translator.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/i18n#runtime-contract:language-selection-and-fallback"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/i18n/locales",
+      "disposition": "has-semantic-contracts",
+      "summary": "Built-in embedded locale catalog entrypoint and shipped JSON language files. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 1,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 1,
+        "fingerprint": "71bc852d645cd378f46663e5998b7e22b9c7372906fdaf6a04ded7acc122ade0",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/i18n.md"
+      ],
+      "source_evidence": [
+        "i18n/locales/locales.go:1"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/i18n/locales#runtime-contract:embedded-locale-files"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/id",
+      "disposition": "has-semantic-contracts",
+      "summary": "UUID v7, XID, random, and Snowflake ID generators expose stable output formats, default singletons, random alphabet/length defaults, Snowflake epoch/node/step configuration, and VEF_NODE_ID behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 15,
+        "fields": 0,
+        "methods": 1,
+        "entry_count": 16,
+        "fingerprint": "e9c002ee81d48b44c4f3a4dce5ebaf83f0a5c8d9f9dc2aa7885e94e1d325f79f",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/id-generation.md"
+      ],
+      "source_evidence": [
+        "id/id.go:6",
+        "id/uuid.go:6",
+        "id/snowflake.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/id#runtime-contract:id-formats-and-default-generators"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/js",
+      "disposition": "has-semantic-contracts",
+      "summary": "JS VM engine, require/module registry, and value conversion APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 16,
+        "fields": 0,
+        "methods": 77,
+        "entry_count": 93,
+        "fingerprint": "9f990724dba6f30c291f764bd8b665ece7171d9617076569ee94af6cfc06e80f",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/js-engine.md"
+      ],
+      "source_evidence": [
+        "js/js.go:10",
+        "js/libs.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/js#runtime-contract:goja-engine-preloaded-libraries"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/logx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Logging interface, level constants, Level.String output values, and root-package NamedLogger integration. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 7,
+        "fields": 0,
+        "methods": 15,
+        "entry_count": 22,
+        "fingerprint": "4ff9c19b53d9985911e2985c2763802337d6a69f783962bb73b9ee7424481eaf",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md",
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "logx/logger.go:3",
+        "log.go:10"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/logx#runtime-contract:logger-interface-and-level-strings"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/mapx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Map decoder and decode-hook APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 26,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 26,
+        "fingerprint": "dbf62ac9ffca276278fe475c4abe86ca386784ad1ddbc6fb4a91b3fe67491ee5",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/mapx.md"
+      ],
+      "source_evidence": [
+        "mapx/decoder.go:13",
+        "mapx/decode_hook.go:12"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/mapx#runtime-contract:json-tag-decoder-and-hooks"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "disposition": "has-semantic-contracts",
+      "summary": "MCP provider, definition, schema, and server-info extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 44,
+        "fields": 11,
+        "methods": 64,
+        "entry_count": 119,
+        "fingerprint": "40d5ab2a18c99a3c369d907963fdde2f413699f63bef1a2cca9ae9174f0a2067",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/mcp.md"
+      ],
+      "source_evidence": [
+        "mcp/mcp.go:10",
+        "mcp/schema.go:10",
+        "mcp/auth.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/mcp#dynamic-resource:mcp-endpoint-tool-resource-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/middleware",
+      "disposition": "has-semantic-contracts",
+      "summary": "SPA middleware configuration supplied through top-level helpers. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 1,
+        "fields": 3,
+        "methods": 0,
+        "entry_count": 4,
+        "fingerprint": "2b84c28d70bf6ca996dc263173670f3e39ddf36493968f0d68c951af3d6bdb8e",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/advanced/spa-integration.md"
+      ],
+      "source_evidence": [
+        "middleware/spa.go:8",
+        "internal/middleware/spa.go:17",
+        "internal/middleware/spa.go:45",
+        "internal/middleware/spa.go:126"
+      ],
+      "test_evidence": [
+        "internal/middleware/spa_test.go:17",
+        "internal/middleware/spa_test.go:56",
+        "internal/middleware/spa_test.go:94"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/middleware#runtime-contract:spa-middleware-config"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/mold",
+      "disposition": "has-semantic-contracts",
+      "summary": "Mold transformer/translator/dictionary resolver APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 17,
+        "fields": 1,
+        "methods": 23,
+        "entry_count": 41,
+        "fingerprint": "42c01cc63b24bafe689f8da49350ea05675c9089cf88d6f02f5ac9ea478d0859",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/mold.md"
+      ],
+      "source_evidence": [
+        "mold/cached_dictionary_resolver.go:18",
+        "internal/mold/mold.go:113",
+        "internal/mold/translate.go:183"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/mold#event-contract:dictionary-cache-invalidation",
+        "github.com/coldsmirk/vef-framework-go/mold#field-contract:transformer-inputs-and-traversal",
+        "github.com/coldsmirk/vef-framework-go/mold#string-contract:mold-tag-grammar",
+        "github.com/coldsmirk/vef-framework-go/mold#string-contract:translate-transformer"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/monad",
+      "disposition": "has-semantic-contracts",
+      "summary": "Inclusive ordered range helper, validity/emptiness rules, overlap checks, and intersection behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 2,
+        "fields": 2,
+        "methods": 6,
+        "entry_count": 10,
+        "fingerprint": "aafb4a4800ae956d710a645ddce2c9be191336ef8cc3b68898fc0201a9414d1b",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "monad/range.go:3"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/monad#runtime-contract:inclusive-range-behavior"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/monitor",
+      "disposition": "has-semantic-contracts",
+      "summary": "Monitor service API, system DTOs, resource actions, and error codes. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 26,
+        "fields": 179,
+        "methods": 9,
+        "entry_count": 214,
+        "fingerprint": "aeaeed66e2af73c118a295df05cb2061e7a83ecdde00a9871aa53d2436a73663",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/monitor.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "monitor/service.go:8",
+        "monitor/api_errors.go:9",
+        "internal/monitor/resource.go:16"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/monitor#dynamic-resource:sys-monitor-resource-dtos"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/orm",
+      "disposition": "has-semantic-contracts",
+      "summary": "ORM model, DB/Tx, query/DDL/expression/condition builders, hooks, aliases, and enum families. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 201,
+        "fields": 0,
+        "methods": 1344,
+        "entry_count": 1545,
+        "fingerprint": "b0e1a278acea438d5e0125aa840277833bc767a10ee2e8de671c558e5257a373",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/orm-builder.md",
+        "docs/guide/models.md",
+        "docs/advanced/transactions.md"
+      ],
+      "source_evidence": [
+        "orm/orm.go:6",
+        "orm/bun.go:11",
+        "internal/orm/model.go:7",
+        "internal/orm/db.go:48"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/orm#runtime-contract:orm-query-builder-model-transaction-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/page",
+      "disposition": "has-semantic-contracts",
+      "summary": "Pagination request and response helper. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 6,
+        "fields": 6,
+        "methods": 5,
+        "entry_count": 17,
+        "fingerprint": "bc3454fd75ac34a9279fcd53b291e18bb9b89bce70daf55cdf5e6633e5f59737",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "page/page.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/page#wire-contract:pagination-request-response-shape"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/password",
+      "disposition": "has-semantic-contracts",
+      "summary": "Password cipher/hash implementations, composite encoder, options, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 46,
+        "fields": 0,
+        "methods": 3,
+        "entry_count": 49,
+        "fingerprint": "7759597dd9992c50971c71c33d276b122e4d38cf2f54be381ae6e8db38c03087",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/password.md"
+      ],
+      "source_evidence": [
+        "password/composite.go:11",
+        "password/hash_encoder.go:7",
+        "password/bcrypt.go:12"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/password#runtime-contract:password-encoding-prefix-and-upgrade"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/ptr",
+      "disposition": "has-semantic-contracts",
+      "summary": "Pointer helper functions expose stable zero/nil, fallback, lazy fallback, equality, and coalescing behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 6,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 6,
+        "fingerprint": "d899ea33b3aa8c6fbfb5bc7d92b08f06fda5a0d75e85dc9cbb1682486429b22b",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "ptr/ptr.go:3"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/ptr#runtime-contract:pointer-helper-behavior"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Reflection, conversion, visitor, string-field, value, method-discovery, and cast helper APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 78,
+        "fields": 11,
+        "methods": 0,
+        "entry_count": 89,
+        "fingerprint": "bb62b3bd50f5b54c5af99deb16b7cfb61fa52e69f92e3ab789dc81c744f6d3de",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/visitor.go:9",
+        "reflectx/convert.go:8",
+        "reflectx/reflectx.go:10",
+        "reflectx/string_field.go:6",
+        "reflectx/value.go:12"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:cast-alias-zero-vs-error",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:decimal-conversion-nil-and-error",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:type-compatibility-and-conversion",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:method-discovery",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:string-field-accessors",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:empty-equal-contains",
+        "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:struct-visitor-dive-depth-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/result",
+      "disposition": "has-semantic-contracts",
+      "summary": "Result envelope, errors, constructors/options, and status constants. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 48,
+        "fields": 6,
+        "methods": 4,
+        "entry_count": 58,
+        "fingerprint": "f91600ccb5960c2a405fb3ec5b2b84b38676c6488f4bf2dd45c8c22544b96892",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/result.md",
+        "docs/guide/error-handling.md"
+      ],
+      "source_evidence": [
+        "result/result.go:8",
+        "result/constants.go:3",
+        "result/error.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/result#wire-contract:result-envelope-error-code-options"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/schema",
+      "disposition": "has-semantic-contracts",
+      "summary": "Schema service, DTOs, resource actions, and error codes. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 12,
+        "fields": 38,
+        "methods": 3,
+        "entry_count": 53,
+        "fingerprint": "7e874740c91b2aa73d968ffe782ae27256691b6611fa235973111940f27f188e",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/schema.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "schema/service.go:6",
+        "internal/schema/resource.go:16",
+        "internal/schema/inspector.go:22"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/schema#dynamic-resource:sys-schema",
+        "github.com/coldsmirk/vef-framework-go/schema#field-contract:schema-dto-wire-shape",
+        "github.com/coldsmirk/vef-framework-go/schema#runtime-contract:primary-datasource-inspection"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/search",
+      "disposition": "has-semantic-contracts",
+      "summary": "Search tag parser, range parser, applier, operator constants, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 45,
+        "fields": 0,
+        "methods": 1,
+        "entry_count": 46,
+        "fingerprint": "80e58c5d9990255abf62c11f442cba4a1b1a314fd2722f3eb44c3026d75faec4",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/query-builder.md"
+      ],
+      "source_evidence": [
+        "search/constants.go:3",
+        "search/parser.go:12",
+        "search/parser.go:86",
+        "search/search.go:33",
+        "search/search.go:85",
+        "search/range.go:31",
+        "search/applier.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/search#string-contract:search-tag-grammar-and-operators"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "disposition": "has-semantic-contracts",
+      "summary": "Authentication, JWT, signature, challenge, RBAC, data-scope, principal, event, and error APIs. Security contracts are split across auth/wire, authorization/events, and data-permission runtime entries; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 226,
+        "fields": 75,
+        "methods": 99,
+        "entry_count": 400,
+        "fingerprint": "da0cacec7208cbfb9da1512d0f640d70c0e2a67edf14650c0e409324d21f67d5",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md"
+      ],
+      "source_evidence": [
+        "security/constants.go:3",
+        "security/jwt.go:15",
+        "security/challenge.go:5",
+        "security/signature.go:14",
+        "security/cached_role_permission_loader.go:12",
+        "security/data_scopes.go:9",
+        "internal/security/auth_resource.go:44"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/security#wire-contract:auth-jwt-signature-challenge",
+        "github.com/coldsmirk/vef-framework-go/security#event-contract:rbac-userinfo-login-events",
+        "github.com/coldsmirk/vef-framework-go/security#runtime-contract:data-permission-scopes"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/sequence",
+      "disposition": "has-semantic-contracts",
+      "summary": "Sequence policy/rule/store/engine APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 20,
+        "fields": 14,
+        "methods": 6,
+        "entry_count": 40,
+        "fingerprint": "13b13520dce1c5d83a409deb2ab079366bc6830c139549eb58a3ac8a53836482",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/sequence.md"
+      ],
+      "source_evidence": [
+        "sequence/rule.go:7",
+        "sequence/memory_store.go:12",
+        "sequence/policy.go:6"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/sequence#runtime-contract:sequence-rule-reset-overflow-store-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/sortx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Sort direction/nulls/order-spec primitives. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 9,
+        "fields": 3,
+        "methods": 7,
+        "entry_count": 19,
+        "fingerprint": "ff3b0472abb38ec0a1aaa4a62667983dbeefb1bc291f97c608c5badc114f1a8f",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md",
+        "docs/guide/query-builder.md"
+      ],
+      "source_evidence": [
+        "sortx/order.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/sortx#wire-contract:sort-order-text-json-contract"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/storage",
+      "disposition": "has-semantic-contracts",
+      "summary": "Storage service/multipart/API resource, file refs, claim/delete lifecycle, ACL, URL mapper, events, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 100,
+        "fields": 50,
+        "methods": 31,
+        "entry_count": 181,
+        "fingerprint": "63061a418106bce297e7a75552d71c3236b7543f2b0c4ed9184cd6cbef46538c",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/storage.md",
+        "docs/reference/built-in-resources.md",
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "storage/service.go:8",
+        "storage/file_refs.go:12",
+        "storage/events.go:5",
+        "internal/storage/resource.go:20"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/storage#dynamic-resource:storage-resource-upload-proxy-lifecycle"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/strx",
+      "disposition": "has-semantic-contracts",
+      "summary": "Struct tag and compact key/value parser APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 11,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 11,
+        "fingerprint": "4b97401488cced03aa31bda409f1a214fe749be9f86171e0a66a93ee3b7deeae",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "strx/parser.go:8"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/strx#string-contract:tag-parser-bare-value-grammar"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/tabular",
+      "disposition": "has-semantic-contracts",
+      "summary": "Tabular schema, adapter, parser, formatter, resolver, and I/O APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 68,
+        "fields": 37,
+        "methods": 38,
+        "entry_count": 143,
+        "fingerprint": "4bd760b4d107c89e997d9354f50b7a39c3fe441019e4b0e676bb6aeaf2ed5b94",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/features/tabular.md"
+      ],
+      "source_evidence": [
+        "tabular/parser.go:35",
+        "tabular/spec.go:43",
+        "tabular/mapping.go:14"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/tabular#field-contract:dynamic-schema-and-map-validation",
+        "github.com/coldsmirk/vef-framework-go/tabular#runtime-contract:header-mapping-and-row-import",
+        "github.com/coldsmirk/vef-framework-go/tabular#string-contract:tabular-tag-grammar"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/timex",
+      "disposition": "has-semantic-contracts",
+      "summary": "Date/Time/DateTime parsing, formatting, JSON/text marshal APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 20,
+        "fields": 0,
+        "methods": 136,
+        "entry_count": 156,
+        "fingerprint": "760ac8fb520f880a74c370205f924a149e2450a97cbb2c894425f2497d6a96e4",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/timex.md"
+      ],
+      "source_evidence": [
+        "timex/date.go:11",
+        "timex/time.go:11",
+        "timex/datetime.go:11"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/timex#wire-contract:date-time-json-text-format"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/tree",
+      "disposition": "has-semantic-contracts",
+      "summary": "Tree builder helpers expose adapter callback semantics, root/orphan handling, empty-ID behavior, cycle protection, and node/path search behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 4,
+        "fields": 4,
+        "methods": 0,
+        "entry_count": 8,
+        "fingerprint": "bea878a94be11c8bd21425087795e61e09c3ab145c614f48e9af798360830e33",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/tree.md"
+      ],
+      "source_evidence": [
+        "tree/builder.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/tree#runtime-contract:adapter-tree-building-and-search"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/validator",
+      "disposition": "has-semantic-contracts",
+      "summary": "Validation entrypoints, custom rule/type registration, and built-in rules. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 5,
+        "fields": 6,
+        "methods": 0,
+        "entry_count": 11,
+        "fingerprint": "747c46e376e5a77e49d9266c675461dfca729dc5cb2e9b54b231c86aab67ddcf",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/guide/validation.md"
+      ],
+      "source_evidence": [
+        "validator/validator.go:8",
+        "validator/rule.go:5"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/validator#string-contract:validator-tags-and-registration"
+      ]
+    },
+    {
+      "package": "github.com/coldsmirk/vef-framework-go/version",
+      "disposition": "has-semantic-contracts",
+      "summary": "Framework version constant value. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "reviewed_surface": {
+        "top_level": 1,
+        "fields": 0,
+        "methods": 0,
+        "entry_count": 1,
+        "fingerprint": "6f2d727137cedfa1e2ae6934d1bb24b0248003bb60c38c3c9ac1db684caee700",
+        "review_scope": [
+          "exported top-level symbols",
+          "exported struct fields",
+          "exported methods",
+          "runtime/user-facing contracts"
+        ]
+      },
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "version/version.go:3"
+      ],
+      "contract_ids": [
+        "github.com/coldsmirk/vef-framework-go/version#runtime-contract:framework-version-constant"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/ai/stream#wire-contract:ui-message-sse-stream",
+      "package": "github.com/coldsmirk/vef-framework-go/ai/stream",
+      "kind": "wire-contract",
+      "contract": "AI SDK UI Message Stream SSE wire contract",
+      "summary": "The stream package writes AI SDK UI Message Stream-compatible SSE frames, including data-{type} chunks, lifecycle chunks, SSE headers, and the terminal data: [DONE] frame.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/stream/chunk.go:8",
+        "ai/stream/writer.go:14",
+        "ai/stream/builder.go:22"
+      ],
+      "test_evidence": [
+        "ai/stream/chunk_test.go:8",
+        "ai/stream/writer_test.go:104",
+        "ai/stream/builder_test.go:124"
+      ],
+      "terms": [
+        "data: [DONE]",
+        "data-{type}",
+        "data-{dataType}",
+        "SseHeaders",
+        "Content-Type",
+        "text/event-stream",
+        "X-Vercel-AI-UI-Message-Stream",
+        "X-Accel-Buffering",
+        "messageID",
+        "errorText",
+        "toolCallID",
+        "toolName",
+        "inputTextDelta",
+        "sourceID",
+        "mediaType",
+        "fileID",
+        "WithSources(bool)",
+        "ChunkTypeStartStep",
+        "ChunkTypeFinishStep"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/ai/stream#runtime-contract:stream-builder-paths",
+      "package": "github.com/coldsmirk/vef-framework-go/ai/stream",
+      "kind": "runtime-contract",
+      "contract": "AI stream builder defaults and terminal paths",
+      "summary": "The stream builder exposes defaults, source handling, ID generation, EOF/error terminal behavior, callbacks, and JSON fallback behavior as user-visible runtime contracts.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/stream/options.go:12",
+        "ai/stream/builder.go:57",
+        "ai/stream/writer.go:19",
+        "ai/stream/adapters.go:52"
+      ],
+      "test_evidence": [
+        "ai/stream/builder_test.go:22",
+        "ai/stream/builder_test.go:337",
+        "ai/stream/adapters_test.go:51",
+        "ai/stream/writer_test.go:122"
+      ],
+      "terms": [
+        "SendReasoning",
+        "SendSources",
+        "SendStart",
+        "SendFinish",
+        "GenerateID",
+        "prefix + \"_\" + id.GenerateUUID()",
+        "Stream(ctx)",
+        "StreamToWriter(w)",
+        "stream.ErrSourceRequired",
+        "OnFinish(fullContent)",
+        "WriteMessage(msg)",
+        "Data[dataType]"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/ai#runtime-contract:model-provider-and-tool-schema",
+      "package": "github.com/coldsmirk/vef-framework-go/ai",
+      "kind": "runtime-contract",
+      "contract": "AI provider registry, roles, and tool schema contract",
+      "summary": "The AI package exposes stable chat roles, a provider registry keyed by provider name, and tool metadata/schema structures consumed by agents and tool-aware models.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/message.go:3",
+        "ai/provider.go:39",
+        "ai/tool.go:6"
+      ],
+      "terms": [
+        "RoleSystem",
+        "RoleUser",
+        "RegisterModelProvider",
+        "ModelConfig",
+        "ModelInfo",
+        "Options.Apply",
+        "WithTemperature(t)",
+        "WithMaxTokens(n)",
+        "ToolInfo",
+        "ParameterSchema",
+        "PropertySchema",
+        "AgentConfig",
+        "MessageChunk",
+        "TokenUsage"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/ai#error-contract:ai-structured-errors",
+      "package": "github.com/coldsmirk/vef-framework-go/ai",
+      "kind": "error-contract",
+      "contract": "AI error sentinels and structured error values",
+      "summary": "The AI package exposes eight sentinel errors plus ToolError and ModelError structured values for provider and tool failures.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/ai.md"
+      ],
+      "source_evidence": [
+        "ai/errors.go:5"
+      ],
+      "terms": [
+        "ai.ErrProviderNotFound",
+        "ai.ErrModelNotSupported",
+        "ai.ErrAgentNotFound",
+        "ai.ErrToolNotFound",
+        "ai.ErrInvalidArguments",
+        "ai.ErrMaxIterationsReached",
+        "ai.ErrNoContent",
+        "ai.ErrStreamClosed",
+        "ToolError",
+        "ToolName",
+        "Unwrap()",
+        "ModelError",
+        "StatusCode",
+        "NewToolError",
+        "NewModelError"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/api#string-contract:resource-action-request-wire",
+      "package": "github.com/coldsmirk/vef-framework-go/api",
+      "kind": "string-contract",
+      "contract": "resource/action naming and request wire contract",
+      "summary": "Resource names, RPC/REST action strings, request versioning, params/meta decoding, REST X-Meta headers, and Bearer token locations are public API contracts for all framework resources.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/api.md",
+        "docs/guide/routing.md",
+        "docs/guide/params-and-meta.md",
+        "docs/guide/custom-handlers.md"
+      ],
+      "source_evidence": [
+        "api/resource.go:20",
+        "api/request.go:10",
+        "api/auth.go:7",
+        "api/header.go:3",
+        "api/version.go:8",
+        "api/operation.go:7",
+        "api/api_errors.go:13",
+        "internal/api/engine.go:79",
+        "internal/api/router/rest.go:107",
+        "internal/api/router/rpc.go:132",
+        "internal/api/middleware/ratelimit.go:16"
+      ],
+      "terms": [
+        "snake_case",
+        "REST action",
+        "Kind.String()",
+        "unknown",
+        "head",
+        "options",
+        "trace",
+        "connect",
+        "all",
+        "OperationSpec",
+        "EnableAudit",
+        "RequiredPermission",
+        "RateLimitConfig",
+        "Max=100",
+        "Period=5m",
+        "30s",
+        "Identifier.String()",
+        "json:\"resource\"",
+        "form:\"resource\"",
+        "validate:\"required,alphanum_us_slash\"",
+        "label_i18n:\"api_request_resource\"",
+        "params",
+        "meta",
+        "X-Meta-",
+        "__accessToken",
+        "HeaderXAppID",
+        "HeaderXTimestamp",
+        "HeaderXNonce",
+        "HeaderXSignature",
+        "result.ErrCodeBadRequest",
+        "1400",
+        "400"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval/admin#dto-wire-shape:approval-admin-dtos",
+      "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
+      "kind": "dto-wire-shape",
+      "contract": "approval admin DTO JSON wire shape",
+      "summary": "The approval/admin package defines the response DTOs used by approval/admin actions, including instance, task, detail, action-log, flow-node, and metrics JSON field names.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "approval/admin/types.go:6",
+        "approval/admin/metrics.go:9"
+      ],
+      "terms": [
+        "approval/admin",
+        "find_tasks",
+        "get_instance_detail",
+        "actionLogs",
+        "tenantId"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos",
+      "package": "github.com/coldsmirk/vef-framework-go/approval/my",
+      "kind": "dto-wire-shape",
+      "contract": "approval my-task DTO JSON wire shape",
+      "summary": "The approval/my package defines the current-user self-service response DTOs used by approval/my actions such as find_pending_tasks, find_completed_tasks, and get_instance_detail.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "approval/my/types.go:6"
+      ],
+      "terms": [
+        "approval/my",
+        "find_pending_tasks",
+        "get_instance_detail",
+        "taskId",
+        "formData"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "dynamic-resource",
+      "contract": "approval module built-in resource/action surface",
+      "summary": "ApprovalModule registers approval/category, approval/delegation, approval/flow, approval/instance, approval/my, and approval/admin RPC resources with documented action names, permissions, tenancy constraints, and rate limits.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "internal/approval/resource/category.go:25",
+        "internal/approval/resource/delegation.go:41",
+        "internal/approval/resource/flow.go:40",
+        "internal/approval/resource/instance.go:44",
+        "internal/approval/resource/admin.go:32"
+      ],
+      "terms": [
+        "approval/category",
+        "approval/delegation",
+        "approval/flow",
+        "approval/instance",
+        "approval/my",
+        "approval/admin",
+        "process_task"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "event-contract",
+      "contract": "approval.* event topics and event payload shape",
+      "summary": "Approval domain events use approval.* topics, publish through event.WithTx, and expose JSON payload fields such as tenantId and occurredTime for downstream subscribers.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "approval/events.go:4",
+        "approval/events_task.go:6",
+        "approval/events_instance.go:6",
+        "approval/events_flow.go:6"
+      ],
+      "terms": [
+        "approval.*",
+        "EventTypeTaskCreated",
+        "tenantId",
+        "occurredTime",
+        "event.WithTx"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#runtime-contract:tenant-and-business-binding",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "runtime-contract",
+      "contract": "approval tenant and business-binding integration contract",
+      "summary": "Approval authorization distinguishes approval:super_admin from tenant-scoped users and uses BusinessBindingHook plus tenant resolver APIs to bind workflow state back to business rows.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "approval/tenancy.go:12",
+        "approval/binding.go:47",
+        "approval/lifecycle_hook.go:9",
+        "internal/approval/auth/tenant_resolver.go:12"
+      ],
+      "terms": [
+        "approval:super_admin",
+        "PrincipalTenantResolver",
+        "BusinessBindingHook",
+        "BusinessTable",
+        "BusinessStatusField"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#result-contract:approval-error-envelope",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "result-contract",
+      "contract": "approval 40xxx result-envelope and plain sentinel surface",
+      "summary": "Approval exposes four importable plain Go sentinels from the approval package, while built-in approval resources return internal 40xxx result.Error codes and i18n message keys through the API envelope.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "approval/tenancy.go:28",
+        "approval/binding.go:55",
+        "approval/flow_definition.go:9",
+        "internal/approval/shared/errors.go:5",
+        "internal/approval/shared/api_errors.go:16",
+        "internal/approval/shared/messages.go:10",
+        "internal/approval/command/urge_task.go:114"
+      ],
+      "terms": [
+        "ErrUnknownNodeKind",
+        "ErrNodeDataUnmarshal",
+        "ErrCodeFormValidationFailed",
+        "ErrFormDataTooLarge",
+        "ErrCodeUrgeCooldown",
+        "approval_urge_too_frequent"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#wire-contract:flow-definition-and-form-json",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "wire-contract",
+      "contract": "approval flow/form JSON graph contract",
+      "summary": "FlowDefinition and form definitions are JSON wire shapes for visual workflow editors, including React Flow-style nodes/edges, node kind data, binding modes, and form field definitions.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/approval.md"
+      ],
+      "source_evidence": [
+        "approval/flow_definition.go:16",
+        "approval/form_definition.go:5",
+        "approval/enums.go:30",
+        "approval/binding.go:18"
+      ],
+      "terms": [
+        "FlowDefinition",
+        "nodes",
+        "edges",
+        "BindingStandalone",
+        "NodeApproval"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cache#runtime-contract:cache-options-and-invalidation",
+      "package": "github.com/coldsmirk/vef-framework-go/cache",
+      "kind": "runtime-contract",
+      "contract": "cache TTL, eviction, invalidation, and singleflight behavior",
+      "summary": "Cache constructors expose memory and Redis implementations with TTL, eviction, serializer, invalidation, Close, and GetOrLoad/singleflight behavior documented as runtime contracts.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/cache.md"
+      ],
+      "source_evidence": [
+        "cache/memory.go:18",
+        "cache/options.go:8",
+        "cache/eviction.go:7",
+        "cache/invalidating.go:15",
+        "cache/singleflight_mixin.go:12"
+      ],
+      "terms": [
+        "NewMemory",
+        "WithMemMaxSize",
+        "EvictionPolicyLRU",
+        "NewInvalidating",
+        "GetOrLoad"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd#command-contract:root-command-and-version",
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd",
+      "kind": "command-contract",
+      "contract": "vef-cli root command, registered subcommands, and version output",
+      "summary": "The CLI root command is vef-cli, registers create, generate-build-info, and generate-model-schema, and exposes --version output with banner, Version, optional Built metadata, and -dirty suffix behavior.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/root.go:15",
+        "cmd/vef-cli/cmd/root.go:27",
+        "cmd/vef-cli/cmd/version.go:43"
+      ],
+      "terms": [
+        "vef-cli",
+        "--version",
+        "generate-build-info",
+        "generate-model-schema",
+        "-dirty"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo#command-contract:build-info-generation",
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo",
+      "kind": "command-contract",
+      "contract": "generate-build-info flags, Git fallbacks, and generated Go source shape",
+      "summary": "generate-build-info exposes --output/-o and --package/-p defaults, creates missing output directories, reads Git version/commit with dev and none fallbacks, and emits BuildInfo = &monitor.BuildInfo{AppVersion, BuildTime, GitCommit}.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/buildinfo/command.go:47",
+        "cmd/vef-cli/cmd/buildinfo/generator.go:21",
+        "cmd/vef-cli/cmd/buildinfo/generator.go:51",
+        "cmd/vef-cli/cmd/buildinfo/generator.go:76"
+      ],
+      "terms": [
+        "BuildInfo = &monitor.BuildInfo",
+        "AppVersion",
+        "GitCommit",
+        "git describe --tags --always --dirty",
+        "none"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create#command-contract:create-command-placeholder",
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create",
+      "kind": "command-contract",
+      "contract": "create command placeholder flags and not-implemented behavior",
+      "summary": "create is registered as a CLI command but is not implemented; it exposes --name/-n as required, --path/-p defaulting to ., --module/-m defaulting to empty, and returns the documented not-implemented error.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/create/command.go:11",
+        "cmd/vef-cli/cmd/create/command.go:37",
+        "cmd/vef-cli/cmd/create/command.go:41"
+      ],
+      "terms": [
+        "vef-cli create is not implemented yet, please generate the project manually",
+        "--name",
+        "--path",
+        "--module",
+        "not implemented"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema#command-contract:model-schema-generation",
+      "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema",
+      "kind": "command-contract",
+      "contract": "generate-model-schema flags, model tag grammar, and generated schema helper API",
+      "summary": "generate-model-schema exposes required --input/--output flags, --package default schemas, file/direct directory modes, non-recursive *.go directory scanning, orm.BaseModel selection, bun table/alias/column/embed/rel/scanonly rules, label comments, exported schema variables, unexported schema types, alias/raw field accessors, Table/Alias/As/Columns helpers, Col collision prefixes, and __ keyword prefixes.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/cli-tools.md"
+      ],
+      "source_evidence": [
+        "cmd/vef-cli/cmd/modelschema/command.go:56",
+        "cmd/vef-cli/cmd/modelschema/generator.go:63",
+        "cmd/vef-cli/cmd/modelschema/generator.go:142",
+        "cmd/vef-cli/cmd/modelschema/generator.go:203",
+        "cmd/vef-cli/cmd/modelschema/generator.go:468",
+        "cmd/vef-cli/cmd/modelschema/generator.go:506"
+      ],
+      "terms": [
+        "orm.BaseModel",
+        "bun:\"embed:prefix_\"",
+        "bun:\",scanonly\"",
+        "Columns()",
+        "raw=true",
+        "ColTable",
+        "__"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#configuration-contract:config-keys-and-effective-defaults",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "configuration-contract",
+      "contract": "configuration keys, environment override, and effective defaults",
+      "summary": "The config package exposes stable vef.* keys, config tags, environment variables, supported database/storage/provider values, and Effective* methods/defaults used at boot.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ],
+      "source_evidence": [
+        "config/app.go:4",
+        "config/approval.go:9",
+        "config/cors.go:4",
+        "config/data_sources.go:5",
+        "config/env.go:5",
+        "config/event.go:6",
+        "config/mcp.go:4",
+        "config/monitor.go:5",
+        "config/redis.go:4",
+        "config/security.go:5",
+        "config/storage.go:6"
+      ],
+      "terms": [
+        "vef.app",
+        "body_limit",
+        "trusted_proxies",
+        "vef.data_sources.primary",
+        "PrimaryDataSourceName",
+        "primary",
+        "postgres",
+        "mysql",
+        "sqlite",
+        "oracle",
+        "sqlserver",
+        "enable_sql_guard",
+        "VEF_CONFIG_PATH",
+        "VEF_LOG_LEVEL",
+        "VEF_NODE_ID",
+        "VEF_I18N_LANGUAGE",
+        "vef.security",
+        "token_expires",
+        "refresh_not_before",
+        "login_rate_limit",
+        "refresh_rate_limit",
+        "vef.redis",
+        "enabled",
+        "127.0.0.1",
+        "6379",
+        "tcp",
+        "vef.storage",
+        "memory",
+        "minio",
+        "filesystem",
+        "max_upload_size",
+        "claim_ttl",
+        "delete_worker_interval",
+        "DefaultMaxUploadSize",
+        "EffectiveMaxUploadSize",
+        "allow_public_uploads",
+        "require_auth",
+        "vef.approval",
+        "ApplyDefaults()",
+        "delegation_max_depth",
+        "form_snapshot_retention",
+        "vef.event",
+        "default_transport",
+        "async_queue_size",
+        "publish_timeout",
+        "redis_stream",
+        "tracing_strict",
+        "path.Match",
+        "ErrInboxRetentionTooShort",
+        "max_retries",
+        "retention",
+        "vef.monitor",
+        "sample_interval",
+        "excluded_mounts"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/contextx#runtime-contract:request-scoped-context-values",
+      "package": "github.com/coldsmirk/vef-framework-go/contextx",
+      "kind": "runtime-contract",
+      "contract": "request-scoped context values and Fiber/std context behavior",
+      "summary": "contextx stores and reads request-scoped values through Fiber Locals or context.WithValue, with documented defaults for request ID, principal, logger, DB, data-permission applier, method, path, and IP.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/context-helpers.md"
+      ],
+      "source_evidence": [
+        "contextx/contextx.go:11"
+      ],
+      "terms": [
+        "KeyPrincipal",
+        "context.WithValue",
+        "fiber.Ctx",
+        "RequestMethod",
+        "DataPermApplier"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/copier#runtime-contract:copy-options-and-built-in-converters",
+      "package": "github.com/coldsmirk/vef-framework-go/copier",
+      "kind": "runtime-contract",
+      "contract": "copy options, default converters, and custom converter append behavior",
+      "summary": "copier.Copy starts with case-sensitive matching and built-in value-to-pointer and pointer-to-value converters for common scalar, decimal, time, and timex types; options control ignore-empty, deep copy, case-insensitive matching, field-name mapping, and appended custom converters.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/copier.md"
+      ],
+      "source_evidence": [
+        "copier/copier.go:5",
+        "copier/copier.go:95",
+        "copier/converters.go:25"
+      ],
+      "terms": [
+        "case-sensitive",
+        "WithTypeConverters",
+        "converter",
+        "timex.DateTime",
+        "WithIgnoreEmpty"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/dbx#runtime-contract:column-alias-and-db-error-detection",
+      "package": "github.com/coldsmirk/vef-framework-go/dbx",
+      "kind": "runtime-contract",
+      "contract": "column alias string formatting and duplicate/foreign-key detection",
+      "summary": "dbx.ColumnWithAlias returns alias.column when alias is present and the raw column otherwise; duplicate and foreign-key helpers detect PostgreSQL and MySQL driver codes plus fallback message patterns for SQLite, SQL Server, and Oracle.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "dbx/common.go:5",
+        "dbx/error.go:13",
+        "dbx/error.go:19",
+        "dbx/error.go:57",
+        "dbx/error.go:95"
+      ],
+      "terms": [
+        "ColumnWithAlias",
+        "u.name",
+        "23505",
+        "23503",
+        "1451"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/decimal#runtime-contract:any-conversion-and-error-behavior",
+      "package": "github.com/coldsmirk/vef-framework-go/decimal",
+      "kind": "runtime-contract",
+      "contract": "NewFromAny supported input families and unsupported-type behavior",
+      "summary": "decimal.Decimal is a shopspring/decimal v1.4.0 type alias with re-exported constructors, aggregators, constants, and inherited methods; NewFromAny accepts common Go input families, treats nil *Decimal as Zero, parses textual inputs, and reports unsupported values with decimal: unsupported type while MustFromAny panics.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/decimal.md"
+      ],
+      "source_evidence": [
+        "decimal/decimal.go:5",
+        "decimal/convert.go:8",
+        "decimal/errors.go:5",
+        "decimal/convert_test.go:16",
+        "go.mod:41"
+      ],
+      "terms": [
+        "shopspring/decimal v1.4.0",
+        "type alias",
+        "top-level symbols",
+        "exported methods",
+        "decimal.NewFromFormattedString",
+        "*regexp.Regexp",
+        "decimal.NewFromAny",
+        "fmt.Stringer",
+        "nil `*Decimal`",
+        "decimal: unsupported type",
+        "decimal.MustFromAny",
+        "DivisionPrecision",
+        "MarshalJSONWithoutQuotes",
+        "division by zero",
+        "quoted JSON string",
+        "Decimal.Float64",
+        "Decimal.InexactFloat64"
+      ],
+      "test_evidence": [
+        "decimal/convert_test.go:16"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/hashx#runtime-contract:hash-algorithms-and-hex-output",
+      "package": "github.com/coldsmirk/vef-framework-go/hashx",
+      "kind": "runtime-contract",
+      "contract": "hash and HMAC algorithm choices with hex-encoded output",
+      "summary": "hashx exposes MD5, SHA-1, SHA-256, SHA-512, and SM3 hash helpers plus matching HMAC helpers, with string and byte input variants returning hex-encoded strings.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/hashx.md"
+      ],
+      "source_evidence": [
+        "hashx/hashx.go:14",
+        "hashx/hashx.go:38",
+        "hashx/hashx.go:62",
+        "hashx/hashx.go:76"
+      ],
+      "terms": [
+        "hex-encoded",
+        "HmacSHA256",
+        "SHA512",
+        "SM3"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/i18n/locales#runtime-contract:embedded-locale-files",
+      "package": "github.com/coldsmirk/vef-framework-go/i18n/locales",
+      "kind": "runtime-contract",
+      "contract": "embedded locale file set",
+      "summary": "locales.EmbedLocales embeds the framework-shipped JSON locale catalogs used by i18n.New and the default translator, including the built-in zh-CN and en catalogs.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/i18n.md"
+      ],
+      "source_evidence": [
+        "i18n/locales/locales.go:5",
+        "i18n/locales/locales.go:12"
+      ],
+      "terms": [
+        "locales.EmbedLocales",
+        "*.json",
+        "zh-CN",
+        "en"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/id#runtime-contract:id-formats-and-default-generators",
+      "package": "github.com/coldsmirk/vef-framework-go/id",
+      "kind": "runtime-contract",
+      "contract": "ID generator output formats, defaults, and Snowflake environment behavior",
+      "summary": "id.Generate uses XID by default, GenerateUUID returns UUID v7, random IDs default to a 62-character alphabet and length 32, and Snowflake uses a Base36 string with epoch/node/step settings and VEF_NODE_ID node selection.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/id-generation.md"
+      ],
+      "source_evidence": [
+        "id/id.go:11",
+        "id/random.go:5",
+        "id/snowflake.go:21",
+        "id/snowflake.go:45",
+        "id/uuid.go:15",
+        "id/xid.go:10"
+      ],
+      "terms": [
+        "XID",
+        "UUID v7",
+        "Base36",
+        "VEF_NODE_ID",
+        "DefaultRandomIDGeneratorLength"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/logx#runtime-contract:logger-interface-and-level-strings",
+      "package": "github.com/coldsmirk/vef-framework-go/logx",
+      "kind": "runtime-contract",
+      "contract": "logger interface and log level string values",
+      "summary": "logx defines the Logger interface expected by framework integrations and maps Level values to debug/info/warn/error/panic strings, with unknown for unrecognized values.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md",
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "logx/logger.go:6",
+        "logx/logger.go:19",
+        "logx/logger.go:37",
+        "log.go:10"
+      ],
+      "test_evidence": [
+        "logx/logger_test.go:8",
+        "internal/logx/discard_test.go:10"
+      ],
+      "terms": [
+        "logx.Level",
+        "logx.LevelDebug = 1",
+        "logx.LevelInfo = 2",
+        "logx.LevelWarn = 3",
+        "logx.LevelError = 4",
+        "logx.LevelPanic = 5",
+        "logx.Logger",
+        "Level.String()",
+        "debug",
+        "unknown",
+        "LevelPanic",
+        "Logger.Named(name string) logx.Logger",
+        "Logger.Sync()",
+        "Logger.Debugf(template string, args ...any)",
+        "Logger.Panicf(template string, args ...any)",
+        "vef.NamedLogger(name string) logx.Logger"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/monad#runtime-contract:inclusive-range-behavior",
+      "package": "github.com/coldsmirk/vef-framework-go/monad",
+      "kind": "runtime-contract",
+      "contract": "inclusive range state and relationship behavior",
+      "summary": "monad.Range is inclusive at both ends, treats start <= end as valid/non-empty, checks containment and overlap with inclusive comparisons, and returns the max/min intersection only when ranges overlap.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "monad/range.go:5",
+        "monad/range.go:20",
+        "monad/range.go:26",
+        "monad/range.go:41",
+        "monad/range.go:46"
+      ],
+      "terms": [
+        "monad.NewRange",
+        "Contains",
+        "Overlaps",
+        "Intersection",
+        "IsEmpty"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/ptr#runtime-contract:pointer-helper-behavior",
+      "package": "github.com/coldsmirk/vef-framework-go/ptr",
+      "kind": "runtime-contract",
+      "contract": "pointer helper nil, fallback, and equality behavior",
+      "summary": "ptr.Of returns nil for zero values, Value walks fallback pointers before returning zero, ValueOrElse calls a lazy fallback only for nil, Equal compares pointed values, and Coalesce returns the first non-nil pointer.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "ptr/ptr.go:3",
+        "ptr/ptr.go:20",
+        "ptr/ptr.go:39",
+        "ptr/ptr.go:48",
+        "ptr/ptr.go:61"
+      ],
+      "terms": [
+        "ptr.Of",
+        "ptr.Value",
+        "ptr.ValueOrElse",
+        "ptr.Equal",
+        "ptr.Coalesce"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/tree#runtime-contract:adapter-tree-building-and-search",
+      "package": "github.com/coldsmirk/vef-framework-go/tree",
+      "kind": "runtime-contract",
+      "contract": "adapter callbacks, root/orphan handling, cycle protection, and search behavior",
+      "summary": "tree.Build uses Adapter callbacks to index nodes, treats nil or missing parent IDs as roots, skips empty IDs for indexing, protects recursive child assignment with visited tracking, and FindNode/FindNodePath search by adapter children.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/tree.md"
+      ],
+      "source_evidence": [
+        "tree/builder.go:7",
+        "tree/builder.go:19",
+        "tree/builder.go:31",
+        "tree/builder.go:45",
+        "tree/builder.go:89",
+        "tree/builder.go:98"
+      ],
+      "terms": [
+        "tree.Build",
+        "GetID",
+        "ParentID",
+        "FindNode",
+        "FindNodePath"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/version#runtime-contract:framework-version-constant",
+      "package": "github.com/coldsmirk/vef-framework-go/version",
+      "kind": "runtime-contract",
+      "contract": "framework version constant value",
+      "summary": "version.VEFVersion exposes the framework version string used by consumers that need to report or compare framework version.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "version/version.go:3"
+      ],
+      "terms": [
+        "VEFVersion",
+        "v0.28.0"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cqrs#runtime-contract:typed-action-handler-registry",
+      "package": "github.com/coldsmirk/vef-framework-go/cqrs",
+      "kind": "runtime-contract",
+      "contract": "CQRS typed action registry and behavior ordering",
+      "summary": "CQRS actions are registered by concrete command/query type, sent through behavior middleware, and report handler-not-found or result-type mismatch through public sentinel errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/cqrs.md"
+      ],
+      "source_evidence": [
+        "cqrs/cqrs.go:9",
+        "internal/cqrs/cqrs.go:8",
+        "internal/cqrs/cqrs.go:34",
+        "internal/cqrs/bus.go:34",
+        "internal/cqrs/bus.go:57",
+        "internal/cqrs/bus.go:89",
+        "internal/cqrs/errors.go:5"
+      ],
+      "terms": [
+        "BaseCommand",
+        "BaseQuery",
+        "Register",
+        "HandlerFunc",
+        "BehaviorFunc",
+        "Ordered.Order",
+        "ErrHandlerNotFound",
+        "ErrResultTypeMismatch",
+        "zero value"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cron#runtime-contract:gocron-job-definition-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/cron",
+      "kind": "runtime-contract",
+      "contract": "cron scheduler job definition and option contract",
+      "summary": "Cron job definitions wrap gocron schedules with stable one-time, duration, random-duration, and cron-expression constructors plus name/task/tag/concurrency/start/stop options.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/cron.md"
+      ],
+      "source_evidence": [
+        "cron/job_definitions.go:16",
+        "cron/job_descriptor.go:26",
+        "cron/options.go:9"
+      ],
+      "terms": [
+        "NewCronJob",
+        "withSeconds",
+        "WithName",
+        "WithTask",
+        "ErrJobTaskHandlerMustFunc"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/crud#dynamic-resource:crud-action-format-import-export",
+      "package": "github.com/coldsmirk/vef-framework-go/crud",
+      "kind": "dynamic-resource",
+      "contract": "CRUD builder action strings, REST override grammar, and import/export contracts",
+      "summary": "CRUD builders expose fixed RPC/REST action constants, REST override caveats, import/export params and format behavior, validation failure response shape, and hook execution points.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/crud.md",
+        "docs/guide/query-builder.md",
+        "docs/guide/hooks.md"
+      ],
+      "source_evidence": [
+        "crud/constants.go:3",
+        "crud/import.go:13",
+        "crud/export.go:10",
+        "crud/params.go:7",
+        "crud/option.go:8"
+      ],
+      "terms": [
+        "RPCActionCreate",
+        "RESTActionFindPage",
+        "ResourceKind(api.KindREST)",
+        "WithDefaultFormat",
+        "ErrCodeImportValidationFailed"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/cryptox#runtime-contract:crypto-algorithm-modes-and-encodings",
+      "package": "github.com/coldsmirk/vef-framework-go/cryptox",
+      "kind": "runtime-contract",
+      "contract": "cryptox algorithm mode, key encoding, and error contract",
+      "summary": "cryptox constructors expose stable cipher/signer interfaces, algorithm-specific key encodings, AES/RSA/SM4 modes, ECIES curve identifiers, and error sentinels.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/cryptox.md"
+      ],
+      "source_evidence": [
+        "cryptox/cipher.go:3",
+        "cryptox/aes_cipher.go:13",
+        "cryptox/rsa_cipher.go:16",
+        "cryptox/sm4_cipher.go:12",
+        "cryptox/ecies_cipher.go:16"
+      ],
+      "terms": [
+        "CipherSigner",
+        "AesModeGcm",
+        "RsaModeOAEP",
+        "SM4ModeCBC",
+        "EciesCurveP256"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/csv#runtime-contract:csv-options-and-memory",
+      "package": "github.com/coldsmirk/vef-framework-go/csv",
+      "kind": "runtime-contract",
+      "contract": "CSV importer/exporter option behavior",
+      "summary": "CSV import/export defaults to comma delimiters, header rows, framework-level trimming on import, comment handling disabled, header output, LF line endings on export, FieldsPerRecord=-1, and full-input ReadAll before parsing; WithSkipRows clamps negative values to zero, WithoutHeader uses positional mapping, NewMapImporter accepts mapOpts while NewMapExporter does not, and final writer flush errors are wrapped.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/csv.md",
+        "docs/features/csv-excel.md"
+      ],
+      "source_evidence": [
+        "csv/csv.go:31",
+        "csv/options.go:10",
+        "csv/importer.go:22",
+        "csv/importer.go:52",
+        "csv/importer.go:56",
+        "csv/importer.go:77",
+        "csv/exporter.go:22",
+        "csv/exporter.go:67"
+      ],
+      "test_evidence": [
+        "csv/csv_test.go:50",
+        "csv/importer_test.go:98",
+        "csv/importer_test.go:113",
+        "csv/importer_test.go:128",
+        "csv/exporter_test.go:58",
+        "csv/exporter_test.go:71",
+        "csv/options_test.go:11"
+      ],
+      "terms": [
+        "NewMapImporter",
+        "NewMapExporter",
+        "[]tabular.MapOption",
+        "WithImportDelimiter",
+        "WithSkipRows",
+        "WithoutHeader",
+        "WithoutTrimSpace",
+        "WithoutWriteHeader",
+        "WithCRLF",
+        "ReadAll",
+        "FieldsPerRecord",
+        "WithComment",
+        "flush CSV writer"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/datasource#runtime-contract:dynamic-datasource-registry",
+      "package": "github.com/coldsmirk/vef-framework-go/datasource",
+      "kind": "runtime-contract",
+      "contract": "dynamic datasource provider and registry mutation contract",
+      "summary": "The datasource package reserves PrimaryName/primary, loads Provider specs during startup, exposes controlled dynamic registry mutation, supports non-mutating probes and parallel health checks, and defines reconcile/dry-run/close-grace behavior with explicit sentinel errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "datasource/registry.go:14",
+        "datasource/provider.go:7",
+        "datasource/options.go:8",
+        "datasource/errors.go:5",
+        "internal/datasource/registry.go:53",
+        "internal/datasource/module.go:38"
+      ],
+      "terms": [
+        "datasource.PrimaryName",
+        "datasource.Provider",
+        "datasource.Provider.Load",
+        "datasource.Registry.Register",
+        "datasource.Registry.Update",
+        "datasource.Registry.Unregister",
+        "datasource.Registry.Reconcile",
+        "datasource.Registry.TestConnection",
+        "datasource.Registry.HealthCheck",
+        "datasource.WithCloseGrace(d)",
+        "datasource.WithReconcileDryRun()",
+        "datasource.ErrNotFound",
+        "datasource.ErrExists",
+        "datasource.ErrPrimaryReserved",
+        "datasource.ErrNameInvalid",
+        "datasource.ErrClosed",
+        "5s timeout",
+        "lexical order",
+        "partial failure"
+      ],
+      "test_evidence": [
+        "internal/datasource/registry_test.go:22",
+        "internal/datasource/module_test.go:25"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/inbox#runtime-contract:inbox-dedupe-record-status",
+      "package": "github.com/coldsmirk/vef-framework-go/event/inbox",
+      "kind": "runtime-contract",
+      "contract": "Inbox repository status/acquire/dedupe contract",
+      "summary": "The inbox package defines durable idempotency records keyed by event ID and consumer group, with processing/completed statuses, acquire results, lock ownership, and lock-loss errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/inbox/inbox.go:13",
+        "event/inbox/errors.go:5"
+      ],
+      "terms": [
+        "StatusProcessing",
+        "StatusCompleted",
+        "AcquireResultAcquired",
+        "AcquireResultCompleted",
+        "ErrLockLost"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/middleware#runtime-contract:event-middleware-order-and-trace-context",
+      "package": "github.com/coldsmirk/vef-framework-go/event/middleware",
+      "kind": "runtime-contract",
+      "contract": "event middleware chain ordering and trace context contract",
+      "summary": "Event middleware exposes publish/consume chain helpers, built-in order constants, recover/logging/tracing/metrics/inbox toggles, and context helpers for trace IDs.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/middleware/middleware.go:15",
+        "event/middleware/tracing_context.go:10"
+      ],
+      "terms": [
+        "ChainPublish",
+        "ChainConsume",
+        "OrderLogging",
+        "WithTraceID",
+        "WithIncomingTraceID"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/transport/memory#runtime-contract:memory-transport-name-and-full-policy",
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/memory",
+      "kind": "runtime-contract",
+      "contract": "memory transport name and queue-full policies",
+      "summary": "The memory transport registers as memory and exposes queue size, publish timeout, and full-policy options error, block, and drop_oldest.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/memory/memory.go:12",
+        "event/transport/memory/memory.go:19"
+      ],
+      "terms": [
+        "memory",
+        "FullPolicyError",
+        "FullPolicyBlock",
+        "FullPolicyDropOldest",
+        "FullPolicyDropOldest"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/transport/outbox#runtime-contract:outbox-transport-status-and-sink",
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/outbox",
+      "kind": "runtime-contract",
+      "contract": "outbox transport name, status lifecycle, and sink relay contract",
+      "summary": "The outbox transport registers as outbox, persists publish-only records in the caller transaction, tracks pending/processing/completed/failed/dead statuses, and relays to a sink transport.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/outbox/outbox.go:12",
+        "event/transport/outbox/outbox.go:86",
+        "internal/event/transport/outbox/relay.go:39"
+      ],
+      "terms": [
+        "outbox",
+        "StatusPending",
+        "StatusProcessing",
+        "StatusDead",
+        "sink"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/transport/redisstream#runtime-contract:redis-stream-transport-config",
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport/redisstream",
+      "kind": "runtime-contract",
+      "contract": "Redis Streams transport name, stream prefix, group, and consumer config",
+      "summary": "The Redis Stream transport registers as redis_stream and exposes stream prefix, group/consumer, claim, start-id, max-len, and blocking read settings.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/redisstream/redis_stream.go:6",
+        "event/transport/redisstream/redis_stream.go:8"
+      ],
+      "terms": [
+        "redis_stream",
+        "vef:events:",
+        "consumer_id",
+        "start_id",
+        "WithGroup"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event/transport#runtime-contract:transport-frame-capabilities",
+      "package": "github.com/coldsmirk/vef-framework-go/event/transport",
+      "kind": "runtime-contract",
+      "contract": "event transport frame, delivery, and capability contract",
+      "summary": "Event transports exchange Frame values, advertise delivery capabilities, and distinguish at-least-once, publish-only, group, and transactional behavior through Capabilities and TxTransport.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/transport/transport.go:10"
+      ],
+      "terms": [
+        "Frame",
+        "Capabilities",
+        "AtLeastOnce",
+        "PublishOnly",
+        "TxTransport"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/event#runtime-contract:event-routing-publish-subscribe",
+      "package": "github.com/coldsmirk/vef-framework-go/event",
+      "kind": "runtime-contract",
+      "contract": "event type, envelope, routing, and publish/subscribe option contract",
+      "summary": "Event publishing validates EventTypePattern, builds Envelope metadata, applies routing and async/transactional options, and enforces SubscribeTyped/group semantics for durable transports.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/event-bus.md"
+      ],
+      "source_evidence": [
+        "event/event.go:7",
+        "event/publish.go:9",
+        "event/subscribe.go:8",
+        "event/typed.go:10"
+      ],
+      "terms": [
+        "EventTypePattern",
+        "Envelope",
+        "WithTx",
+        "WithAsync",
+        "SubscribeTyped",
+        "WithGroup"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/excel#runtime-contract:excel-options-and-native-cells",
+      "package": "github.com/coldsmirk/vef-framework-go/excel",
+      "kind": "runtime-contract",
+      "contract": "Excel importer/exporter option and native cell behavior",
+      "summary": "Excel import reads by sheet name or index with name taking precedence, clamps negative skip rows, trims by default, supports positional mapping without headers, and reports ErrSheetIndexOutOfRange for invalid index; map import passes mapOpts into NewMapAdapterFromSpecs; export writes native typed cells only for default formatter columns without explicit Format, Formatter, or FormatterFn.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/excel.md",
+        "docs/features/csv-excel.md"
+      ],
+      "source_evidence": [
+        "excel/excel.go:32",
+        "excel/options.go:28",
+        "excel/importer.go:79",
+        "excel/importer.go:111",
+        "excel/exporter.go:151",
+        "excel/exporter.go:210"
+      ],
+      "test_evidence": [
+        "excel/excel_test.go:72",
+        "excel/options_test.go:30",
+        "excel/importer_test.go:174",
+        "excel/exporter_test.go:100",
+        "excel/exporter_test.go:150"
+      ],
+      "terms": [
+        "WithImportSheetName",
+        "WithImportSheetIndex",
+        "ErrSheetIndexOutOfRange",
+        "WithoutHeader",
+        "WithoutTrimSpace",
+        "NewMapImporter",
+        "[]tabular.MapOption",
+        "native typed cell",
+        "timex.Time",
+        "FormatterFn"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/expression#runtime-contract:expression-engine-and-mold-transformer",
+      "package": "github.com/coldsmirk/vef-framework-go/expression",
+      "kind": "runtime-contract",
+      "contract": "expression engine evaluation, value conversion, and mold transformer contract",
+      "summary": "The expression package exposes a CGO-backed engine whose Compile may defer validation, whose Value helpers decode JSON-like numbers, and whose expr mold transformer uses escaped comma parameters.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/expression.md"
+      ],
+      "source_evidence": [
+        "expression/engine.go:8",
+        "expression/value.go:11",
+        "internal/expression/transformer.go:16"
+      ],
+      "terms": [
+        "CGO_ENABLED=1",
+        "expression.Engine",
+        "Compile",
+        "JSON number",
+        "expr",
+        "0x2C"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/httpx#runtime-contract:fiber-content-type-and-ip-resolution",
+      "package": "github.com/coldsmirk/vef-framework-go/httpx",
+      "kind": "runtime-contract",
+      "contract": "Fiber content-type helpers and trusted-proxy IP resolution",
+      "summary": "httpx exposes request helpers that resolve content type and client IP using Fiber behavior and vef.app.trusted_proxies.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "httpx/content_type.go:6",
+        "httpx/ip.go:8"
+      ],
+      "terms": [
+        "IsJSON",
+        "IsMultipart",
+        "GetIP",
+        "vef.app.trusted_proxies"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/i18n#runtime-contract:language-selection-and-fallback",
+      "package": "github.com/coldsmirk/vef-framework-go/i18n",
+      "kind": "runtime-contract",
+      "contract": "i18n language selection, message lookup, and fallback contract",
+      "summary": "The i18n package selects language from VEF_I18N_LANGUAGE or runtime SetLanguage, supports zh-CN and en, and falls back to the message ID when no translation is found.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/i18n.md"
+      ],
+      "source_evidence": [
+        "i18n/i18n.go:8",
+        "i18n/translator.go:8"
+      ],
+      "terms": [
+        "zh-CN",
+        "en",
+        "VEF_I18N_LANGUAGE",
+        "SetLanguage",
+        "message ID"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/js#runtime-contract:goja-engine-preloaded-libraries",
+      "package": "github.com/coldsmirk/vef-framework-go/js",
+      "kind": "runtime-contract",
+      "contract": "Goja JavaScript engine, module registry, JSON tag mapping, and thread-safety contract",
+      "summary": "The js package embeds Goja with preloaded libraries, CommonJS-style module support, JSON tag mapping for structs, value conversion helpers, and explicit non-thread-safe runtime guidance.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/js-engine.md"
+      ],
+      "source_evidence": [
+        "js/js.go:10",
+        "js/libs.go:6"
+      ],
+      "terms": [
+        "goja",
+        "dayjs",
+        "Big",
+        "utils",
+        "validator",
+        "json"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mapx#runtime-contract:json-tag-decoder-and-hooks",
+      "package": "github.com/coldsmirk/vef-framework-go/mapx",
+      "kind": "runtime-contract",
+      "contract": "mapx JSON tag default, decode options, and built-in hooks",
+      "summary": "mapx converts structs and maps with json tags by default, supports tag/weak-typing/error options, and ships decode hooks for multipart files, raw JSON, decimal/time values, and collection sets.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/mapx.md"
+      ],
+      "source_evidence": [
+        "mapx/decoder.go:13",
+        "mapx/decode_hook.go:12"
+      ],
+      "terms": [
+        "json",
+        "WithTagName",
+        "WithWeaklyTypedInput",
+        "multipart.FileHeader",
+        "json.RawMessage"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#dynamic-resource:mcp-endpoint-tool-resource-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "dynamic-resource",
+      "contract": "MCP endpoint, provider groups, auth, built-in database query tool, built-in naming prompt, and schema contract",
+      "summary": "The MCP package exposes the /mcp Streamable HTTP endpoint, secure-by-default auth config, provider groups for tools/resources/prompts, ServerInfo defaults, SchemaFor/SchemaOf JSON schema generation, principal-aware DBWithOperator, the built-in database_query tool, and the built-in naming-master prompt.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/mcp.md"
+      ],
+      "source_evidence": [
+        "mcp/mcp.go:10",
+        "mcp/schema.go:10",
+        "mcp/auth.go:8",
+        "config/mcp.go:4",
+        "internal/mcp/server.go:20",
+        "internal/mcp/handler.go:27",
+        "internal/mcp/middleware.go:10",
+        "internal/mcp/tools/query.go:14",
+        "internal/mcp/prompts/naming_master.go:18",
+        "internal/mcp/handler_test.go:60"
+      ],
+      "terms": [
+        "/mcp",
+        "Streamable HTTP",
+        "order `500`",
+        "HTTP method",
+        "vef.mcp.enabled",
+        "require_auth",
+        "Bearer",
+        "vef-mcp-server",
+        "v1.0.0",
+        "database_query",
+        "naming-master",
+        "SchemaFor",
+        "SchemaOf(nil)",
+        "MustSchemaOf(nil)",
+        "jsonschema:\"required\"",
+        "$schema",
+        "PrincipalAnonymous",
+        "DBWithOperator",
+        "orm.PlaceholderKeyOperator"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/middleware#runtime-contract:spa-middleware-config",
+      "package": "github.com/coldsmirk/vef-framework-go/middleware",
+      "kind": "runtime-contract",
+      "contract": "SPA middleware config and fallback static-serving contract",
+      "summary": "The middleware package exposes SPAConfig values supplied through vef:spa helpers for static roots, route prefixes, index fallback, and segment-boundary ExcludePaths prefixes.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/advanced/spa-integration.md"
+      ],
+      "source_evidence": [
+        "middleware/spa.go:8",
+        "internal/middleware/spa.go:17",
+        "internal/middleware/spa.go:45",
+        "internal/middleware/spa.go:126"
+      ],
+      "test_evidence": [
+        "internal/middleware/spa_test.go:17",
+        "internal/middleware/spa_test.go:56",
+        "internal/middleware/spa_test.go:94"
+      ],
+      "terms": [
+        "SPAConfig",
+        "SPAConfig.Path",
+        "Path string",
+        "SPAConfig.Fs",
+        "Fs fs.FS",
+        "SPAConfig.ExcludePaths",
+        "ExcludePaths []string",
+        "vef:spa",
+        "ProvideSPAConfig",
+        "SupplySPAConfigs",
+        "index.html",
+        "static",
+        "fallback",
+        "path-segment boundaries",
+        "empty exclusion prefixes are ignored",
+        "trailing slash"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mold#event-contract:dictionary-cache-invalidation",
+      "package": "github.com/coldsmirk/vef-framework-go/mold",
+      "kind": "event-contract",
+      "contract": "dictionary cache invalidation event",
+      "summary": "CachedDictionaryResolver wraps a DictionaryLoader and invalidates cached dictionaries through DictionaryChangedEvent; empty Keys clears all cached dictionaries.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/mold.md"
+      ],
+      "source_evidence": [
+        "mold/cached_dictionary_resolver.go:18",
+        "mold/cached_dictionary_resolver.go:27",
+        "mold/cached_dictionary_resolver.go:63"
+      ],
+      "test_evidence": [
+        "mold/cached_dictionary_resolver_test.go:61",
+        "mold/cached_dictionary_resolver_test.go:94",
+        "mold/cached_dictionary_resolver_test.go:128"
+      ],
+      "terms": [
+        "DictionaryChangedEvent",
+        "PublishDictionaryChangedEvent",
+        "Keys",
+        "Resolve"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mold#field-contract:transformer-inputs-and-traversal",
+      "package": "github.com/coldsmirk/vef-framework-go/mold",
+      "kind": "field-contract",
+      "contract": "Transformer.Struct and Transformer.Field input/traversal behavior",
+      "summary": "Struct requires a non-nil pointer to a non-time struct; Field requires a non-nil pointer unless the tag string is empty or '-'. Struct traversal recurses into nested structs automatically, but slice/map element recursion requires dive.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/mold.md"
+      ],
+      "source_evidence": [
+        "internal/mold/mold.go:113",
+        "internal/mold/mold.go:159",
+        "internal/mold/mold.go:297"
+      ],
+      "test_evidence": [
+        "internal/mold/mold_test.go:36",
+        "internal/mold/mold_test.go:253",
+        "internal/mold/mold_test.go:796"
+      ],
+      "terms": [
+        "Transformer.Struct",
+        "Transformer.Field",
+        "time.Time",
+        "nil"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mold#string-contract:mold-tag-grammar",
+      "package": "github.com/coldsmirk/vef-framework-go/mold",
+      "kind": "string-contract",
+      "contract": "mold struct tag grammar",
+      "summary": "The mold tag uses comma-separated transformer tags, function=param parameters, '-' ignore tags, 'dive' collection recursion, and 'keys'/'endkeys' map-key recursion; commas inside params are escaped as 0x2C.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/mold.md"
+      ],
+      "source_evidence": [
+        "internal/mold/restricted.go:4",
+        "internal/mold/cache.go:130",
+        "internal/mold/mold.go:237"
+      ],
+      "test_evidence": [
+        "internal/mold/mold_test.go:20",
+        "internal/mold/mold_test.go:304",
+        "internal/mold/mold_test.go:696"
+      ],
+      "terms": [
+        "dive",
+        "keys",
+        "endkeys",
+        "0x2C"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mold#string-contract:translate-transformer",
+      "package": "github.com/coldsmirk/vef-framework-go/mold",
+      "kind": "string-contract",
+      "contract": "translate transformer kind and target field convention",
+      "summary": "The built-in translate field transformer writes to a sibling <Field>Name field; the built-in dictionary translator supports only dict: kinds, and '?' only skips when no translator supports the full kind string.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/mold.md"
+      ],
+      "source_evidence": [
+        "internal/mold/translate.go:183",
+        "internal/mold/translate.go:217",
+        "internal/mold/dictionary_translator.go:15"
+      ],
+      "test_evidence": [
+        "internal/mold/translate_test.go:88",
+        "internal/mold/translate_test.go:412",
+        "internal/mold/translate_test.go:516"
+      ],
+      "terms": [
+        "translate=dict:",
+        "<Field>Name",
+        "user?",
+        "dict:status?"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/monitor#dynamic-resource:sys-monitor-resource-dtos",
+      "package": "github.com/coldsmirk/vef-framework-go/monitor",
+      "kind": "dynamic-resource",
+      "contract": "sys/monitor built-in resource, action names, rate limits, DTO fields, and error codes",
+      "summary": "The monitor module registers sys/monitor actions with max 60 rate limits and exposes JSON DTO shapes plus ErrNotReady and ErrCollectionFailed API errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/monitor.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "internal/monitor/resource.go:16",
+        "monitor/service.go:8",
+        "monitor/api_errors.go:9"
+      ],
+      "terms": [
+        "sys/monitor",
+        "get_overview",
+        "get_build_info",
+        "60",
+        "ErrNotReady",
+        "ErrCollectionFailed"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/orm#runtime-contract:orm-query-builder-model-transaction-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/orm",
+      "kind": "runtime-contract",
+      "contract": "ORM query builder, model tag, operator, and transaction contract",
+      "summary": "The orm package re-exports the framework query builders, model helpers, operator placeholders, bun tag model conventions, and RunInTx/transaction behavior used by CRUD and application services.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/orm-builder.md",
+        "docs/guide/models.md",
+        "docs/advanced/transactions.md"
+      ],
+      "source_evidence": [
+        "orm/orm.go:6",
+        "orm/bun.go:11",
+        "internal/orm/model.go:7",
+        "internal/orm/db.go:48"
+      ],
+      "terms": [
+        "orm.DB",
+        "RunInTx",
+        "bun",
+        "FullAuditedModel",
+        "OperatorSystem",
+        "PlaceholderKeyOperator"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/page#wire-contract:pagination-request-response-shape",
+      "package": "github.com/coldsmirk/vef-framework-go/page",
+      "kind": "wire-contract",
+      "contract": "pagination request and response JSON shape",
+      "summary": "The page package defines Pageable request metadata, Page[T] response shape, normalization, offset, and items/total JSON fields.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "page/page.go:5"
+      ],
+      "terms": [
+        "Pageable",
+        "Page[T]",
+        "items",
+        "total",
+        "Offset"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/password#runtime-contract:password-encoding-prefix-and-upgrade",
+      "package": "github.com/coldsmirk/vef-framework-go/password",
+      "kind": "runtime-contract",
+      "contract": "password encoder ID prefix, composite dispatch, and upgrade contract",
+      "summary": "Password encoders use the {algorithm}encoded_value family of formats such as {bcrypt}..., dispatch through EncoderID, support composite verification/upgrade, and expose bcrypt cost limits.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/password.md"
+      ],
+      "source_evidence": [
+        "password/composite.go:11",
+        "password/hash_encoder.go:7",
+        "password/bcrypt.go:12"
+      ],
+      "terms": [
+        "{bcrypt}",
+        "EncoderID",
+        "NewCompositeEncoder",
+        "UpgradeEncoding",
+        "bcrypt"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:cast-alias-zero-vs-error",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "cast alias zero-value and error contract",
+      "summary": "reflectx exposes spf13/cast conversion aliases where E-suffixed helpers return errors and non-E helpers return zero values on conversion failure.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/convert.go:13"
+      ],
+      "terms": [
+        "github.com/spf13/cast",
+        "To*E",
+        "non-E variants",
+        "zero value"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:decimal-conversion-nil-and-error",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "decimal conversion nil and error contract",
+      "summary": "reflectx decimal conversion maps nil and nil pointer/interface inputs to decimal.Zero, delegates non-nil values to decimal.NewFromAny, and ToDecimal discards conversion errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/convert.go:50",
+        "reflectx/convert.go:70"
+      ],
+      "test_evidence": [
+        "reflectx/convert_test.go:13",
+        "reflectx/convert_test.go:54"
+      ],
+      "terms": [
+        "reflectx.ToDecimalE",
+        "decimal.Zero",
+        "nil pointer/interface",
+        "decimal.NewFromAny",
+        "reflectx.ToDecimal"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:type-compatibility-and-conversion",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "type compatibility and conversion contract",
+      "summary": "reflectx type helpers define one-level type indirection, pointer-to-struct checks, generic base-name similarity, pointer/value compatibility, and ErrCannotConvertType wrapping on unsupported conversions.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/reflectx.go:10",
+        "reflectx/reflectx.go:19",
+        "reflectx/reflectx.go:24",
+        "reflectx/reflectx.go:101",
+        "reflectx/reflectx.go:126"
+      ],
+      "test_evidence": [
+        "reflectx/reflectx_test.go:48",
+        "reflectx/reflectx_test.go:90",
+        "reflectx/reflectx_test.go:131",
+        "reflectx/reflectx_test.go:480",
+        "reflectx/reflectx_test.go:540"
+      ],
+      "terms": [
+        "reflectx.Indirect",
+        "reflectx.IsPointerToStruct",
+        "reflectx.IsSimilarType",
+        "reflectx.IsTypeCompatible",
+        "reflectx.ConvertValue",
+        "reflectx.ErrCannotConvertType"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:method-discovery",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "method discovery contract",
+      "summary": "reflectx method helpers find methods on values or addressable pointer copies and collect promoted pointer/value methods from struct pointer method sets.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/reflectx.go:59",
+        "reflectx/reflectx.go:74"
+      ],
+      "test_evidence": [
+        "reflectx/reflectx_test.go:176",
+        "reflectx/reflectx_test.go:345"
+      ],
+      "terms": [
+        "reflectx.FindMethod",
+        "addressable pointer copy",
+        "reflectx.CollectMethods",
+        "pointer method set"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:string-field-accessors",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "string field accessor contract",
+      "summary": "reflectx string helpers identify string, string slice, and string map fields, return false for incompatible or nil values, no-op on incompatible setters, and replace *string pointers with fresh pointers.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/string_field.go:6",
+        "reflectx/string_field.go:28",
+        "reflectx/string_field.go:47",
+        "reflectx/string_field.go:64",
+        "reflectx/string_field.go:77",
+        "reflectx/string_field.go:87",
+        "reflectx/string_field.go:100"
+      ],
+      "test_evidence": [
+        "reflectx/string_field_test.go:83",
+        "reflectx/string_field_test.go:120",
+        "reflectx/string_field_test.go:160",
+        "reflectx/string_field_test.go:190",
+        "reflectx/string_field_test.go:209",
+        "reflectx/string_field_test.go:239"
+      ],
+      "terms": [
+        "reflectx.IsStringType",
+        "reflectx.SetStringValue",
+        "fresh",
+        "nil string pointers/slices/maps",
+        "no-op"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:empty-equal-contains",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "empty, equality, and containment contract",
+      "summary": "reflectx value helpers define emptiness across nil/zero/collection/struct values, numeric equality within categories only, and containment for strings, slices, arrays, and maps with convertible keys.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/value.go:12",
+        "reflectx/value.go:59",
+        "reflectx/value.go:112"
+      ],
+      "test_evidence": [
+        "reflectx/value_test.go:11",
+        "reflectx/value_test.go:317",
+        "reflectx/value_test.go:407"
+      ],
+      "terms": [
+        "reflectx.IsEmpty",
+        "*string",
+        "reflectx.Equal",
+        "cross-category",
+        "reflectx.Contains",
+        "convertible map keys"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:struct-visitor-dive-depth-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/reflectx",
+      "kind": "runtime-contract",
+      "contract": "reflection visitor dive-tag and depth traversal contract",
+      "summary": "reflectx visitors expose traversal actions, dive tag selection, recursive disabling, maximum depth, absolute field index paths, cycle protection, and typed struct/field/method visitor callbacks.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "reflectx/visitor.go:9",
+        "reflectx/visitor.go:36",
+        "reflectx/visitor.go:42",
+        "reflectx/visitor.go:47",
+        "reflectx/visitor.go:90",
+        "reflectx/visitor.go:121",
+        "reflectx/visitor.go:138",
+        "reflectx/visitor.go:282",
+        "reflectx/visitor.go:306"
+      ],
+      "test_evidence": [
+        "reflectx/visitor_test.go:76",
+        "reflectx/visitor_test.go:181",
+        "reflectx/visitor_test.go:251",
+        "reflectx/visitor_test.go:284",
+        "reflectx/visitor_test.go:311",
+        "reflectx/visitor_test.go:785",
+        "reflectx/visitor_test.go:892",
+        "reflectx/visitor_test.go:929",
+        "reflectx/visitor_test.go:1277",
+        "reflectx/visitor_test.go:1318"
+      ],
+      "terms": [
+        "reflectx.Continue = 0",
+        "reflectx.Stop = 1",
+        "reflectx.SkipChildren = 2",
+        "TagConfig{Name: \"visit\", Value: \"dive\"}",
+        "VisitorConfig.MaxDepth == 0",
+        "depth >= MaxDepth",
+        "StructField.Index",
+        "absolute index path",
+        "pointer method set"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/result#wire-contract:result-envelope-error-code-options",
+      "package": "github.com/coldsmirk/vef-framework-go/result",
+      "kind": "wire-contract",
+      "contract": "result envelope JSON, error code, status, and option contract",
+      "summary": "The result package serializes API responses as code/message/data, uses stable default codes, exposes status/options behavior, and compares result.Error values by code.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/result.md",
+        "docs/guide/error-handling.md"
+      ],
+      "source_evidence": [
+        "result/result.go:8",
+        "result/constants.go:3",
+        "result/error.go:8",
+        "result/option.go:7"
+      ],
+      "terms": [
+        "code",
+        "message",
+        "data",
+        "ErrCodeDefault",
+        "WithStatus",
+        "result.Errf"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/schema#dynamic-resource:sys-schema",
+      "package": "github.com/coldsmirk/vef-framework-go/schema",
+      "kind": "dynamic-resource",
+      "contract": "sys/schema RPC resource",
+      "summary": "The schema module registers sys/schema with list_tables, get_table_schema, and list_views actions; each action has a custom Max 60 rate limit and uses the standard RPC result envelope.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/schema.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "internal/schema/resource.go:16",
+        "internal/schema/resource.go:48",
+        "internal/schema/module.go:8"
+      ],
+      "test_evidence": [
+        "internal/schema/resource_test.go:63",
+        "internal/schema/resource_test.go:97",
+        "internal/schema/resource_test.go:156"
+      ],
+      "terms": [
+        "sys/schema",
+        "list_tables",
+        "get_table_schema",
+        "list_views",
+        "60"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/schema#field-contract:schema-dto-wire-shape",
+      "package": "github.com/coldsmirk/vef-framework-go/schema",
+      "kind": "field-contract",
+      "contract": "schema DTO JSON wire shape",
+      "summary": "Public schema DTO JSON tags define the response contract, including omitempty behavior for optional schema, comment, constraint, default, action, and view columns fields.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/schema.md",
+        "docs/reference/built-in-resources.md"
+      ],
+      "source_evidence": [
+        "schema/service.go:6",
+        "schema/service.go:13",
+        "schema/service.go:27"
+      ],
+      "test_evidence": [
+        "internal/schema/resource_test.go:100",
+        "internal/schema/resource_test.go:132"
+      ],
+      "terms": [
+        "omitempty",
+        "primaryKey",
+        "isAutoIncrement",
+        "onDelete",
+        "columns"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/schema#runtime-contract:primary-datasource-inspection",
+      "package": "github.com/coldsmirk/vef-framework-go/schema",
+      "kind": "runtime-contract",
+      "contract": "primary data source schema inspection",
+      "summary": "Default schema inspection uses the primary data source only and supports PostgreSQL, MySQL, and SQLite with dialect-specific schema and view inspection behavior.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/schema.md"
+      ],
+      "source_evidence": [
+        "internal/schema/service.go:18",
+        "internal/schema/inspector.go:22",
+        "internal/schema/inspector.go:81"
+      ],
+      "test_evidence": [
+        "internal/schema/service_test.go:30",
+        "internal/schema/service_test.go:36",
+        "internal/schema/service_test.go:42"
+      ],
+      "terms": [
+        "primary data source",
+        "PostgreSQL",
+        "MySQL",
+        "SQLite",
+        "information_schema.views"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/search#string-contract:search-tag-grammar-and-operators",
+      "package": "github.com/coldsmirk/vef-framework-go/search",
+      "kind": "string-contract",
+      "contract": "search struct tag grammar and query operator contract",
+      "summary": "The search package parses search tags with operator, column, params, delimiter/type options, dive recursion, ignore markers, and documented operator names such as notBetween and iContains.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/query-builder.md"
+      ],
+      "source_evidence": [
+        "search/constants.go:3",
+        "search/parser.go:12",
+        "search/parser.go:86",
+        "search/search.go:33",
+        "search/search.go:85",
+        "search/range.go:31",
+        "search/applier.go:5"
+      ],
+      "terms": [
+        "search:\"",
+        "operator=",
+        "column=",
+        "params=",
+        "Search.Apply",
+        "api.P",
+        "WithSpacePairDelimiter",
+        "monad.Range",
+        "notBetween",
+        "iContains",
+        "isNull"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#wire-contract:auth-jwt-signature-challenge",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "wire-contract",
+      "contract": "authentication resource, Bearer token locations, JWT token/claim shape, signature request contract, challenge flow, and security error envelope",
+      "summary": "Documents the built-in security/auth RPC actions, auth request/response fields, token types, JWT compact claims, access/refresh subject format, principal JSON behavior, challenge token stores, signature headers/payload/defaults, IP whitelist fail modes, and security-domain error codes/statuses.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/security/authentication.md"
+      ],
+      "source_evidence": [
+        "security/constants.go:3",
+        "security/security.go:12",
+        "security/api_errors.go:24",
+        "security/principal.go:13",
+        "security/jwt.go:15",
+        "security/jwt_config.go:8",
+        "security/challenge.go:5",
+        "security/jwt_challenge_token_store.go:12",
+        "security/otp.go:157",
+        "security/signature.go:14",
+        "security/ip_whitelist.go:23",
+        "internal/security/auth_resource.go:44",
+        "internal/security/jwt_token_generator.go:13",
+        "internal/api/auth/signature.go:36"
+      ],
+      "test_evidence": [
+        "security/jwt_test.go:1",
+        "security/signature_test.go:1",
+        "security/otp_test.go:1",
+        "security/ip_whitelist_test.go:1",
+        "internal/security/auth_resource_test.go:1",
+        "internal/security/jwt_token_generator_test.go:1"
+      ],
+      "terms": [
+        "security/auth",
+        "login",
+        "refresh",
+        "logout",
+        "resolve_challenge",
+        "get_user_info",
+        "vef.security.login_rate_limit",
+        "vef.security.refresh_rate_limit",
+        "validate:\"required\"",
+        "password",
+        "token",
+        "signature",
+        "Authorization",
+        "Bearer",
+        "__accessToken",
+        "accessToken",
+        "refreshToken",
+        "challengeToken",
+        "type",
+        "principal",
+        "credentials",
+        "response",
+        "id@name",
+        "jti",
+        "sub",
+        "iss",
+        "aud",
+        "iat",
+        "nbf",
+        "exp",
+        "typ",
+        "rls",
+        "det",
+        "HS256",
+        "DefaultJWTAudience",
+        "DefaultJWTSecret",
+        "JWTIssuer",
+        "PrincipalSystem",
+        "PrincipalAnonymous",
+        "系统",
+        "匿名",
+        "map[string]any",
+        "ChallengeTokenExpires",
+        "ptp",
+        "pnm",
+        "pnd",
+        "rsd",
+        "vef:security:challenge:",
+        "totp",
+        "sms_otp",
+        "email_otp",
+        "password_change",
+        "department_selection",
+        "Authenticator App",
+        "NewOTPChallengeProvider",
+        "NewPasswordChangeChallengeProvider",
+        "NewDepartmentSelectionChallengeProvider",
+        "panic",
+        "X-App-ID",
+        "X-Timestamp",
+        "X-Nonce",
+        "X-Signature",
+        "HMAC-SHA256",
+        "HMAC-SHA512",
+        "HMAC-SM3",
+        "app_id=<appID>&method=<method>&nonce=<nonce>&path=<path>&timestamp=<timestamp>",
+        "WithNonceStore(nil)",
+        "vef:security:nonce:",
+        "ErrIPNotAllowed",
+        "1000",
+        "1001",
+        "1002",
+        "1003",
+        "1004",
+        "1005",
+        "1006",
+        "1007",
+        "1008",
+        "1009",
+        "1010",
+        "1011",
+        "1012",
+        "1013",
+        "1014",
+        "1015",
+        "1016",
+        "1017",
+        "1018",
+        "1019",
+        "1020",
+        "1021",
+        "1022",
+        "1031",
+        "1033",
+        "1034",
+        "1035",
+        "1036",
+        "1037",
+        "1038",
+        "ErrMessageChallengeResolveFailed",
+        "ErrMessageCredentialsFormatInvalid",
+        "ErrMessageExternalAppLoaderNotImplemented",
+        "ErrMessageUnauthenticated",
+        "ErrMessageUnsupportedAuthenticationType",
+        "ErrMessageUserInfoLoaderNotImplemented",
+        "ErrMessageUserLoaderNotImplemented",
+        "leeway",
+        "signature payload",
+        "whitelist"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#event-contract:rbac-userinfo-login-events",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "event-contract",
+      "contract": "RBAC permission loading, role-permission cache invalidation, user info/menu DTOs, and login audit events",
+      "summary": "Documents RolePermissionsLoader and CachedRolePermissionsLoader behavior, role invalidation event topic and empty-roles meaning, RBAC nil/role checks, data-scope priority winner, get_user_info DTO shapes, enum values, and login event topic/payload.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/security/authorization.md"
+      ],
+      "source_evidence": [
+        "security/permission.go:9",
+        "security/cached_role_permission_loader.go:12",
+        "security/login_event.go:9",
+        "security/user_info.go:14",
+        "internal/security/rbac_permission_checker.go:10",
+        "internal/security/rbac_data_permission_resolver.go:10"
+      ],
+      "test_evidence": [
+        "security/cached_role_permission_loader_test.go:1",
+        "security/login_event_test.go:1",
+        "internal/security/rbac_permission_checker_test.go:1",
+        "internal/security/rbac_data_permission_resolver_test.go:1"
+      ],
+      "terms": [
+        "RequiredPermission",
+        "PermToken",
+        "PermissionChecker",
+        "RolePermissionsLoader",
+        "CachedRolePermissionsLoader",
+        "NewCachedRolePermissionsLoader",
+        "RolePermissionsChangedEvent",
+        "PublishRolePermissionsChangedEvent",
+        "vef.security.role_permissions.changed",
+        "roles",
+        "empty `roles`",
+        "principal is nil",
+        "no roles",
+        "RolePermissionsLoader",
+        "DataScope.Priority()",
+        "highest",
+        "LoginEvent",
+        "LoginEventParams",
+        "NewLoginEvent",
+        "SubscribeLoginEvent",
+        "vef.security.login",
+        "authType",
+        "userId",
+        "username",
+        "loginIp",
+        "userAgent",
+        "traceId",
+        "isOk",
+        "failReason",
+        "errorCode",
+        "UserInfo",
+        "UserInfoLoader",
+        "UserMenu",
+        "UserMenuType",
+        "Gender",
+        "male",
+        "female",
+        "unknown",
+        "directory",
+        "menu",
+        "view",
+        "dashboard",
+        "report",
+        "permissionTokens",
+        "metadata",
+        "children"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#runtime-contract:data-permission-scopes",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "runtime-contract",
+      "contract": "data permission scope keys, priorities, resolver winner, and request-scoped applier skip/error paths",
+      "summary": "Documents DataScope/DataPermissionResolver/DataPermissionApplier public contracts, built-in all/self scope keys, exact priorities, default created_by column, supports behavior, and RequestScopedDataPermApplier skip/error semantics.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/security/data-permissions.md"
+      ],
+      "source_evidence": [
+        "security/permission.go:23",
+        "security/data_scopes.go:9",
+        "security/request_scoped_data_perm_applier.go:10",
+        "security/department_selection.go:7",
+        "internal/security/rbac_data_permission_resolver.go:10"
+      ],
+      "test_evidence": [
+        "security/data_scopes_test.go:1",
+        "security/request_scoped_data_perm_applier_test.go:1",
+        "security/department_selection_test.go:1",
+        "internal/security/rbac_data_permission_resolver_test.go:1"
+      ],
+      "terms": [
+        "DataPermissionResolver",
+        "DataScope",
+        "DataPermissionApplier",
+        "DisableDataPerm()",
+        "AllDataScope",
+        "SelfDataScope",
+        "NewAllDataScope",
+        "NewSelfDataScope",
+        "all",
+        "self",
+        "created_by",
+        "orm.ColumnCreatedBy",
+        "PrioritySelf",
+        "PriorityDepartment",
+        "PriorityDepartmentAndSub",
+        "PriorityOrganization",
+        "PriorityOrganizationAndSub",
+        "PriorityCustom",
+        "PriorityAll",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "10000",
+        "highest numeric priority",
+        "RequestScopedDataPermApplier",
+        "NewRequestScopedDataPermApplier",
+        "ErrQueryNotQueryBuilder",
+        "ErrQueryModelNotSet",
+        "orm.QueryBuilder",
+        "DataScope.Supports(...)",
+        "skip without error",
+        "DepartmentLoader",
+        "DepartmentOption",
+        "DepartmentSelector",
+        "DepartmentSelectionChallengeData",
+        "DepartmentSelectionChallengeProvider"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/sequence#runtime-contract:sequence-rule-reset-overflow-store-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/sequence",
+      "kind": "runtime-contract",
+      "contract": "sequence rule, reset, overflow, memory store, and error contract",
+      "summary": "The sequence package defines rule fields, reset cycles, overflow strategies, Generate/GenerateN behavior, the in-memory store, registration, and rule/overflow/count errors.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/sequence.md"
+      ],
+      "source_evidence": [
+        "sequence/rule.go:7",
+        "sequence/format.go:7",
+        "sequence/memory_store.go:12",
+        "sequence/policy.go:6"
+      ],
+      "terms": [
+        "ResetCycle",
+        "OverflowStrategy",
+        "GenerateN",
+        "NewMemoryStore",
+        "ErrSequenceOverflow"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/sortx#wire-contract:sort-order-text-json-contract",
+      "package": "github.com/coldsmirk/vef-framework-go/sortx",
+      "kind": "wire-contract",
+      "contract": "sort order text/JSON parsing and order spec contract",
+      "summary": "sortx defines asc/desc direction constants, null-ordering values, text/JSON marshaling, and OrderSpec fields used by search and CRUD sorting.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md",
+        "docs/guide/query-builder.md"
+      ],
+      "source_evidence": [
+        "sortx/order.go:8"
+      ],
+      "terms": [
+        "OrderAsc",
+        "OrderDesc",
+        "OrderSpec",
+        "ErrInvalidOrderDirection"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/storage#dynamic-resource:storage-resource-upload-proxy-lifecycle",
+      "package": "github.com/coldsmirk/vef-framework-go/storage",
+      "kind": "dynamic-resource",
+      "contract": "sys/storage upload actions, proxy URLs, meta tags, ACL, claim/delete lifecycle, and events",
+      "summary": "The storage module exposes sys/storage multipart upload actions, /storage/files/<key> proxy semantics, pub/priv key visibility, meta-tagged file reference extraction, transactional claim/delete lifecycle, and storage events.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/storage.md",
+        "docs/reference/built-in-resources.md",
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "internal/storage/resource.go:20",
+        "internal/storage/proxy_middleware.go:14",
+        "storage/service.go:8",
+        "storage/file_refs.go:12",
+        "storage/events.go:5"
+      ],
+      "terms": [
+        "sys/storage",
+        "/storage/files/",
+        "pub/",
+        "priv/",
+        "meta:\"uploaded_file\"",
+        "meta:\"dive\"",
+        "vef.storage.delete.dead_letter"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/strx#string-contract:tag-parser-bare-value-grammar",
+      "package": "github.com/coldsmirk/vef-framework-go/strx",
+      "kind": "string-contract",
+      "contract": "compact key/value and struct-tag parser grammar",
+      "summary": "strx parses comma-separated key/value tag strings, supports custom pair/value delimiters, default keys, bare-as-key/value behavior, and space-delimited pairs.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/small-utilities.md"
+      ],
+      "source_evidence": [
+        "strx/parser.go:8"
+      ],
+      "terms": [
+        "ParseTag",
+        "WithValueDelimiter",
+        "WithSpacePairDelimiter",
+        "BareAsKey",
+        "BareAsValue"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/tabular#field-contract:dynamic-schema-and-map-validation",
+      "package": "github.com/coldsmirk/vef-framework-go/tabular",
+      "kind": "field-contract",
+      "contract": "dynamic ColumnSpec schema validation and map-row validation",
+      "summary": "NewSchemaFromSpecs requires unique non-empty Key values, non-nil Type values, and unique resolved names; map import validates Required, Validators, and optional RowValidator errors with errors.Join.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/tabular.md"
+      ],
+      "source_evidence": [
+        "tabular/spec.go:43",
+        "tabular/map_adapter.go:155",
+        "tabular/errors.go:48"
+      ],
+      "test_evidence": [
+        "tabular/spec_test.go:36",
+        "tabular/map_adapter_test.go:84",
+        "tabular/map_adapter_test.go:139"
+      ],
+      "terms": [
+        "ColumnSpec",
+        "Required",
+        "Validators",
+        "RowValidator",
+        "errors.Join"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/tabular#runtime-contract:header-mapping-and-row-import",
+      "package": "github.com/coldsmirk/vef-framework-go/tabular",
+      "kind": "runtime-contract",
+      "contract": "header mapping and row import behavior",
+      "summary": "BuildHeaderMapping trims headers when configured, skips empty and unknown headers, rejects duplicate non-empty headers, and WithoutHeader uses DefaultPositionalMapping; ParseRow reports deterministic row-level ImportError values without committing partial rows.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/tabular.md"
+      ],
+      "source_evidence": [
+        "tabular/mapping.go:14",
+        "tabular/parse_row.go:42",
+        "csv/importer.go:76",
+        "excel/importer.go:83"
+      ],
+      "test_evidence": [
+        "tabular/mapping_test.go:19",
+        "csv/importer_test.go:111",
+        "excel/importer_test.go:183"
+      ],
+      "terms": [
+        "BuildHeaderMapping",
+        "DefaultPositionalMapping",
+        "WithoutHeader",
+        "ErrDuplicateHeaderName",
+        "ImportError"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/tabular#string-contract:tabular-tag-grammar",
+      "package": "github.com/coldsmirk/vef-framework-go/tabular",
+      "kind": "string-contract",
+      "contract": "tabular struct tag grammar",
+      "summary": "The tabular tag uses comma-separated key=value pairs with a bare default column name, '-' to ignore a field, and 'dive' to flatten nested struct fields; semicolons are not separators.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/features/tabular.md"
+      ],
+      "source_evidence": [
+        "tabular/constants.go:3",
+        "tabular/parser.go:35",
+        "strx/parser.go:33"
+      ],
+      "test_evidence": [
+        "tabular/parser_test.go:28",
+        "tabular/parser_test.go:257"
+      ],
+      "terms": [
+        "key=value",
+        "dive",
+        "ID;order=1",
+        "ErrDuplicateColumnKey"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/timex#wire-contract:date-time-json-text-format",
+      "package": "github.com/coldsmirk/vef-framework-go/timex",
+      "kind": "wire-contract",
+      "contract": "Date, Time, and DateTime JSON/text format and comparison contract",
+      "summary": "timex wraps civil date/time values with strict JSON/text formats based on time.DateOnly, time.TimeOnly, and time.DateTime, plus open-interval Between and civil comparisons.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/utilities/timex.md"
+      ],
+      "source_evidence": [
+        "timex/date.go:11",
+        "timex/time.go:11",
+        "timex/datetime.go:11"
+      ],
+      "terms": [
+        "time.DateTime",
+        "time.DateOnly",
+        "time.TimeOnly",
+        "Between",
+        "json.Marshaler"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/validator#string-contract:validator-tags-and-registration",
+      "package": "github.com/coldsmirk/vef-framework-go/validator",
+      "kind": "string-contract",
+      "contract": "built-in validation tags, i18n labels, and custom rule registration",
+      "summary": "The validator package registers framework-specific validation tags for phone, decimal, alphanumeric, label, and i18n label rules, plus public APIs for custom validation rules.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/guide/validation.md"
+      ],
+      "source_evidence": [
+        "validator/validator.go:8",
+        "validator/phone_number.go:7",
+        "validator/decimal.go:7",
+        "validator/alphanum.go:7",
+        "validator/rule.go:5"
+      ],
+      "terms": [
+        "phone_number",
+        "dec_min",
+        "alphanum_us_slash",
+        "label_i18n",
+        "RegisterValidationRules"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go#runtime-contract:di-extension-groups",
+      "package": "github.com/coldsmirk/vef-framework-go",
+      "kind": "runtime-contract",
+      "contract": "top-level DI extension group names",
+      "summary": "Top-level Provide/Supply helpers contribute to stable FX groups for API resources, middleware, event transports, MCP providers, and approval lifecycle hooks.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/overview.md",
+        "docs/reference/extension-points.md"
+      ],
+      "source_evidence": [
+        "di.go:69",
+        "di.go:82",
+        "di.go:94",
+        "di.go:106",
+        "di.go:136",
+        "di.go:149",
+        "di.go:161",
+        "di.go:173",
+        "di.go:185",
+        "di.go:197",
+        "di.go:208",
+        "di.go:235",
+        "di.go:242",
+        "di.go:254",
+        "di.go:266",
+        "di.go:287",
+        "di.go:300",
+        "di.go:325",
+        "di.go:337",
+        "di.go:376",
+        "di.go:394",
+        "internal/storage/module.go:57",
+        "storage/files.go:78",
+        "storage/url_key_mapper.go:32"
+      ],
+      "terms": [
+        "fx.Provide",
+        "fx.ResultTags",
+        "fx.Supply",
+        "fx.Decorate",
+        "vef:api:resources",
+        "vef:app:middlewares",
+        "vef:spa",
+        "vef:cqrs:behaviors",
+        "vef:security:challenge_providers",
+        "vef:event:transports",
+        "vef:event:publish-middlewares",
+        "vef:event:consume-middlewares",
+        "vef:mcp:tools",
+        "vef:mcp:resources",
+        "vef:mcp:templates",
+        "vef:mcp:prompts",
+        "vef:datasource:providers",
+        "vef:approval:lifecycle_hooks",
+        "SupplySPAConfigs",
+        "SupplyMCPServerInfo",
+        "ProvideEventMetricsRecorder",
+        "ProvideEventErrorSink",
+        "SupplyURLKeyMapper",
+        "ProxyURLKeyMapper",
+        "IdentityURLKeyMapper"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go#runtime-contract:run-lifecycle-and-optional-approval",
+      "package": "github.com/coldsmirk/vef-framework-go",
+      "kind": "runtime-contract",
+      "contract": "vef.Run boot graph and lifecycle timeouts",
+      "summary": "vef.Run appends user options to the framework boot graph, uses default 30s start and 60s stop timeouts, and keeps ApprovalModule opt-in rather than part of the default graph.",
+      "disposition": "documented:semantic-contract",
+      "coverage": [
+        "docs/modules/overview.md",
+        "docs/modules/lifecycle.md"
+      ],
+      "source_evidence": [
+        "bootstrap.go:16",
+        "bootstrap.go:27",
+        "bootstrap.go:31",
+        "bootstrap.go:37",
+        "bootstrap.go:38",
+        "bootstrap.go:41",
+        "bootstrap.go:42",
+        "bootstrap.go:43",
+        "bootstrap.go:46",
+        "bootstrap.go:47",
+        "start.go:17",
+        "start.go:19",
+        "start.go:27",
+        "di.go:12",
+        "di.go:19"
+      ],
+      "terms": [
+        "vef.Run",
+        "fx.WithLogger",
+        "internal config module",
+        "internal datasource module",
+        "bootmodules.Core()",
+        "options...",
+        "fx.Invoke(startApp)",
+        "fx.StartTimeout(defaultTimeout)",
+        "fx.StopTimeout(defaultTimeout*2)",
+        "fx.New(opts...)",
+        "app.Run()",
+        "startApp",
+        "application.Start()",
+        "application.Stop()",
+        "vef.Decorate",
+        "vef.Replace",
+        "vef.Provide",
+        "30s",
+        "60s",
+        "ApprovalModule"
+      ]
+    }
+  ]
+}

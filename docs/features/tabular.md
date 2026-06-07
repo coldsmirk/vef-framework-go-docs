@@ -58,6 +58,9 @@ type Employee struct {
 | `tabular:"-"` | Ignore this field completely |
 | `tabular:"dive"` | Recurse into embedded struct fields |
 
+The tag parser uses comma-separated `key=value` pairs. Semicolons are not
+separators; `tabular:"name=ID;order=1"` is treated as one `name` value.
+
 ## Schema
 
 The `Schema` type pre-parses tabular metadata from struct fields at initialization time:
@@ -71,6 +74,15 @@ count := schema.ColumnCount()     // 6
 ```
 
 Columns are automatically sorted by `order` attribute. Fields without an explicit `order` use their declaration order.
+
+`NewSchemaFromSpecs` validates dynamic schemas at construction time: missing
+`Key` returns `ErrMissingColumnKey`, missing `Type` returns
+`ErrMissingColumnType`, duplicate keys return `ErrDuplicateColumnKey`, and
+duplicate resolved header names return `ErrDuplicateHeaderName`.
+
+`ColumnSpec.Required`, per-column `Validators`, and map-level `RowValidator`
+run during map-row import. Multiple map-row validation failures are combined
+with `errors.Join`, so callers can inspect the joined error with `errors.Is`.
 
 ## Interfaces
 
@@ -115,6 +127,20 @@ type ValueParser interface {
 // Convenience adapter
 tabular.ParserFunc(func(cellValue string, targetType reflect.Type) (any, error) { ... })
 ```
+
+## Header Mapping and Row Import
+
+`BuildHeaderMapping` is the shared header resolver used by the CSV and Excel
+drivers. When trimming is enabled, it trims header names before matching,
+skips empty and unknown headers, and treats duplicate non-empty headers as a
+fatal `ErrDuplicateHeaderName`. When an importer is configured with
+`WithoutHeader()`, the drivers use `DefaultPositionalMapping`, which maps
+input column positions to schema columns in order.
+
+`ParseRow` applies defaults before parsing cell values, skips cells that are
+still empty after default substitution, and returns row-level `ImportError`
+values for parse, validation, and commit failures. If row errors are returned,
+the row builder does not commit a partial row.
 
 ## Default Type Support
 
@@ -163,6 +189,37 @@ type ExportError struct {
 | --- | --- | --- |
 | `excel` | `.xlsx` (Excel) | [Excel Documentation](./excel) |
 | `csv` | `.csv` (CSV/TSV) | [CSV Documentation](./csv) |
+
+## Public Core APIs
+
+| API group | Public surface |
+| --- | --- |
+| schema | `NewSchema`, `NewSchemaFor[T]`, `NewSchemaFromSpecs`, `Column`, `ColumnSpec`, and `Schema` lookup methods |
+| adapters | `NewStructAdapter`, `NewStructAdapterFor[T]`, `NewMapAdapter`, `NewMapAdapterFromSpecs`, `RowAdapter`, `RowReader`, `RowWriter`, `RowView`, `RowBuilder` |
+| typed wrappers | `NewTypedImporter[T]`, `NewTypedExporter[T]`, `TypedImporter[T]`, `TypedExporter[T]` |
+| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
+| formatter/parser registry | `ResolveFormatter`, `ResolveFormatters`, `ResolveParser`, `ResolveParsers`, `IsDefaultFormatter`, `NewDefaultFormatter`, `NewDefaultParser` |
+| constants/errors | `TagTabular`, `IgnoreField`, `AttrDive`, `AttrName`, `AttrOrder`, `AttrWidth`, `AttrDefault`, `AttrFormatter`, `AttrParser`, `AttrFormat`, and tabular sentinels such as `ErrDataMustBeSlice`, `ErrDuplicateColumnKey`, `ErrDuplicateHeaderName`, `ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrNoDataRowsFound`, `ErrRequiredMissing`, `ErrSchemaMismatch`, `ErrTypedRowMismatch`, `ErrUnknownColumn`, `ErrUnsetField`, `ErrUnsupportedType` |
+
+The tabular package audit currently locks **143 public tabular entries** in the
+generated API ledger. The grouped member surface covers **75 grouped tabular
+field/method entries** across **20 tabular receiver/type families**: **37
+exported tabular field entries** and **38 exported tabular method entries**.
+The generated public API index remains the complete signature list; this page
+documents the schema, mapping, parser/formatter, adapter, and error-contract
+families.
+
+Additional audited fields and adapter methods:
+
+| Surface | Public API |
+| --- | --- |
+| column metadata | `Column.Default`, `Column.Width`, `Column.Order`, `Column.Parser`, `Column.ParserFn`, `Column.FormatterFn`, `Column.Index` |
+| dynamic specs | `ColumnSpec.Default`, `ColumnSpec.Width`, `ColumnSpec.Order`, `ColumnSpec.Parser`, `ColumnSpec.ParserFn`, `ColumnSpec.FormatterFn` |
+| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace` |
+| row adapter contract | `RowAdapter.Writer`, `RowReader.All`, `RowView.Get`, `RowBuilder.Set`, `RowWriter.NewRow`, `RowWriter.Commit`, `RowWriter.Build` |
+| schema lookup | `Schema.ColumnByKey`, `Schema.ColumnByName` |
+| typed wrappers | `TypedExporter.Inner`, `TypedImporter.Inner` |
+| error wrapping | `ImportError.Unwrap`, `ExportError.Unwrap`; callers can use `errors.Unwrap` / `errors.Is` |
 
 ## CRUD Integration
 

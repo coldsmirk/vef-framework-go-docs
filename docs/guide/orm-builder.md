@@ -8,6 +8,32 @@ VEF wraps Bun into a typed, fluent query builder API that provides type-safe SQL
 
 This page is a comprehensive reference for building SQL queries in VEF projects. All query builders are accessed through `orm.DB`.
 
+## API Surface Policy
+
+The ORM package exposes two audited surfaces. VEF-owned ORM method families are
+documented by receiver/category on this page and in the model/transaction
+guides; every exact method signature is listed in the public API index. These
+are the `orm.SelectQuery`, `orm.InsertQuery`, `orm.UpdateQuery`,
+`orm.DeleteQuery`, `orm.MergeQuery`, DDL, condition, expression, aggregate, and
+window-builder contracts used by application code.
+
+The Bun pass-through surface consists of aliases such as `orm.BunSelectQuery`,
+`orm.BunInsertQuery`, `orm.BunUpdateQuery`, and `orm.BunDeleteQuery`; those
+methods follow upstream [github.com/uptrace/bun](https://github.com/uptrace/bun)
+behavior at the pinned source dependency version `v1.2.18`. Bun/schema aliases
+such as `Table`, `Field`, `Relation`, and `Dialect` follow the same
+pass-through policy. Do not read VEF query-interface behavior from the Bun
+aliases: for example, VEF `orm.SelectQuery.Count` returns `int64`, while the
+upstream Bun alias method signatures are tracked separately in the public API
+index. Query interfaces that embed `fmt.Stringer` expose `String()` for
+SQL/debug rendering; exact signatures are tracked in the public API index.
+
+The grouped-family audit locks 1,344 grouped ORM method entries across 105
+receiver families: 1,107 VEF-owned method entries and 237 Bun pass-through
+method entries. The verifier pins the sorted member signatures and receiver
+distribution, so any new, removed, reclassified, or signature-changed ORM
+method requires a source-guided review before the audit passes again.
+
 ## Overview
 
 | Category | Builder | Description |
@@ -681,6 +707,9 @@ db.NewSelect().Model(&user).ForNoKeyUpdate().Scan(ctx)
 
 ## Execution Methods
 
+These rows describe VEF `orm.SelectQuery` execution methods, not the upstream
+`orm.BunSelectQuery` pass-through alias.
+
 | Method | Returns | Purpose |
 | --- | --- | --- |
 | `Scan(ctx, dest...)` | `error` | Scan rows into model or dest |
@@ -898,15 +927,12 @@ eb.JSONRemove(eb.Column("data"), "$.temp")
 
 ### Cross-Database Dialect Support
 
-```go
-// Execute different SQL per database dialect
-eb.ExprByDialect(orm.DialectExprs{
-	Postgres: func() any { return eb.Expr("?::JSONB", value) },
-	MySQL:    func() any { return eb.Expr("CAST(? AS JSON)", value) },
-	SQLite:   func() any { return eb.Expr("JSON(?)", value) },
-	Default:  func() any { return eb.Literal(value) },
-})
-```
+Prefer the built-in dialect-aware helpers (`ToString`, `ToDecimal`,
+`JSONExtractText`, `JSONBuildObject`, and similar expression methods). The
+low-level `ExprByDialect` hook is part of the generated index because it appears
+on the public method set, but its configuration type is not re-exported from the
+public `orm` package; application code should not construct dialect maps
+directly.
 
 ## Transactions
 
@@ -1031,6 +1057,26 @@ db.NewSelect().Model(&users).WhereDeleted().Scan(ctx)
 // Include soft-deleted records
 db.NewSelect().Model(&users).IncludeDeleted().Scan(ctx)
 ```
+
+## Public ORM Surface Map
+
+The `orm` package intentionally re-exports the lower-level query-builder
+contracts used by application code:
+
+| API group | Public surface |
+| --- | --- |
+| database entry points | `DB`, `Tx`, `Executor`, `RawQuery`, `SelectQuery`, `InsertQuery`, `UpdateQuery`, `DeleteQuery`, `MergeQuery`, `CreateTableQuery`, `DropTableQuery`, `CreateIndexQuery`, `DropIndexQuery`, `TruncateTableQuery`, `AddColumnQuery`, `DropColumnQuery`, `TableTarget`, `QueryBuilder` |
+| Bun/schema aliases | `BunSelectQuery`, `BunInsertQuery`, `BunUpdateQuery`, `BunDeleteQuery`, `Table`, `Field`, `Relation`, `Dialect` |
+| model bases | `BaseModel`, `Model`, `CreationAuditedModel`, `FullAuditedModel`, `CreationTrackedModel`, `FullTrackedModel` |
+| hooks | `BeforeSelectHook`, `AfterSelectHook`, `BeforeInsertHook`, `AfterInsertHook`, `BeforeUpdateHook`, `AfterUpdateHook`, `BeforeDeleteHook`, `AfterDeleteHook`, `BeforeScanRowHook`, `AfterScanRowHook` |
+| core builders | `ConditionBuilder`, `ExprBuilder`, `OrderBuilder`, `CaseBuilder`, `CaseWhenBuilder`, `ConflictBuilder`, `ConflictAction`, `ConflictUpdateBuilder`, `MergeWhenBuilder`, `MergeUpdateBuilder`, `MergeInsertBuilder`, `RelationSpec` |
+| aggregate builders | `CountBuilder`, `SumBuilder`, `AvgBuilder`, `MinBuilder`, `MaxBuilder`, `StringAggBuilder`, `ArrayAggBuilder`, `StdDevBuilder`, `VarianceBuilder`, `JSONObjectAggBuilder`, `JSONArrayAggBuilder`, `BitOrBuilder`, `BitAndBuilder`, `BoolOrBuilder`, `BoolAndBuilder` |
+| window builders | `WindowCountBuilder`, `WindowSumBuilder`, `WindowAvgBuilder`, `WindowMinBuilder`, `WindowMaxBuilder`, `WindowStringAggBuilder`, `WindowArrayAggBuilder`, `WindowStdDevBuilder`, `WindowVarianceBuilder`, `WindowJSONObjectAggBuilder`, `WindowJSONArrayAggBuilder`, `WindowBitOrBuilder`, `WindowBitAndBuilder`, `WindowBoolOrBuilder`, `WindowBoolAndBuilder`, `RowNumberBuilder`, `RankBuilder`, `DenseRankBuilder`, `PercentRankBuilder`, `CumeDistBuilder`, `NTileBuilder`, `LagBuilder`, `LeadBuilder`, `FirstValueBuilder`, `LastValueBuilder`, `NthValueBuilder` |
+| DDL builders and types | `DataTypeDef`, `ColumnConstraint`, `PrimaryKeyBuilder`, `UniqueBuilder`, `CheckBuilder`, `ForeignKeyBuilder`, `ReferenceAction`, `IndexMethod`, `PartitionStrategy` |
+| expression placeholders | `PlaceholderKeyOperator`, `ExprOperator`, `ExprTableColumns`, `ExprColumns`, `ExprTablePKs`, `ExprPKs`, `ExprTableName`, `ExprTableAlias` |
+| audit constants | `ColumnID`, `ColumnCreatedAt`, `ColumnUpdatedAt`, `ColumnCreatedBy`, `ColumnUpdatedBy`, `ColumnCreatedByName`, `ColumnUpdatedByName`, `FieldID`, `FieldCreatedAt`, `FieldUpdatedAt`, `FieldCreatedBy`, `FieldUpdatedBy`, `FieldCreatedByName`, `FieldUpdatedByName`, `OperatorSystem`, `OperatorCronJob`, `OperatorAnonymous` |
+| enum families | `JoinType`, `FuzzyKind`, `NullsMode`, `FromDirection`, `FrameType`, `FrameBoundKind`, `StatisticalMode`, `DateTimeUnit`, `JoinDefault`, `JoinInner`, `JoinLeft`, `JoinRight`, `JoinFull`, `JoinCross`, `FuzzyStarts`, `FuzzyEnds`, `FuzzyContains`, `NullsDefault`, `NullsRespect`, `NullsIgnore`, `FromDefault`, `FromFirst`, `FromLast`, `FrameDefault`, `FrameRows`, `FrameRange`, `FrameGroups`, `FrameBoundNone`, `FrameBoundUnboundedPreceding`, `FrameBoundUnboundedFollowing`, `FrameBoundCurrentRow`, `FrameBoundPreceding`, `FrameBoundFollowing`, `StatisticalDefault`, `StatisticalPopulation`, `StatisticalSample`, `ConflictDoNothing`, `ConflictDoUpdate`, `UnitYear`, `UnitMonth`, `UnitDay`, `UnitHour`, `UnitMinute`, `UnitSecond`, `ReferenceCascade`, `ReferenceRestrict`, `ReferenceSetNull`, `ReferenceSetDefault`, `ReferenceNoAction`, `IndexBTree`, `IndexHash`, `IndexGIN`, `IndexGiST`, `IndexSPGiST`, `IndexBRIN`, `PartitionRange`, `PartitionList`, `PartitionHash` |
+| helpers | `Applier`, `ApplyFunc`, `ApplySort`, `DataType`, `PrimaryKey`, `NotNull`, `Nullable`, `Default`, `Unique`, `Check`, `References`, `AutoIncrement`, `PKField`, `ColumnInfo` |
 
 ## Next Step
 

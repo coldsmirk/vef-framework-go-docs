@@ -6,6 +6,8 @@ sidebar_position: 6
 
 VEF 的查询构建主要围绕 typed search 结构体、`search` 标签和 CRUD 的 find 类扩展点展开。目标是把查询规则放在字段定义附近，而不是把一堆字符串条件散落在 handler 里。
 
+审查说明：本页覆盖 46 public search entries，其中包括 1 grouped search method entry，分布在 1 search receiver/type family；成组 search surface 包含 0 exported search field entries 和 1 exported search method entry。
+
 ## Search 结构体模型
 
 最常见的形态如下：
@@ -51,7 +53,7 @@ Age int `search:"eq,column=age"`
 | `search:"eq"` | 只写操作符 |
 | `search:"contains,column=username\|email"` | 写操作符和目标列 |
 | `search:"operator=gte,column=price"` | 完整 key/value 形式 |
-| `search:"operator=in,params=delimiter:\|,type:int"` | 携带额外参数 |
+| `search:"operator=in,params=delimiter:\| type:int"` | 携带额外参数 |
 | `search:"dive"` | 递归进入嵌套结构体 |
 | `search:"-"` | 完全忽略该字段 |
 
@@ -65,7 +67,14 @@ Age int `search:"eq,column=age"`
 | `params` | 操作符的额外参数 |
 | `dive` | 递归进入嵌套结构 |
 
+外层 `search` 标签按逗号分隔。`params` 的值内部再按空格拆成
+`key:value` 参数，例如 `params=delimiter:| type:int`。内部解析使用
+`WithSpacePairDelimiter`，并把 `:` 作为 value delimiter。匿名嵌入的
+`api.P` 字段会被 parser 跳过，不会变成搜索条件。忽略字段标记的值是 `-`。
+
 ## 支持的操作符
+
+这些值的公开类型是 `search.Operator`。
 
 框架当前支持以下全部操作符：
 
@@ -174,6 +183,9 @@ Name string `search:"alias=u,column=name,operator=contains"`
 | `delimiter` | 解析字符串区间或集合时使用的分隔符 |
 | `type` | 显式解析类型，例如 `int`、`str`、`bool`、`dec`、`date`、`datetime`、`time` |
 
+字符串区间通过 `type:int`、`type:dec`、`type:date`、`type:datetime` 或
+`type:time` 选择具体 parser。
+
 ## `between` 的输入形态
 
 `between` 和 `notBetween` 支持多种输入形式：
@@ -189,8 +201,8 @@ Name string `search:"alias=u,column=name,operator=contains"`
 示例：
 
 ```go
-Price string `search:"operator=between,column=price,params=type:int,delimiter:,"`
-DateRange string `search:"operator=between,column=created_at,params=type:date,delimiter:|"`
+Price string `search:"operator=between,column=price,params=type:int"`
+DateRange string `search:"operator=between,column=created_at,params=type:date delimiter:|"`
 ```
 
 ## `in` / `notIn` 的输入形态
@@ -201,7 +213,23 @@ DateRange string `search:"operator=between,column=created_at,params=type:date,de
 | --- | --- |
 | slice 字段 | `[]string{"a", "b"}` |
 | 分隔字符串 | `"a,b,c"` |
-| 自定义分隔符字符串 | `"1\|2\|3"` + `params=delimiter:\|,type:int` |
+| 自定义分隔符字符串 | `"1\|2\|3"` + `params=delimiter:\| type:int` |
+
+字符串形式的 `in` 默认使用 `delimiter=","`。当 `params` 中存在 `type:int`
+时，分隔后的每个值会被转换成 `int`；否则保持为字符串。
+
+## Apply 语义
+
+`Search.Apply(...)` 只会为当前 operator 能使用的值追加条件。nil pointer 字段
+会在取值前被跳过。`between` / `notBetween` 要求值是 `monad.Range[T]` 风格结构、
+双元素切片，或带 `type` 的字符串区间；格式错误或类型不支持时不会追加条件。
+`in` / `notIn` 会跳过空字符串和空解析结果。`isNull` 和 `isNotNull` 只在字段值
+为 boolean `true` 时生效。
+
+字符串匹配 operator 要求字段值是非空字符串。一个字段映射到多列时，生成的条件会
+按组包起来，并在这些列之间使用 OR。未知 operator 会被记录日志并忽略。对非 struct
+target 调用 `Apply` 也会记录日志，并作为 no-op 处理。源码日志短语
+`Unknown operator` 对应的就是这个未知 operator 分支。
 
 ## 排序
 
@@ -276,6 +304,18 @@ type QueryMeta struct {
 
 对于树形 API，这些扩展点还可以定向作用到 `QueryBase`、`QueryRecursive`、`QueryRoot` 等不同查询阶段。
 
+## `search` 包公开 API
+
+| API 组 | 公开 surface |
+| --- | --- |
+| parser | `search.New`, `search.NewFor[T]`, `search.Search`, `search.Applier` |
+| tag 常量 | `TagSearch`, `IgnoreField`, `AttrOperator`, `AttrColumn`, `AttrAlias`, `AttrParams`, `AttrDive` |
+| operator | `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `Between`, `NotBetween`, `In`, `NotIn`, `IsNull`, `IsNotNull`, `Contains`, `NotContains`, `ContainsIgnoreCase`, `NotContainsIgnoreCase`, `StartsWith`, `NotStartsWith`, `StartsWithIgnoreCase`, `NotStartsWithIgnoreCase`, `EndsWith`, `NotEndsWith`, `EndsWithIgnoreCase`, `NotEndsWithIgnoreCase` |
+| 参数常量 | `ParamDelimiter`, `ParamType`, `TypeString`, `TypeInt`, `TypeBool`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
+
+`Search.Apply(...)` 会把已经解析好的 search schema 应用到 ORM condition
+builder；CRUD find builder 在把 `search` tag 翻译成 SQL 条件时会内部调用它。
+
 ## 常见模式
 
 ### 简单等值 + 关键词搜索
@@ -295,7 +335,7 @@ type UserSearch struct {
 type ProductSearch struct {
 	api.P
 
-	PriceRange string `json:"priceRange" search:"operator=between,column=price,params=type:int,delimiter:,"`
+	PriceRange string `json:"priceRange" search:"operator=between,column=price,params=type:int"`
 	Statuses   string `json:"statuses" search:"operator=in,column=status,params=delimiter:|"`
 }
 ```

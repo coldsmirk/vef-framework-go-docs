@@ -22,6 +22,7 @@ sidebar_position: 2
 | `sys/storage` | `storage` | 默认 Bearer 认证 | 多片上传 session 生命周期（init / part / list / complete / abort）。下载走 `/storage/files/<key>` app 代理，不通过 RPC。 |
 | `sys/schema` | `schema` | 默认 Bearer 认证 | 数据库结构检查 |
 | `sys/monitor` | `monitor` | 默认 Bearer 认证 | 运行时与宿主机监控信息 |
+| `approval/*` | `approval` | 需要 Bearer 认证；声明权限的 action 还会校验对应权限点 | 仅在启用 `vef.ApprovalModule` 时注册的可选工作流资源 |
 
 ## `security/auth`
 
@@ -99,28 +100,41 @@ sidebar_position: 2
 | `init_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 开启新的多片 session，服务端返回协商好的 part 计划和不透明 `claimId` | `InitUploadParams` |
 | `upload_part` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 上传一片（multipart form） | `UploadPartParams` |
 | `list_parts` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 列出当前 session 已上传的 parts | `ListPartsParams` |
-| `complete_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 用顺序 part 清单完成上传 | `CompleteUploadParams` |
+| `complete_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 完成 session；服务端从已记录的 parts 组装清单 | `CompleteUploadParams` |
 | `abort_upload` | 需要 Bearer 认证 | 继承 API 引擎默认限流 | 中止并释放 session | `AbortUploadParams` |
 
 相关 HTTP 路由：
 
 - `/storage/files/<key>` 是 app-level 下载代理路由，不是 RPC action。
-- 它不会自动继承 RPC 层 Bearer 认证；访问权限由 `storage.FileACL` 决定。
+- 它不会自动继承 RPC 层 Bearer 认证；`pub/*` 匿名可读，其他 key 由 `storage.FileACL` 决定。
 
 ### `init_upload` 参数
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `filename` | `string` | 是 | 原始文件名（≤ 255 字符），用于推断安全扩展名并写入 metadata。 |
+| `filename` | `string` | 是 | 原始文件名（≤ 255 字符），用于推断安全扩展名并写入 upload claim。 |
 | `size` | `int` | 是 | 对象总字节数（≥ 1），服务端按 `vef.storage.max_upload_size` 校验上限。 |
 | `contentType` | `string` | 否 | 客户端 MIME（≤ 127 字符）。服务端会做白名单清洗——不安全的值会被扩展名探测结果或 `application/octet-stream` 覆盖。 |
 | `public` | `bool` | 否 | 把 key 放到 `pub/` 而不是 `priv/`，需要 `vef.storage.allow_public_uploads = true`。 |
 
-响应包含 `key`、`claimId`、`originalFilename`、`partSize`、`partCount`、`expiresAt`。后端的 multipart `UploadID` 不会返回给客户端——服务端通过 claim 行自己还原。
+请求里 `public = true` 时，必须先启用 `vef.storage.allow_public_uploads`。
+
+只有 `claimId` 是客户端可见 session handle；后端 session handle 是内部值，不会返回。
+
+响应：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `key` | `string` | 计划中的最终 object key，位于 `priv/` 或 `pub/` 下。 |
+| `claimId` | `string` | 后续上传 action 使用的不透明客户端 session handle。 |
+| `originalFilename` | `string` | 写入 upload claim 的客户端原始文件名。 |
+| `partSize` | `int` | 后端权威 part 字节大小。 |
+| `partCount` | `int` | 客户端需要上传的 part 数；小文件也会使用 `partCount = 1`。 |
+| `expiresAt` | timestamp | claim 过期时间。 |
 
 ### `upload_part` 参数
 
-此 action 要求使用 `multipart/form-data`，不能用 JSON。multipart 字段会被解码到 `params`：
+此 action 要求使用 `multipart/form-data`，不能用 JSON。form 中带标准 RPC 字段（`resource`、`action`、`version`），一个内容为 JSON 的 `params` 字段（例如 `{"claimId":"...","partNumber":1}`），以及名为 `file` 的文件 part。
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
@@ -130,11 +144,24 @@ sidebar_position: 2
 
 后端 ETag 不会返回给客户端——服务端自己持久化记录，并在 `complete_upload` 时使用。
 
+响应：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `partNumber` | `int` | 已接收的 part 序号。 |
+| `size` | `int` | 服务端记录的该 part 字节数。 |
+
 ### `list_parts` 参数
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `claimId` | `string` | 是 | 要查询的 session，返回 `{partNumber, size}` 列表。 |
+| `claimId` | `string` | 是 | 要查询的 active pending session。 |
+
+响应：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `parts` | `object[]` | 按 `partNumber` 升序排列的已上传 part；每项包含 `partNumber` 和 `size`。part ETag 不会暴露。 |
 
 ### `complete_upload` 参数
 
@@ -142,13 +169,30 @@ sidebar_position: 2
 | --- | --- | --- | --- |
 | `claimId` | `string` | 是 | 要完成的 session。服务端会从自家 part-store 还原 part 清单——不接受客户端传入 ETag。 |
 
-成功后服务端写入最终的 `upload_claim` 行（业务未采纳，处于隔离），并返回 object key。同 claim 后续重复调用是幂等快速路径。
+成功后服务端会把已有 claim 标记为 uploaded、清掉已记录的 parts，并返回 object metadata 和 `originalFilename`。该 uploaded claim 仍等待业务采纳。同一个已 uploaded claim 后续重复调用会走幂等快速路径。
+如果组装后的对象大小与 claim 不一致，action 返回
+`ErrCodeUploadSizeMismatch`。
+
+响应：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `bucket` | `string` | provider 返回的后端 bucket 名。 |
+| `key` | `string` | 最终 object key。 |
+| `eTag` | `string` | 最终 object ETag。它不是 part ETag，也不会作为 `complete_upload` 入参。 |
+| `size` | `int` | 最终 object 字节数。 |
+| `contentType` | `string` | 对象保存的清洗后 content type。 |
+| `lastModified` | timestamp | 后端 last-modified 时间。 |
+| `metadata` | `object` | 可选后端 metadata map。HTTP 上传 API 不接收用户自定义 metadata。 |
+| `originalFilename` | `string` | `init_upload` 时记录的原始文件名。 |
 
 ### `abort_upload` 参数
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `claimId` | `string` | 是 | 要中止的 session。幂等——已关闭的 session 再次 abort 也返回成功。 |
+| `claimId` | `string` | 是 | 要中止的 session。 |
+
+响应没有 data payload。该 action 可安全重试：缺失 claim 返回成功；同 owner 下已经不是 pending 的 claim 也是 no-op。归属其他 principal 的 claim 仍会被拒绝。
 
 最小请求示例：
 
@@ -221,7 +265,9 @@ sidebar_position: 2
 
 如果你显式引入 approval 模块，框架还会额外挂载一组 `approval/*` 资源。
 
-这类资源更偏工作流业务域，因此本页不展开成逐接口明细；这里聚焦的是框架核心自带的通用内置资源。
+实际注册的资源包括 `approval/category`、`approval/delegation`、`approval/flow`、`approval/instance`、`approval/my` 和 `approval/admin`。
+
+这些资源已经在 [审批模块](../modules/approval) 中按 action 展开，包括每个 action 名称、权限点、参数类型、租户规则、审计设置和限流。本页只保留索引，因为它们更偏工作流业务域，而不是框架核心通用内置资源。
 
 ## 延伸阅读
 

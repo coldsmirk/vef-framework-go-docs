@@ -59,7 +59,7 @@ Requirements:
 
 ## REST Handler Resolution
 
-For REST resources, you must provide the handler explicitly. The action string defines the HTTP method and optional sub-path.
+For REST resources, you must provide the handler explicitly. The action string defines the HTTP method and optional sub-resource path.
 
 ```go
 api.NewRESTResource(
@@ -83,12 +83,12 @@ REST action format:
 | Format | Meaning | Examples |
 | --- | --- | --- |
 | `<method>` | root resource route | `get`, `post`, `delete` |
-| `<method> <sub-resource>` | sub-resource route | `get profile`, `post admin`, `get user-friends` |
+| `<method> <sub-resource>` | sub-resource route | `get profile`, `post admin`, `get admin/users`, `get user-friends` |
 
 Rules:
 
 - HTTP verbs stay lowercase
-- sub-resources use kebab-case
+- sub-resource paths may contain `/`, but each segment must use kebab-case
 - REST action strings do not infer handler method names
 
 ## Supported Handler Return Shapes
@@ -134,6 +134,7 @@ The framework ships these built-in handler parameter resolvers:
 | `event.Bus` | DI container | event publishing |
 | `mold.Transformer` | DI container | output transformation |
 | `storage.Service` | DI container | storage access |
+| `datasource.Registry` | DI container | named datasource lookup |
 
 Important decoding rules:
 
@@ -166,6 +167,8 @@ Startup-time factory resolvers are narrower than request-time handler resolvers.
 | `event.Bus` | DI container |
 | `mold.Transformer` | DI container |
 | `storage.Service` | DI container |
+| `storage.Files` | DI container |
+| `datasource.Registry` | DI container |
 
 Factory parameter resolution also supports compatible fields on the resource struct.
 

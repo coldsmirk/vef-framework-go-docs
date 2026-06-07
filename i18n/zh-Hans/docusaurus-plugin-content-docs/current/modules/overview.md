@@ -6,6 +6,8 @@ sidebar_position: 1
 
 VEF 基于 Uber FX 构建。公开的 `vef` 包把最常用的 FX helper 重新导出了，所以大多数应用都可以在同一套 API 表面内完成组合。
 
+审查说明：root `vef` package 的覆盖分布在本页、[扩展点](../reference/extension-points) 和 [应用生命周期](./lifecycle)。三页合计覆盖 49 public root-package entries：48 个 top-level entries、0 个 exported field entries，以及 1 个 grouped `Lifecycle.Append` method entry。
+
 ## 核心思路
 
 你不需要手动启动每个子系统，而是通过 FX option 组合它们：
@@ -25,7 +27,7 @@ vef.Run(
 ```go
 vef.Run(
   ivef.Module,  // 框架侧集成
-  mcp.Module,   // 自定义 MCP provider
+  tools.Module, // 通过 vef.ProvideMCP* 注册自定义 MCP provider
   web.Module,   // SPA 托管
   auth.Module,  // 认证加载器
   sys.Module,   // 系统/管理资源
@@ -44,9 +46,34 @@ vef.Run(
 - `vef.Module`
 - `vef.Provide`
 - `vef.Supply`
+- `vef.Annotate`
+- `vef.As`
+- `vef.From`
+- `vef.ParamTags`
+- `vef.ResultTags`
+- `vef.Self`
 - `vef.Invoke`
 - `vef.Decorate`
 - `vef.Replace`
+- `vef.Populate`
+- `vef.Private`
+- `vef.OnStart`
+- `vef.OnStop`
+
+它也重新导出了常用 FX 标记类型：
+
+- `vef.In`
+- `vef.Out`
+- `vef.Lifecycle`
+- `vef.Hook`
+- `vef.HookFunc`
+
+生命周期 hook 包装函数包括 `vef.StartHook`、`vef.StopHook` 和
+`vef.StartStopHook`。
+
+包装层也公开了 `vef.From`、`vef.Replace` 和 `vef.Populate`，用于更高级的 DI
+场景。它们就是同名 FX primitive，只是放在 `vef` 包下，方便框架侧模块通常不
+必直接 import `go.uber.org/fx`。
 
 这样大多数应用代码不需要频繁直接 import `fx`。
 
@@ -62,8 +89,24 @@ vef.Run(
 - `vef:mcp:resources`
 - `vef:mcp:templates`
 - `vef:mcp:prompts`
+- `vef:event:transports`
+- `vef:event:publish-middlewares`
+- `vef:event:consume-middlewares`
+- `vef:datasource:providers`
+- `vef:approval:lifecycle_hooks`
 
-`di.go` 里的各种 helper，本质上就是帮你更安全地把值注册进这些 group。
+`di.go` 里的各种 helper，本质上就是帮你更安全地把值注册进这些 group。helper
+名称前缀不一定等于 FX 机制，所以要按实际行为理解：
+
+| 机制 | Helpers |
+| --- | --- |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
+| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
+
+替换型 helper 不是 additive。例如 `ProvideEventMetricsRecorder` 和
+`ProvideEventErrorSink` 是 decorate 默认的单个服务，而不是向 group 追加新成员。
 
 ## API 资源注册
 
@@ -84,9 +127,48 @@ vef.ProvideMiddleware(NewAuditTrailMiddleware)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
 vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
 vef.ProvideMCPTools(NewToolProvider)
+vef.ProvideMCPResources(NewResourceProvider)
+vef.ProvideMCPResourceTemplates(NewTemplateProvider)
+vef.ProvideMCPPrompts(NewPromptProvider)
+vef.ProvideSPAConfig(NewWebConfig)
+vef.ProvideEventTransport(NewKafkaTransport)
+vef.ProvideEventPublishMiddleware(NewAuditPublishMiddleware)
+vef.ProvideEventConsumeMiddleware(NewRecoverConsumeMiddleware)
+vef.ProvideDataSourceProvider(NewTenantDataSourceProvider)
 ```
 
 这些 helper 的价值不在“增加新能力”，而在于把 FX group tag 隐藏掉，让应用代码更易读。
+
+另一些 helper 是替换框架默认实现，而不是追加 group 成员：
+
+- `vef.ProvideEventMetricsRecorder(...)`
+- `vef.ProvideEventErrorSink(...)`
+- `vef.SupplyFileACL(...)`
+- `vef.SupplyURLKeyMapper(...)`
+- `vef.SupplyBusinessBindingHook(...)`
+
+`vef.SupplyMCPServerInfo(...)` 不同：它 supply 单个 `mcp.ServerInfo` 值。
+`vef.SupplySPAConfigs(...)` 也不同：它把一个或多个 `middleware.SPAConfig` 值
+supply 到 `vef:spa` group。
+
+当集成代码需要在 DI 之外拿框架日志接口时，可以使用
+`vef.NamedLogger(name)` 创建 `logx.Logger`。
+
+## 可选功能模块
+
+有些框架功能不在默认 boot graph 中。只有应用需要时才显式启用：
+
+```go
+vef.Run(
+  vef.ApprovalModule,
+  user.Module,
+)
+```
+
+`vef.ApprovalModule` 会开启审批/工作流功能，并注册它的 API resources、
+CQRS handlers、engine、binding listener 和 scanners。审批的
+`approval.*` 事件需要一个带可订阅 sink 的 transactional route；路由细节
+见[审批模块](./approval)。
 
 ## 大型应用里的模块角色
 

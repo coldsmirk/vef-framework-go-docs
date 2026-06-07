@@ -66,6 +66,45 @@ The built-in `SelfDataScope` is the smallest example of this pattern. Broader or
 
 The exact policy is application-owned through the resolver and scope implementation.
 
+Built-in data scopes use these exact keys and defaults:
+
+| Scope | `Key()` | `Priority()` | Behavior |
+| --- | --- | --- | --- |
+| `AllDataScope` | `all` | `PriorityAll` (`10000`) | supports every table and does not modify the query |
+| `SelfDataScope` | `self` | `PrioritySelf` (`10`) | supports tables that have the creator column and adds an equality filter for the current principal ID |
+
+`NewSelfDataScope("")` defaults the creator column to `created_by`
+(`orm.ColumnCreatedBy`). `SelfDataScope.Supports(...)` returns false when the
+target table does not expose that column, so no filter is applied for that
+table.
+
+The priority constants are `PrioritySelf` (`10`), `PriorityDepartment` (`20`),
+`PriorityDepartmentAndSub` (`30`), `PriorityOrganization` (`40`),
+`PriorityOrganizationAndSub` (`50`), `PriorityCustom` (`60`), and
+`PriorityAll` (`10000`). The default RBAC data-permission resolver chooses the
+highest numeric priority when multiple role scopes match the same permission.
+
+`RequestScopedDataPermApplier.Apply(...)` has explicit skip and error paths:
+
+| Condition | Result |
+| --- | --- |
+| no `DataScope` is configured | skip without error |
+| query does not implement `orm.QueryBuilder` | `ErrQueryNotQueryBuilder` |
+| query builder has no model/table | `ErrQueryModelNotSet` |
+| `DataScope.Supports(...)` returns false | skip without error |
+| `DataScope.Apply(...)` returns an error | wraps the scope key in the returned error |
+
+## Public Data-Permission APIs
+
+| API group | Public surface |
+| --- | --- |
+| scopes | `DataScope`, `AllDataScope`, `SelfDataScope`, `NewAllDataScope`, `NewSelfDataScope` |
+| scope priorities | `PrioritySelf`, `PriorityDepartment`, `PriorityDepartmentAndSub`, `PriorityOrganization`, `PriorityOrganizationAndSub`, `PriorityCustom`, `PriorityAll` |
+| resolver dependency | `RolePermissionsLoader` |
+| request applier | `DataPermissionResolver`, `DataPermissionApplier`, `RequestScopedDataPermApplier`, `NewRequestScopedDataPermApplier` |
+| departments | `DepartmentLoader`, `DepartmentOption`, `DepartmentSelector`, `DepartmentSelectionChallengeData`, `DepartmentSelectionChallengeProvider` |
+| diagnostics | `ErrQueryNotQueryBuilder`, `ErrQueryModelNotSet` |
+
 ## Practical Advice
 
 - keep data scope rules outside handlers

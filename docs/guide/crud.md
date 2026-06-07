@@ -33,6 +33,13 @@ func NewUserResource() api.Resource {
 
 The framework collects embedded CRUD builders automatically because they implement `api.OperationsProvider`.
 
+The grouped-family audit pins 315 grouped CRUD builder entries across 27
+receiver families: 36 public field entries and 279 public method entries. These
+entries cover the prebuilt builder families, common builder controls,
+query-shaping helpers, batch params, tree/data-option DTOs, import/export
+customization, and processor hooks; the verifier locks their sorted signatures
+and receiver/type distribution.
+
 ### Complete Model / Params / Search Definitions
 
 ```go
@@ -87,22 +94,56 @@ Operation families use them like this:
 
 ## Prebuilt Builder Matrix
 
-| Builder | Default RPC action | Default REST action | Input contract | Output contract | Typical use |
+| Builder | Default RPC action | Valid REST override example | Input contract | Output contract | Typical use |
 | --- | --- | --- | --- | --- | --- |
-| `NewCreate[TModel, TParams]` | `create` | `post /` | `TParams` from `params` | primary-key map | create one record |
-| `NewUpdate[TModel, TParams]` | `update` | `put /:id` | `TParams` from `params`, including PK fields | success result | update one record |
-| `NewDelete[TModel]` | `delete` | `delete /:id` | raw PK values from `params` | success result | delete one record |
-| `NewCreateMany[TModel, TParams]` | `create_many` | `post /many` | `CreateManyParams[TParams]` with `list` | list of primary-key maps | batch create |
-| `NewUpdateMany[TModel, TParams]` | `update_many` | `put /many` | `UpdateManyParams[TParams]` with `list` | success result | batch update |
-| `NewDeleteMany[TModel]` | `delete_many` | `delete /many` | `DeleteManyParams` with `pks` | success result | batch delete |
-| `NewFindOne[TModel, TSearch]` | `find_one` | `get /:id` | `TSearch` from `params` | one model | single-record query |
-| `NewFindAll[TModel, TSearch]` | `find_all` | `get /` | `TSearch` from `params` | `[]TModel` | filtered list without paging metadata |
-| `NewFindPage[TModel, TSearch]` | `find_page` | `get /page` | `TSearch` from `params` + `page.Pageable` from `meta` | `page.Page[T]` | admin list screen |
-| `NewFindOptions[TModel, TSearch]` | `find_options` | `get /options` | `TSearch` from `params` + `DataOptionConfig` from `meta` | `[]DataOption` | dropdown options |
-| `NewFindTree[TModel, TSearch](treeBuilder)` | `find_tree` | `get /tree` | `TSearch` from `params` | hierarchical `[]TModel` | tree-structured data |
-| `NewFindTreeOptions[TModel, TSearch]` | `find_tree_options` | `get /tree/options` | `TSearch` from `params` + `DataOptionConfig` from `meta` | `[]TreeDataOption` | tree options |
-| `NewExport[TModel, TSearch]` | `export` | `get /export` | `TSearch` from `params` + export format from `meta` | file download | Excel or CSV export |
-| `NewImport[TModel]` | `import` | `post /import` | multipart file upload + import format from `meta` | `{total: n}` | Excel or CSV import |
+| `NewCreate[TModel, TParams]` | `create` | `post` | `TParams` from `params` | primary-key map | create one record |
+| `NewUpdate[TModel, TParams]` | `update` | `put` | `TParams` from `params`, including PK fields | success result | update one record |
+| `NewDelete[TModel]` | `delete` | `delete` | raw PK values from `params` | success result | delete one record |
+| `NewCreateMany[TModel, TParams]` | `create_many` | `post many` | `CreateManyParams[TParams]` with `list` | list of primary-key maps | batch create |
+| `NewUpdateMany[TModel, TParams]` | `update_many` | `put many` | `UpdateManyParams[TParams]` with `list` | success result | batch update |
+| `NewDeleteMany[TModel]` | `delete_many` | `delete many` | `DeleteManyParams` with `pks` | success result | batch delete |
+| `NewFindOne[TModel, TSearch]` | `find_one` | `get one` | `TSearch` from `params` | one model | single-record query |
+| `NewFindAll[TModel, TSearch]` | `find_all` | `get` | `TSearch` from `params` | `[]TModel` | filtered list without paging metadata |
+| `NewFindPage[TModel, TSearch]` | `find_page` | `get page` | `TSearch` from `params` + `page.Pageable` from `meta` | `page.Page[T]` | admin list screen |
+| `NewFindOptions[TModel, TSearch]` | `find_options` | `get options` | `TSearch` from `params` + `DataOptionConfig` from `meta` | `[]DataOption` | dropdown options |
+| `NewFindTree[TModel, TSearch](treeBuilder)` | `find_tree` | `get tree` | `TSearch` from `params` | hierarchical `[]TModel` | tree-structured data |
+| `NewFindTreeOptions[TModel, TSearch]` | `find_tree_options` | `get tree-options` | `TSearch` from `params` + `DataOptionConfig` from `meta` | `[]TreeDataOption` | tree options |
+| `NewExport[TModel, TSearch]` | `export` | `get export` | `TSearch` from `params` + export format from `meta` | file download | Excel or CSV export |
+| `NewImport[TModel]` | `import` | `post import` | multipart file upload + import format from `meta` | `{total: n}` | Excel or CSV import |
+
+The exported `RESTAction*` constants currently contain slash-style route
+patterns such as `post /`, `put /:id`, and `get /page`. Those constants are
+listed in the public API index for completeness, but the public
+`api.ValidateActionName` / `api.NewRESTResource` validation accepts only a
+lowercase HTTP verb plus an optional kebab-case sub-resource. In the current
+source tree, passing `api.KindREST` directly to a prebuilt CRUD constructor
+therefore panics during default action validation. To build a REST-shaped CRUD
+operation, create the builder normally and then provide a valid REST action:
+
+```go
+crud.NewFindPage[User, UserSearch]().
+	ResourceKind(api.KindREST).
+	Action("get page")
+```
+
+Exported REST action constant values:
+
+| Constant | Value |
+| --- | --- |
+| `RESTActionCreate` | `post /` |
+| `RESTActionUpdate` | `put /:id` |
+| `RESTActionDelete` | `delete /:id` |
+| `RESTActionCreateMany` | `post /many` |
+| `RESTActionUpdateMany` | `put /many` |
+| `RESTActionDeleteMany` | `delete /many` |
+| `RESTActionFindOne` | `get /:id` |
+| `RESTActionFindAll` | `get /` |
+| `RESTActionFindPage` | `get /page` |
+| `RESTActionFindOptions` | `get /options` |
+| `RESTActionFindTree` | `get /tree` |
+| `RESTActionFindTreeOptions` | `get /tree/options` |
+| `RESTActionImport` | `post /import` |
+| `RESTActionExport` | `get /export` |
 
 ## Shared Builder Controls
 
@@ -122,6 +163,7 @@ Important detail:
 
 - `Action(...)` is validated according to the current `ResourceKind(...)`
 - if you are overriding a REST action, set `ResourceKind(api.KindREST)` first
+  and use the public REST grammar: `method` or `method kebab-sub-resource`
 
 ## Shared Find Controls
 
@@ -305,8 +347,31 @@ Use `FindTree` when the domain is hierarchical and the response should contain n
 Constructor shape:
 
 ```go
-crud.NewFindTree[Category, CategorySearch](tree.Build)
+func buildCategoryTree(flat []Category) []Category {
+	adapter := tree.Adapter[Category]{
+		GetID: func(c Category) string {
+			return c.ID
+		},
+		GetParentID: func(c Category) *string {
+			return c.ParentID
+		},
+		GetChildren: func(c Category) []Category {
+			return c.Children
+		},
+		SetChildren: func(c *Category, children []Category) {
+			c.Children = children
+		},
+	}
+
+	return tree.Build(flat, adapter)
+}
+
+crud.NewFindTree[Category, CategorySearch](buildCategoryTree)
 ```
+
+`tree.Build` has signature `func([]T, tree.Adapter[T]) []T`, while
+`NewFindTree` requires `func([]T) []T`; pass a wrapper that closes over the
+model's adapter instead of passing `tree.Build` directly.
 
 | Aspect | Details |
 | --- | --- |
@@ -346,7 +411,7 @@ Use `Create` for single-record creation.
 | Generics | `TModel` is the persistence model, `TParams` is the write params type |
 | Input | `TParams` from `params` |
 | Output | primary-key map for the created record |
-| Default behavior | copies params into a new model, promotes storage references, runs inside a transaction, inserts the record |
+| Default behavior | copies params into a new model, reconciles meta-tagged storage references, runs inside a transaction, inserts the record |
 | Special configuration | `WithPreCreate(...)`, `WithPostCreate(...)` |
 
 Hook responsibilities:
@@ -494,6 +559,11 @@ crud.NewDelete[User]().
 | single primary key | `["id1", "id2"]` |
 | composite primary key | `[{"user_id":"u1","role_id":"r1"}]` |
 
+`Sortable.Sort` is decoded from `meta.sort`. `TreeDataOption.ID` and
+`TreeDataOption.ParentID` are internal tree-building fields: they are selected
+from `id` and `parent_id`, but they are not emitted as JSON because their tags
+are `json:"-"`.
+
 ## Export And Import Builders
 
 ### `Export[TModel, TSearch]`
@@ -527,7 +597,7 @@ Use `Import` when the caller uploads a CSV or Excel file that should be decoded 
 | Aspect | Details |
 | --- | --- |
 | Generics | `TModel` is the model type imported from the file |
-| Input | multipart file upload in `params.file`, plus optional `format` in `meta` |
+| Input | `multipart` file upload in `params.file`, plus optional `format` in `meta` |
 | Output | `{total: n}` on success |
 | Default behavior | requires multipart input, parses rows into models, validates imported rows, inserts them in a transaction |
 | Special configuration | `WithDefaultFormat(...)`, `WithExcelOptions(...)`, `WithCsvOptions(...)`, `WithPreImport(...)`, `WithPostImport(...)` |
@@ -579,10 +649,41 @@ type PostDeleteManyProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx
 
 ```go
 type PreExportProcessor[TModel, TSearch any] func(models []TModel, search TSearch, ctx fiber.Ctx, db orm.DB) error
+type FilenameBuilder[TSearch any] func(search TSearch, ctx fiber.Ctx) string
 
 type PreImportProcessor[TModel any]  func(models []TModel, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error
 type PostImportProcessor[TModel any] func(models []TModel, ctx fiber.Ctx, tx orm.DB) error
 ```
+
+## Supporting Public APIs
+
+| API group | Public surface |
+| --- | --- |
+| direct constructors | `NewBuilder`, `NewFind`, and the `NewCreate` / `NewUpdate` / `NewDelete` / read / import / export constructors listed above |
+| action constants | RPC actions: `RPCActionCreate`, `RPCActionUpdate`, `RPCActionDelete`, `RPCActionCreateMany`, `RPCActionUpdateMany`, `RPCActionDeleteMany`, `RPCActionFindOne`, `RPCActionFindAll`, `RPCActionFindPage`, `RPCActionFindOptions`, `RPCActionFindTree`, `RPCActionFindTreeOptions`, `RPCActionImport`, `RPCActionExport`; REST actions: `RESTActionCreate`, `RESTActionUpdate`, `RESTActionDelete`, `RESTActionCreateMany`, `RESTActionUpdateMany`, `RESTActionDeleteMany`, `RESTActionFindOne`, `RESTActionFindAll`, `RESTActionFindPage`, `RESTActionFindOptions`, `RESTActionFindTree`, `RESTActionFindTreeOptions`, `RESTActionImport`, `RESTActionExport` |
+| formats | `FormatExcel`, `FormatCsv`, `TabularFormat` |
+| option payloads | `CreateManyParams`, `UpdateManyParams`, `DeleteManyParams`, `DataOption`, `TreeDataOption`, `DataOptionConfig`, `DataOptionColumnMapping` |
+| query shaping | `FindOperationConfig`, `FindOperationOption`, `QueryPartsConfig`, `QueryPart`, `Sortable`, `ApplyDataPermission` |
+| audit/tree helpers | `GetAuditUserNameRelations`, `IDColumn`, `ParentIDColumn`, `LabelColumn`, `ValueColumn`, `DescriptionColumn` |
+| import/export hooks | `FilenameBuilder`, `PreExportProcessor`, `PreImportProcessor`, `PostImportProcessor` |
+| error helpers | `ErrPrimaryKeyRequired(...)`, `ErrFieldNotExistInModel(...)`, and sentinel errors such as `ErrModelNoPrimaryKey`, `ErrCompositePrimaryKeyRequiresMap`, `ErrUnsupportedExportFormat`, `ErrUnsupportedImportFormat`, `ErrImportRequiresFile`, `ErrImportRequiresMultipart`, `ErrFileOpenFailed`, `ErrImportTypeAssertionFailed`, `ErrAuditUserCompositePK` |
+| error codes | `ErrCodeProcessorInvalidReturn`, `ErrCodeFieldNotExistInModel`, `ErrCodePrimaryKeyRequired`, `ErrCodeCompositePrimaryKeyRequiresMap`, `ErrCodeUnsupportedExportFormat`, `ErrCodeImportRequiresMultipart`, `ErrCodeImportRequiresFile`, `ErrCodeUnsupportedImportFormat`, `ErrCodeFileOpenFailed`, `ErrCodeImportTypeAssertionFailed`, `ErrCodeImportValidationFailed` |
+
+CRUD error code values:
+
+| Constant | Value |
+| --- | --- |
+| `ErrCodeProcessorInvalidReturn` | `2400` |
+| `ErrCodeFieldNotExistInModel` | `2401` |
+| `ErrCodePrimaryKeyRequired` | `2402` |
+| `ErrCodeCompositePrimaryKeyRequiresMap` | `2403` |
+| `ErrCodeUnsupportedExportFormat` | `2404` |
+| `ErrCodeImportRequiresMultipart` | `2405` |
+| `ErrCodeImportRequiresFile` | `2406` |
+| `ErrCodeUnsupportedImportFormat` | `2407` |
+| `ErrCodeFileOpenFailed` | `2408` |
+| `ErrCodeImportTypeAssertionFailed` | `2409` |
+| `ErrCodeImportValidationFailed` | `2410` |
 
 ## Practical Advice
 

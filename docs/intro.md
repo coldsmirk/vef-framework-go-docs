@@ -18,9 +18,9 @@ That means VEF is not primarily a “router helper” or a “CRUD library”. I
 
 ## What VEF gives you by default
 
-The framework boot pipeline is:
+The default framework boot pipeline is:
 
-`config -> database -> orm -> middleware -> api -> security -> event -> cqrs -> cron -> redis -> mold -> storage -> sequence -> schema -> monitor -> mcp -> app`
+`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
 
 Once the app starts, VEF already has opinions about:
 

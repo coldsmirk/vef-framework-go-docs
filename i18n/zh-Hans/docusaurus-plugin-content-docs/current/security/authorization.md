@@ -37,6 +37,45 @@ crud.NewUpdate[User, UserParams]().
 
 除非你明确替换掉默认 checker，否则就应该把这个 loader 视为必需项。没有它，默认 RBAC 权限链路背后就没有可靠的权限来源。
 
+## 授权相关公开 API
+
+| API 组 | 公开 surface |
+| --- | --- |
+| 权限 | `PermissionChecker`, `RolePermissionsLoader`, `CachedRolePermissionsLoader`, `NewCachedRolePermissionsLoader` |
+| 缓存失效 | `RolePermissionsChangedEvent`, `PublishRolePermissionsChangedEvent` |
+| 用户信息 | `UserInfo`, `UserInfoLoader`, `UserMenu`, `UserMenuType`, `Gender` |
+| 登录审计事件 | `LoginEvent`, `LoginEventParams`, `NewLoginEvent`, `SubscribeLoginEvent` |
+| 认证/授权失败 | `ErrPrincipalInvalid(...)`, `ErrCredentialsInvalid(...)`, `ErrUnauthenticated`, `ErrCodePrincipalInvalid`, `ErrCodeCredentialsInvalid`，以及 permission check 返回的 access-denied 结果 |
+
+`CachedRolePermissionsLoader` 会监听 `vef.security.role_permissions.changed`
+事件。角色权限关系发生变化时发布该事件，默认 RBAC checker 才能刷新缓存授权。
+`RolePermissionsChangedEvent` 的 JSON 字段是 `roles`；empty `roles`，也就是空
+`roles` 数组，表示全部角色授权缓存都要失效。
+如果无法订阅这个失效事件 bus，`NewCachedRolePermissionsLoader` 会 panic。
+
+默认 RBAC permission checker 在 `principal is nil`、`no roles`，或未配置
+`RolePermissionsLoader` 时返回 false。它会按顺序加载角色权限，只要任意角色的权限 map
+包含当前操作的 permission token，就允许访问。
+
+默认 RBAC data-permission resolver 也按顺序加载角色。当多个角色对同一个 permission token
+提供不同 data scope 时，`DataScope.Priority()` 值最高的 scope 会胜出，也就是选择
+highest priority scope。
+
+`LoginEvent` 的 event type 是 `vef.security.login`。它的 JSON 字段是
+`authType`、`userId`、`username`、`loginIp`、`userAgent`、`traceId`、`isOk`、
+`failReason` 和 `errorCode`。`SubscribeLoginEvent` 会注册 typed handler，并返回
+unsubscribe function。
+
+`UserInfo` 是 `security/auth.get_user_info` 返回的结构。`Gender` 的取值包括
+`GenderMale` (`male`)、`GenderFemale` (`female`)、`GenderUnknown` (`unknown`)。
+`UserMenuType` 的取值包括 `UserMenuTypeDirectory` (`directory`)、
+`UserMenuTypeMenu` (`menu`)、`UserMenuTypeView` (`view`)、
+`UserMenuTypeDashboard` (`dashboard`)、`UserMenuTypeReport` (`report`)。
+
+`UserInfo` 的 JSON 字段是 `id`、`name`、`gender`、`avatar`、
+`permissionTokens`、`menus` 和可选 `details`。`UserMenu` 的 JSON 字段是
+`type`、`path`、`name`、`icon`、可选 `metadata` 和可选 `children`。
+
 ## 资源层面的意义
 
 permission token 应该表达的是业务动作本身，而不是传输细节。

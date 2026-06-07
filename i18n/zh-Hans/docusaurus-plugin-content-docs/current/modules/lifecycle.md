@@ -21,15 +21,36 @@ sidebar_position: 2
 
 ## `vef.Run(...)` 实际做的事情
 
-从行为上看，它会：
+`vef.Run(...)` 按下面的顺序组装 FX app：
 
-1. 构建框架默认模块列表
-2. 追加你自己的 FX option
-3. 附加 `startApp`
-4. 创建 FX app
-5. 运行它
+1. 用 `fx.WithLogger(newFxLogger)` 安装框架 FX logger
+2. 添加 internal config module（内部配置模块）
+3. 添加 internal datasource module（内部数据源模块）
+4. 追加 `bootmodules.Core()` 返回的全部 option
+5. 追加用户传入的 `options...`
+6. 追加 `fx.Invoke(startApp)`
+7. 追加 `fx.StartTimeout(defaultTimeout)`
+8. 追加 `fx.StopTimeout(defaultTimeout*2)`
+9. 用 `fx.New(opts...)` 创建 app
+10. 用 `app.Run()` 运行它
 
-默认启动超时是 `30s`，默认停止超时是 `60s`。
+`defaultTimeout` 是 `30 * time.Second`，所以默认启动超时是 `30s`，
+默认停止超时是 `60s`。
+
+因为用户 option 是追加在 `bootmodules.Core()` 之后的，所以应用模块可以通过
+`vef.ProvideAPIResource(...)` 这类 helper 继续追加 group 成员。如果要替换
+core 已经提供的单例，通常要用 `vef.Decorate(...)`、`vef.Replace(...)`，
+或者 `vef.SupplyFileACL(...)` 这类框架 replacement helper；为同一个 service
+再注册一个普通 `vef.Provide(...)` 并不会形成 override。
+
+高级模块可以接收 `vef.Lifecycle` 并调用 `Lifecycle.Append(...)` 直接注册
+`fx.Hook`；`vef.StartHook`、`vef.StopHook` 和 `vef.StartStopHook` 是这些
+hook 的便利构造函数。
+`Lifecycle.Append` 的精确签名记录在 public API index 中。
+
+内部的 `startApp` invoke 会在模块图构建完成后追加 HTTP server 的 lifecycle
+hook。它的 `OnStart` 等待 `application.Start()` 或启动 context 超时；`OnStop`
+调用 `application.Stop()`。
 
 最小启动示例：
 

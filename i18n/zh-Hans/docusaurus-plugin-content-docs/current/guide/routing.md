@@ -26,6 +26,10 @@ RPC 请求统一进入：
 POST /api
 ```
 
+内部 router 常量 `DefaultRPCEndpoint` 是 `/api`。form 和 multipart RPC
+传输会分别从 `FormKeyParams` 与 `FormKeyMeta` 表单字段读取 JSON 编码的
+`params` 和 `meta`。
+
 RPC 请求形态：
 
 ```json
@@ -71,6 +75,9 @@ REST 路由统一挂在：
 /api/<resource>
 ```
 
+挂载时，REST 路由会在 action method 转成大写、可选 sub-resource path 补上
+`/` 前缀后，形成 `/api/<resource>/<subpath>`。
+
 HTTP method 和可选子路径由 action 字符串决定。
 
 示例：
@@ -80,8 +87,8 @@ HTTP method 和可选子路径由 action 字符串决定。
 | `users` | `get` | `GET /api/users` |
 | `users` | `post` | `POST /api/users` |
 | `users` | `get profile` | `GET /api/users/profile` |
-| `users` | `put /:id` | `PUT /api/users/:id` |
-| `users` | `delete /many` | `DELETE /api/users/many` |
+| `users` | `put profile` | `PUT /api/users/profile` |
+| `users` | `delete many` | `DELETE /api/users/many` |
 
 ### REST action 解析
 
@@ -90,13 +97,15 @@ REST action 字符串支持：
 | 模式 | 含义 |
 | --- | --- |
 | `<method>` | 资源根路径 |
-| `<method> <sub-path>` | 附加子路径或 Fiber 风格参数路径 |
+| `<method> <sub-resource>` | 附加 kebab-case 子资源路径 |
 
 解析规则：
 
 - method token 会在挂载时被转换为大写 HTTP method
-- 如果子路径没有以 `/` 开头，路由器会自动补上
-- Fiber 风格参数，如 `/:id`，会被原样保留
+- 公开资源校验只接受小写 HTTP verb，以及可选的 kebab-case 子资源路径；
+  `admin/users` 这类斜杠分段子路径是允许的，但每一段都必须是 kebab-case
+- `/:id` 这类动态 Fiber route 参数不会通过 `api.ValidateActionName` /
+  `api.NewRESTResource` 的公开校验
 
 ### REST 命名规则
 
@@ -104,7 +113,7 @@ REST action 字符串支持：
 | --- | --- | --- |
 | resource name | 斜杠分段的小写路径，分段内部多词使用 kebab-case | `users`、`sys/user`、`user-profiles` |
 | action method token | 小写 HTTP verb | `get`、`post`、`put`、`delete`、`patch` |
-| action sub-path | kebab-case 或显式路由模式 | `profile`、`admin`、`/:id`、`/tree/options` |
+| action sub-resource | 可选的斜杠分段 kebab-case 路径 | `profile`、`admin/users`、`user-friends` |
 
 ## `params` 如何收集
 
@@ -148,6 +157,9 @@ X-Meta-format: excel
 ```
 
 这些值会进入 `api.Meta`。
+
+去掉 `X-Meta-` 前缀后，存入 `meta` 的 key 会统一转成小写。例如
+`X-Meta-page` 和 `X-Meta-Page` 都会变成 `meta["page"]`。
 
 这里有个关键后果：
 

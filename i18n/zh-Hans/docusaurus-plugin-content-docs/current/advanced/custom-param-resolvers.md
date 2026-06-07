@@ -15,7 +15,7 @@ VEF 不只支持注入 `fiber.Ctx` 和请求结构体。如果内置参数集合
 - `log.Logger`
 - `*security.Principal`
 - `cron.Scheduler`
-- `event.Publisher`
+- `event.Bus`
 - `mold.Transformer`
 - `storage.Service`
 - `api.Params`
@@ -55,8 +55,6 @@ import (
   "reflect"
 
   "github.com/gofiber/fiber/v3"
-
-  "github.com/coldsmirk/vef-framework-go/api"
 )
 
 type TenantContext struct {

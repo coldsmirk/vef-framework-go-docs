@@ -6,6 +6,231 @@ sidebar_position: 3
 
 `approval` 模块提供完整的工作流引擎，用于构建基于审批的业务流程。支持可视化流程设计（兼容 React Flow）、多级审批链、条件分支、并行审批、委托、回退和事务性事件发布。
 
+## 启用模块
+
+审批是一个可选功能模块。它有意不包含在默认 `vef.Run(...)` boot graph 中，
+所以不需要审批工作流的应用不会注册它的 API resources、CQRS handlers、
+engine、binding listener 或 timeout scanners。
+
+需要时显式启用：
+
+```go
+vef.Run(
+    vef.ApprovalModule,
+    app.Module,
+)
+```
+
+审批会通过 `event.WithTx` 发布 `approval.*` 事件，它的 binding listener
+也会订阅这些事件。宿主应用必须把 `approval.*` 路由到一个带有可订阅 sink
+的 transactional transport，例如 sink 为 Redis Streams 的 outbox 路由。
+
+`InstanceBindingFailedEvent` 是 transactional-route 启动检查的例外：它由异步
+binding listener 在审批事务已经提交后发出。`InstanceCompletedEvent` 的路由要求
+最严格，因为 binding listener 会订阅它；路由必须在 transactional outbox 之外
+同时包含可订阅 sink transport，例如 `memory` 或 `redis_stream`。
+
+## RPC 资源
+
+启用模块后，会注册以下 RPC 资源。这些操作都不是公开接口：调用者必须已认证；
+表中列出 `RequiredPermission` 时还会校验对应权限点。
+
+RPC 调用使用 [API](../guide/api) 里的标准 envelope：`resource`、`action`、
+`version`、`params` 和 `meta`。下面标成 `params.*` 的字段从 `params` 解码；
+标成 `meta.*` 的字段从 `meta` 解码。生成的
+[运行时 API 索引](../reference/runtime-api-index) 包含每个请求/响应 DTO 的
+完整 JSON 字段 ledger。
+
+Grouped-family audit 还固定了 766 grouped approval field/method entries：
+607 approval package entries、76 approval/admin DTO field entries、83
+approval/my DTO field entries。这些 entries 覆盖公开 Go DTO fields、domain
+event fields、node-data helpers、lifecycle hooks、resolver interfaces 和
+status helper methods；精确签名列在 public API index 中，verifier 会锁定排序后的
+签名以及 receiver/type 分布。
+
+### `approval/category`
+
+| Action | 权限 | 参数 | 说明 |
+| --- | --- | --- | --- |
+| `find_tree` | `approval:category:query` | `CategorySearch` | 按租户过滤的树查询 |
+| `find_tree_options` | `approval:category:query` | `CategorySearch` + `DataOptionConfig` | 按租户过滤的树形选项 |
+| `create` | `approval:category:create` | `CategoryParams` | 非 super-admin 的租户由调用者覆盖写入 |
+| `update` | `approval:category:update` | `CategoryParams` | 非 super-admin 只能修改自己租户的数据 |
+| `delete` | `approval:category:delete` | 主键参数 | 非 super-admin 只能删除自己租户的数据 |
+
+| Action | 请求字段 |
+| --- | --- |
+| `find_tree` | `meta.name`、`meta.isActive`、`meta.sort` |
+| `find_tree_options` | `meta.name`、`meta.isActive`、`meta.sort`，以及 option 映射 metadata：`meta.labelColumn`、`meta.valueColumn`、`meta.descriptionColumn`、`meta.metaColumns` |
+| `create` | `params.id`、`params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.icon`、`params.parentId`、`params.sortOrder`、`params.isActive`、`params.remark` |
+| `update` | `params.id`、`params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.icon`、`params.parentId`、`params.sortOrder`、`params.isActive`、`params.remark` |
+| `delete` | `params.id` 必填 |
+
+### `approval/delegation`
+
+| Action | 权限 | 参数 | 说明 |
+| --- | --- | --- | --- |
+| `find_page` | `approval:delegation:query` | `DelegationSearch` + pageable meta | 非 super-admin 只查询自己的委托 |
+| `create` | `approval:delegation:create` | `DelegationParams` | 非 super-admin 的 delegator 由调用者覆盖写入 |
+| `update` | `approval:delegation:update` | `DelegationParams` | 非 super-admin 不能转移委托所有权 |
+| `delete` | `approval:delegation:delete` | 主键参数 | 非 super-admin 按委托所有者限制 |
+
+| Action | 请求字段 |
+| --- | --- |
+| `find_page` | `meta.delegatorId`、`meta.delegateeId`、`meta.isActive`、`meta.sort`、`meta.page`、`meta.size` |
+| `create` | `params.id`、`params.delegatorId` 必填、`params.delegateeId` 必填、`params.flowCategoryId`、`params.flowId`、`params.startTime`、`params.endTime`、`params.isActive`、`params.reason` |
+| `update` | `params.id`、`params.delegatorId` 必填、`params.delegateeId` 必填、`params.flowCategoryId`、`params.flowId`、`params.startTime`、`params.endTime`、`params.isActive`、`params.reason` |
+| `delete` | `params.id` 必填 |
+
+### `approval/flow`
+
+| Action | 权限 | 参数 | 说明 |
+| --- | --- | --- | --- |
+| `create` | `approval:flow:create` | `CreateFlowParams` | 开启审计 |
+| `deploy` | `approval:flow:deploy` | `DeployFlowParams` | 开启审计 |
+| `publish_version` | `approval:flow:publish` | `PublishVersionParams` | 开启审计 |
+| `update_flow` | `approval:flow:update` | `UpdateFlowParams` | 开启审计 |
+| `toggle_active` | `approval:flow:update` | `ToggleActiveParams` | 开启审计 |
+| `get_graph` | `approval:flow:query` | `GetGraphParams` | 读取已发布流程图 |
+| `find_flows` | `approval:flow:query` | `FindFlowsParams` | 分页查询流程 |
+| `find_versions` | `approval:flow:query` | `FindVersionsParams` | 查询单个流程的版本列表 |
+
+| Action | 请求字段 |
+| --- | --- |
+| `create` | `params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.categoryId` 必填、`params.bindingMode` 必填、`params.icon`、`params.description`、`params.businessTable`、`params.businessPkField`、`params.businessTitleField`、`params.businessStatusField`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.instanceTitleTemplate`、`params.initiators` |
+| `deploy` | `params.flowId` 必填、`params.description`、`params.flowDefinition` 必填、`params.formDefinition` |
+| `publish_version` | `params.versionId` 必填 |
+| `update_flow` | `params.flowId` 必填、`params.name` 必填、`params.instanceTitleTemplate` 必填、`params.icon`、`params.description`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.initiators` |
+| `toggle_active` | `params.flowId` 必填、`params.isActive` |
+| `get_graph` | `params.flowId` 必填、`params.tenantId` |
+| `find_flows` | `params.tenantId`、`params.categoryId`、`params.keyword`、`params.isActive`、`params.page`、`params.pageSize` |
+| `find_versions` | `params.flowId` 必填、`params.tenantId` |
+
+`params.initiators` 条目使用 `kind`（`user`、`role` 或 `department`）和
+`ids`。业务绑定场景下，`businessTable`、`businessPkField`、
+`businessTitleField` 和 `businessStatusField` 都是 SQL identifier，会经过
+`ValidateBusinessIdentifier` 校验。
+
+### `approval/instance`
+
+| Action | 权限 | 参数 | 说明 |
+| --- | --- | --- | --- |
+| `start` | `approval:instance:start` | `StartInstanceParams` | 开启审计 |
+| `process_task` | `approval:task:process` | `ProcessTaskParams` | 开启审计；`action` 必须是 `approve`、`reject`、`transfer`、`rollback` 或 `handle` |
+| `withdraw` | `approval:instance:withdraw` | `WithdrawParams` | 开启审计 |
+| `resubmit` | `approval:instance:resubmit` | `ResubmitParams` | 开启审计；接受已退回或已撤回的实例 |
+| `add_cc` | `approval:instance:cc` | `AddCCParams` | 开启审计 |
+| `mark_cc_read` | `approval:instance:cc` | `MarkCCReadParams` | 读回执，不开启审计 |
+| `add_assignee` | `approval:task:add_assignee` | `AddAssigneeParams` | 开启审计；`addType` 为 `before`、`after` 或 `parallel` |
+| `remove_assignee` | `approval:task:remove_assignee` | `RemoveAssigneeParams` | 开启审计 |
+| `urge_task` | `approval:task:urge` | `UrgeTaskParams` | 额外限流：`1m` 内最多 `10` 次 |
+
+| Action | 请求字段 |
+| --- | --- |
+| `start` | `params.tenantId` 必填、`params.flowCode` 必填、`params.businessRecordId`、`params.formData` |
+| `process_task` | `params.taskId` 必填、`params.action` 必填（`approve`、`reject`、`transfer`、`rollback` 或 `handle`）、`params.opinion` 最多 2000 字符、`params.formData`、`params.transferToId`、`params.targetNodeId` |
+| `withdraw` | `params.instanceId` 必填、`params.reason` 最多 2000 字符 |
+| `resubmit` | `params.instanceId` 必填、`params.formData` |
+| `add_cc` | `params.instanceId` 必填、`params.ccUserIds` 必填，1-50 个 ID |
+| `mark_cc_read` | `params.instanceId` 必填 |
+| `add_assignee` | `params.taskId` 必填、`params.userIds` 必填，1-50 个 ID，`params.addType` 必填（`before`、`after` 或 `parallel`） |
+| `remove_assignee` | `params.taskId` 必填 |
+| `urge_task` | `params.taskId` 必填、`params.message` 最多 500 字符 |
+
+### `approval/my`
+
+自助查询不声明 `RequiredPermission`，但仍要求当前调用者已认证。
+
+| Action | 参数 | 输出 |
+| --- | --- | --- |
+| `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[my.AvailableFlow]` |
+| `find_initiated` | `FindInitiatedParams` | `page.Page[my.InitiatedInstance]` |
+| `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[my.PendingTask]` |
+| `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[my.CompletedTask]` |
+| `find_cc_records` | `FindCCRecordsParams` | `page.Page[my.CCRecord]` |
+| `get_pending_counts` | `GetPendingCountsParams` | `my.PendingCounts` |
+| `get_instance_detail` | `GetInstanceDetailParams` | `my.InstanceDetail` |
+
+| Action | 请求字段 |
+| --- | --- |
+| `find_available_flows` | `params.tenantId`、`params.keyword`、`params.page`、`params.pageSize` |
+| `find_initiated` | `params.tenantId`、`params.status`、`params.keyword`、`params.page`、`params.pageSize` |
+| `find_pending_tasks` | `params.tenantId`、`params.page`、`params.pageSize` |
+| `find_completed_tasks` | `params.tenantId`、`params.page`、`params.pageSize` |
+| `find_cc_records` | `params.tenantId`、`params.isRead`、`params.page`、`params.pageSize` |
+| `get_pending_counts` | `params.tenantId` |
+| `get_instance_detail` | `params.instanceId` 必填 |
+
+`my.InstanceDetail` 的 JSON payload 包含 `taskId`、`formData` 和
+`actionLogs` 字段，分别用于任务引用、已提交表单数据和操作日志历史。
+
+`availableActions` 是查询层给 UI 的提示。对申请人来说，实例为
+`running` 时包含 `withdraw`，实例为 `rejected` 或 `returned` 时包含
+`resubmit`。对 pending task 来说，handle 节点包含 `handle`，其他节点
+包含 `approve`，随后包含 `reject`，并按当前节点开关追加 `transfer`、
+`rollback`、`add_assignee` 或 `add_cc`。只要实例存在任何 pending task，
+还会包含 `urge`。命令 handler 仍会独立做最终校验。
+
+### `approval/admin`
+
+| Action | 权限 | 参数 | 说明 |
+| --- | --- | --- | --- |
+| `find_instances` | `approval:instance:query` | `AdminFindInstancesParams` | 非 super-admin 按租户过滤 |
+| `find_tasks` | `approval:task:query` | `AdminFindTasksParams` | 非 super-admin 按租户过滤 |
+| `get_instance_detail` | `approval:instance:detail` | `AdminGetInstanceDetailParams` | 完整管理端详情 |
+| `find_action_logs` | `approval:log:query` | `AdminFindActionLogsParams` | 要求 `instanceId` |
+| `get_metrics` | `approval:metrics:query` | `AdminGetMetricsParams` | 聚合指标 |
+| `terminate_instance` | `approval:instance:terminate` | `AdminTerminateInstanceParams` | 开启审计 |
+| `reassign_task` | `approval:task:reassign` | `AdminReassignTaskParams` | 开启审计 |
+
+| Action | 请求字段 |
+| --- | --- |
+| `find_instances` | `params.tenantId`、`params.applicantId`、`params.status`、`params.flowId`、`params.keyword`、`params.page`、`params.pageSize` |
+| `find_tasks` | `params.tenantId`、`params.assigneeId`、`params.instanceId`、`params.status`、`params.page`、`params.pageSize` |
+| `get_instance_detail` | `params.instanceId` 必填 |
+| `find_action_logs` | `params.instanceId` 必填、`params.tenantId`、`params.page`、`params.pageSize` |
+| `get_metrics` | `params.tenantId` |
+| `terminate_instance` | `params.instanceId` 必填、`params.reason` 最多 2000 字符 |
+| `reassign_task` | `params.taskId` 必填、`params.newAssigneeId` 必填、`params.reason` 最多 2000 字符 |
+
+管理端列表和指标查询中，非 super-admin 调用者会忽略提交的 `tenantId` override，
+并被过滤到自己的租户。super-admin 可以传 `tenantId` 只看一个租户，也可以省略它
+获得跨租户可见性。
+
+管理端列表/详情 DTO 在线上的租户和历史字段名保持为 `tenantId` 和
+`actionLogs`。
+
+### 响应 DTO 字段
+
+管理端响应使用 `approval/admin` 包中的 DTO：
+
+| DTO | JSON 字段 |
+| --- | --- |
+| `admin.Instance` | `instanceId`、`instanceNo`、`title`、`tenantId`、`flowId`、`flowName`、`applicantId`、`applicantName`、`status`、`currentNodeName`、`createdAt`、`finishedAt` |
+| `admin.Task` | `taskId`、`instanceId`、`instanceTitle`、`flowName`、`nodeName`、`assigneeId`、`assigneeName`、`status`、`createdAt`、`deadline`、`finishedAt` |
+| `admin.InstanceDetail` | `instance`、`tasks`、`actionLogs`、`flowNodes` |
+| `admin.InstanceDetailInfo` | `instanceId`、`instanceNo`、`title`、`tenantId`、`flowId`、`flowName`、`flowVersionId`、`applicantId`、`applicantName`、`status`、`currentNodeName`、`businessRecordId`、`formData`、`createdAt`、`finishedAt` |
+| `admin.TaskDetailInfo` | `taskId`、`nodeId`、`nodeName`、`assigneeId`、`assigneeName`、`delegatorId`、`delegatorName`、`status`、`sortOrder`、`deadline`、`isTimeout`、`createdAt`、`finishedAt` |
+| `admin.ActionLog` | `logId`、`action`、`operatorId`、`operatorName`、`operatorDepartmentName`、`transferToId`、`transferToName`、`opinion`、`createdAt` |
+| `admin.FlowNodeInfo` | `nodeId`、`key`、`kind`、`name`、`executionType` |
+| `admin.Metrics` | `tenantId`、`capturedAt`、`instanceCounts`、`taskCounts`、`timeoutTaskCount`、`avgCompletionSeconds`、`pendingBindingFailures` |
+
+自助响应使用 `approval/my` 包中的 DTO：
+
+| DTO | JSON 字段 |
+| --- | --- |
+| `my.AvailableFlow` | `flowId`、`flowCode`、`flowName`、`flowIcon`、`description`、`categoryId`、`categoryName` |
+| `my.InitiatedInstance` | `instanceId`、`instanceNo`、`title`、`flowName`、`flowIcon`、`status`、`currentNodeName`、`createdAt`、`finishedAt` |
+| `my.PendingTask` | `taskId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicantName`、`nodeName`、`createdAt`、`deadline`、`isTimeout` |
+| `my.CompletedTask` | `taskId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicantName`、`nodeName`、`status`、`finishedAt` |
+| `my.CCRecord` | `ccRecordId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicantName`、`nodeName`、`isRead`、`createdAt` |
+| `my.PendingCounts` | `pendingTaskCount`、`unreadCcCount` |
+| `my.InstanceDetail` | `instance`、`tasks`、`actionLogs`、`flowNodes`、`availableActions` |
+| `my.InstanceInfo` | `instanceId`、`instanceNo`、`title`、`flowName`、`flowIcon`、`applicantId`、`applicantName`、`status`、`currentNodeName`、`businessRecordId`、`formData`、`createdAt`、`finishedAt` |
+| `my.TaskInfo` | `taskId`、`nodeName`、`assigneeId`、`assigneeName`、`status`、`sortOrder`、`createdAt`、`finishedAt` |
+| `my.ActionLogInfo` | `action`、`operatorName`、`opinion`、`createdAt` |
+| `my.FlowNodeInfo` | `nodeId`、`key`、`kind`、`name` |
+
 ## 架构概览
 
 ```
@@ -39,59 +264,97 @@ urge_record_retention     = "720h"   # 30 天
 cc_record_retention       = "2160h"  # 90 天
 ```
 
+`auto_migrate` 是普通 boolean 开关，不会由 `ApprovalConfig.ApplyDefaults()`
+自动设为 true；需要启动时执行 approval DDL 时必须显式开启。
+`cc_record_retention` 只清理已经读过的 CC 记录。
+
 > 老版本里归属 `[vef.approval]` 的 `outbox_relay_interval` / `outbox_max_retries` / `outbox_batch_size` 已在 v0.21 迁移至 `[vef.event.transports.outbox]`，由全框架统一的 outbox transport 服务所有模块——参考 [事件总线](../features/event-bus)。审批模块的 binding listener 和 outbox 发布两侧都会在启动时通过 `event.RouteInspector` 断言路由，路由配错时应用直接启动失败，而不是静默降级。
 
 详见[配置参考](../reference/configuration-reference)。
 
 ## 绑定模式
 
-| 模式 | 常量 | 说明 |
-| --- | --- | --- |
-| 独立 | `BindingStandalone` | 表单数据存储在审批模块自有表中 |
-| 业务 | `BindingBusiness` | 关联到已有的业务数据表 |
+| 模式 | 常量 | Wire value | 说明 |
+| --- | --- | --- | --- |
+| 独立 | `BindingStandalone` | `standalone` | 表单数据存储在审批模块自有表中 |
+| 业务 | `BindingBusiness` | `business` | 关联到已有的业务数据表 |
 
 业务绑定通过 `BusinessTable`、`BusinessPkField`、`BusinessTitleField` 和 `BusinessStatusField` 将审批流程与业务表关联。
 
 ## 节点类型
 
-| 节点类型 | 常量 | 说明 |
-| --- | --- | --- |
-| 开始 | `NodeStart` | 工作流入口 |
-| 审批 | `NodeApproval` | 需要审批人执行审批动作 |
-| 办理 | `NodeHandle` | 需要处理人执行办理动作 |
-| 条件 | `NodeCondition` | 基于条件进行分支 |
-| 抄送 | `NodeCC` | 向指定用户发送通知 |
-| 结束 | `NodeEnd` | 工作流终点 |
+| 节点类型 | 常量 | Wire value | 说明 |
+| --- | --- | --- | --- |
+| 开始 | `NodeStart` | `start` | 工作流入口 |
+| 审批 | `NodeApproval` | `approval` | 需要审批人执行审批动作 |
+| 办理 | `NodeHandle` | `handle` | 需要处理人执行办理动作 |
+| 条件 | `NodeCondition` | `condition` | 基于条件进行分支 |
+| 抄送 | `NodeCC` | `cc` | 向指定用户发送通知 |
+| 结束 | `NodeEnd` | `end` | 工作流终点 |
+
+## 条件分支
+
+条件节点会按 priority 顺序评估 `ConditionBranch`。每个分支包含一个或多个
+`ConditionGroup`：同一个 group 内的条件按 AND 组合，同一分支上的多个
+group 按 OR 组合。
+
+`ConditionField` 使用结构化的 `Subject` / `Operator` / `Value` 字段。内置
+evaluator 会把它转换成 `expr-lang` 表达式。支持的 operator 是 `eq`、`ne`、
+`gt`、`gte`、`lt`、`lte`、`in`、`not_in`、`contains`、`not_contains`、
+`starts_with`、`ends_with`、`is_empty` 和 `is_not_empty`；未知 operator
+会被转换成恒为 `false` 的表达式。
+
+`ConditionExpression` 直接用 `expr-lang` 执行原始 `Expression` 字符串。
+评估环境暴露：
+
+| 名称 | 值 |
+| --- | --- |
+| `formData` | 当前实例的 `FormData` map |
+| `applicantId` | 当前申请人 ID |
+| `applicantDepartmentId` | 申请人部门 ID；不存在时是 `""` |
+
+审批条件目前有意直接使用 `expr-lang`，不走公开的 `expression.Engine` 功能。
+这样当前审批工作流仍然是 pure-Go；公开 `expression.Engine` 的现有后端是 Zen，
+需要 CGO。
 
 ## 审批方式
 
 当节点有多个审批人时：
 
-| 方式 | 常量 | 行为 |
-| --- | --- | --- |
-| 顺序 | `ApprovalSequential` | 审批人按顺序逐个处理 |
-| 并行 | `ApprovalParallel` | 审批人同时处理 |
+| 方式 | 常量 | Wire value | 行为 |
+| --- | --- | --- | --- |
+| 顺序 | `ApprovalSequential` | `sequential` | 审批人按顺序逐个处理 |
+| 并行 | `ApprovalParallel` | `parallel` | 审批人同时处理 |
+
+枚举类型是 `ApprovalMethod`。
 
 ### 通过规则（并行模式）
 
-| 规则 | 常量 | 行为 |
-| --- | --- | --- |
-| 全部 | `PassAll` | 所有审批人必须同意 |
-| 任意 | `PassAny` | 至少一人同意即通过 |
-| 比例 | `PassRatio` | 达到一定比例即通过 |
-| 一票否决 | `PassAnyReject` | 任何一人拒绝即失败 |
+| 规则 | 常量 | Wire value | 行为 |
+| --- | --- | --- | --- |
+| 全部 | `PassAll` | `all` | 所有审批人必须同意 |
+| 任意 | `PassAny` | `any` | 至少一人同意即通过 |
+| 比例 | `PassRatio` | `ratio` | 达到一定比例即通过 |
+| 一票否决 | `PassAnyReject` | `any_reject` | 任何一人拒绝即失败 |
+
+自定义通过规则实现使用 `PassRuleStrategy`、`PassRuleContext`，并返回
+`PassRuleResult`（`PassRulePending`、`PassRulePassed`、`PassRuleRejected`）。
 
 ## 审批人类型
 
-| 类型 | 常量 | 说明 |
-| --- | --- | --- |
-| 指定用户 | `AssigneeUser` | 特定用户 |
-| 角色 | `AssigneeRole` | 拥有某角色的用户 |
-| 部门 | `AssigneeDepartment` | 部门负责人 |
-| 申请人本人 | `AssigneeSelf` | 申请人自己 |
-| 直接上级 | `AssigneeSuperior` | 直接上级 |
-| 部门领导链 | `AssigneeDepartmentLeader` | 多级主管链 |
-| 表单字段 | `AssigneeFormField` | 由表单字段值决定 |
+| 类型 | 常量 | Wire value | 说明 |
+| --- | --- | --- | --- |
+| 指定用户 | `AssigneeUser` | `user` | 特定用户 |
+| 角色 | `AssigneeRole` | `role` | 拥有某角色的用户 |
+| 部门 | `AssigneeDepartment` | `department` | 部门负责人 |
+| 申请人本人 | `AssigneeSelf` | `self` | 申请人自己 |
+| 直接上级 | `AssigneeSuperior` | `superior` | 直接上级 |
+| 部门领导链 | `AssigneeDepartmentLeader` | `department_leader` | 多级主管链 |
+| 表单字段 | `AssigneeFormField` | `form_field` | 由表单字段值决定 |
+
+枚举类型是 `AssigneeKind`。动态加签位置使用 `AddAssigneeType`：
+`AddAssigneeBefore`（`before`）、`AddAssigneeAfter`（`after`）、
+`AddAssigneeParallel`（`parallel`）。
 
 ## 实例生命周期
 
@@ -100,88 +363,152 @@ cc_record_retention       = "2160h"  # 90 天
               → 撤回       → 已撤回
               → 回退       → 已退回
               → 终止       → 已终止
-              → 重新提交   → 运行中（再次）
+已撤回/已退回 → 重新提交   → 运行中（再次）
 ```
+
+运行时状态机只声明以下实例状态流转：
+
+| From | To |
+| --- | --- |
+| `running` | `approved` |
+| `running` | `rejected` |
+| `running` | `withdrawn` |
+| `running` | `terminated` |
+| `running` | `returned` |
+| `returned` | `running` |
+| `withdrawn` | `running` |
 
 ### 实例状态
 
-| 状态 | 常量 | 是否终态 |
-| --- | --- | --- |
-| 运行中 | `InstanceRunning` | 否 |
-| 已同意 | `InstanceApproved` | 是 |
-| 已拒绝 | `InstanceRejected` | 是 |
-| 已撤回 | `InstanceWithdrawn` | 否 |
-| 已退回 | `InstanceReturned` | 否 |
-| 已终止 | `InstanceTerminated` | 是 |
+| 状态 | 常量 | Wire value | 是否终态 |
+| --- | --- | --- | --- |
+| 运行中 | `InstanceRunning` | `running` | 否 |
+| 已同意 | `InstanceApproved` | `approved` | 是 |
+| 已拒绝 | `InstanceRejected` | `rejected` | 是 |
+| 已撤回 | `InstanceWithdrawn` | `withdrawn` | 否 |
+| 已退回 | `InstanceReturned` | `returned` | 否 |
+| 已终止 | `InstanceTerminated` | `terminated` | 是 |
+
+枚举类型是 `InstanceStatus`。
 
 ### 任务状态
 
-| 状态 | 常量 | 是否终态 |
-| --- | --- | --- |
-| 等待中 | `TaskWaiting` | 否 |
-| 待处理 | `TaskPending` | 否 |
-| 已同意 | `TaskApproved` | 是 |
-| 已拒绝 | `TaskRejected` | 是 |
-| 已办理 | `TaskHandled` | 是 |
-| 已转交 | `TaskTransferred` | 是 |
-| 已回退 | `TaskRolledBack` | 是 |
-| 已取消 | `TaskCanceled` | 是 |
-| 已移除 | `TaskRemoved` | 是 |
-| 已跳过 | `TaskSkipped` | 是 |
+| 状态 | 常量 | Wire value | 是否终态 |
+| --- | --- | --- | --- |
+| 等待中 | `TaskWaiting` | `waiting` | 否 |
+| 待处理 | `TaskPending` | `pending` | 否 |
+| 已同意 | `TaskApproved` | `approved` | 是 |
+| 已拒绝 | `TaskRejected` | `rejected` | 是 |
+| 已办理 | `TaskHandled` | `handled` | 是 |
+| 已转交 | `TaskTransferred` | `transferred` | 是 |
+| 已回退 | `TaskRolledBack` | `rolled_back` | 是 |
+| 已取消 | `TaskCanceled` | `canceled` | 是 |
+| 已移除 | `TaskRemoved` | `removed` | 是 |
+| 已跳过 | `TaskSkipped` | `skipped` | 是 |
+
+运行时状态机只声明以下任务状态流转：
+
+| From | To |
+| --- | --- |
+| `waiting` | `pending` |
+| `waiting` | `canceled` |
+| `waiting` | `skipped` |
+| `waiting` | `removed` |
+| `pending` | `approved` |
+| `pending` | `handled` |
+| `pending` | `rejected` |
+| `pending` | `transferred` |
+| `pending` | `rolled_back` |
+| `pending` | `canceled` |
+| `pending` | `waiting` |
+| `pending` | `removed` |
 
 ## 操作类型
 
-| 操作 | 常量 | 说明 |
-| --- | --- | --- |
-| 提交 | `ActionSubmit` | 发起新实例 |
-| 同意 | `ActionApprove` | 审批通过 |
-| 办理 | `ActionHandle` | 完成办理任务 |
-| 拒绝 | `ActionReject` | 审批拒绝 |
-| 转交 | `ActionTransfer` | 转交给其他用户 |
-| 撤回 | `ActionWithdraw` | 申请人撤回 |
-| 取消 | `ActionCancel` | 取消任务 |
-| 回退 | `ActionRollback` | 退回到上一节点 |
-| 加签 | `ActionAddAssignee` | 动态添加审批人 |
-| 减签 | `ActionRemoveAssignee` | 移除审批人 |
-| 重新提交 | `ActionResubmit` | 重新提交已退回的实例 |
-| 改派 | `ActionReassign` | 管理员改派任务 |
-| 强制终止 | `ActionTerminate` | 管理员强制终止 |
+| 操作 | 常量 | Wire value | 说明 |
+| --- | --- | --- | --- |
+| 提交 | `ActionSubmit` | `submit` | 发起新实例 |
+| 同意 | `ActionApprove` | `approve` | 审批通过 |
+| 办理 | `ActionHandle` | `handle` | 完成办理任务 |
+| 拒绝 | `ActionReject` | `reject` | 审批拒绝 |
+| 转交 | `ActionTransfer` | `transfer` | 转交给其他用户 |
+| 撤回 | `ActionWithdraw` | `withdraw` | 申请人撤回 |
+| 取消 | `ActionCancel` | `cancel` | 取消任务 |
+| 回退 | `ActionRollback` | `rollback` | 退回到上一节点 |
+| 加签 | `ActionAddAssignee` | `add_assignee` | 动态添加审批人 |
+| 减签 | `ActionRemoveAssignee` | `remove_assignee` | 移除审批人 |
+| 加抄送 | `ActionAddCC` | `add_cc` | 动态添加抄送人 |
+| 执行 | `ActionExecute` | `execute` | 自动节点处理使用的内部执行动作 |
+| 重新提交 | `ActionResubmit` | `resubmit` | 重新提交已退回或已撤回的实例 |
+| 改派 | `ActionReassign` | `reassign` | 管理员改派任务 |
+| 强制终止 | `ActionTerminate` | `terminate` | 管理员强制终止 |
 
 ## 回退配置
 
 | 属性 | 可选值 |
 | --- | --- |
-| `RollbackType` | `none`、`previous`、`start`、`any`、`specified` |
-| `RollbackDataStrategy` | `clear`（重置表单）、`keep`（保留数据）|
+| `RollbackType` | `RollbackNone`（`none`）、`RollbackPrevious`（`previous`）、`RollbackStart`（`start`）、`RollbackAny`（`any`）、`RollbackSpecified`（`specified`） |
+| `RollbackDataStrategy` | `RollbackDataClear`（`clear`，重置表单）、`RollbackDataKeep`（`keep`，保留数据）|
+
+同一申请人处理使用 `SameApplicantAction`，取值包括
+`SameApplicantSelfApprove`（`self_approve`）、`SameApplicantAutoPass`
+（`auto_pass`）、`SameApplicantTransferSuperior`（`transfer_superior`）。
+连续审批人处理使用 `ConsecutiveApproverAction`，取值包括
+`ConsecutiveApproverNone`（`none`）与 `ConsecutiveApproverAutoPass`
+（`auto_pass`）。
 
 ## 空审批人处理
 
 当节点找不到审批人时：
 
-| 操作 | 常量 |
-| --- | --- |
-| 自动通过 | `EmptyAssigneeAutoPass` |
-| 转交管理员 | `EmptyAssigneeTransferAdmin` |
-| 转交上级 | `EmptyAssigneeTransferSuperior` |
-| 转交申请人 | `EmptyAssigneeTransferApplicant` |
-| 转交指定人 | `EmptyAssigneeTransferSpecified` |
+| 操作 | 常量 | Wire value |
+| --- | --- | --- |
+| 自动通过 | `EmptyAssigneeAutoPass` | `auto_pass` |
+| 转交管理员 | `EmptyAssigneeTransferAdmin` | `transfer_admin` |
+| 转交上级 | `EmptyAssigneeTransferSuperior` | `transfer_superior` |
+| 转交申请人 | `EmptyAssigneeTransferApplicant` | `transfer_applicant` |
+| 转交指定人 | `EmptyAssigneeTransferSpecified` | `transfer_specified` |
+
+枚举类型是 `EmptyAssigneeAction`。
 
 ## 超时处理
 
-| 操作 | 常量 | 行为 |
-| --- | --- | --- |
-| 无操作 | `TimeoutActionNone` | 仅标记超时 |
-| 自动通过 | `TimeoutActionAutoPass` | 自动审批通过 |
-| 自动拒绝 | `TimeoutActionAutoReject` | 自动审批拒绝 |
-| 发送通知 | `TimeoutActionNotify` | 仅发送通知 |
-| 转交管理员 | `TimeoutActionTransferAdmin` | 转交给节点管理员 |
+| 操作 | 常量 | Wire value | 行为 |
+| --- | --- | --- | --- |
+| 无操作 | `TimeoutActionNone` | `none` | 仅标记超时 |
+| 自动通过 | `TimeoutActionAutoPass` | `auto_pass` | 自动审批通过 |
+| 自动拒绝 | `TimeoutActionAutoReject` | `auto_reject` | 自动审批拒绝 |
+| 发送通知 | `TimeoutActionNotify` | `notify` | 仅发送通知 |
+| 转交管理员 | `TimeoutActionTransferAdmin` | `transfer_admin` | 转交给节点管理员 |
+
+枚举类型是 `TimeoutAction`。
 
 ## 表单数据存储
 
-| 模式 | 常量 | 存储位置 |
-| --- | --- | --- |
-| JSON | `StorageJSON` | `apv_instance.form_data`（JSONB 列）|
-| 数据表 | `StorageTable` | 动态表 `apv_form_data_{flow_code}` |
+| 模式 | 常量 | Wire value | 存储位置 |
+| --- | --- | --- | --- |
+| JSON | `StorageJSON` | `json` | `apv_instance.form_data`（JSONB 列）|
+
+`StorageJSON` 是当前包里唯一导出的存储模式。
+
+公开包暴露的流程设计和持久化模型包括 `FlowCategory`、`Flow`、`FlowVersion`、
+`FlowNode`、`FlowEdge`、`FlowInitiator`、`FlowNodeAssignee`、`FlowNodeCC`、
+`FormDefinition`、`FormFieldDefinition`、`FormSnapshot`、`ActionLog`、
+`OperatorInfo` 和 `UrgeRecord`。流程版本状态使用 `VersionStatus`：
+`VersionDraft`（`draft`）、`VersionPublished`（`published`）、
+`VersionArchived`（`archived`）。
+
+其他流程设计器枚举：
+
+| 枚举 | Wire values |
+| --- | --- |
+| `InitiatorKind` | `user`、`role`、`department` |
+| `ExecutionType` | `manual`、`auto`、`auto_pass`、`auto_reject` |
+| `ConditionKind` | `field`、`expression` |
+| `CCKind` | `user`、`role`、`department`、`form_field` |
+| `CCTiming` | `always`、`on_approve`、`on_reject` |
+| `FieldKind` | `input`、`textarea`、`select`、`number`、`date`、`upload` |
+| `Permission` | `visible`、`editable`、`hidden`、`required` |
 
 ## 事件发布
 
@@ -197,48 +524,54 @@ cc_record_retention       = "2160h"  # 90 天
 ### 领域事件类型
 
 所有审批事件都实现 `event.Event`，载荷已经包含足够字段来驱动集成而不再回源查询。
+常见事件 JSON 字段包括 `tenantId` 和 `occurredTime`；下表列出事件 topic wire
+value 和每类事件自己的 payload 字段。
 
 实例生命周期：
 
-| 类型常量 | 触发场景 |
-| --- | --- |
-| `approval.instance.created`（`InstanceCreatedEvent`） | 一个新实例被启动 |
-| `approval.instance.completed`（`InstanceCompletedEvent`） | 实例进入终态 |
-| `approval.instance.withdrawn`（`InstanceWithdrawnEvent`） | 申请人撤回实例 |
-| `approval.instance.rolled_back`（`InstanceRolledBackEvent`） | 实例回退到之前的节点 |
-| `approval.instance.returned`（`InstanceReturnedEvent`） | 实例退回申请人 |
-| `approval.instance.resubmitted`（`InstanceResubmittedEvent`） | 退回的实例重新提交 |
-| `approval.instance.binding_failed`（`InstanceBindingFailedEvent`） | binding listener 未能把终态写回业务行 |
+| 类型常量 | Topic | Payload / 构造器 | 除通用字段外的 payload 字段 | 触发场景 |
+| --- | --- | --- | --- | --- |
+| `EventTypeInstanceCreated` | `approval.instance.created` | `InstanceCreatedEvent`, `NewInstanceCreatedEvent` | `instanceId`、`flowId`、`title`、`applicantId`、`applicantName` | 一个新实例被启动 |
+| `EventTypeInstanceCompleted` | `approval.instance.completed` | `InstanceCompletedEvent`, `NewInstanceCompletedEvent` | `instanceId`、`finalStatus`、`finishedAt` | 实例进入终态 |
+| `EventTypeInstanceWithdrawn` | `approval.instance.withdrawn` | `InstanceWithdrawnEvent`, `NewInstanceWithdrawnEvent` | `instanceId`、`operatorId` | 申请人撤回实例 |
+| `EventTypeInstanceRolledBack` | `approval.instance.rolled_back` | `InstanceRolledBackEvent`, `NewInstanceRolledBackEvent` | `instanceId`、`fromNodeId`、`toNodeId`、`operatorId` | 实例回退到之前的节点 |
+| `EventTypeInstanceReturned` | `approval.instance.returned` | `InstanceReturnedEvent`, `NewInstanceReturnedEvent` | `instanceId`、`fromNodeId`、`toNodeId`、`operatorId` | 实例退回申请人 |
+| `EventTypeInstanceResubmitted` | `approval.instance.resubmitted` | `InstanceResubmittedEvent`, `NewInstanceResubmittedEvent` | `instanceId`、`operatorId` | 已退回或已撤回的实例重新提交 |
+| `EventTypeInstanceBindingFailed` | `approval.instance.binding_failed` | `InstanceBindingFailedEvent`, `NewInstanceBindingFailedEvent` | `instanceId`、`flowId`、`finalStatus`、`businessTable`、`errorMessage` | binding listener 未能把终态写回业务行 |
 
 节点生命周期：
 
-| 类型常量 | 触发场景 |
-| --- | --- |
-| `approval.node.entered` | 引擎激活某节点 |
-| `approval.node.auto_passed` | 节点因无审批人自动通过 |
+| 类型常量 | Topic | Payload / 构造器 | 除通用字段外的 payload 字段 | 触发场景 |
+| --- | --- | --- | --- | --- |
+| `EventTypeNodeEntered` | `approval.node.entered` | `NodeEnteredEvent`, `NewNodeEnteredEvent` | `instanceId`、`nodeId`、`nodeName` | 引擎激活某节点 |
+| `EventTypeNodeAutoPassed` | `approval.node.auto_passed` | `NodeAutoPassedEvent`, `NewNodeAutoPassedEvent` | `instanceId`、`nodeId`、`reason` | 节点因无审批人自动通过 |
 
 任务生命周期：
 
-| 类型常量 | 触发场景 |
-| --- | --- |
-| `approval.task.created` | 任务创建（v0.25 起，每条任务创建路径都会发出） |
-| `approval.task.approved` | 任务被批准 |
-| `approval.task.handled` | handle 任务完成 |
-| `approval.task.rejected` | 任务被驳回 |
-| `approval.task.transferred` | 任务被转交 |
-| `approval.task.reassigned` | 管理员重新指派任务 |
-| `approval.task.timed_out` | 超时扫描器触发配置的超时动作 |
-| `approval.task.assignees_added` | 动态新增审批人 |
-| `approval.task.assignees_removed` | 动态移除审批人 |
-| `approval.task.deadline_warning` | 预警扫描器命中即将到期任务 |
-| `approval.task.urged` | 申请人催办 |
+| 类型常量 | Topic | Payload / 构造器 | 除通用字段外的 payload 字段 | 触发场景 |
+| --- | --- | --- | --- | --- |
+| `EventTypeTaskCreated` | `approval.task.created` | `TaskCreatedEvent`, `NewTaskCreatedEvent` | `taskId`、`instanceId`、`nodeId`、`assigneeId`、`assigneeName`、`deadline` | 任务创建；顺序审批中的后续任务可能先没有 `deadline`，表示还在等待前置任务 |
+| `EventTypeTaskApproved` | `approval.task.approved` | `TaskApprovedEvent`, `NewTaskApprovedEvent` | `taskId`、`instanceId`、`nodeId`、`operatorId`、`opinion` | 任务被批准 |
+| `EventTypeTaskHandled` | `approval.task.handled` | `TaskHandledEvent`, `NewTaskHandledEvent` | `taskId`、`instanceId`、`nodeId`、`operatorId`、`opinion` | handle 任务完成 |
+| `EventTypeTaskRejected` | `approval.task.rejected` | `TaskRejectedEvent`, `NewTaskRejectedEvent` | `taskId`、`instanceId`、`nodeId`、`operatorId`、`opinion` | 任务被驳回 |
+| `EventTypeTaskTransferred` | `approval.task.transferred` | `TaskTransferredEvent`, `NewTaskTransferredEvent` | `taskId`、`instanceId`、`nodeId`、`fromUserId`、`fromUserName`、`toUserId`、`toUserName`、`reason` | 任务被转交 |
+| `EventTypeTaskReassigned` | `approval.task.reassigned` | `TaskReassignedEvent`, `NewTaskReassignedEvent` | `taskId`、`instanceId`、`nodeId`、`fromUserId`、`fromUserName`、`toUserId`、`toUserName`、`reason` | 管理员重新指派任务 |
+| `EventTypeTaskTimedOut` | `approval.task.timed_out` | `TaskTimedOutEvent`, `NewTaskTimedOutEvent` | `taskId`、`instanceId`、`nodeId`、`assigneeId`、`assigneeName`、`deadline` | 超时扫描器触发配置的超时动作 |
+| `EventTypeAssigneesAdded` | `approval.task.assignees_added` | `AssigneesAddedEvent`, `NewAssigneesAddedEvent` | `instanceId`、`nodeId`、`taskId`、`addType`、`assigneeIds`、`assigneeNames` | 动态新增审批人 |
+| `EventTypeAssigneesRemoved` | `approval.task.assignees_removed` | `AssigneesRemovedEvent`, `NewAssigneesRemovedEvent` | `instanceId`、`nodeId`、`taskId`、`assigneeIds`、`assigneeNames` | 动态移除审批人 |
+| `EventTypeTaskDeadlineWarning` | `approval.task.deadline_warning` | `TaskDeadlineWarningEvent`, `NewTaskDeadlineWarningEvent` | `taskId`、`instanceId`、`nodeId`、`assigneeId`、`assigneeName`、`deadline`、`hoursLeft` | 预警扫描器命中即将到期任务 |
+| `EventTypeTaskUrged` | `approval.task.urged` | `TaskUrgedEvent`, `NewTaskUrgedEvent` | `instanceId`、`nodeId`、`taskId`、`urgerId`、`urgerName`、`targetUserId`、`targetUserName`、`message` | 申请人催办 |
 
 CC + 流程：
 
-| 类型常量 | 触发场景 |
-| --- | --- |
-| `approval.cc.notified` | CC 节点完成通知 |
-| `approval.flow.created` / `updated` / `deployed` / `toggled` / `published` | 流程设计态生命周期变化 |
+| 类型常量 | Topic | Payload / 构造器 | 除通用字段外的 payload 字段 | 触发场景 |
+| --- | --- | --- | --- | --- |
+| `EventTypeCCNotified` | `approval.cc.notified` | `CCNotifiedEvent`, `NewCCNotifiedEvent` | `instanceId`、`nodeId`、`ccUserIds`、`ccUserNames`、`isManual` | CC 节点完成通知 |
+| `EventTypeFlowCreated` | `approval.flow.created` | `FlowCreatedEvent`, `NewFlowCreatedEvent` | `flowId`、`code`、`name`、`categoryId` | 流程创建 |
+| `EventTypeFlowUpdated` | `approval.flow.updated` | `FlowUpdatedEvent`, `NewFlowUpdatedEvent` | `flowId` | 流程更新 |
+| `EventTypeFlowDeployed` | `approval.flow.deployed` | `FlowDeployedEvent`, `NewFlowDeployedEvent` | `flowId`、`versionId`、`version` | 流程版本部署 |
+| `EventTypeFlowToggled` | `approval.flow.toggled` | `FlowToggledEvent`, `NewFlowToggledEvent` | `flowId`、`isActive` | 流程启停状态变化 |
+| `EventTypeFlowPublished` | `approval.flow.published` | `FlowPublishedEvent`, `NewFlowPublishedEvent` | `flowId`、`versionId` | 流程版本发布 |
 
 ## CallerContext 与多租户安全
 
@@ -294,6 +627,91 @@ if err := approval.ValidateBusinessIdentifier(table); err != nil {
 
 空字符串/全空白通过校验——是否把"未配置"算错误由调用方决定。超出白名单的值会返回 `approval.ErrInvalidBusinessIdentifier`。管理端 Flow CRUD 应该把它向上抛，让操作员看到可读的错误。
 
+## 错误面
+
+可 import 的 `approval` 包导出四个普通 Go sentinel。它们可用
+`errors.Is` 识别，但它们不是 `result.Error`，本身不带 API code 或 HTTP
+status。
+
+| 错误 | 源包 | 含义 |
+| --- | --- | --- |
+| `approval.ErrCrossTenantAccess` | `approval` | 非 super-admin 调用者尝试跨租户访问 |
+| `approval.ErrInvalidBusinessIdentifier` | `approval` | business table / field 标识符未通过 SQL 标识符白名单 |
+| `approval.ErrUnknownNodeKind` | `approval` | `NodeDefinition.ParseData` 遇到不支持的 `kind` |
+| `approval.ErrNodeDataUnmarshal` | `approval` | `NodeDefinition.ParseData` 无法解码节点 `data` |
+
+内置审批资源通过标准 API envelope 返回模块自己的 `result.Error`。这些值位于
+internal 包中，所以宿主应用应把下表的 code/message 组合视为公开 wire surface，
+而不是 import internal Go symbol。
+
+| Code | Code constant | Error value | i18n message key | 说明 |
+| --- | --- | --- | --- | --- |
+| `40001` | `ErrCodeFlowNotFound` | `ErrFlowNotFound` | `approval_flow_not_found` | flow 查找失败 |
+| `40002` | `ErrCodeFlowNotActive` | `ErrFlowNotActive` | `approval_flow_not_active` | flow 已禁用 |
+| `40003` | `ErrCodeNoPublishedVersion` | `ErrNoPublishedVersion` | `approval_no_published_version` | flow 没有已发布版本 |
+| `40004` | `ErrCodeVersionNotDraft` | `ErrVersionNotDraft` | `approval_version_not_draft` | 当前操作要求 draft 版本 |
+| `40005` | `ErrCodeInvalidFlowDesign` | `ErrInvalidFlowDesign` | `approval_invalid_flow_design` | 图或节点设计未通过校验 |
+| `40006` | `ErrCodeFlowCodeExists` | `ErrFlowCodeExists` | `approval_flow_code_exists` | flow code 重复 |
+| `40007` | `ErrCodeVersionNotFound` | `ErrVersionNotFound` | `approval_version_not_found` | flow version 查找失败 |
+| `40008` | `ErrCodeInvalidBusinessIdentifier` | `ErrInvalidBusinessIdentifier` | `approval_invalid_business_identifier` | business table / field 标识符未通过校验 |
+| `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance 查找失败 |
+| `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | instance 已完成 |
+| `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | 调用者不能发起该 flow |
+| `40104` | `ErrCodeWithdrawNotAllowed` | `ErrWithdrawNotAllowed` | `approval_withdraw_not_allowed` | 当前状态不允许撤回 |
+| `40105` | `ErrCodeResubmitNotAllowed` | `ErrResubmitNotAllowed` | `approval_resubmit_not_allowed` | 当前状态不允许重新提交 |
+| `40106` | `ErrCodeInvalidInstanceTransition` | `ErrInvalidInstanceTransition` | `approval_invalid_instance_transition` | instance 状态流转无效 |
+| `40201` | `ErrCodeTaskNotFound` | `ErrTaskNotFound` | `approval_task_not_found` | task 查找失败 |
+| `40202` | `ErrCodeTaskNotPending` | `ErrTaskNotPending` | `approval_task_not_pending` | task 不是 pending |
+| `40203` | `ErrCodeNotAssignee` | `ErrNotAssignee` | `approval_not_assignee` | 调用者不是该 task 的 assignee |
+| `40204` | `ErrCodeInvalidTaskTransition` | `ErrInvalidTaskTransition` | `approval_invalid_task_transition` | task 状态流转无效 |
+| `40205` | `ErrCodeRollbackNotAllowed` | `ErrRollbackNotAllowed` | `approval_rollback_not_allowed` | 此处不允许回退 |
+| `40206` | `ErrCodeAddAssigneeNotAllowed` | `ErrAddAssigneeNotAllowed` | `approval_add_assignee_not_allowed` | 禁止动态新增 assignee |
+| `40207` | `ErrCodeTransferNotAllowed` | `ErrTransferNotAllowed` | `approval_transfer_not_allowed` | 禁止转交 |
+| `40208` | `ErrCodeOpinionRequired` | `ErrOpinionRequired` | `approval_opinion_required` | 必填 opinion 为空 |
+| `40209` | `ErrCodeManualCcNotAllowed` | `ErrManualCcNotAllowed` | `approval_manual_cc_not_allowed` | 禁止手动 CC |
+| `40210` | `ErrCodeRemoveAssigneeNotAllowed` | `ErrRemoveAssigneeNotAllowed` | `approval_remove_assignee_not_allowed` | 禁止动态移除 assignee |
+| `40211` | `ErrCodeInvalidAddAssigneeType` | `ErrInvalidAddAssigneeType` | `approval_invalid_add_assignee_type` | `addType` 不是 `before`、`after` 或 `parallel` |
+| `40212` | `ErrCodeNotApplicant` | `ErrNotApplicant` | `approval_not_applicant` | 调用者不是申请人 |
+| `40213` | `ErrCodeInvalidRollbackTarget` | `ErrInvalidRollbackTarget` | `approval_invalid_rollback_target` | 回退目标不允许 |
+| `40214` | `ErrCodeLastAssigneeRemoval` | `ErrLastAssigneeRemoval` | `approval_last_assignee_removal` | 移除后会没有 active assignee |
+| `40215` | `ErrCodeInvalidTransferTarget` | `ErrInvalidTransferTarget` | `approval_invalid_transfer_target` | 转交或重新指派目标无效 |
+| `40301` | `ErrCodeNoAssignee` | `ErrNoAssignee` | `approval_no_assignee` | 无法解析出 assignee |
+| `40302` | `ErrCodeAssigneeResolveFailed` | `ErrAssigneeResolveFailed` | `approval_assignee_resolve_failed` | assignee resolver 失败 |
+| `40401` | `ErrCodeFormValidationFailed` | `ErrFormValidationFailed` | `approval_form_validation_failed` | 通用表单校验失败 |
+| `40401` | `ErrCodeFormValidationFailed` | `ErrFormDataTooLarge` | `approval_form_data_too_large` | 同一 code；JSON 编码后的 `formData` 超过 64 KiB |
+| `40401` | `ErrCodeFormValidationFailed` | 动态表单校验 `result.Err` | `approval_form_field_not_defined`, `approval_form_field_required`, `approval_form_field_must_be_string`, `approval_form_field_must_be_number`, `approval_form_field_min_length`, `approval_form_field_max_length`, `approval_form_field_invalid_validation`, `approval_form_field_pattern_mismatch`, `approval_form_field_min_value`, `approval_form_field_max_value`, `approval_form_field_empty`, `approval_form_field_invalid_file_item`, `approval_form_field_must_be_file`, `approval_form_field_invalid_value` | 字段级校验消息在运行时构造 |
+| `40402` | `ErrCodeFieldNotEditable` | `ErrFieldNotEditable` | `approval_field_not_editable` | 提交字段对当前 task 不可编辑 |
+| `40501` | `ErrCodeDelegationNotFound` | `ErrDelegationNotFound` | `approval_delegation_not_found` | delegation 查找失败 |
+| `40502` | `ErrCodeDelegationConflict` | `ErrDelegationConflict` | `approval_delegation_conflict` | delegation 时间窗与已有委托冲突 |
+| `40601` | `ErrCodeUrgeCooldown` | 动态 urge `result.Err` | `approval_urge_too_frequent` | 没有静态 sentinel；消息会带 `minutes`；非正数 `urgeCooldownMinutes` 默认按 30 分钟处理 |
+| `40701` | `ErrCodeAccessDenied` | `ErrAccessDenied` | `approval_access_denied` | 调用者缺少审批域访问权限 |
+| `40702` | `ErrCodeInstanceNotRunning` | `ErrInstanceNotRunning` | `approval_instance_not_running` | 管理端动作要求 running instance |
+
+`ErrEventRouteNotTransactional`、`ErrEventRouteNotSubscribable`、
+`ErrTenantNotResolved` 这类启动和租户解析诊断位于 `internal/approval/...`；
+它们不是可 import 的公开 Go API，但 event routing 或 principal tenant
+details 配错时，操作员可能会看到它们被包装后的错误消息。
+
+## 其他公开 API 索引
+
+| 范围 | 公开 API |
+| --- | --- |
+| caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
+| form data | `FormData`, `NewFormData`, `FormDefinition`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldOption` |
+| flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `OperatorInfo`, `UrgeRecord` |
+| node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
+| conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator` |
+| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
+| CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCRecord` |
+| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAuto`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden` |
+| rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
+| action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
+| pass rules | `PassRule`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
+| events | 所有 `New...Event` 构造器、`DomainEvent`、`PayloadOccurredAt` 和 `EventType...` 常量 |
+| extension interfaces | `InstanceLifecycleHook`, `BusinessBindingHook`, `InstanceNoGenerator`, `ConditionEvaluator`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver` |
+| admin DTOs | `approval/admin` 包：`Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `TaskDetailInfo`, `ActionLog`, `FlowNodeInfo`, `Metrics` |
+| user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `TaskInfo`, `ActionLogInfo`, `FlowNodeInfo`, `PendingCounts` |
+
 ## 委托
 
 用户可以将审批权限委托给他人：
@@ -322,6 +740,64 @@ type FlowDefinition struct {
 ```
 
 每个 `NodeDefinition` 包含 `Kind` 和强类型的 `Data` 字段，框架会按 `Kind` 把 `Data` 解析成对应结构（`StartNodeData`、`ApprovalNodeData`、`HandleNodeData`、`ConditionNodeData`、`CCNodeData`、`EndNodeData`）。
+
+### 流程 JSON Wire Shape
+
+`deploy` 会把流程定义当作完整快照处理。`NodeDefinition.ParseData` 根据
+`kind` 选择对应的强类型 `data` 结构；未知 kind 返回 `ErrUnknownNodeKind`，
+节点 `data` 的 JSON 解析失败会用 `ErrNodeDataUnmarshal` 包装。
+
+| 类型 | JSON 字段 |
+| --- | --- |
+| `FlowDefinition` | `nodes`、`edges` |
+| `NodeDefinition` | `id`、`kind`、`position`、`data`；`position` 包含 `x` 和 `y` |
+| `EdgeDefinition` | `id`、`source`、`target`、`sourceHandle`、`data` |
+
+只有条件节点的出边需要 `sourceHandle`，且它必须匹配某个分支 `id`。非条件节点的出边必须省略 `sourceHandle`。`EdgeDefinition.data` 是设计器元数据，保存在版本 `flowSchema` 中；运行时流转使用 `source`、`target` 和 `sourceHandle`。
+
+节点 `data` 字段如下：
+
+| 节点 data 类型 | JSON 字段 |
+| --- | --- |
+| `BaseNodeData` | `name`、`description`；每种节点 data 都嵌入它 |
+| `StartNodeData` | 只有 base 字段 |
+| `EndNodeData` | 只有 base 字段 |
+| `TaskNodeData` | `assignees`、`executionType`、`emptyAssigneeAction`、`fallbackUserIds`、`adminUserIds`、`isTransferAllowed`、`isOpinionRequired`、`timeoutHours`、`timeoutAction`、`timeoutNotifyBeforeHours`、`urgeCooldownMinutes`、`ccs`、`fieldPermissions` |
+| `ApprovalNodeData` | base 字段 + `TaskNodeData` 字段 + `approvalMethod`、`passRule`、`passRatio`、`sameApplicantAction`、`consecutiveApproverAction`、`rollbackType`、`rollbackDataStrategy`、`rollbackTargetKeys`、`isRollbackAllowed`、`isAddAssigneeAllowed`、`addAssigneeTypes`、`isRemoveAssigneeAllowed`、`isManualCcAllowed` |
+| `HandleNodeData` | base 字段 + `TaskNodeData` 字段；未设置时部署会默认 `approvalMethod = sequential`、`passRule = any` |
+| `CCNodeData` | base 字段 + `ccs`、`isReadConfirmRequired`、`fieldPermissions` |
+| `ConditionNodeData` | base 字段 + `branches` |
+
+`assignees` 条目使用 `kind`、`ids`、`formField` 和 `sortOrder`。`ccs`
+条目使用 `kind`、`ids`、`formField` 和 `timing`。部署时这些嵌入数组会额外物化为
+`FlowNodeAssignee` 和 `FlowNodeCC` 记录，不只是写入 `FlowNode` 行。
+
+条件分支使用 `id`、`label`、`conditionGroups`、`isDefault` 和 `priority`。
+每个 `conditionGroups` 条目包含 `conditions`；每个 condition 使用 `kind`、
+`subject`、`operator`、`value` 和 `expression`。
+
+`timeoutHours` 和 `timeoutNotifyBeforeHours` 的单位是小时。
+`urgeCooldownMinutes` 的单位是分钟；小于等于 0 时使用 30 分钟运行时默认值。`rollbackTargetKeys` 只在
+`rollbackType = specified` 时校验，里面放的是节点 key，不是数据库节点 ID。
+任务处理时，提交的 `formData` 只会合并 `fieldPermissions` 中标为 `editable`
+或 `required` 的字段；标为 `visible`、`hidden`，或没有出现在 map 中的字段都会在本次任务更新中被忽略。
+
+### 表单 JSON Wire Shape
+
+`FormDefinition` 使用 `fields` 数组。每个 `FormFieldDefinition` 条目使用
+`key`、`kind`、`label`、`placeholder`、`defaultValue`、`isRequired`、
+`options`、`validation`、`props` 和 `sortOrder`。每个 option 使用 `label`
+和 `value`。
+
+`validation` 支持 `minLength`、`maxLength`、`min`、`max`、`pattern` 和
+`message`。提交的 `formData` 在 JSON 编码后最大 64 KiB，即使流程没有表单
+schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会被拒绝；必填字段会拒绝
+缺失、`null`、空白字符串和空数组。`input`、`textarea`、`date` 字段必须是字符串，
+可使用 `minLength`、`maxLength` 和 `pattern`。`number` 字段接受 JSON 数字，
+可使用 `min` 和 `max`。`select` 字段在配置了 `options` 时会校验标量或数组值是否
+存在于选项中。`upload` 字段接受非空白字符串、非空 `[]string`，或非空且每项都是非空白
+字符串的数组。`validation.message` 只作为 `pattern` 不匹配时的自定义错误信息；
+其他校验失败使用模块 i18n 消息。
 
 ## 实例编号生成
 

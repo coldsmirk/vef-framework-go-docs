@@ -21,15 +21,38 @@ That order matters because later modules depend on earlier ones:
 
 ## What `vef.Run(...)` actually does
 
-At a high level:
+`vef.Run(...)` wires the FX app in this order:
 
-1. builds the framework module list
-2. appends your own FX options
-3. adds `startApp`
-4. creates the FX app
-5. runs it
+1. installs the framework FX logger with `fx.WithLogger(newFxLogger)`
+2. adds the internal config module
+3. adds the internal datasource module
+4. appends every option returned by `bootmodules.Core()`
+5. appends the user-provided `options...`
+6. appends `fx.Invoke(startApp)`
+7. appends `fx.StartTimeout(defaultTimeout)`
+8. appends `fx.StopTimeout(defaultTimeout*2)`
+9. creates the app with `fx.New(opts...)`
+10. runs it with `app.Run()`
 
-The default start timeout is `30s`. The default stop timeout is `60s`.
+`defaultTimeout` is `30 * time.Second`, so the default start timeout is `30s`
+and the default stop timeout is `60s`.
+
+Because user options are appended after `bootmodules.Core()`, application
+modules can append group members through helpers such as
+`vef.ProvideAPIResource(...)`. Replacing a core-provided singleton usually
+requires `vef.Decorate(...)`, `vef.Replace(...)`, or a framework replacement
+helper such as `vef.SupplyFileACL(...)`; registering a second plain
+`vef.Provide(...)` for the same service is not an override.
+
+Advanced modules can receive `vef.Lifecycle` and call `Lifecycle.Append(...)`
+to register an `fx.Hook` directly; `vef.StartHook`, `vef.StopHook`, and
+`vef.StartStopHook` are convenience constructors for those hooks.
+The exact `Lifecycle.Append` signature is tracked in the public API index.
+
+The internal `startApp` invoke appends the HTTP server lifecycle hook after the
+module graph has been constructed. Its `OnStart` waits for
+`application.Start()` or the start context timeout, and its `OnStop` calls
+`application.Stop()`.
 
 Minimal boot example:
 

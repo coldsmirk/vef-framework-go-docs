@@ -106,7 +106,7 @@ typed 请求控制信息就是这样注入的。
 | query string | `params` | 读操作过滤条件或普通请求字段 |
 | `POST` / `PUT` / `PATCH` 的 JSON body | `params` | 写入 payload |
 | `POST` / `PUT` / `PATCH` 的 multipart 字段 | `params` | 包括上传文件 |
-| `X-Meta-*` headers | `meta` | 请求级控制参数 |
+| `X-Meta-*` headers | `meta` | 请求级控制参数；去掉前缀后的 key 会被转成小写 |
 
 这意味着分页和排序并不会自动从 query string 塞进内置 meta helper 里。如果 handler 期望的是 `page.Pageable` 这类 meta 目标，调用方应该通过 `X-Meta-*` headers 或显式 typed meta 契约来提供。
 
@@ -124,6 +124,8 @@ multipart 上传可以填充这些 params 形态：
 ## 验证行为
 
 typed params 和 typed meta 在解码后会自动验证。
+`Params.Decode` 和 `Meta.Decode` 都要求目标是 struct 指针；非 struct 或非指针
+目标会在验证前失败。
 
 | 目标类型 | 是否验证 |
 | --- | --- |

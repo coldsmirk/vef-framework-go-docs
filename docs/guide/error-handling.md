@@ -25,6 +25,10 @@ VEF uses two closely related result types:
 }
 ```
 
+`result.Error` is not serialized directly as the client response. The app error
+handler extracts `Code`, `Message`, and `Status`, sends `Code` and `Message` in
+the `result.Result` envelope, and uses `Status` as the HTTP status.
+
 ## Successful Responses
 
 Successful handlers usually return:
@@ -41,6 +45,9 @@ return result.Ok(data).Response(ctx)
 | `result.Ok(data)` | success with payload |
 | `result.Ok(result.WithMessage(...))` | success with custom message |
 | `result.Ok(data, result.WithMessage(...))` | success with payload and custom message |
+
+`result.Ok(...)` accepts at most one data argument. Data must come before
+`OkOption` values; multiple data arguments or data after an option panic.
 
 ## Structured Error Creation
 
@@ -63,7 +70,10 @@ return result.Err(
 | `result.Err("message", result.WithStatus(...))` | custom HTTP status |
 | `result.Err("message", result.WithCode(...), result.WithStatus(...))` | full override |
 
-`result.Errf(...)` provides the same idea with formatted messages.
+The optional message string must be the first `Err(...)` argument, and the rest
+must be `ErrOption` values. `result.Errf(...)` provides the same idea with
+formatted messages; it requires at least one format argument, and options must
+come after all format arguments.
 
 ## Error Options
 
@@ -75,6 +85,19 @@ Available result options:
 | `result.WithStatus(status)` | `result.Err(...)` | sets the HTTP status code |
 | `result.WithMessage(message)` | `result.Ok(...)` | overrides the success message |
 | `result.WithMessagef(format, ...)` | `result.Ok(...)` | formats the success message |
+
+There is no message option for `result.Error`; use the first `Err(...)`
+argument or `Errf(...)` to set the error message. Default `Err(...)` values use
+`result.ErrCodeDefault` (`2000`), message `i18n.T(result.ErrMessage)`, and HTTP
+status `200 OK`.
+
+## Error Identity Helpers
+
+`result.Error` implements `errors.Is` by comparing `Code` only. `Message` and
+`Status` do not affect identity, so dynamically formatted errors can still match
+a predefined sentinel with the same code. Use `result.AsErr(err)` to extract a
+`result.Error` from an error chain, and `result.IsRecordNotFound(err)` for the
+record-not-found sentinel check.
 
 ## Predefined Error Families
 
@@ -94,9 +117,13 @@ VEF ships ready-made `result.Error` values across the framework. Starting from v
 | `result.ErrDangerousSQL` | `result.ErrCodeDangerousSQL` (1600) | `200` |
 | `result.ErrNotImplemented(message)` | `result.ErrCodeNotImplemented` (1500) | `501` |
 
+`result.ErrCodeBadRequest`, `result.ErrCodeNotFound`, and
+`result.ErrCodeUnsupportedMediaType` are exported building-block constants, not
+predefined `result.Error` values in the `result` package.
+
 ### Security errors (`security` package)
 
-Authentication, signature, and challenge flow errors live in `github.com/coldsmirk/vef-framework-go/security` with their own `ErrCodeXxx` constants (1000-1038 range).
+Authentication, signature, and challenge flow errors live in `github.com/coldsmirk/vef-framework-go/security` with their own `ErrCodeXxx` constants. Authentication uses `1000-1022`; challenge errors reserve `1030-1039` and currently export `1031`, `1033`, and `1034-1038`.
 
 | Error value | Business code | Default HTTP status |
 | --- | --- | --- |
@@ -136,12 +163,14 @@ Authentication, signature, and challenge flow errors live in `github.com/coldsmi
 | Module package | Error values | Code range |
 | --- | --- | --- |
 | `api` | `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta` | 1400 (`result.ErrCodeBadRequest`) |
-| `monitor` | `monitor.ErrNotReady` | 2100 |
-| `storage` | `storage.ErrInvalidFileKey`, `storage.ErrFileNotFound`, `storage.ErrFailedToGetFile` | 2200-2202 |
+| `monitor` | `monitor.ErrNotReady`, `monitor.ErrCollectionFailed` | 2100-2101 |
+| `storage` | `storage.ErrInvalidFileKey`, `storage.ErrFileNotFound`, `storage.ErrFailedToGetFile`, and multipart upload / claim errors such as `storage.ErrUploadRequiresMultipart`, `storage.ErrUploadPartsIncomplete`, and `storage.ErrAbortFailed` | 2200-2219 |
 | `schema` | `schema.ErrTableNotFound` | 2300 |
-| `crud` | `crud.ErrCodeProcessorInvalidReturn` (a `result.Error` code) plus plain sentinels `crud.ErrModelNoPrimaryKey`, `crud.ErrAuditUserCompositePK`, `crud.ErrSearchTypeMismatch`, `crud.ErrColumnNotFound` | 2400 |
+| `crud` | `crud.ErrCodeProcessorInvalidReturn`, CRUD import/export and primary-key result errors, plus plain sentinels such as `crud.ErrModelNoPrimaryKey` and `crud.ErrAuditUserCompositePK` | 2400-2410 |
+| `expression` | `expression.ErrEvaluationFailed` | 2500 |
+| `approval` | public plain sentinels: `approval.ErrCrossTenantAccess`, `approval.ErrInvalidBusinessIdentifier`, `approval.ErrUnknownNodeKind`, `approval.ErrNodeDataUnmarshal`; built-in approval resources return internal `result.Error` values | 40001-40702 |
 
-> The `approval` package currently exports two `errors.New`-style sentinels (`approval.ErrCrossTenantAccess`, `approval.ErrInvalidBusinessIdentifier`). These are plain Go errors, **not** `result.Error` values, so they have no code/status fields — wrap them in `result.Err(...)` if you need to return them through the API envelope. See the [Approval module](../modules/approval) for the full domain error catalog (most live in the internal sub-packages).
+> The four public `approval` sentinels are plain Go errors, **not** `result.Error` values, so they have no code/status fields. Built-in approval resource responses use the internal 40xxx result-envelope catalog instead; see the [Approval module](../modules/approval) for the full code and message-key table.
 
 ## Business Codes
 

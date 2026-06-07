@@ -6,6 +6,34 @@ sidebar_position: 1
 
 The `id` package provides pluggable unique identifier generation. The framework ships four built-in strategies — XID, UUID v7, Snowflake, and random/Nano-style IDs.
 
+## Reviewed Public Surface
+
+The current source audit for `github.com/coldsmirk/vef-framework-go/id`
+covers 15 top-level exported symbols, no exported fields, and 1 exported
+method. The reviewed public-surface fingerprint is
+`e9c002ee81d48b44c4f3a4dce5ebaf83f0a5c8d9f9dc2aa7885e94e1d325f79f`.
+
+Reviewed APIs:
+
+| API | Contract |
+| --- | --- |
+| `id.IDGenerator` | Interface implemented by every built-in generator |
+| `IDGenerator.Generate()` | Returns the next ID as a string; concrete format depends on the generator |
+| `id.Generate()` | Delegates to `DefaultXIDGenerator.Generate()` and returns a 20-character XID |
+| `id.GenerateUUID()` | Delegates to `DefaultUUIDGenerator.Generate()` and returns a UUID v7 string |
+| `id.DefaultXIDGenerator` | Package-level XID singleton created by `NewXIDGenerator()` |
+| `id.DefaultUUIDGenerator` | Package-level UUID v7 singleton created by `NewUUIDGenerator()` |
+| `id.DefaultSnowflakeIDGenerator` | Package-level Snowflake singleton initialized from `VEF_NODE_ID`, or node `0` when unset |
+| `id.NewXIDGenerator()` | Returns an `IDGenerator` that wraps `xid.New().String()` |
+| `id.NewUUIDGenerator()` | Returns an `IDGenerator` that uses `uuid.NewV7()` and panics if UUID creation fails |
+| `id.NewSnowflakeIDGenerator(nodeID)` | Returns a Base36 Snowflake generator for node IDs `0..63`; invalid node IDs return an error |
+| `id.NewRandomIDGenerator(opts...)` | Returns a random/Nano-style generator with defaults, then applies options in order |
+| `id.RandomIDGeneratorOption` | Function option type used by the random generator constructor |
+| `id.WithAlphabet(alphabet)` | Sets the random generator alphabet |
+| `id.WithLength(length)` | Sets the random generator output length |
+| `id.DefaultRandomIDGeneratorAlphabet` | Default random alphabet, `0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ` |
+| `id.DefaultRandomIDGeneratorLength` | Default random output length, `32` |
+
 ## Quick Start
 
 ```go
@@ -37,6 +65,8 @@ XID is the framework's default for model primary keys — best balance of perfor
 xid := id.Generate()
 // or
 xid := id.DefaultXIDGenerator.Generate()
+// or
+xid = id.NewXIDGenerator().Generate()
 ```
 
 ### UUID v7
@@ -53,22 +83,25 @@ Time-based, RFC 4122-compliant UUIDs — use these when integrating with systems
 uuid := id.GenerateUUID()
 // or
 uuid := id.DefaultUUIDGenerator.Generate()
+// or
+uuid = id.NewUUIDGenerator().Generate()
 ```
 
 ### Snowflake
 
-Twitter-style Snowflake IDs — 64-bit integers encoded as decimal strings. Use these when you need ordered, distributed integer IDs.
+Twitter-style Snowflake IDs — 64-bit IDs encoded as Base36 strings. Use these
+when you need ordered, distributed IDs.
 
 | Property | Value |
 | --- | --- |
-| Encoding | Custom: 6 node bits (0-63 nodes), 12 step bits (4096 IDs/ms/node) |
+| Encoding | Base36 string from a custom Snowflake layout: 6 node bits (0-63 nodes), 12 step bits (4096 IDs/ms/node) |
 | Epoch | `1754582400000` (custom epoch baked into the package) |
-| Node ID | Read from the `VEF_NODE_ID` environment variable at startup |
+| Node ID | Read from the `VEF_NODE_ID` environment variable at startup; defaults to `0` when unset |
 | Default instance | `id.DefaultSnowflakeIDGenerator` |
 
 ```go
 snow := id.DefaultSnowflakeIDGenerator.Generate()
-// → "7234567890123456789"
+// → Base36 string
 ```
 
 For a custom node ID, build a fresh generator:
@@ -80,6 +113,10 @@ if err != nil {
 }
 sid := gen.Generate()
 ```
+
+`NewSnowflakeIDGenerator` returns an error for node IDs outside `0..63`, including
+negative values. During package initialization, `VEF_NODE_ID` is parsed as an
+integer; invalid values panic at startup.
 
 > Snowflake supports up to 64 nodes and 4096 IDs per millisecond per node. Pin `VEF_NODE_ID` uniquely per process to avoid collisions.
 
@@ -103,6 +140,14 @@ gen = id.NewRandomIDGenerator(
     id.WithLength(16),
 )
 ```
+
+`RandomIDGeneratorOption` is the option type used by `WithAlphabet(...)` and
+`WithLength(...)`.
+
+Options are applied in the order passed to `NewRandomIDGenerator(...)`. The
+constructor does not validate custom alphabets or lengths; generation uses
+`go-nanoid/v2` `MustGenerate`, so an empty alphabet or zero length panics when
+`Generate()` is called.
 
 ## IDGenerator Interface
 

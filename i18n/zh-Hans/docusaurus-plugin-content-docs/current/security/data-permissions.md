@@ -66,6 +66,43 @@ VEF 把这两个层次清楚地分开了。
 
 具体策略由应用自己的 resolver 和 scope 实现负责。
 
+内置 data scope 使用这些精确 key 和默认值：
+
+| Scope | `Key()` | `Priority()` | 行为 |
+| --- | --- | --- | --- |
+| `AllDataScope` | `all` | `PriorityAll` (`10000`) | 支持所有表，不修改查询 |
+| `SelfDataScope` | `self` | `PrioritySelf` (`10`) | 只支持存在创建人列的表，并按当前 principal ID 添加等值过滤 |
+
+`NewSelfDataScope("")` 会把创建人列默认成 `created_by`（`orm.ColumnCreatedBy`）。
+当目标 table 没有该列时，`SelfDataScope.Supports(...)` 返回 false，因此不会对该表应用过滤。
+
+priority 常量分别是 `PrioritySelf` (`10`)、`PriorityDepartment` (`20`)、
+`PriorityDepartmentAndSub` (`30`)、`PriorityOrganization` (`40`)、
+`PriorityOrganizationAndSub` (`50`)、`PriorityCustom` (`60`) 和
+`PriorityAll` (`10000`)。默认 RBAC data-permission resolver 在多个角色 scope
+匹配同一个 permission 时，会选择数值最高的 priority，也就是 highest numeric priority。
+
+`RequestScopedDataPermApplier.Apply(...)` 的跳过和错误路径是明确的：
+
+| 条件 | 结果 |
+| --- | --- |
+| 未配置 `DataScope` | 跳过且不报错，skip without error |
+| query 没有实现 `orm.QueryBuilder` | `ErrQueryNotQueryBuilder` |
+| query builder 没有 model/table | `ErrQueryModelNotSet` |
+| `DataScope.Supports(...)` 返回 false | 跳过且不报错，skip without error |
+| `DataScope.Apply(...)` 返回错误 | 返回错误会包含 scope key |
+
+## 数据权限相关公开 API
+
+| API 组 | 公开 surface |
+| --- | --- |
+| scope | `DataScope`, `AllDataScope`, `SelfDataScope`, `NewAllDataScope`, `NewSelfDataScope` |
+| scope priority | `PrioritySelf`, `PriorityDepartment`, `PriorityDepartmentAndSub`, `PriorityOrganization`, `PriorityOrganizationAndSub`, `PriorityCustom`, `PriorityAll` |
+| resolver dependency | `RolePermissionsLoader` |
+| request applier | `DataPermissionResolver`, `DataPermissionApplier`, `RequestScopedDataPermApplier`, `NewRequestScopedDataPermApplier` |
+| department | `DepartmentLoader`, `DepartmentOption`, `DepartmentSelector`, `DepartmentSelectionChallengeData`, `DepartmentSelectionChallengeProvider` |
+| 诊断错误 | `ErrQueryNotQueryBuilder`, `ErrQueryModelNotSet` |
+
 ## 实践建议
 
 - 数据范围规则尽量放在 handler 外部

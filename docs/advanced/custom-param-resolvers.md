@@ -44,8 +44,6 @@ import (
   "reflect"
 
   "github.com/gofiber/fiber/v3"
-
-  "github.com/coldsmirk/vef-framework-go/api"
 )
 
 type TenantContext struct {

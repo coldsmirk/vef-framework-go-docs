@@ -6,6 +6,8 @@ sidebar_position: 1
 
 VEF is built on Uber FX. The public `vef` package re-exports the core FX helpers so that most applications can stay inside one consistent API surface.
 
+Audit note: the root `vef` package coverage spans this page, [Extension Points](../reference/extension-points), and [Application Lifecycle](./lifecycle). Together they cover 49 public root-package entries: 48 top-level entries, 0 exported field entries, and 1 grouped `Lifecycle.Append` method entry.
+
 ## The key idea
 
 You do not bootstrap subsystems manually. Instead, you compose them through FX options:
@@ -25,7 +27,7 @@ In a real application, `main.go` often looks more like this:
 ```go
 vef.Run(
   ivef.Module,  // framework-facing integration
-  mcp.Module,   // custom MCP providers
+  tools.Module, // custom MCP providers registered through vef.ProvideMCP*
   web.Module,   // SPA hosting
   auth.Module,  // auth loaders
   sys.Module,   // system/admin resources
@@ -44,9 +46,35 @@ The `vef` package re-exports the FX primitives you use most often:
 - `vef.Module`
 - `vef.Provide`
 - `vef.Supply`
+- `vef.Annotate`
+- `vef.As`
+- `vef.From`
+- `vef.ParamTags`
+- `vef.ResultTags`
+- `vef.Self`
 - `vef.Invoke`
 - `vef.Decorate`
 - `vef.Replace`
+- `vef.Populate`
+- `vef.Private`
+- `vef.OnStart`
+- `vef.OnStop`
+
+It also aliases the common FX marker types:
+
+- `vef.In`
+- `vef.Out`
+- `vef.Lifecycle`
+- `vef.Hook`
+- `vef.HookFunc`
+
+Lifecycle hook wrappers are available as `vef.StartHook`, `vef.StopHook`, and
+`vef.StartStopHook`.
+
+The wrapper also exposes `vef.From`, `vef.Replace`, and `vef.Populate` for
+advanced DI scenarios. They are the same FX primitives, kept under the `vef`
+package so framework-facing modules can usually avoid importing `go.uber.org/fx`
+directly.
 
 This keeps most application code from importing `fx` directly unless you need something more specific.
 
@@ -62,8 +90,24 @@ Several framework features are connected through FX groups. These are the most i
 - `vef:mcp:resources`
 - `vef:mcp:templates`
 - `vef:mcp:prompts`
+- `vef:event:transports`
+- `vef:event:publish-middlewares`
+- `vef:event:consume-middlewares`
+- `vef:datasource:providers`
+- `vef:approval:lifecycle_hooks`
 
-The helper functions in `di.go` exist mainly to register values into those groups safely.
+The helper functions in `di.go` exist mainly to register values into those groups safely. The helper name prefix does not always describe the FX mechanism, so read them by behavior:
+
+| Mechanism | Helpers |
+| --- | --- |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Supply` with group tags | `SupplySPAConfigs` |
+| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| plain `fx.Supply` value | `SupplyMCPServerInfo` |
+
+The replacement helpers are not additive. For example,
+`ProvideEventMetricsRecorder` and `ProvideEventErrorSink` decorate the default
+single service instead of appending another group member.
 
 ## API resources
 
@@ -84,9 +128,50 @@ vef.ProvideMiddleware(NewAuditTrailMiddleware)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
 vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
 vef.ProvideMCPTools(NewToolProvider)
+vef.ProvideMCPResources(NewResourceProvider)
+vef.ProvideMCPResourceTemplates(NewTemplateProvider)
+vef.ProvideMCPPrompts(NewPromptProvider)
+vef.ProvideSPAConfig(NewWebConfig)
+vef.ProvideEventTransport(NewKafkaTransport)
+vef.ProvideEventPublishMiddleware(NewAuditPublishMiddleware)
+vef.ProvideEventConsumeMiddleware(NewRecoverConsumeMiddleware)
+vef.ProvideDataSourceProvider(NewTenantDataSourceProvider)
 ```
 
 Each helper hides the FX group tag so that application code stays easier to read.
+
+Some extension helpers replace framework defaults instead of adding group
+members:
+
+- `vef.ProvideEventMetricsRecorder(...)`
+- `vef.ProvideEventErrorSink(...)`
+- `vef.SupplyFileACL(...)`
+- `vef.SupplyURLKeyMapper(...)`
+- `vef.SupplyBusinessBindingHook(...)`
+
+`vef.SupplyMCPServerInfo(...)` is different: it supplies a single
+`mcp.ServerInfo` value. `vef.SupplySPAConfigs(...)` is also different: it
+supplies one or more `middleware.SPAConfig` values into the `vef:spa` group.
+
+Use `vef.NamedLogger(name)` when application integration code needs a framework
+`logx.Logger` outside dependency injection.
+
+## Optional feature modules
+
+Some framework features are not part of the default boot graph. Enable them only
+when the application needs them:
+
+```go
+vef.Run(
+  vef.ApprovalModule,
+  user.Module,
+)
+```
+
+`vef.ApprovalModule` turns on the approval/workflow feature and registers its API
+resources, CQRS handlers, engine, binding listener, and scanners. Approval's
+`approval.*` events require a transactional route with a subscribable sink; see
+[Approval Module](./approval) for the routing details.
 
 ## Module roles in a larger app
 

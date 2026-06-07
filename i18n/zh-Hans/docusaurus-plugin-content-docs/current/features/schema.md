@@ -6,6 +6,10 @@ sidebar_position: 7
 
 VEF 内置了一个 schema 检查 service，以及一个可通过应用 API 读取数据库结构的内置资源。
 
+内置实现只检查 primary data source。它通过 Atlas 支持 PostgreSQL、MySQL 和
+SQLite。PostgreSQL 会使用已配置的 `vef.datasource.*.schema`，未配置时默认
+为 `public`；MySQL 检查当前 `DATABASE()`；SQLite 检查 `main` schema。
+
 ## 模块输出
 
 schema 模块会提供：
@@ -45,9 +49,24 @@ schema 模块会注册：
 
 - 每个 action 当前都单独设置了 `Max = 60` 的限流上限
 - `get_table_schema` 会校验 `name` 必填
-- 表不存在时会映射到 `schema.ErrCodeTableNotFound`（对应 `schema.ErrTableNotFound` sentinel）
+- 表不存在时会映射到 `schema.ErrCodeTableNotFound`（`ErrCodeTableNotFound`，对应 `schema.ErrTableNotFound` / `ErrTableNotFound` sentinel）
+- RPC 响应仍使用标准 result envelope；业务错误写在 body 里，不通过不同 HTTP status 区分
+
+## 错误 API
+
+| API | 含义 |
+| --- | --- |
+| `schema.ErrTableNotFound` | 请求的表不存在时返回的业务错误 |
+| `schema.ErrCodeTableNotFound` | 表不存在对应的数值业务错误码 |
 
 ## 公共 Schema 类型
+
+审查说明：本页覆盖 53 public schema entries，其中包括 41 grouped schema field/method entries，分布在 10 schema receiver/type families；成组 DTO / service surface 包含 38 exported schema field entries 和 3 exported schema method entries。
+
+所有公开 schema DTO 的 JSON 字段名就是 wire contract。带 `omitempty` 的字段在
+为空时会被省略，例如 `schema`、`comment`、`primaryKey`、`indexes`、
+`uniqueKeys`、`foreignKeys`、`checks`、`default`、`isPrimaryKey`、
+`isAutoIncrement`、`onUpdate`、`onDelete`，以及 `schema.View` 的 `columns`。
 
 ### `schema.Table`
 
@@ -82,6 +101,10 @@ schema 模块会注册：
 | `comment` | `string` | 列注释 |
 | `isPrimaryKey` | `bool` | 是否属于主键 |
 | `isAutoIncrement` | `bool` | 是否自增 |
+
+`isAutoIncrement` 会识别 MySQL `AUTO_INCREMENT`、SQLite `AUTOINCREMENT`、
+PostgreSQL identity column，以及 PostgreSQL `serial`、`bigserial`、
+`smallserial` raw type。
 
 ### `schema.PrimaryKey`
 
@@ -131,6 +154,10 @@ schema 模块会注册：
 | `definition` | `string` | 视图定义 SQL |
 | `comment` | `string` | 视图注释 |
 | `columns` | `[]string` | 输出列 |
+
+视图列表使用数据库方言专属查询：PostgreSQL 和 MySQL 读取
+`information_schema.views`；SQLite 读取 `sqlite_schema`，并排除内部
+`sqlite_%` 视图。
 
 ## 最小请求示例
 

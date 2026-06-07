@@ -22,6 +22,7 @@ Unless noted otherwise:
 | `sys/storage` | `storage` | Bearer auth by default | Multipart upload session lifecycle (init / part / list / complete / abort). Downloads are served via the `/storage/files/<key>` app proxy, not via RPC. |
 | `sys/schema` | `schema` | Bearer auth by default | Database schema inspection |
 | `sys/monitor` | `monitor` | Bearer auth by default | Runtime and host monitoring data |
+| `approval/*` | `approval` | Bearer auth required; per-action permissions where declared | Optional workflow resources registered only when `vef.ApprovalModule` is enabled |
 
 ## `security/auth`
 
@@ -99,28 +100,42 @@ Storage resource provided by the storage module. The single-PUT `upload` action 
 | `init_upload` | Bearer auth required | API engine default | Open a new multipart session. Server returns the negotiated part plan and an opaque `claimId`. | `InitUploadParams` |
 | `upload_part` | Bearer auth required | API engine default | Upload one part of an open session (multipart form). | `UploadPartParams` |
 | `list_parts` | Bearer auth required | API engine default | List parts already uploaded for a session. | `ListPartsParams` |
-| `complete_upload` | Bearer auth required | API engine default | Seal a session by submitting the ordered part manifest. | `CompleteUploadParams` |
+| `complete_upload` | Bearer auth required | API engine default | Seal a session; the server assembles the part manifest from recorded parts. | `CompleteUploadParams` |
 | `abort_upload` | Bearer auth required | API engine default | Abort and release a session. | `AbortUploadParams` |
 
 Related HTTP route:
 
 - `/storage/files/<key>` is an app-level download proxy route, not an RPC action.
-- It does not automatically inherit RPC Bearer authentication; access is governed by `storage.FileACL`.
+- It does not automatically inherit RPC Bearer authentication; `pub/*` is served anonymously and all other keys are governed by `storage.FileACL`.
 
 ### `init_upload` parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `filename` | `string` | Yes | Original filename (≤ 255 chars). Used to derive the safe extension and stored as metadata. |
+| `filename` | `string` | Yes | Original filename (≤ 255 chars). Used to derive the safe extension and stored on the upload claim. |
 | `size` | `int` | Yes | Total object size in bytes (≥ 1). The server validates against `vef.storage.max_upload_size`. |
 | `contentType` | `string` | No | Client-supplied MIME (≤ 127 chars). Sanitized server-side — unsafe values are overridden by extension-based detection or fall back to `application/octet-stream`. |
 | `public` | `bool` | No | Place the key under `pub/` instead of `priv/`. Requires `vef.storage.allow_public_uploads = true`. |
 
-Response shape includes `key`, `claimId`, `originalFilename`, `partSize`, `partCount`, and `expiresAt`. The backend's multipart `UploadID` is intentionally not returned to the client; the server reloads it from the claim row.
+Requests with `public = true` are rejected unless `vef.storage.allow_public_uploads`
+is enabled.
+
+Only `claimId` is client-facing; the backend session handle is internal and is never returned.
+
+Response:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `key` | `string` | Planned final object key under `priv/` or `pub/`. |
+| `claimId` | `string` | Opaque client-facing session handle for the remaining upload actions. |
+| `originalFilename` | `string` | Client-supplied filename stored on the upload claim. |
+| `partSize` | `int` | Backend-authoritative part size in bytes. |
+| `partCount` | `int` | Number of parts the client must upload. Small files still use `partCount = 1`. |
+| `expiresAt` | timestamp | Claim expiration time. |
 
 ### `upload_part` parameters
 
-This action expects `multipart/form-data`, not JSON. Multipart fields decode into `params`:
+This action expects `multipart/form-data`, not JSON. The form carries the normal RPC fields (`resource`, `action`, `version`), a `params` field containing JSON such as `{"claimId":"...","partNumber":1}`, and a file part named `file`.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -130,11 +145,24 @@ This action expects `multipart/form-data`, not JSON. Multipart fields decode int
 
 The backend ETag is intentionally not returned to the client — the server records it server-side and reuses it during `complete_upload`.
 
+Response:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `partNumber` | `int` | Accepted part number. |
+| `size` | `int` | Recorded byte size for that part. |
+
 ### `list_parts` parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `claimId` | `string` | Yes | Session to inspect. Response is a list of `{partNumber, size}` entries. |
+| `claimId` | `string` | Yes | Active pending session to inspect. |
+
+Response:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `parts` | `object[]` | Uploaded parts ordered by `partNumber`; each entry contains `partNumber` and `size`. Part ETags are not exposed. |
 
 ### `complete_upload` parameters
 
@@ -142,13 +170,30 @@ The backend ETag is intentionally not returned to the client — the server reco
 | --- | --- | --- | --- |
 | `claimId` | `string` | Yes | Session to seal. The server reassembles the manifest from its own part-store records — no client-supplied ETags are accepted. |
 
-On success the server writes the final `upload_claim` row (still pending business adoption) and returns the object key. Subsequent calls against the same claim are idempotent fast-paths.
+On success the server marks the existing claim as uploaded, clears its recorded parts, and returns object metadata plus `originalFilename`. The uploaded claim is still pending business adoption. Subsequent calls against the same uploaded claim are idempotent fast-paths.
+If the assembled object size does not match the claim, the action returns
+`ErrCodeUploadSizeMismatch`.
+
+Response:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `bucket` | `string` | Backend bucket name when the provider reports one. |
+| `key` | `string` | Final object key. |
+| `eTag` | `string` | Final object ETag. This is not a part ETag and is not supplied to `complete_upload`. |
+| `size` | `int` | Final object size in bytes. |
+| `contentType` | `string` | Sanitized content type stored for the object. |
+| `lastModified` | timestamp | Backend last-modified time. |
+| `metadata` | `object` | Optional backend metadata map. The HTTP upload API does not accept user-supplied metadata. |
+| `originalFilename` | `string` | Filename captured during `init_upload`. |
 
 ### `abort_upload` parameters
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `claimId` | `string` | Yes | Session to abort. Idempotent — re-aborting an already-closed session returns success. |
+| `claimId` | `string` | Yes | Session to abort. |
+
+Response has no data payload. The action is retry-safe: a missing claim returns success, and a claim already marked non-pending for the same owner is a no-op. An existing claim owned by a different principal is still rejected.
 
 Minimal request example:
 
@@ -177,7 +222,6 @@ Schema inspection resource provided by the schema module.
 | `list_tables` | Bearer auth required | Custom operation max `60` | Returns all tables in the current database or schema | None |
 | `get_table_schema` | Bearer auth required | Custom operation max `60` | Returns detailed schema information for one table | `GetTableSchemaParams` |
 | `list_views` | Bearer auth required | Custom operation max `60` | Returns all views in the current database or schema | None |
-| `list_triggers` | Bearer auth required | Custom operation max `60` | Returns all triggers in the current database or schema | None |
 
 ### `get_table_schema` parameters
 
@@ -222,7 +266,9 @@ Minimal request example:
 
 If you explicitly include the approval module, the framework also registers additional `approval/*` resources.
 
-Those resources are intentionally not expanded in this page because they are domain-level workflow resources, not the framework's core general-purpose built-ins.
+The registered resources are `approval/category`, `approval/delegation`, `approval/flow`, `approval/instance`, `approval/my`, and `approval/admin`.
+
+They are expanded in [Approval Module](../modules/approval), including each action name, required permission, params type, tenancy rule, audit setting, and rate limit. This page keeps them as an index because they are domain-level workflow resources rather than the framework's core general-purpose built-ins.
 
 ## See also
 

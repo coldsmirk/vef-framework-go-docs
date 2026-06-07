@@ -6,6 +6,8 @@ sidebar_position: 10
 
 The `cryptox` package provides a unified interface for encryption/decryption and digital signing across multiple algorithms.
 
+Audit note: this page covers 85 public cryptox entries, including 8 grouped cryptox method entries across 3 cryptox receiver/type families. The grouped cipher/signer surface contains 0 exported cryptox field entries and 8 exported cryptox method entries.
+
 ## Interfaces
 
 ### Cipher
@@ -43,7 +45,10 @@ type CipherSigner interface {
 
 ## Supported Algorithms
 
-All constructors return the framework's `Cipher` / `Signer` / `CipherSigner` interface. Every algorithm also exposes `*FromPem` / `*FromHex` / `*FromBase64` variants so you can feed keys in whatever encoding you have on hand.
+All constructors return the framework's `Cipher` / `Signer` / `CipherSigner`
+interface. Encoding helpers are algorithm-specific: AES and SM4 expose
+`*FromHex` / `*FromBase64`, RSA/SM2/ECDSA expose `*FromPEM` / `*FromHex` /
+`*FromBase64`, and ECIES exposes byte, hex, and base64 constructors.
 
 ### AES (Symmetric Encryption)
 
@@ -55,7 +60,7 @@ cipher, err := cryptox.NewAES(key)
 
 // Use CBC instead — IV must be supplied explicitly.
 cbcCipher, err := cryptox.NewAES(key,
-    cryptox.WithAESMode(cryptox.AESModeCBC),
+    cryptox.WithAESMode(cryptox.AesModeCbc),
     cryptox.WithAESIv(iv), // 16 bytes
 )
 
@@ -69,7 +74,7 @@ Variants: `cryptox.NewAESFromHex(keyHex, ...)`, `cryptox.NewAESFromBase64(keyBas
 
 ```go
 // Private key comes first.
-cipher, err := cryptox.NewRSAFromPem(privatePEM, publicPEM)
+cipher, err := cryptox.NewRSAFromPEM(privatePEM, publicPEM)
 
 encrypted, err := cipher.Encrypt("sensitive data")
 plaintext, err := cipher.Decrypt(encrypted)
@@ -79,6 +84,10 @@ valid, err := cipher.Verify("important message", signature)
 ```
 
 Variants: `cryptox.NewRSA(privateKey, publicKey)` (from `*rsa.PrivateKey` / `*rsa.PublicKey`), `cryptox.NewRSAFromHex`, `cryptox.NewRSAFromBase64`.
+
+Default RSA encryption mode is `RsaModeOAEP`; default signing mode is
+`RsaSignModePSS`. `RsaModePKCS1v15` and `RsaSignModePKCS1v15` are explicit
+legacy-interoperability choices.
 
 ### SM2 (Chinese National Standard — Asymmetric)
 
@@ -114,7 +123,7 @@ Variants: `cryptox.NewSM4FromHex`, `cryptox.NewSM4FromBase64`.
 
 ```go
 // Private key comes first.
-signer, err := cryptox.NewECDSAFromPem(privatePEM, publicPEM)
+signer, err := cryptox.NewECDSAFromPEM(privatePEM, publicPEM)
 
 signature, err := signer.Sign("data to sign")
 valid, err := signer.Verify("data to sign", signature)
@@ -136,6 +145,10 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 Variants: `cryptox.NewECIES(privateKey, publicKey)` (from `*ecdh.PrivateKey` / `*ecdh.PublicKey`), `cryptox.NewECIESFromHex(..., curve)`, `cryptox.NewECIESFromBase64(..., curve)`. Supported curves: `EciesCurveP256`, `EciesCurveP384`, `EciesCurveP521`, `EciesCurveX25519`.
 
+`GenerateECIESKey(curve)` and ECIES byte parsers use the requested
+`ECIESCurve`; an unknown curve value falls back to P-256. `GenerateECDSAKey`
+does the same for `ECDSACurve`.
+
 ## Algorithm Comparison
 
 | Algorithm | Type | Encrypt | Sign | Standard |
@@ -146,3 +159,24 @@ Variants: `cryptox.NewECIES(privateKey, publicKey)` (from `*ecdh.PrivateKey` / `
 | ECIES | Asymmetric | ✅ | ❌ | International |
 | SM2 | Asymmetric | ✅ | ✅ | Chinese (国密) |
 | SM4 | Symmetric | ✅ | ❌ | Chinese (国密) |
+
+## Options, Constants, and Key Helpers
+
+| Area | Public API |
+| --- | --- |
+| AES modes/options | `AESMode`, `AesModeGcm`, `AesModeCbc`, `WithAESMode(mode)`, `WithAESIv(iv)` |
+| RSA modes/options | `RSAMode`, `RSASignMode`, `RsaModeOAEP`, `RsaModePKCS1v15`, `RsaSignModePSS`, `RsaSignModePKCS1v15`, `WithRSAMode(mode)`, `WithRSASignMode(mode)` |
+| SM4 modes/options | `SM4Mode`, `SM4ModeCBC`, `SM4ModeECB`, `WithSM4Mode(mode)`, `WithSM4Iv(iv)` |
+| ECDSA curves | `ECDSACurve`, `EcdsaCurveP224`, `EcdsaCurveP256`, `EcdsaCurveP384`, `EcdsaCurveP521` |
+| ECIES curves | `ECIESCurve`, `EciesCurveP256`, `EciesCurveP384`, `EciesCurveP521`, `EciesCurveX25519` |
+| key helpers | `GenerateECDSAKey(curve)`, `GenerateECIESKey(curve)` |
+| option types | `AESOption`, `RSAOption`, `SM4Option` |
+
+## Error Sentinels
+
+| Group | Errors |
+| --- | --- |
+| key availability | `ErrAtLeastOneKeyRequired`, `ErrPublicKeyRequiredForEncrypt`, `ErrPrivateKeyRequiredForDecrypt`, `ErrPrivateKeyRequiredForSign`, `ErrPublicKeyRequiredForVerify` |
+| key parsing/type | `ErrFailedDecodePEMBlock`, `ErrUnsupportedPEMType`, `ErrNotRSAPrivateKey`, `ErrNotRSAPublicKey`, `ErrNotECDSAPrivateKey`, `ErrNotECDSAPublicKey` |
+| symmetric crypto | `ErrInvalidAESKeySize`, `ErrInvalidSM4KeySize`, `ErrInvalidIVSizeCBC`, `ErrCiphertextNotMultipleOfBlock`, `ErrCiphertextTooShort`, `ErrInvalidPadding` |
+| input/signature | `ErrDataEmpty`, `ErrInvalidSignature` |

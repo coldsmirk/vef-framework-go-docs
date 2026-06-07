@@ -13,6 +13,40 @@ sidebar_position: 5
 | 导入 | `csv.NewImporterFor[T]()` | 将 CSV 文件/读取器解析为类型化结构体切片 |
 | 导出 | `csv.NewExporterFor[T]()` | 将结构体切片写入 CSV 文件/缓冲区 |
 
+其他公开构造器：
+
+| 构造器 | 作用 |
+| --- | --- |
+| `csv.NewImporter(adapter, opts...)` / `csv.NewExporter(adapter, opts...)` | 使用显式 `tabular.RowAdapter` |
+| `csv.NewMapImporter(specs, mapOpts, opts...)` / `csv.NewMapExporter(specs, opts...)` | 使用显式 schema 导入/导出 map 行 |
+| `csv.NewTypedImporterFor[T]()` / `csv.NewTypedExporterFor[T]()` | 对通用 tabular interface 的 typed wrapper |
+
+## 已审查公开 API 面
+
+本页覆盖 `github.com/coldsmirk/vef-framework-go/csv` 的完整公开面：18 个顶层符号、0 个导出字段、0 个导出方法。Public API fingerprint:
+`625d27224a8fbc9542243e3ffabba202710b5feba0b34d2d4e1ca0c43630f978`。
+
+| 符号 | 契约 |
+| --- | --- |
+| `csv.ExportOption` | CSV exporter 使用的 option function 类型。 |
+| `csv.ImportOption` | CSV importer 使用的 option function 类型。 |
+| `csv.NewExporter` | 通过显式 `tabular.RowAdapter` 构造 `tabular.Exporter`。 |
+| `csv.NewExporterFor` | 使用 `tabular.NewStructAdapterFor[T]()` 构造结构体驱动的 `tabular.Exporter`。 |
+| `csv.NewImporter` | 通过显式 `tabular.RowAdapter` 构造 `tabular.Importer`。 |
+| `csv.NewImporterFor` | 使用 `tabular.NewStructAdapterFor[T]()` 构造结构体驱动的 `tabular.Importer`。 |
+| `csv.NewMapExporter` | 使用 `tabular.NewMapAdapterFromSpecs(specs)` 校验 `[]tabular.ColumnSpec`，成功后返回 map exporter，否则返回校验错误；它不接受 `mapOpts`。 |
+| `csv.NewMapImporter` | 使用 `tabular.NewMapAdapterFromSpecs(specs, mapOpts...)` 校验 `[]tabular.ColumnSpec`；不需要 row validator 时，`[]tabular.MapOption` 参数传 `nil`。 |
+| `csv.NewTypedExporterFor` | 把结构体 exporter 包装成 `tabular.TypedExporter[T]`，让 export 直接接受 `[]T`。 |
+| `csv.NewTypedImporterFor` | 把结构体 importer 包装成 `tabular.TypedImporter[T]`，让 import 直接返回 `[]T`。 |
+| `csv.WithCRLF` | 导出时写 Windows 风格 CRLF 行尾。 |
+| `csv.WithComment` | 为导入启用注释字符；默认值 `0` 表示不启用注释处理。 |
+| `csv.WithExportDelimiter` | 设置导出分隔符；默认是逗号。 |
+| `csv.WithImportDelimiter` | 设置导入分隔符；默认是逗号。 |
+| `csv.WithSkipRows` | 在 header/data 处理前跳过前导行；负数会归零。 |
+| `csv.WithoutHeader` | 把第一个未跳过的行当作数据，并按 schema 顺序做位置映射。 |
+| `csv.WithoutTrimSpace` | 关闭框架层 trim；这会影响空行检测、header 匹配和单元格解析。 |
+| `csv.WithoutWriteHeader` | 导出时不写 header 行。 |
+
 ## 模型定义
 
 CSV 使用与 Excel 相同的 `tabular` 结构体标签。完整标签参考请查看 [Excel 文档](./excel#tabular-标签)。
@@ -131,6 +165,12 @@ importer := csv.NewImporterFor[Employee](
 )
 ```
 
+负数 `WithSkipRows` 会归零。`WithoutTrimSpace()` 也会影响空行检测和 header 匹配。
+这层 trim 由 VEF 的 `tabular` 层执行；底层 Go 标准库 CSV reader 不启用
+`TrimLeadingSpace`。`Import` 会先调用该 reader 的 `ReadAll` 再解析，因此峰值内存会随文件大小和最终结果切片一起增长。reader 使用
+`FieldsPerRecord = -1`，因此允许不等长行，缺失的映射单元格交给 tabular adapter
+处理。
+
 ### 有表头 vs 无表头模式
 
 | 模式 | 列映射方式 |
@@ -147,6 +187,10 @@ type Record struct {
     Age   int    `tabular:"年龄,order=2"`
 }
 ```
+
+`WithSkipRows` 会在 header 检测前生效。启用表头时，`rows[skipRows]` 是 header 行，
+数据从其后一行开始；使用 `csv.WithoutHeader()` 时，第一个未跳过的行会作为数据解析。
+Import error 中的行号是基于 1 的 CSV 文件行号，并包含 skip/header 偏移，方便直接对应文本编辑器里看到的行。
 
 ### 自定义解析器
 
@@ -166,10 +210,18 @@ importer.RegisterParser("date", tabular.ParserFunc(func(cellValue string, target
 
 | 错误 | 含义 |
 | --- | --- |
-| `ErrDataMustBeSlice` | 导出数据必须是切片 |
-| `ErrNoDataRowsFound` | 文件中没有数据行 |
-| `ErrDuplicateHeaderName` | 表头中存在重复列名 |
-| `ErrUnsetField` | 结构体字段无法设置 |
+| `tabular.ErrDataMustBeSlice` | 导出数据必须是切片 |
+| `tabular.ErrNoDataRowsFound` | 经 `csv.WithSkipRows` 与可选表头处理后没有数据行 |
+| `tabular.ErrDuplicateHeaderName` | 表头中存在重复的非空列名 |
+| `tabular.ErrUnsetField` | 结构体字段无法设置 |
+
+CSV 包还公开 `ImportOption` 与 `ExportOption`，它们是上面 import/export
+选项背后的 option function 类型。
+
+顶层错误表示致命的读写或结构错误，包括 `ReadAll` 失败、没有数据行、导出 schema
+不匹配，以及最终 writer flush 失败（`flush CSV writer: ...`）。解析失败、validator
+失败和 adapter commit 失败会聚合进 `[]tabular.ImportError`；import 可以返回
+`err == nil` 同时带有非空行级错误，对应行会被跳过，后续行继续处理。
 
 ## CSV vs Excel
 

@@ -11,9 +11,13 @@ sidebar_position: 14
 一个序列号生成器由两部分组成：
 
 - **`sequence.Rule`** —— 格式与重置策略（前缀、日期格式、计数器位宽、重置周期、溢出策略）。
-- **`sequence.Store`** —— rule 与当前计数器的存储位置（数据库、Redis 或内存）。Store 负责原子地递增计数器。
+- **`sequence.Store`** —— rule 与当前计数器的存储位置。当前内置运行时 store 是内存实现；如果需要其他持久化模型，可以实现同一个接口。Store 负责原子地递增计数器。
 
-框架已经把 `sequence.Generator` 装配好了；业务代码只需要把 rule 注册到 store，然后调用 `Generate(ctx, key)`。
+框架已经把 `sequence.Generator` 装配好了，也会暴露具体的 `*sequence.MemoryStore`，所以业务模块可以在启动期 seed rule，然后调用 `Generate(ctx, key)`。
+
+辅助函数 `sequence.FormatDate(dt, format)` 也是公开 API。它会使用
+`Rule.DateFormat` 相同的 `yyyy` / `MM` / `dd` / `HH` / `mm` / `ss` token
+渲染日期片段。
 
 ## 定义规则
 
@@ -51,7 +55,12 @@ rule := &sequence.Rule{
 | `MaxValue` | 上限。`0` 表示不限制。 |
 | `OverflowStrategy` | 达到 `MaxValue` 后的行为，见下。 |
 | `ResetCycle` | 何时重置计数器，见下。 |
+| `CurrentValue` | 上一次预留后的计数器值。store 会更新这个游标；业务调用方通常不直接修改它。 |
+| `LastResetAt` | 用来判断下一次预留是否跨过 reset 边界的时间戳。`nil` 表示该 rule 从未 reset。 |
 | `IsActive` | 非活动的 rule 会让 `Generate` 返回 `sequence.ErrRuleNotFound`。 |
+
+`Rule.Clone()` 会返回 rule 快照的深拷贝；如果 `LastResetAt` 不为 nil，
+指针指向的时间值也会被复制。
 
 ### 日期布局 token
 
@@ -80,6 +89,10 @@ rule := &sequence.Rule{
 | `sequence.ResetQuarterly` | 每季度首日重置 |
 | `sequence.ResetYearly` | 每年 1 月 1 日重置 |
 
+空 `ResetCycle` 等同于 `sequence.ResetNone`。除公开常量外的其他值会按防御性
+fallback 处理为“不重置”。对非 none 周期，`LastResetAt == nil` 会让下一次预
+留触发 reset。
+
 ### 溢出策略
 
 | 常量 | 达到 `MaxValue` 后的行为 |
@@ -88,42 +101,58 @@ rule := &sequence.Rule{
 | `sequence.OverflowReset` | 把计数器重置到 `StartValue` 后继续。 |
 | `sequence.OverflowExtend` | 不受 `SeqLength` 限制继续递增（结果会变长）。 |
 
+`MaxValue` 会在应用周期 reset 后再检查。如果 reset 边界已经把计数器回到
+`StartValue`，但本次批量预留仍然超过 `MaxValue`，即便
+`OverflowReset` 也会返回 `sequence.ErrSequenceOverflow`，因为再次 reset 也
+无法让这批值落进上限。除公开 `OverflowStrategy` 常量外的其他值会回退为
+`OverflowError`。
+
 ## Store
 
-按部署形态选择：
+当前内置运行时 store 是内存实现，且不持久化：进程重启后计数器和已注册
+rule 都会丢失。它适合测试、开发和单进程部署；需要分布式或持久化计数时，
+应提供自定义 `sequence.Store`。
+
+`sequence.Store.Reserve(ctx, key, count, now)` 是自定义 store 的契约边界。
+实现必须按 rule key 序列化 read-modify-write 路径，并用一次原子操作预留整
+个 `count` 批次。
 
 ### 内存
 
 适用于测试、开发、单进程部署。Rule 必须提前 `Register`：
 
 ```go
-store := sequence.NewMemoryStore().(*sequence.MemoryStore)
+store := sequence.NewMemoryStore()
 store.Register(rule)
 ```
 
-### 数据库
+`Register` 会覆盖相同 `Key` 的已有 rule，并存入深拷贝；之后再修改原来的
+`*Rule` 不会影响 store 内部状态。
 
-把 rule 和计数器持久化到 `sys_sequence_rule`：
-
-```go
-store := sequence.NewDBStore(db)
-```
-
-每条 rule 占 `sys_sequence_rule` 一行。通过 migration 或管理端接口先插入数据。
-
-### Redis
-
-把计数器存到 Redis，适合低延迟、分布式部署：
+在 VEF 应用中，如果需要 seed rule，可以注入具体的 `*sequence.MemoryStore`：
 
 ```go
-store := sequence.NewRedisStore(redisClient)
+func SeedSequenceRules(store *sequence.MemoryStore) {
+    store.Register(rule)
+}
 ```
 
-> 三种 store 都**要求 rule 先存在再调用 `Generate(...)`**。调一个 store 里没有的 key 会得到 `sequence.ErrRuleNotFound`。
+> `sequence.Store` 仍然是接口，但旧的内置 DB / Redis store 已经不在公开包里。如果应用需要持久化或分布式计数后端，应自行实现 `sequence.Store` 并提供给 FX。
+
+每个 store 都**要求 rule 先存在再调用 `Generate(...)`**。调一个 store 里没有的 key 会得到 `sequence.ErrRuleNotFound`。
+
+公开的 store API 有意保持很小：
+
+| API | 作用 |
+| --- | --- |
+| `sequence.Store.Reserve(ctx, key, count, now)` | 为某个 rule 原子预留 `count` 个序号，并返回 rule 快照与本批最终计数值 |
+| `sequence.MemoryStore.Register(rules...)` | 使用深拷贝预加载或替换内存规则 |
+| `sequence.MemoryStore.Reserve(...)` | `Store.Reserve` 的内存实现；返回克隆后的 rule 快照 |
+| `sequence.Rule.Clone()` | 深拷贝一个 rule 快照 |
 
 ## 生成序列号
 
-框架已经基于你注入的 `Store` 装配好 `sequence.Generator`，业务代码直接注入并调用：
+框架已经基于当前生效的 `Store` 装配好 `sequence.Generator`，业务代码直接注入并调用：
 
 ```go
 type OrderService struct {
@@ -141,7 +170,12 @@ func (s *OrderService) NewOrder(ctx context.Context) (string, error) {
 numbers, err := seq.GenerateN(ctx, "order-number", 100)
 ```
 
-`GenerateN` 用一次原子操作预定整个区间，返回的号一定是连续的。
+`GenerateN` 用一次原子操作预定整个区间。返回值按从小到大的预留顺序排列；
+当 `SeqStep > 1` 时，值会按该步长间隔递增（例如 `0002`、`0004`、
+`0006`）。
+
+`SeqLength` 是最小零填充位宽，不是最大长度。数值位数超过 `SeqLength` 时会
+完整输出，不会被截断。
 
 ## 示例规则
 
@@ -158,7 +192,7 @@ numbers, err := seq.GenerateN(ctx, "order-number", 100)
 | --- | --- |
 | `sequence.ErrRuleNotFound` | store 里没有这个 key，或 rule 处于 `IsActive=false`。 |
 | `sequence.ErrSequenceOverflow` | 达到 `MaxValue` 且 `OverflowStrategy` 为 `OverflowError`。 |
-| `sequence.ErrInvalidRule` | rule 配置自相矛盾（例如 `SeqStep <= 0`）。 |
+| `sequence.ErrInvalidCount` | 调用 `GenerateN` 时传入了小于 1 的数量。 |
 
 ## 下一步
 
