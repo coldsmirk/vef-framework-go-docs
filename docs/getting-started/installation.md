@@ -11,11 +11,10 @@ This page covers the minimum environment and project setup required to boot a VE
 The current framework version requires:
 
 - Go `1.26.1`
-- `CGO_ENABLED=1`
-- a working C toolchain
 
-The built-in expression engine links the cgo-based `zen-go` library, so the
-framework does not currently build with `CGO_ENABLED=0`.
+The built-in expression engine is pure Go. CGO is not required by the expression
+module; enable CGO only when your selected database driver or another native
+integration requires it.
 
 ## Runtime prerequisites
 

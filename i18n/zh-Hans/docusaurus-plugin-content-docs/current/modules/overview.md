@@ -6,7 +6,7 @@ sidebar_position: 1
 
 VEF 基于 Uber FX 构建。公开的 `vef` 包把最常用的 FX helper 重新导出了，所以大多数应用都可以在同一套 API 表面内完成组合。
 
-审查说明：root `vef` package 的覆盖分布在本页、[扩展点](../reference/extension-points) 和 [应用生命周期](./lifecycle)。三页合计覆盖 49 public root-package entries：48 个 top-level entries、0 个 exported field entries，以及 1 个 grouped `Lifecycle.Append` method entry。
+审查说明：root `vef` package 的覆盖分布在本页、[扩展点](../reference/extension-points) 和 [应用生命周期](./lifecycle)。三页合计覆盖 51 public root-package entries：50 个 top-level entries、0 个 exported field entries，以及 1 个 grouped `Lifecycle.Append` method entry。
 
 ## 核心思路
 
@@ -82,6 +82,7 @@ vef.Run(
 很多框架能力都是通过 FX group 串起来的。对应用开发者最重要的是：
 
 - `vef:api:resources`
+- `vef:api:auth_strategies`
 - `vef:app:middlewares`
 - `vef:cqrs:behaviors`
 - `vef:security:challenge_providers`
@@ -100,9 +101,9 @@ vef.Run(
 
 | 机制 | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
 | 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
-| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
 | 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
 
 替换型 helper 不是 additive。例如 `ProvideEventMetricsRecorder` 和
@@ -124,6 +125,7 @@ vef.ProvideAPIResource(NewUserResource)
 
 ```go
 vef.ProvideMiddleware(NewAuditTrailMiddleware)
+vef.ProvideAuthStrategy(NewAPIKeyStrategy)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
 vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
 vef.ProvideMCPTools(NewToolProvider)
@@ -145,7 +147,8 @@ vef.ProvideDataSourceProvider(NewTenantDataSourceProvider)
 - `vef.ProvideEventErrorSink(...)`
 - `vef.SupplyFileACL(...)`
 - `vef.SupplyURLKeyMapper(...)`
-- `vef.SupplyBusinessBindingHook(...)`
+- `vef.SupplyBusinessRefProvider(...)`
+- `vef.SupplyBusinessRefResolver(...)`
 
 `vef.SupplyMCPServerInfo(...)` 不同：它 supply 单个 `mcp.ServerInfo` 值。
 `vef.SupplySPAConfigs(...)` 也不同：它把一个或多个 `middleware.SPAConfig` 值

@@ -7,11 +7,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Application boot/module/DI helpers reviewed as the top-level framework entrypoint. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 48,
+        "top_level": 50,
         "fields": 0,
         "methods": 1,
-        "entry_count": 49,
-        "fingerprint": "f6e930b1a97e64e84247232fbaa80f04392156dad68c8cb3a64bc19e9128fa2b",
+        "entry_count": 51,
+        "fingerprint": "ee38b2126e3bf4a95565978a73665d9353af48b505d20195effcd3dd2685a2ae",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -115,11 +115,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Resource, operation, request, auth, router, and handler-extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 66,
-        "fields": 45,
-        "methods": 40,
-        "entry_count": 151,
-        "fingerprint": "a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e",
+        "top_level": 70,
+        "fields": 44,
+        "methods": 36,
+        "entry_count": 150,
+        "fingerprint": "0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -147,11 +147,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 277,
-        "fields": 513,
-        "methods": 94,
-        "entry_count": 884,
-        "fingerprint": "f8086450d9790ea6cb76b9573942d917ab8fd8fe487c73b02fb9ea2a918e769c",
+        "top_level": 355,
+        "fields": 808,
+        "methods": 122,
+        "entry_count": 1285,
+        "fingerprint": "fc49fa894b4365b398806a61af9ddfd9c832a5c87017052ce51b4f8377a1fff6",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -181,11 +181,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Admin response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 8,
-        "fields": 76,
+        "top_level": 6,
+        "fields": 62,
         "methods": 0,
-        "entry_count": 84,
-        "fingerprint": "08f3b53e9da4a840e3735ad92ccb4e95baadc897dd32e60cd32e68d529b53946",
+        "entry_count": 68,
+        "fingerprint": "b6d2ddacf99583d37246cbbc2d3ddaca3d3e3ca6ad79feaa152efba53f97e532",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -198,7 +198,9 @@
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
-        "approval/admin/types.go:6",
+        "approval/admin/instance.go:6",
+        "approval/admin/instance_detail.go:14",
+        "approval/admin/task.go:6",
         "approval/admin/metrics.go:9"
       ],
       "contract_ids": [
@@ -210,11 +212,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Current-user approval response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 11,
-        "fields": 83,
+        "top_level": 8,
+        "fields": 67,
         "methods": 0,
-        "entry_count": 94,
-        "fingerprint": "1adf9b1e03bfc9c03db57fd2ad1884935bf43f5fedc62555564ce54922dd4e51",
+        "entry_count": 75,
+        "fingerprint": "12a1f18f5b3cf7b969dc853cf2e3547f7dc5bf47d0d1687a8c5c7c8a823b4a2a",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -227,7 +229,13 @@
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
-        "approval/my/types.go:6"
+        "approval/my/pending_tasks.go:6",
+        "approval/my/completed_tasks.go:6",
+        "approval/my/cc_records.go:6",
+        "approval/my/initiated_instances.go:6",
+        "approval/my/available_flows.go:4",
+        "approval/my/instance_detail.go:15",
+        "approval/my/pending_counts.go:4"
       ],
       "contract_ids": [
         "github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos"
@@ -238,11 +246,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Cache interfaces, memory/Redis constructors, serializers, eviction, invalidation, and singleflight helpers. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 30,
+        "top_level": 31,
         "fields": 0,
         "methods": 15,
-        "entry_count": 45,
-        "fingerprint": "f5ea48e0cd9f0fd5400e677a7045511f147fcbc4b76e82107212bf80ede83489",
+        "entry_count": 46,
+        "fingerprint": "aade55fb60e21d29900dd70eddf7decb32ae6cb35e39d6046250913ade5ff7b5",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -385,11 +393,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "All config structs, config keys, Effective methods, validation, and runtime defaults. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 48,
-        "fields": 106,
+        "top_level": 53,
+        "fields": 112,
         "methods": 23,
-        "entry_count": 177,
-        "fingerprint": "de693b52c579df70d9133046ba06aaa4045eafae8898eaf764405ee9d6973df8",
+        "entry_count": 188,
+        "fingerprint": "f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -540,11 +548,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "CRUD builders, options, hooks, processors, import/export, tree, and query-extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 125,
+        "top_level": 129,
         "fields": 36,
-        "methods": 279,
-        "entry_count": 440,
-        "fingerprint": "38785e1c261925b26022f3f642f95dbd90acb67afaacaa1dc78ab38e2f37fe4f",
+        "methods": 263,
+        "entry_count": 428,
+        "fingerprint": "2f13a6adc30cc0203584e004a78b2090a461e74bf21291533cd955a85ea3105d",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -572,11 +580,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Symmetric/asymmetric cipher interfaces, constructors, options, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 77,
+        "top_level": 74,
         "fields": 0,
-        "methods": 8,
-        "entry_count": 85,
-        "fingerprint": "10f32dd3a1d0db4bcce8f4dd13998ec92edcb6954a96ef80e3473f38b322718b",
+        "methods": 9,
+        "entry_count": 83,
+        "fingerprint": "43e9195e7b9fadff400fb3a5d4c835e7083af3e2fe1bf9eb55e9e699389edfc5",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -891,10 +899,10 @@
       "summary": "Redis Stream transport constructors and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
         "top_level": 2,
-        "fields": 8,
-        "methods": 7,
-        "entry_count": 17,
-        "fingerprint": "6843fdec1f7a06d08d3097e6af2fbf21979f10f99513e7745e466759ffc21668",
+        "fields": 11,
+        "methods": 9,
+        "entry_count": 22,
+        "fingerprint": "fe204fb135c5018a1850bd0edb2572f0c8708ab9c3dd1f7f5171e7f0dbca8a58",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1142,13 +1150,13 @@
     {
       "package": "github.com/coldsmirk/vef-framework-go/logx",
       "disposition": "has-semantic-contracts",
-      "summary": "Logging interface, level constants, Level.String output values, and root-package NamedLogger integration. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "summary": "Logging interface, logger-configurable interface, level constants, Level.String output values, and root-package NamedLogger integration. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 7,
+        "top_level": 8,
         "fields": 0,
-        "methods": 15,
-        "entry_count": 22,
-        "fingerprint": "4ff9c19b53d9985911e2985c2763802337d6a69f783962bb73b9ee7424481eaf",
+        "methods": 16,
+        "entry_count": 24,
+        "fingerprint": "2512ac2e4b928560900dfb481cda5645aeda3afbd4229fafa3a42dedcf19d4a3",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1162,6 +1170,7 @@
       ],
       "source_evidence": [
         "logx/logger.go:3",
+        "logx/logger.go:69",
         "log.go:10"
       ],
       "contract_ids": [
@@ -1354,11 +1363,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "ORM model, DB/Tx, query/DDL/expression/condition builders, hooks, aliases, and enum families. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 201,
+        "top_level": 202,
         "fields": 0,
-        "methods": 1344,
-        "entry_count": 1545,
-        "fingerprint": "b0e1a278acea438d5e0125aa840277833bc767a10ee2e8de671c558e5257a373",
+        "methods": 1350,
+        "entry_count": 1552,
+        "fingerprint": "4442e2e81572c2c6b7ac3876b540f5515937b4270887c1223c6b74bba70aa538",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1469,11 +1478,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Reflection, conversion, visitor, string-field, value, method-discovery, and cast helper APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 78,
-        "fields": 11,
+        "top_level": 82,
+        "fields": 12,
         "methods": 0,
-        "entry_count": 89,
-        "fingerprint": "bb62b3bd50f5b54c5af99deb16b7cfb61fa52e69f92e3ab789dc81c744f6d3de",
+        "entry_count": 94,
+        "fingerprint": "0c7f22e87dd56b6a1e33be78c9bb398abee1b4b776888a4a3a64d94167751bba",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1568,11 +1577,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Search tag parser, range parser, applier, operator constants, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 45,
+        "top_level": 43,
         "fields": 0,
         "methods": 1,
-        "entry_count": 46,
-        "fingerprint": "80e58c5d9990255abf62c11f442cba4a1b1a314fd2722f3eb44c3026d75faec4",
+        "entry_count": 44,
+        "fingerprint": "e5daf3aeeade69b48eb2c0419003c930df8746c739eab98b1e131c22f9424cab",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1601,11 +1610,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Authentication, JWT, signature, challenge, RBAC, data-scope, principal, event, and error APIs. Security contracts are split across auth/wire, authorization/events, and data-permission runtime entries; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 226,
-        "fields": 75,
-        "methods": 99,
-        "entry_count": 400,
-        "fingerprint": "da0cacec7208cbfb9da1512d0f640d70c0e2a67edf14650c0e409324d21f67d5",
+        "top_level": 231,
+        "fields": 77,
+        "methods": 100,
+        "entry_count": 408,
+        "fingerprint": "539e7014f04ef164d863446f07887acf4034269233ab128a2c0f0f2bf01f04bc",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1638,11 +1647,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Sequence policy/rule/store/engine APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 20,
-        "fields": 14,
-        "methods": 6,
-        "entry_count": 40,
-        "fingerprint": "13b13520dce1c5d83a409deb2ab079366bc6830c139549eb58a3ac8a53836482",
+        "top_level": 26,
+        "fields": 31,
+        "methods": 10,
+        "entry_count": 67,
+        "fingerprint": "350cf3d412b4c06ee3b4c07d4f06821434836b3c20e2dddd3bf8855d767a884f",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1695,11 +1704,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Storage service/multipart/API resource, file refs, claim/delete lifecycle, ACL, URL mapper, events, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 100,
+        "top_level": 101,
         "fields": 50,
         "methods": 31,
-        "entry_count": 181,
-        "fingerprint": "63061a418106bce297e7a75552d71c3236b7543f2b0c4ed9184cd6cbef46538c",
+        "entry_count": 182,
+        "fingerprint": "38d5a444291850b9a3b564e6e885c9e3c9bb516237d850a448d1b8d67ad53faf",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1754,11 +1763,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Tabular schema, adapter, parser, formatter, resolver, and I/O APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 68,
-        "fields": 37,
+        "top_level": 70,
+        "fields": 40,
         "methods": 38,
-        "entry_count": 143,
-        "fingerprint": "4bd760b4d107c89e997d9354f50b7a39c3fe441019e4b0e676bb6aeaf2ed5b94",
+        "entry_count": 148,
+        "fingerprint": "65c7b3443ac833a4c442a5d2e9491a51b30adc33016775d545dc47fcad922fc8",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1873,7 +1882,7 @@
         "fields": 0,
         "methods": 0,
         "entry_count": 1,
-        "fingerprint": "6f2d727137cedfa1e2ae6934d1bb24b0248003bb60c38c3c9ac1db684caee700",
+        "fingerprint": "8f204b7a22f73570f82fcd7abd247b1eaf8d6814d103e3addb3963ce1d3d71f5",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -2101,21 +2110,25 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
       "kind": "dto-wire-shape",
       "contract": "approval admin DTO JSON wire shape",
-      "summary": "The approval/admin package defines the response DTOs used by approval/admin actions, including instance, task, detail, action-log, flow-node, and metrics JSON field names.",
+      "summary": "The approval/admin package defines the response DTOs used by approval/admin actions, including instance, task, detail, action-log, and metrics JSON field names.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/modules/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
-        "approval/admin/types.go:6",
+        "approval/admin/instance.go:6",
+        "approval/admin/instance_detail.go:14",
+        "approval/admin/task.go:6",
         "approval/admin/metrics.go:9"
       ],
       "terms": [
         "approval/admin",
         "find_tasks",
         "get_instance_detail",
-        "actionLogs",
+        "find_action_logs",
+        "timeline",
+        "flowGraph",
         "tenantId"
       ]
     },
@@ -2131,14 +2144,21 @@
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
-        "approval/my/types.go:6"
+        "approval/my/pending_tasks.go:6",
+        "approval/my/completed_tasks.go:6",
+        "approval/my/cc_records.go:6",
+        "approval/my/initiated_instances.go:6",
+        "approval/my/available_flows.go:4",
+        "approval/my/instance_detail.go:15",
+        "approval/my/pending_counts.go:4"
       ],
       "terms": [
         "approval/my",
         "find_pending_tasks",
         "get_instance_detail",
         "taskId",
-        "formData"
+        "formData",
+        "availableActions"
       ]
     },
     {
@@ -2197,21 +2217,23 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "runtime-contract",
       "contract": "approval tenant and business-binding integration contract",
-      "summary": "Approval authorization distinguishes approval:super_admin from tenant-scoped users and uses BusinessBindingHook plus tenant resolver APIs to bind workflow state back to business rows.",
+      "summary": "Approval authorization distinguishes approval:super_admin from tenant-scoped users; business-bound flows use BusinessRefProvider for opaque refs, BusinessRefResolver for write-back record ids, and engine-owned status write-back.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/modules/approval.md"
       ],
       "source_evidence": [
         "approval/tenancy.go:12",
-        "approval/binding.go:47",
+        "approval/binding.go:25",
+        "approval/binding.go:44",
         "approval/lifecycle_hook.go:9",
         "internal/approval/auth/tenant_resolver.go:12"
       ],
       "terms": [
         "approval:super_admin",
         "PrincipalTenantResolver",
-        "BusinessBindingHook",
+        "BusinessRefProvider",
+        "BusinessRefResolver",
         "BusinessTable",
         "BusinessStatusField"
       ]
@@ -2655,8 +2677,8 @@
       "id": "github.com/coldsmirk/vef-framework-go/logx#runtime-contract:logger-interface-and-level-strings",
       "package": "github.com/coldsmirk/vef-framework-go/logx",
       "kind": "runtime-contract",
-      "contract": "logger interface and log level string values",
-      "summary": "logx defines the Logger interface expected by framework integrations and maps Level values to debug/info/warn/error/panic strings, with unknown for unrecognized values.",
+      "contract": "logger interfaces and log level string values",
+      "summary": "logx defines the Logger and LoggerConfigurable interfaces expected by framework integrations and maps Level values to debug/info/warn/error/panic strings, with unknown for unrecognized values.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/utilities/small-utilities.md",
@@ -2666,6 +2688,7 @@
         "logx/logger.go:6",
         "logx/logger.go:19",
         "logx/logger.go:37",
+        "logx/logger.go:69",
         "log.go:10"
       ],
       "test_evidence": [
@@ -2680,6 +2703,7 @@
         "logx.LevelError = 4",
         "logx.LevelPanic = 5",
         "logx.Logger",
+        "logx.LoggerConfigurable[T]",
         "Level.String()",
         "debug",
         "unknown",
@@ -2688,6 +2712,7 @@
         "Logger.Sync()",
         "Logger.Debugf(template string, args ...any)",
         "Logger.Panicf(template string, args ...any)",
+        "LoggerConfigurable[T].WithLogger(logger logx.Logger) T",
         "vef.NamedLogger(name string) logx.Logger"
       ]
     },
@@ -2782,7 +2807,7 @@
       ],
       "terms": [
         "VEFVersion",
-        "v0.28.0"
+        "v0.35.0"
       ]
     },
     {
@@ -2861,7 +2886,7 @@
       "terms": [
         "RPCActionCreate",
         "RESTActionFindPage",
-        "ResourceKind(api.KindREST)",
+        "api.KindREST",
         "WithDefaultFormat",
         "ErrCodeImportValidationFailed"
       ]
@@ -2871,7 +2896,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/cryptox",
       "kind": "runtime-contract",
       "contract": "cryptox algorithm mode, key encoding, and error contract",
-      "summary": "cryptox constructors expose stable cipher/signer interfaces, algorithm-specific key encodings, AES/RSA/SM4 modes, ECIES curve identifiers, and error sentinels.",
+      "summary": "cryptox constructors expose stable cipher/signer interfaces, algorithm-specific key encodings, AES/RSA modes, SM4 CBC interop IV behavior, ECIES curve identifiers, and error sentinels.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/features/cryptox.md"
@@ -2887,7 +2912,7 @@
         "CipherSigner",
         "AesModeGcm",
         "RsaModeOAEP",
-        "SM4ModeCBC",
+        "WithSM4Iv",
         "EciesCurveP256"
       ]
     },
@@ -3182,7 +3207,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/expression",
       "kind": "runtime-contract",
       "contract": "expression engine evaluation, value conversion, and mold transformer contract",
-      "summary": "The expression package exposes a CGO-backed engine whose Compile may defer validation, whose Value helpers decode JSON-like numbers, and whose expr mold transformer uses escaped comma parameters.",
+      "summary": "The expression package exposes a pure-Go expr-lang-backed engine whose Compile validates eagerly, whose Value helpers decode JSON-like numbers, and whose expr mold transformer uses escaped comma parameters.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/features/expression.md"
@@ -3193,7 +3218,7 @@
         "internal/expression/transformer.go:16"
       ],
       "terms": [
-        "CGO_ENABLED=1",
+        "github.com/expr-lang/expr",
         "expression.Engine",
         "Compile",
         "JSON number",
@@ -3305,6 +3330,7 @@
         "mcp/auth.go:8",
         "config/mcp.go:4",
         "internal/mcp/server.go:20",
+        "version/version.go:4",
         "internal/mcp/handler.go:27",
         "internal/mcp/middleware.go:10",
         "internal/mcp/tools/query.go:14",
@@ -3320,12 +3346,14 @@
         "require_auth",
         "Bearer",
         "vef-mcp-server",
-        "v1.0.0",
+        "version.VEFVersion",
         "database_query",
         "naming-master",
         "SchemaFor",
         "SchemaOf(nil)",
         "MustSchemaOf(nil)",
+        "mcp: cannot generate schema for nil value",
+        "mcp: generate schema:",
         "jsonschema:\"required\"",
         "$schema",
         "PrincipalAnonymous",
@@ -3749,8 +3777,8 @@
       "id": "github.com/coldsmirk/vef-framework-go/reflectx#runtime-contract:struct-visitor-dive-depth-contract",
       "package": "github.com/coldsmirk/vef-framework-go/reflectx",
       "kind": "runtime-contract",
-      "contract": "reflection visitor dive-tag and depth traversal contract",
-      "summary": "reflectx visitors expose traversal actions, dive tag selection, recursive disabling, maximum depth, absolute field index paths, cycle protection, and typed struct/field/method visitor callbacks.",
+      "contract": "reflection visitor traversal-mode, dive-tag, and depth contract",
+      "summary": "reflectx visitors expose depth-first and breadth-first traversal modes, traversal actions, dive tag selection, recursive disabling, maximum depth, absolute field index paths, cycle protection, and typed struct/field/method visitor callbacks.",
       "disposition": "documented:semantic-contract",
       "coverage": [
         "docs/utilities/small-utilities.md"
@@ -3779,6 +3807,10 @@
         "reflectx/visitor_test.go:1318"
       ],
       "terms": [
+        "reflectx.DepthFirst = 0",
+        "reflectx.BreadthFirst = 1",
+        "reflectx.WithTraversalMode",
+        "VisitorConfig.TraversalMode",
         "reflectx.Continue = 0",
         "reflectx.Stop = 1",
         "reflectx.SkipChildren = 2",
@@ -4149,7 +4181,7 @@
         "dashboard",
         "report",
         "permissionTokens",
-        "metadata",
+        "meta",
         "children"
       ]
     },

@@ -6,7 +6,7 @@ sidebar_position: 6
 
 VEF query building is centered around typed search structs, `search` tags, and CRUD find options. The goal is to keep query rules close to the fields they belong to instead of scattering stringly typed conditions across handlers.
 
-Audit note: this page covers 46 public search entries, including 1 grouped search method entry across 1 search receiver/type family. The grouped search surface contains 0 exported search field entries and 1 exported search method entry.
+Audit note: this page covers 44 public search entries, including 1 grouped search method entry across 1 search receiver/type family. The grouped search surface contains 0 exported search field entries and 1 exported search method entry.
 
 ## Search Struct Model
 
@@ -183,7 +183,7 @@ Currently relevant parameter keys:
 | Param key | Meaning |
 | --- | --- |
 | `delimiter` | custom delimiter for parsing string-based sets or ranges |
-| `type` | explicit parsing type such as `int`, `str`, `bool`, `dec`, `date`, `datetime`, or `time` |
+| `type` | explicit parsing type; range strings recognize `int`, `dec`, `date`, `datetime`, and `time`; string-based `in` recognizes `int` and otherwise keeps values as strings |
 
 String ranges use `type:int`, `type:dec`, `type:date`, `type:datetime`, or
 `type:time` to select the parser.
@@ -311,7 +311,7 @@ For tree APIs, these escape hatches can also be targeted at different query part
 | parser | `search.New`, `search.NewFor[T]`, `search.Search`, `search.Applier` |
 | tag constants | `TagSearch`, `IgnoreField`, `AttrOperator`, `AttrColumn`, `AttrAlias`, `AttrParams`, `AttrDive` |
 | operators | `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `Between`, `NotBetween`, `In`, `NotIn`, `IsNull`, `IsNotNull`, `Contains`, `NotContains`, `ContainsIgnoreCase`, `NotContainsIgnoreCase`, `StartsWith`, `NotStartsWith`, `StartsWithIgnoreCase`, `NotStartsWithIgnoreCase`, `EndsWith`, `NotEndsWith`, `EndsWithIgnoreCase`, `NotEndsWithIgnoreCase` |
-| parameter constants | `ParamDelimiter`, `ParamType`, `TypeString`, `TypeInt`, `TypeBool`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
+| parameter constants | `ParamDelimiter`, `ParamType`, `TypeInt`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
 
 `Search.Apply(...)` applies a parsed search schema to an ORM condition builder;
 CRUD find builders call it internally when they translate `search` tags into SQL

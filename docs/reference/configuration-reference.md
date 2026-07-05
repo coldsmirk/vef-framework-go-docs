@@ -37,10 +37,10 @@ Common environment keys include:
 
 ## Reviewed Public Surface
 
-This page has been checked against the live Go source and the generated public API index. `github.com/coldsmirk/vef-framework-go/config` currently exposes 48 top-level exported symbols, 106 exported fields, and 23 exported methods. The public surface fingerprint is `de693b52c579df70d9133046ba06aaa4045eafae8898eaf764405ee9d6973df8`.
+This page has been checked against the live Go source and the generated public API index. `github.com/coldsmirk/vef-framework-go/config` currently exposes 53 top-level exported symbols, 112 exported fields, and 23 exported methods. The public surface fingerprint is `f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65`.
 
-The grouped-family audit locks 129 grouped configuration entries across 21
-config struct/interface families: 106 exported configuration fields and 23
+The grouped-family audit locks 135 grouped configuration entries across 21
+config struct/interface families: 112 exported configuration fields and 23
 exported configuration methods. These entries cover config tags, field order,
 effective default methods, validation helpers, and `Config.Unmarshal`; the
 verifier pins their sorted signatures and receiver/type distribution.
@@ -52,7 +52,7 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.AppConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.AppConfig` |
 | `config.ApprovalConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.ApprovalConfig` |
 | `config.Config` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.Config` |
-| `config.CorsConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.CorsConfig` |
+| `config.CORSConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.CORSConfig` |
 | `config.DBKind` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DBKind` |
 | `config.DataSourceConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DataSourceConfig` |
 | `config.DataSourcesConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DataSourcesConfig` |
@@ -68,7 +68,7 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.DefaultSweepInterval` | `CONST` | `time.Duration = 300000000000` |
 | `config.EnvConfigPath` | `CONST` | `untyped string = "VEF_CONFIG_PATH"` |
 | `config.EnvI18NLanguage` | `CONST` | `untyped string = "VEF_I18N_LANGUAGE"` |
-| `config.EnvKeyPrefix` | `CONST` | `untyped string = "VEF"` |
+| `config.EnvPrefix` | `CONST` | `untyped string = "VEF"` |
 | `config.EnvLogLevel` | `CONST` | `untyped string = "VEF_LOG_LEVEL"` |
 | `config.EnvNodeID` | `CONST` | `untyped string = "VEF_NODE_ID"` |
 | `config.ErrInboxRetentionTooShort` | `VAR` | `error` |
@@ -92,6 +92,11 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.SQLServer` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlserver"` |
 | `config.SQLite` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlite"` |
 | `config.SecurityConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SecurityConfig` |
+| `config.SSLDisable` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "disable"` |
+| `config.SSLMode` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SSLMode` |
+| `config.SSLRequire` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "require"` |
+| `config.SSLVerifyCA` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-ca"` |
+| `config.SSLVerifyFull` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-full"` |
 | `config.StorageConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.StorageConfig` |
 | `config.StorageFilesystem` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "filesystem"` |
 | `config.StorageMemory` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "memory"` |
@@ -114,8 +119,8 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.ApprovalConfig.FormSnapshotRetention` | `time.Duration [field_order=6 tag="config:\"form_snapshot_retention\""]` |
 | `config.ApprovalConfig.UrgeRecordRetention` | `time.Duration [field_order=7 tag="config:\"urge_record_retention\""]` |
 | `config.ApprovalConfig.CCRecordRetention` | `time.Duration [field_order=8 tag="config:\"cc_record_retention\""]` |
-| `config.CorsConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
-| `config.CorsConfig.AllowOrigins` | `[]string [field_order=2 tag="config:\"allow_origins\""]` |
+| `config.CORSConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
+| `config.CORSConfig.AllowOrigins` | `[]string [field_order=2 tag="config:\"allow_origins\""]` |
 | `config.DataSourceConfig.Kind` | `github.com/coldsmirk/vef-framework-go/config.DBKind [field_order=1 tag="config:\"type\""]` |
 | `config.DataSourceConfig.Host` | `string [field_order=2 tag="config:\"host\""]` |
 | `config.DataSourceConfig.Port` | `uint16 [field_order=3 tag="config:\"port\""]` |
@@ -125,6 +130,8 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.DataSourceConfig.Schema` | `string [field_order=7 tag="config:\"schema\""]` |
 | `config.DataSourceConfig.Path` | `string [field_order=8 tag="config:\"path\""]` |
 | `config.DataSourceConfig.EnableSQLGuard` | `bool [field_order=9 tag="config:\"enable_sql_guard\""]` |
+| `config.DataSourceConfig.SSLMode` | `github.com/coldsmirk/vef-framework-go/config.SSLMode [field_order=10 tag="config:\"ssl_mode\""]` |
+| `config.DataSourceConfig.SSLRootCert` | `string [field_order=11 tag="config:\"ssl_root_cert\""]` |
 | `config.DataSourcesConfig.Map` | `map[string]github.com/coldsmirk/vef-framework-go/config.DataSourceConfig [field_order=1 tag=""]` |
 | `config.EventConfig.DefaultTransport` | `string [field_order=1 tag="config:\"default_transport\""]` |
 | `config.EventConfig.AsyncQueueSize` | `int [field_order=2 tag="config:\"async_queue_size\""]` |
@@ -162,8 +169,11 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.EventRedisStreamTransportConfig.ClaimIdle` | `time.Duration [field_order=5 tag="config:\"claim_idle\""]` |
 | `config.EventRedisStreamTransportConfig.ClaimInterval` | `time.Duration [field_order=6 tag="config:\"claim_interval\""]` |
 | `config.EventRedisStreamTransportConfig.ClaimBatchSize` | `int64 [field_order=7 tag="config:\"claim_batch_size\""]` |
-| `config.EventRedisStreamTransportConfig.ConsumerID` | `string [field_order=8 tag="config:\"consumer_id\""]` |
-| `config.EventRedisStreamTransportConfig.StartID` | `string [field_order=9 tag="config:\"start_id\""]` |
+| `config.EventRedisStreamTransportConfig.ReaperConcurrency` | `int [field_order=8 tag="config:\"reaper_concurrency\""]` |
+| `config.EventRedisStreamTransportConfig.HandlerTimeout` | `time.Duration [field_order=9 tag="config:\"handler_timeout\""]` |
+| `config.EventRedisStreamTransportConfig.SetupTimeout` | `time.Duration [field_order=10 tag="config:\"setup_timeout\""]` |
+| `config.EventRedisStreamTransportConfig.ConsumerID` | `string [field_order=11 tag="config:\"consumer_id\""]` |
+| `config.EventRedisStreamTransportConfig.StartID` | `string [field_order=12 tag="config:\"start_id\""]` |
 | `config.EventRoutingRule.Pattern` | `string [field_order=1 tag="config:\"pattern\""]` |
 | `config.EventRoutingRule.Transports` | `[]string [field_order=2 tag="config:\"transports\""]` |
 | `config.EventTransportsConfig.Memory` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig [field_order=1 tag="config:\"memory\""]` |
@@ -193,6 +203,7 @@ verifier pins their sorted signatures and receiver/type distribution.
 | `config.SecurityConfig.RefreshNotBefore` | `time.Duration [field_order=3 tag="config:\"refresh_not_before\""]` |
 | `config.SecurityConfig.LoginRateLimit` | `int [field_order=4 tag="config:\"login_rate_limit\""]` |
 | `config.SecurityConfig.RefreshRateLimit` | `int [field_order=5 tag="config:\"refresh_rate_limit\""]` |
+| `config.SecurityConfig.IPWhitelists` | `map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]` |
 | `config.StorageConfig.Provider` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]` |
 | `config.StorageConfig.AutoMigrate` | `bool [field_order=2 tag="config:\"auto_migrate\""]` |
 | `config.StorageConfig.MinIO` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig [field_order=3 tag="config:\"minio\""]` |
@@ -295,6 +306,8 @@ path = "./analytics.db"
 | `schema` | `string` | schema name for drivers that support schemas |
 | `path` | `string` | SQLite file path |
 | `enable_sql_guard` | `bool` | enables the SQL guard for raw SQL surfaces |
+| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | TLS posture for network database dialects; omitted means `disable` |
+| `ssl_root_cert` | `string` | optional PEM CA bundle path for `verify-ca` and `verify-full`; empty uses the host system pool |
 
 Runtime note:
 
@@ -412,7 +425,7 @@ Runtime note:
 | `publish_timeout` | `duration` | per-transport publish timeout, default `5s` |
 | `transports.memory.*` | — | `queue_size` default `1024`, `full_policy` default `error`, `publish_timeout` default unset/no timeout and only applies when `full_policy = "block"` |
 | `transports.outbox.*` | — | `enabled`, `relay_interval` default `10s`, `max_retries` default `10`, `batch_size` default `100`, `lease_multiplier` default `4`, `min_lease` default `15s`, `sink` default `memory`, `cleanup_interval` default `1h`, `completed_ttl` default `168h`; cleanup fields belong to framework config, not `event/transport/outbox.Config` |
-| `transports.redis_stream.*` | — | `enabled`, `stream_prefix` default `vef:events:`, `max_len_approx` default `0` (no trimming), `block_timeout` default `5s`, `claim_idle` default `60s`, `claim_interval` default `30s`, `claim_batch_size` default `64`, `consumer_id` default prefix `vef`, `start_id` default `0` (`"$"` skips backlog for newly created groups) |
+| `transports.redis_stream.*` | — | `enabled`, `stream_prefix` default `vef:events:`, `max_len_approx` default `0` (no trimming), `block_timeout` default `5s`, `claim_idle` default `60s`, `claim_interval` default `30s`, `claim_batch_size` default `64`, `reaper_concurrency` default `4`, `handler_timeout` default `30s`, `setup_timeout` default `5s`, `consumer_id` default prefix `vef`, `start_id` default `0` (`"$"` skips backlog for newly created groups) |
 | `middleware.*` | `bool` | middleware toggles: `logging`, `tracing`, `tracing_strict`, `metrics`, `recover`, `inbox` |
 | `inbox.*` | — | `retention` default `168h`, `processing_lease` default `10m`, `cleanup_interval` default `1h` |
 | `routing` | `[]{pattern, transports}` | routing rules, matched top-to-bottom with `path.Match` |

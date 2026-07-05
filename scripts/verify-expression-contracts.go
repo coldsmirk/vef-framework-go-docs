@@ -42,8 +42,8 @@ func main() {
 				"EvaluateAs[T]", "DecodeValue[T](value)", "Match",
 				"expression.AsPredicate()", "boolean result",
 			},
-			englishDocTerms: []string{"already-canceled context", "interrupt evaluation already in flight"},
-			chineseDocTerms: []string{"已经取消的 context", "无法中断"},
+			englishDocTerms: []string{"already-canceled context", "interrupt evaluation already in flight", "validates the expression eagerly"},
+			chineseDocTerms: []string{"已经取消的 context", "无法中断", "编译阶段解析并校验表达式"},
 		},
 		{
 			sourcePath: "expression/value.go",
@@ -96,11 +96,11 @@ func main() {
 		{
 			sourcePath: "internal/expression/module.go",
 			sourceTerms: []string{
-				"zen.New", "NewEngineResolver", "vef:api:handler_param_resolvers",
+				"exprlang.New", "NewEngineResolver", "vef:api:handler_param_resolvers",
 				"NewFieldTransformer", "vef:mold:field_transformers",
 			},
 			docTerms: []string{
-				"core boot graph", "Zen-backed engine",
+				"core boot graph", "expr-lang",
 			},
 			englishDocTerms: []string{"handler parameter resolver", "mold field transformer"},
 			chineseDocTerms: []string{"handler parameter\nresolver", "mold field transformer"},
@@ -152,18 +152,21 @@ func main() {
 			},
 		},
 		{
-			sourcePath: "internal/expression/zen/engine.go",
+			sourcePath: "internal/expression/exprlang/engine.go",
 			sourceTerms: []string{
-				"zen.EvaluateExpression[any](source, env)", "zen.EvaluateUnaryExpression",
-				"ctx.Err()", "program{source: source, predicate: o.Predicate}",
+				"github.com/expr-lang/expr", "func New() expression.Engine",
+				"expr.AllowUndefinedVariables()", "expr.AsBool()",
+				"expr.Compile(source, options...)", "expr.Run(prog, normalized)",
+				"ctx.Err()", "program{source: source, prog: prog}",
+				"normalizeEnv(env)", "json.Marshal(env)", "json.Unmarshal(data, &out)",
 				"ErrEvaluationFailed", "fmt.Errorf(\"%w: %w\"",
 			},
 			docTerms: []string{
-				"github.com/gorules/zen-go", "CGO_ENABLED=1",
+				"github.com/expr-lang/expr", "pure Go",
 				"best-effort", "Program.Run(...)", "ErrEvaluationFailed",
 			},
-			englishDocTerms: []string{"already-canceled context", "interrupt evaluation already in flight", "malformed expressions"},
-			chineseDocTerms: []string{"已经取消的 context", "无法中断", "格式错误的表达式"},
+			englishDocTerms: []string{"already-canceled context", "interrupt evaluation already in flight", "malformed expressions fail during"},
+			chineseDocTerms: []string{"已经取消的 context", "无法中断", "格式错误的表达式会在"},
 		},
 	}
 

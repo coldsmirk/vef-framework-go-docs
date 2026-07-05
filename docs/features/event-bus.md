@@ -332,6 +332,9 @@ block_timeout    = "5s"
 claim_idle       = "60s"
 claim_interval   = "30s"
 claim_batch_size = 64
+reaper_concurrency = 4
+handler_timeout = "0s"
+setup_timeout   = "5s"
 consumer_id      = "vef"
 start_id         = "0"
 ```
@@ -346,12 +349,16 @@ Redis Streams contract details:
 - `consumer_id` is a human-readable prefix only; the runtime appends a UUID suffix so replicas do not collide.
 - Missing, non-string, oversized, or invalid-JSON frames are treated as poison messages: the transport logs, `XACK`s, and drops them. At-least-once delivery applies to well-formed frames.
 - Handler failures leave the message pending. The reaper periodically `XCLAIM`s idle pending entries according to `claim_idle`, `claim_interval`, and `claim_batch_size`.
+- `reaper_concurrency` bounds how many subscriptions are reclaimed in parallel per cycle. `handler_timeout` bounds each fresh delivery and reaper redelivery; `0s` disables the deadline. `setup_timeout` bounds consumer-group creation during `Subscribe`.
 
 The public Go package `event/transport/redisstream.Config` contains
 `StreamPrefix`, `MaxLenApprox`, `BlockTimeout`, `ClaimIdle`, `ClaimInterval`,
-`ClaimBatchSize`, `ConsumerID`, and `StartID`. `StreamPrefix` defaults to
-`vef:events:`, `BlockTimeout` to `5s`, `ClaimIdle` to `60s`,
-`ClaimInterval` to `30s`, `ClaimBatchSize` to `64`, and `StartID` to `0`.
+`ClaimBatchSize`, `ReaperConcurrency`, `HandlerTimeout`, `SetupTimeout`,
+`ConsumerID`, and `StartID`. `StreamPrefix` defaults to `vef:events:`,
+`BlockTimeout` to `5s`, `ClaimIdle` to `60s`, `ClaimInterval` to `30s`,
+`ClaimBatchSize` to `64`, `ReaperConcurrency` to `4`, `SetupTimeout` to
+`5s`, and `StartID` to `0`. `HandlerTimeout` defaults to `0`, which disables
+the per-handler deadline.
 
 ## Error Sentinels
 

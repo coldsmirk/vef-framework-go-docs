@@ -51,6 +51,7 @@ VAR Private : go.uber.org/fx.privateOption
 VAR Provide : func(constructors ...interface{}) go.uber.org/fx.Option
 FUNC ProvideAPIResource : func(constructor any, paramTags ...string) go.uber.org/fx.Option
 FUNC ProvideApprovalLifecycleHook : func(constructor any, paramTags ...string) go.uber.org/fx.Option
+FUNC ProvideAuthStrategy : func(constructor any, paramTags ...string) go.uber.org/fx.Option
 FUNC ProvideCQRSBehavior : func(constructor any, paramTags ...string) go.uber.org/fx.Option
 FUNC ProvideChallengeProvider : func(constructor any, paramTags ...string) go.uber.org/fx.Option
 FUNC ProvideDataSourceProvider : func(constructor any, paramTags ...string) go.uber.org/fx.Option
@@ -73,7 +74,8 @@ FUNC StartHook : func[T github.com/coldsmirk/vef-framework-go.HookFunc](start T)
 FUNC StartStopHook : func[T1, T2 github.com/coldsmirk/vef-framework-go.HookFunc](start T1, stop T2) github.com/coldsmirk/vef-framework-go.Hook
 FUNC StopHook : func[T github.com/coldsmirk/vef-framework-go.HookFunc](stop T) github.com/coldsmirk/vef-framework-go.Hook
 VAR Supply : func(values ...interface{}) go.uber.org/fx.Option
-FUNC SupplyBusinessBindingHook : func(constructor any) go.uber.org/fx.Option
+FUNC SupplyBusinessRefProvider : func(constructor any) go.uber.org/fx.Option
+FUNC SupplyBusinessRefResolver : func(constructor any) go.uber.org/fx.Option
 FUNC SupplyFileACL : func(constructor any) go.uber.org/fx.Option
 FUNC SupplyMCPServerInfo : func(info *github.com/coldsmirk/vef-framework-go/mcp.ServerInfo) go.uber.org/fx.Option
 FUNC SupplySPAConfigs : func(config *github.com/coldsmirk/vef-framework-go/middleware.SPAConfig, configs ...*github.com/coldsmirk/vef-framework-go/middleware.SPAConfig) go.uber.org/fx.Option
@@ -353,10 +355,12 @@ TYPE AuthConfig : github.com/coldsmirk/vef-framework-go/api.AuthConfig
   FIELD Strategy : string [field_order=1 tag=""]
   FIELD Options : map[string]any [field_order=2 tag=""]
   METHOD Clone : func() *github.com/coldsmirk/vef-framework-go/api.AuthConfig
+CONST AuthOptionWhitelist : untyped string = "whitelist"
 TYPE AuthStrategy : github.com/coldsmirk/vef-framework-go/api.AuthStrategy
   METHOD Authenticate : func(ctx github.com/gofiber/fiber/v3.Ctx, options map[string]any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Name : func() string
 CONST AuthStrategyBearer : untyped string = "bearer"
+CONST AuthStrategyIP : untyped string = "ip"
 CONST AuthStrategyNone : untyped string = "none"
 TYPE AuthStrategyRegistry : github.com/coldsmirk/vef-framework-go/api.AuthStrategyRegistry
   METHOD Get : func(name string) (github.com/coldsmirk/vef-framework-go/api.AuthStrategy, bool)
@@ -364,6 +368,7 @@ TYPE AuthStrategyRegistry : github.com/coldsmirk/vef-framework-go/api.AuthStrate
   METHOD Register : func(strategy github.com/coldsmirk/vef-framework-go/api.AuthStrategy)
 CONST AuthStrategySignature : untyped string = "signature"
 FUNC BearerAuth : func() *github.com/coldsmirk/vef-framework-go/api.AuthConfig
+CONST DefaultIPWhitelist : untyped string = "default"
 TYPE Engine : github.com/coldsmirk/vef-framework-go/api.Engine
   METHOD Lookup : func(id github.com/coldsmirk/vef-framework-go/api.Identifier) *github.com/coldsmirk/vef-framework-go/api.Operation
   METHOD Mount : func(router github.com/gofiber/fiber/v3.Router) error
@@ -395,6 +400,7 @@ CONST HeaderXMetaPrefix : untyped string = "X-Meta-"
 CONST HeaderXNonce : untyped string = "X-Nonce"
 CONST HeaderXSignature : untyped string = "X-Signature"
 CONST HeaderXTimestamp : untyped string = "X-Timestamp"
+FUNC IPAuth : func(whitelistName ...string) *github.com/coldsmirk/vef-framework-go/api.AuthConfig
 TYPE Identifier : github.com/coldsmirk/vef-framework-go/api.Identifier
   FIELD Resource : string [field_order=1 tag="json:\"resource\" form:\"resource\" validate:\"required,alphanum_us_slash\" label_i18n:\"api_request_resource\""]
   FIELD Action : string [field_order=2 tag="json:\"action\" form:\"action\" validate:\"required\" label_i18n:\"api_request_action\""]
@@ -420,13 +426,10 @@ TYPE Operation : github.com/coldsmirk/vef-framework-go/api.Operation
   FIELD Auth : *github.com/coldsmirk/vef-framework-go/api.AuthConfig [field_order=4 tag=""]
   FIELD RateLimit : *github.com/coldsmirk/vef-framework-go/api.RateLimitConfig [field_order=5 tag=""]
   FIELD Handler : any [field_order=6 tag=""]
-  FIELD Dynamic : bool [field_order=7 tag=""]
-  FIELD Meta : map[string]any [field_order=8 tag=""]
+  FIELD Meta : map[string]any [field_order=7 tag=""]
   FIELD Action : string [promoted_from=Identifier depth=1 field_order=2 tag="json:\"action\" form:\"action\" validate:\"required\" label_i18n:\"api_request_action\""]
   FIELD Resource : string [promoted_from=Identifier depth=1 field_order=1 tag="json:\"resource\" form:\"resource\" validate:\"required,alphanum_us_slash\" label_i18n:\"api_request_resource\""]
   FIELD Version : string [promoted_from=Identifier depth=1 field_order=3 tag="json:\"version\" form:\"version\" validate:\"required,alphanum\" label_i18n:\"api_request_version\""]
-  METHOD HasRateLimit : func() bool
-  METHOD RequiresAuth : func() bool
   METHOD String : func() string
 TYPE OperationSpec : github.com/coldsmirk/vef-framework-go/api.OperationSpec
   FIELD Action : string [field_order=1 tag=""]
@@ -455,8 +458,6 @@ TYPE Request : github.com/coldsmirk/vef-framework-go/api.Request
   FIELD Action : string [promoted_from=Identifier depth=1 field_order=2 tag="json:\"action\" form:\"action\" validate:\"required\" label_i18n:\"api_request_action\""]
   FIELD Resource : string [promoted_from=Identifier depth=1 field_order=1 tag="json:\"resource\" form:\"resource\" validate:\"required,alphanum_us_slash\" label_i18n:\"api_request_resource\""]
   FIELD Version : string [promoted_from=Identifier depth=1 field_order=3 tag="json:\"version\" form:\"version\" validate:\"required,alphanum\" label_i18n:\"api_request_version\""]
-  METHOD GetMeta : func(key string) (any, bool)
-  METHOD GetParam : func(key string) (any, bool)
   METHOD String : func() string
 TYPE Resource : github.com/coldsmirk/vef-framework-go/api.Resource
   METHOD Auth : func() *github.com/coldsmirk/vef-framework-go/api.AuthConfig
@@ -510,13 +511,17 @@ TYPE ActionLog : github.com/coldsmirk/vef-framework-go/approval.ActionLog
   FIELD Opinion : *string [field_order=14 tag="json:\"opinion\" bun:\"opinion,nullzero\""]
   FIELD TransferToID : *string [field_order=15 tag="json:\"transferToId\" bun:\"transfer_to_id,nullzero\""]
   FIELD TransferToName : *string [field_order=16 tag="json:\"transferToName\" bun:\"transfer_to_name,nullzero\""]
-  FIELD RollbackToNodeID : *string [field_order=17 tag="json:\"rollbackToNodeId\" bun:\"rollback_to_node_id,nullzero\""]
-  FIELD AddAssigneeType : *github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=18 tag="json:\"addAssigneeType\" bun:\"add_assignee_type,nullzero\""]
-  FIELD AddedAssigneeIDs : []string [field_order=19 tag="json:\"addedAssigneeIds\" bun:\"added_assignee_ids,type:jsonb\""]
-  FIELD RemovedAssigneeIDs : []string [field_order=20 tag="json:\"removedAssigneeIds\" bun:\"removed_assignee_ids,type:jsonb\""]
-  FIELD CCUserIDs : []string [field_order=21 tag="json:\"ccUserIds\" bun:\"cc_user_ids,type:jsonb\""]
-  FIELD Attachments : []string [field_order=22 tag="json:\"attachments\" bun:\"attachments,type:jsonb,nullzero\""]
-  FIELD Meta : map[string]any [field_order=23 tag="json:\"meta\" bun:\"meta,type:jsonb,nullzero\""]
+  FIELD TransferToDepartmentID : *string [field_order=17 tag="json:\"transferToDepartmentId\" bun:\"transfer_to_department_id,nullzero\""]
+  FIELD TransferToDepartmentName : *string [field_order=18 tag="json:\"transferToDepartmentName\" bun:\"transfer_to_department_name,nullzero\""]
+  FIELD RollbackToNodeID : *string [field_order=19 tag="json:\"rollbackToNodeId\" bun:\"rollback_to_node_id,nullzero\""]
+  FIELD AddAssigneeType : *github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=20 tag="json:\"addAssigneeType\" bun:\"add_assignee_type,nullzero\""]
+  FIELD AddedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=21 tag="json:\"addedAssignees\" bun:\"added_assignees,type:jsonb\""]
+  FIELD RemovedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=22 tag="json:\"removedAssignees\" bun:\"removed_assignees,type:jsonb\""]
+  FIELD CCUsers : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=23 tag="json:\"ccUsers\" bun:\"cc_users,type:jsonb\""]
+  FIELD Attachments : []string [field_order=24 tag="json:\"attachments\" bun:\"attachments,type:jsonb,nullzero\""]
+  FIELD Meta : map[string]any [field_order=25 tag="json:\"meta\" bun:\"meta,type:jsonb,nullzero\""]
+  METHOD Operator : func() github.com/coldsmirk/vef-framework-go/approval.UserInfo
+  METHOD TransferTo : func() *github.com/coldsmirk/vef-framework-go/approval.UserInfo
 CONST ActionReassign : github.com/coldsmirk/vef-framework-go/approval.ActionType = "reassign"
 CONST ActionReject : github.com/coldsmirk/vef-framework-go/approval.ActionType = "reject"
 CONST ActionRemoveAssignee : github.com/coldsmirk/vef-framework-go/approval.ActionType = "remove_assignee"
@@ -527,13 +532,29 @@ CONST ActionTerminate : github.com/coldsmirk/vef-framework-go/approval.ActionTyp
 CONST ActionTransfer : github.com/coldsmirk/vef-framework-go/approval.ActionType = "transfer"
 TYPE ActionType : github.com/coldsmirk/vef-framework-go/approval.ActionType
 CONST ActionWithdraw : github.com/coldsmirk/vef-framework-go/approval.ActionType = "withdraw"
+TYPE Activity : github.com/coldsmirk/vef-framework-go/approval.Activity
+  FIELD Action : string [field_order=1 tag="json:\"action\""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Opinion : *string [field_order=3 tag="json:\"opinion,omitempty\""]
+  FIELD Attachments : []string [field_order=4 tag="json:\"attachments,omitempty\""]
+  FIELD TransferTo : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=5 tag="json:\"transferTo,omitempty\""]
+  FIELD Target : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=6 tag="json:\"target,omitempty\""]
+  FIELD RollbackToNodeID : *string [field_order=7 tag="json:\"rollbackToNodeId,omitempty\""]
+  FIELD RollbackToNodeName : *string [field_order=8 tag="json:\"rollbackToNodeName,omitempty\""]
+  FIELD AddedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=9 tag="json:\"addedAssignees,omitempty\""]
+  FIELD RemovedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=10 tag="json:\"removedAssignees,omitempty\""]
+  FIELD CCUsers : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=11 tag="json:\"ccUsers,omitempty\""]
+  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"createdAt\""]
+CONST ActivityUrge : untyped string = "urge"
 CONST AddAssigneeAfter : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType = "after"
 CONST AddAssigneeBefore : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType = "before"
 CONST AddAssigneeParallel : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType = "parallel"
 TYPE AddAssigneeType : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType
   METHOD IsValid : func() bool
   METHOD UnmarshalJSON : func(data []byte) error
+FUNC AllEventTypes : func() []string
 TYPE ApprovalMethod : github.com/coldsmirk/vef-framework-go/approval.ApprovalMethod
+  METHOD IsValid : func() bool
 TYPE ApprovalNodeData : github.com/coldsmirk/vef-framework-go/approval.ApprovalNodeData
   FIELD BaseNodeData : github.com/coldsmirk/vef-framework-go/approval.BaseNodeData [field_order=1 tag=""]
   FIELD TaskNodeData : github.com/coldsmirk/vef-framework-go/approval.TaskNodeData [field_order=2 tag=""]
@@ -545,11 +566,11 @@ TYPE ApprovalNodeData : github.com/coldsmirk/vef-framework-go/approval.ApprovalN
   FIELD RollbackType : github.com/coldsmirk/vef-framework-go/approval.RollbackType [field_order=8 tag="json:\"rollbackType,omitempty\""]
   FIELD RollbackDataStrategy : github.com/coldsmirk/vef-framework-go/approval.RollbackDataStrategy [field_order=9 tag="json:\"rollbackDataStrategy,omitempty\""]
   FIELD RollbackTargetKeys : []string [field_order=10 tag="json:\"rollbackTargetKeys,omitempty\""]
-  FIELD IsRollbackAllowed : bool [field_order=11 tag="json:\"isRollbackAllowed,omitempty\""]
-  FIELD IsAddAssigneeAllowed : bool [field_order=12 tag="json:\"isAddAssigneeAllowed,omitempty\""]
+  FIELD IsRollbackAllowed : *bool [field_order=11 tag="json:\"isRollbackAllowed,omitempty\""]
+  FIELD IsAddAssigneeAllowed : *bool [field_order=12 tag="json:\"isAddAssigneeAllowed,omitempty\""]
   FIELD AddAssigneeTypes : []github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=13 tag="json:\"addAssigneeTypes,omitempty\""]
-  FIELD IsRemoveAssigneeAllowed : bool [field_order=14 tag="json:\"isRemoveAssigneeAllowed,omitempty\""]
-  FIELD IsManualCCAllowed : bool [field_order=15 tag="json:\"isManualCcAllowed,omitempty\""]
+  FIELD IsRemoveAssigneeAllowed : *bool [field_order=14 tag="json:\"isRemoveAssigneeAllowed,omitempty\""]
+  FIELD IsManualCCAllowed : *bool [field_order=15 tag="json:\"isManualCcAllowed,omitempty\""]
   FIELD AdminUserIDs : []string [promoted_from=TaskNodeData depth=1 field_order=5 tag="json:\"adminUserIds,omitempty\""]
   FIELD Assignees : []github.com/coldsmirk/vef-framework-go/approval.AssigneeDefinition [promoted_from=TaskNodeData depth=1 field_order=1 tag="json:\"assignees,omitempty\""]
   FIELD CCs : []github.com/coldsmirk/vef-framework-go/approval.CCDefinition [promoted_from=TaskNodeData depth=1 field_order=12 tag="json:\"ccs,omitempty\""]
@@ -559,7 +580,7 @@ TYPE ApprovalNodeData : github.com/coldsmirk/vef-framework-go/approval.ApprovalN
   FIELD FallbackUserIDs : []string [promoted_from=TaskNodeData depth=1 field_order=4 tag="json:\"fallbackUserIds,omitempty\""]
   FIELD FieldPermissions : map[string]github.com/coldsmirk/vef-framework-go/approval.Permission [promoted_from=TaskNodeData depth=1 field_order=13 tag="json:\"fieldPermissions,omitempty\""]
   FIELD IsOpinionRequired : bool [promoted_from=TaskNodeData depth=1 field_order=7 tag="json:\"isOpinionRequired,omitempty\""]
-  FIELD IsTransferAllowed : bool [promoted_from=TaskNodeData depth=1 field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
+  FIELD IsTransferAllowed : *bool [promoted_from=TaskNodeData depth=1 field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
   FIELD Name : string [promoted_from=BaseNodeData depth=1 field_order=1 tag="json:\"name,omitempty\""]
   FIELD TimeoutAction : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction [promoted_from=TaskNodeData depth=1 field_order=9 tag="json:\"timeoutAction,omitempty\""]
   FIELD TimeoutHours : int [promoted_from=TaskNodeData depth=1 field_order=8 tag="json:\"timeoutHours,omitempty\""]
@@ -582,6 +603,7 @@ CONST AssigneeDepartment : github.com/coldsmirk/vef-framework-go/approval.Assign
 CONST AssigneeDepartmentLeader : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "department_leader"
 CONST AssigneeFormField : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "form_field"
 TYPE AssigneeKind : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind
+  METHOD IsValid : func() bool
 CONST AssigneeRole : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "role"
 CONST AssigneeSelf : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "self"
 TYPE AssigneeService : github.com/coldsmirk/vef-framework-go/approval.AssigneeService
@@ -591,23 +613,39 @@ TYPE AssigneeService : github.com/coldsmirk/vef-framework-go/approval.AssigneeSe
 CONST AssigneeSuperior : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "superior"
 CONST AssigneeUser : github.com/coldsmirk/vef-framework-go/approval.AssigneeKind = "user"
 TYPE AssigneesAddedEvent : github.com/coldsmirk/vef-framework-go/approval.AssigneesAddedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
-  FIELD TaskID : string [field_order=4 tag="json:\"taskId\""]
-  FIELD AddType : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=5 tag="json:\"addType\""]
-  FIELD AssigneeIDs : []string [field_order=6 tag="json:\"assigneeIds\""]
-  FIELD AssigneeNames : map[string]string [field_order=7 tag="json:\"assigneeNames\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=8 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD AddType : github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=2 tag="json:\"addType\""]
+  FIELD Assignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=3 tag="json:\"assignees\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE AssigneesRemovedEvent : github.com/coldsmirk/vef-framework-go/approval.AssigneesRemovedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
-  FIELD TaskID : string [field_order=4 tag="json:\"taskId\""]
-  FIELD AssigneeIDs : []string [field_order=5 tag="json:\"assigneeIds\""]
-  FIELD AssigneeNames : map[string]string [field_order=6 tag="json:\"assigneeNames\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Assignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"assignees\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE BaseNodeData : github.com/coldsmirk/vef-framework-go/approval.BaseNodeData
   FIELD Name : string [field_order=1 tag="json:\"name,omitempty\""]
@@ -617,9 +655,10 @@ TYPE BaseNodeData : github.com/coldsmirk/vef-framework-go/approval.BaseNodeData
 CONST BindingBusiness : github.com/coldsmirk/vef-framework-go/approval.BindingMode = "business"
 TYPE BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode
 CONST BindingStandalone : github.com/coldsmirk/vef-framework-go/approval.BindingMode = "standalone"
-TYPE BusinessBindingHook : github.com/coldsmirk/vef-framework-go/approval.BusinessBindingHook
-  METHOD OnInstanceCreated : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) (businessRecordID string, err error)
-  METHOD WriteBackStatus : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus) error
+TYPE BusinessRefProvider : github.com/coldsmirk/vef-framework-go/approval.BusinessRefProvider
+  METHOD OnInstanceCreated : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) (businessRef string, err error)
+TYPE BusinessRefResolver : github.com/coldsmirk/vef-framework-go/approval.BusinessRefResolver
+  METHOD ResolveRecordID : func(ctx context.Context, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, businessRef string) (string, error)
 TYPE CCDefinition : github.com/coldsmirk/vef-framework-go/approval.CCDefinition
   FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.CCKind [field_order=1 tag="json:\"kind\""]
   FIELD IDs : []string [field_order=2 tag="json:\"ids,omitempty\""]
@@ -628,6 +667,7 @@ TYPE CCDefinition : github.com/coldsmirk/vef-framework-go/approval.CCDefinition
 CONST CCDepartment : github.com/coldsmirk/vef-framework-go/approval.CCKind = "department"
 CONST CCFormField : github.com/coldsmirk/vef-framework-go/approval.CCKind = "form_field"
 TYPE CCKind : github.com/coldsmirk/vef-framework-go/approval.CCKind
+  METHOD IsValid : func() bool
 TYPE CCNodeData : github.com/coldsmirk/vef-framework-go/approval.CCNodeData
   FIELD BaseNodeData : github.com/coldsmirk/vef-framework-go/approval.BaseNodeData [field_order=1 tag=""]
   FIELD CCs : []github.com/coldsmirk/vef-framework-go/approval.CCDefinition [field_order=2 tag="json:\"ccs,omitempty\""]
@@ -641,14 +681,24 @@ TYPE CCNodeData : github.com/coldsmirk/vef-framework-go/approval.CCNodeData
   METHOD GetName : func() string
   METHOD Kind : func() github.com/coldsmirk/vef-framework-go/approval.NodeKind
 TYPE CCNotifiedEvent : github.com/coldsmirk/vef-framework-go/approval.CCNotifiedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
-  FIELD CCUserIDs : []string [field_order=4 tag="json:\"ccUserIds\""]
-  FIELD CCUserNames : map[string]string [field_order=5 tag="json:\"ccUserNames\""]
-  FIELD IsManual : bool [field_order=6 tag="json:\"isManual\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD NodeID : string [field_order=2 tag="json:\"nodeId\""]
+  FIELD NodeName : string [field_order=3 tag="json:\"nodeName\""]
+  FIELD Recipients : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=4 tag="json:\"recipients\""]
+  FIELD IsManual : bool [field_order=5 tag="json:\"isManual\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
+TYPE CCRecipient : github.com/coldsmirk/vef-framework-go/approval.CCRecipient
+  FIELD User : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=1 tag="json:\"user\""]
+  FIELD ReadAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=2 tag="json:\"readAt,omitempty\""]
 TYPE CCRecord : github.com/coldsmirk/vef-framework-go/approval.CCRecord
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_cc_record,alias:acr\""]
   FIELD Model : github.com/coldsmirk/vef-framework-go/orm.Model [field_order=2 tag=""]
@@ -658,10 +708,14 @@ TYPE CCRecord : github.com/coldsmirk/vef-framework-go/approval.CCRecord
   FIELD TaskID : *string [field_order=6 tag="json:\"taskId\" bun:\"task_id,nullzero\""]
   FIELD CCUserID : string [field_order=7 tag="json:\"ccUserId\" bun:\"cc_user_id\""]
   FIELD CCUserName : string [field_order=8 tag="json:\"ccUserName\" bun:\"cc_user_name\""]
-  FIELD IsManual : bool [field_order=9 tag="json:\"isManual\" bun:\"is_manual\""]
-  FIELD ReadAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"readAt\" bun:\"read_at,nullzero\""]
+  FIELD CCUserDepartmentID : *string [field_order=9 tag="json:\"ccUserDepartmentId\" bun:\"cc_user_department_id,nullzero\""]
+  FIELD CCUserDepartmentName : *string [field_order=10 tag="json:\"ccUserDepartmentName\" bun:\"cc_user_department_name,nullzero\""]
+  FIELD IsManual : bool [field_order=11 tag="json:\"isManual\" bun:\"is_manual\""]
+  FIELD ReadAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"readAt\" bun:\"read_at,nullzero\""]
+  METHOD Recipient : func() github.com/coldsmirk/vef-framework-go/approval.CCRecipient
 CONST CCRole : github.com/coldsmirk/vef-framework-go/approval.CCKind = "role"
 TYPE CCTiming : github.com/coldsmirk/vef-framework-go/approval.CCTiming
+  METHOD IsValid : func() bool
 CONST CCTimingAlways : github.com/coldsmirk/vef-framework-go/approval.CCTiming = "always"
 CONST CCTimingOnApprove : github.com/coldsmirk/vef-framework-go/approval.CCTiming = "on_approve"
 CONST CCTimingOnReject : github.com/coldsmirk/vef-framework-go/approval.CCTiming = "on_reject"
@@ -672,11 +726,22 @@ TYPE CallerContext : github.com/coldsmirk/vef-framework-go/approval.CallerContex
   FIELD IsSystemInternal : bool [field_order=3 tag=""]
   METHOD Allows : func(entityTenantID string) bool
   METHOD Authorize : func(entityTenantID string) error
-  METHOD EffectiveTenantID : func(override string) string
+  METHOD ResolveWriteTenant : func(clientTenant string) (string, error)
+  METHOD TenantScopeFilter : func(override string) (*string, error)
+CONST ColumnBoolean : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "boolean"
+TYPE ColumnDataType : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType
+  METHOD IsValid : func() bool
+CONST ColumnDate : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "date"
+CONST ColumnDatetime : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "datetime"
+CONST ColumnDecimal : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "decimal"
+CONST ColumnInteger : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "integer"
+CONST ColumnJSON : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "json"
+CONST ColumnString : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "string"
+CONST ColumnText : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "text"
 TYPE Condition : github.com/coldsmirk/vef-framework-go/approval.Condition
   FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.ConditionKind [field_order=1 tag="json:\"kind\""]
   FIELD Subject : string [field_order=2 tag="json:\"subject\""]
-  FIELD Operator : string [field_order=3 tag="json:\"operator\""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator [field_order=3 tag="json:\"operator\""]
   FIELD Value : any [field_order=4 tag="json:\"value\""]
   FIELD Expression : string [field_order=5 tag="json:\"expression\""]
 TYPE ConditionBranch : github.com/coldsmirk/vef-framework-go/approval.ConditionBranch
@@ -702,9 +767,26 @@ TYPE ConditionNodeData : github.com/coldsmirk/vef-framework-go/approval.Conditio
   METHOD GetDescription : func() *string
   METHOD GetName : func() string
   METHOD Kind : func() github.com/coldsmirk/vef-framework-go/approval.NodeKind
+TYPE ConditionOperator : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator
+  METHOD IsValid : func() bool
 TYPE ConsecutiveApproverAction : github.com/coldsmirk/vef-framework-go/approval.ConsecutiveApproverAction
+  METHOD IsValid : func() bool
 CONST ConsecutiveApproverAutoPass : github.com/coldsmirk/vef-framework-go/approval.ConsecutiveApproverAction = "auto_pass"
 CONST ConsecutiveApproverNone : github.com/coldsmirk/vef-framework-go/approval.ConsecutiveApproverAction = "none"
+CONST DefaultApprovalMethod : github.com/coldsmirk/vef-framework-go/approval.ApprovalMethod = "parallel"
+CONST DefaultCCTiming : github.com/coldsmirk/vef-framework-go/approval.CCTiming = "always"
+CONST DefaultConsecutiveApproverAction : github.com/coldsmirk/vef-framework-go/approval.ConsecutiveApproverAction = "none"
+CONST DefaultEmptyAssigneeAction : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction = "auto_pass"
+CONST DefaultExecutionType : github.com/coldsmirk/vef-framework-go/approval.ExecutionType = "manual"
+CONST DefaultHandleApprovalMethod : github.com/coldsmirk/vef-framework-go/approval.ApprovalMethod = "sequential"
+CONST DefaultHandlePassRule : github.com/coldsmirk/vef-framework-go/approval.PassRule = "any"
+CONST DefaultPassRule : github.com/coldsmirk/vef-framework-go/approval.PassRule = "all"
+CONST DefaultRollbackDataStrategy : github.com/coldsmirk/vef-framework-go/approval.RollbackDataStrategy = "keep"
+CONST DefaultRollbackType : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "previous"
+CONST DefaultSameApplicantAction : github.com/coldsmirk/vef-framework-go/approval.SameApplicantAction = "self_approve"
+CONST DefaultTenantID : untyped string = "default"
+CONST DefaultTimeoutAction : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction = "none"
+CONST DefaultUrgeCooldownMinutes : untyped int = 30
 TYPE Delegation : github.com/coldsmirk/vef-framework-go/approval.Delegation
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_delegation,alias:ad\""]
   FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
@@ -725,6 +807,7 @@ TYPE EdgeDefinition : github.com/coldsmirk/vef-framework-go/approval.EdgeDefinit
   FIELD SourceHandle : *string [field_order=4 tag="json:\"sourceHandle,omitempty\""]
   FIELD Data : map[string]any [field_order=5 tag="json:\"data,omitempty\""]
 TYPE EmptyAssigneeAction : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction
+  METHOD IsValid : func() bool
 CONST EmptyAssigneeAutoPass : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction = "auto_pass"
 CONST EmptyAssigneeTransferAdmin : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction = "transfer_admin"
 CONST EmptyAssigneeTransferApplicant : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction = "transfer_applicant"
@@ -746,6 +829,7 @@ TYPE EvaluationContext : github.com/coldsmirk/vef-framework-go/approval.Evaluati
   FIELD FormData : github.com/coldsmirk/vef-framework-go/approval.FormData [field_order=1 tag=""]
   FIELD ApplicantID : string [field_order=2 tag=""]
   FIELD ApplicantDepartmentID : *string [field_order=3 tag=""]
+  FIELD Globals : map[string]any [field_order=4 tag=""]
 CONST EventTypeAssigneesAdded : untyped string = "approval.task.assignees_added"
 CONST EventTypeAssigneesRemoved : untyped string = "approval.task.assignees_removed"
 CONST EventTypeCCNotified : untyped string = "approval.cc.notified"
@@ -762,8 +846,8 @@ CONST EventTypeInstanceReturned : untyped string = "approval.instance.returned"
 CONST EventTypeInstanceRolledBack : untyped string = "approval.instance.rolled_back"
 CONST EventTypeInstanceWithdrawn : untyped string = "approval.instance.withdrawn"
 CONST EventTypeNodeAutoPassed : untyped string = "approval.node.auto_passed"
-CONST EventTypeNodeEntered : untyped string = "approval.node.entered"
 CONST EventTypeTaskApproved : untyped string = "approval.task.approved"
+CONST EventTypeTaskCanceled : untyped string = "approval.task.canceled"
 CONST EventTypeTaskCreated : untyped string = "approval.task.created"
 CONST EventTypeTaskDeadlineWarning : untyped string = "approval.task.deadline_warning"
 CONST EventTypeTaskHandled : untyped string = "approval.task.handled"
@@ -772,14 +856,15 @@ CONST EventTypeTaskRejected : untyped string = "approval.task.rejected"
 CONST EventTypeTaskTimedOut : untyped string = "approval.task.timed_out"
 CONST EventTypeTaskTransferred : untyped string = "approval.task.transferred"
 CONST EventTypeTaskUrged : untyped string = "approval.task.urged"
-CONST ExecutionAuto : github.com/coldsmirk/vef-framework-go/approval.ExecutionType = "auto"
 CONST ExecutionAutoPass : github.com/coldsmirk/vef-framework-go/approval.ExecutionType = "auto_pass"
 CONST ExecutionAutoReject : github.com/coldsmirk/vef-framework-go/approval.ExecutionType = "auto_reject"
 CONST ExecutionManual : github.com/coldsmirk/vef-framework-go/approval.ExecutionType = "manual"
 TYPE ExecutionType : github.com/coldsmirk/vef-framework-go/approval.ExecutionType
+  METHOD IsValid : func() bool
 CONST FieldDate : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "date"
 CONST FieldInput : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "input"
 TYPE FieldKind : github.com/coldsmirk/vef-framework-go/approval.FieldKind
+  METHOD IsValid : func() bool
 CONST FieldNumber : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "number"
 TYPE FieldOption : github.com/coldsmirk/vef-framework-go/approval.FieldOption
   FIELD Label : string [field_order=1 tag="json:\"label\""]
@@ -799,13 +884,12 @@ TYPE Flow : github.com/coldsmirk/vef-framework-go/approval.Flow
   FIELD BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode [field_order=9 tag="json:\"bindingMode\" bun:\"binding_mode\""]
   FIELD BusinessTable : *string [field_order=10 tag="json:\"businessTable\" bun:\"business_table,nullzero\""]
   FIELD BusinessPkField : *string [field_order=11 tag="json:\"businessPkField\" bun:\"business_pk_field,nullzero\""]
-  FIELD BusinessTitleField : *string [field_order=12 tag="json:\"businessTitleField\" bun:\"business_title_field,nullzero\""]
-  FIELD BusinessStatusField : *string [field_order=13 tag="json:\"businessStatusField\" bun:\"business_status_field,nullzero\""]
-  FIELD AdminUserIDs : []string [field_order=14 tag="json:\"adminUserIds\" bun:\"admin_user_ids,type:jsonb\""]
-  FIELD IsAllInitiationAllowed : bool [field_order=15 tag="json:\"isAllInitiationAllowed\" bun:\"is_all_initiation_allowed\""]
-  FIELD InstanceTitleTemplate : string [field_order=16 tag="json:\"instanceTitleTemplate\" bun:\"instance_title_template\""]
-  FIELD IsActive : bool [field_order=17 tag="json:\"isActive\" bun:\"is_active\""]
-  FIELD CurrentVersion : int [field_order=18 tag="json:\"currentVersion\" bun:\"current_version\""]
+  FIELD BusinessStatusField : *string [field_order=12 tag="json:\"businessStatusField\" bun:\"business_status_field,nullzero\""]
+  FIELD AdminUserIDs : []string [field_order=13 tag="json:\"adminUserIds\" bun:\"admin_user_ids,type:jsonb\""]
+  FIELD IsAllInitiationAllowed : bool [field_order=14 tag="json:\"isAllInitiationAllowed\" bun:\"is_all_initiation_allowed\""]
+  FIELD InstanceTitleTemplate : string [field_order=15 tag="json:\"instanceTitleTemplate\" bun:\"instance_title_template\""]
+  FIELD IsActive : bool [field_order=16 tag="json:\"isActive\" bun:\"is_active\""]
+  FIELD CurrentVersion : int [field_order=17 tag="json:\"currentVersion\" bun:\"current_version\""]
 TYPE FlowCategory : github.com/coldsmirk/vef-framework-go/approval.FlowCategory
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow_category,alias:afc\""]
   FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
@@ -819,22 +903,26 @@ TYPE FlowCategory : github.com/coldsmirk/vef-framework-go/approval.FlowCategory
   FIELD Remark : *string [field_order=10 tag="json:\"remark\" bun:\"remark,nullzero\""]
   FIELD Children : []github.com/coldsmirk/vef-framework-go/approval.FlowCategory [field_order=11 tag="json:\"children,omitempty\" bun:\"-\""]
 TYPE FlowCreatedEvent : github.com/coldsmirk/vef-framework-go/approval.FlowCreatedEvent
-  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD Code : string [field_order=3 tag="json:\"code\""]
-  FIELD Name : string [field_order=4 tag="json:\"name\""]
-  FIELD CategoryID : string [field_order=5 tag="json:\"categoryId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=6 tag="json:\"occurredTime\""]
+  FIELD FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase [field_order=1 tag=""]
+  FIELD CategoryID : string [field_order=2 tag="json:\"categoryId\""]
+  FIELD Code : string [promoted_from=FlowEventBase depth=1 field_order=3 tag="json:\"code\""]
+  FIELD FlowID : string [promoted_from=FlowEventBase depth=1 field_order=1 tag="json:\"flowId\""]
+  FIELD Name : string [promoted_from=FlowEventBase depth=1 field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=FlowEventBase depth=1 field_order=5 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=FlowEventBase depth=1 field_order=2 tag="json:\"tenantId\""]
   METHOD EventType : func() string
 TYPE FlowDefinition : github.com/coldsmirk/vef-framework-go/approval.FlowDefinition
   FIELD Nodes : []github.com/coldsmirk/vef-framework-go/approval.NodeDefinition [field_order=1 tag="json:\"nodes\""]
   FIELD Edges : []github.com/coldsmirk/vef-framework-go/approval.EdgeDefinition [field_order=2 tag="json:\"edges\""]
 TYPE FlowDeployedEvent : github.com/coldsmirk/vef-framework-go/approval.FlowDeployedEvent
-  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD VersionID : string [field_order=3 tag="json:\"versionId\""]
-  FIELD Version : int [field_order=4 tag="json:\"version\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"occurredTime\""]
+  FIELD FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase [field_order=1 tag=""]
+  FIELD VersionID : string [field_order=2 tag="json:\"versionId\""]
+  FIELD Version : int [field_order=3 tag="json:\"version\""]
+  FIELD Code : string [promoted_from=FlowEventBase depth=1 field_order=3 tag="json:\"code\""]
+  FIELD FlowID : string [promoted_from=FlowEventBase depth=1 field_order=1 tag="json:\"flowId\""]
+  FIELD Name : string [promoted_from=FlowEventBase depth=1 field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=FlowEventBase depth=1 field_order=5 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=FlowEventBase depth=1 field_order=2 tag="json:\"tenantId\""]
   METHOD EventType : func() string
 TYPE FlowEdge : github.com/coldsmirk/vef-framework-go/approval.FlowEdge
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow_edge,alias:afe\""]
@@ -846,6 +934,35 @@ TYPE FlowEdge : github.com/coldsmirk/vef-framework-go/approval.FlowEdge
   FIELD TargetNodeID : string [field_order=7 tag="json:\"targetNodeId\" bun:\"target_node_id\""]
   FIELD TargetNodeKey : string [field_order=8 tag="json:\"targetNodeKey\" bun:\"target_node_key\""]
   FIELD SourceHandle : *string [field_order=9 tag="json:\"sourceHandle\" bun:\"source_handle,nullzero\""]
+TYPE FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase
+  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
+  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
+  FIELD Code : string [field_order=3 tag="json:\"code\""]
+  FIELD Name : string [field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"occurredTime\""]
+TYPE FlowGraphEdge : github.com/coldsmirk/vef-framework-go/approval.FlowGraphEdge
+  FIELD ID : string [field_order=1 tag="json:\"id\""]
+  FIELD Source : string [field_order=2 tag="json:\"source\""]
+  FIELD Target : string [field_order=3 tag="json:\"target\""]
+  FIELD SourceHandle : *string [field_order=4 tag="json:\"sourceHandle,omitempty\""]
+TYPE FlowGraphNode : github.com/coldsmirk/vef-framework-go/approval.FlowGraphNode
+  FIELD ID : string [field_order=1 tag="json:\"id\""]
+  FIELD NodeID : string [field_order=2 tag="json:\"nodeId\""]
+  FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.NodeKind [field_order=3 tag="json:\"kind\""]
+  FIELD Position : github.com/coldsmirk/vef-framework-go/approval.Position [field_order=4 tag="json:\"position\""]
+  FIELD Data : github.com/coldsmirk/vef-framework-go/approval.FlowGraphNodeData [field_order=5 tag="json:\"data\""]
+TYPE FlowGraphNodeData : github.com/coldsmirk/vef-framework-go/approval.FlowGraphNodeData
+  FIELD Name : string [field_order=1 tag="json:\"name\""]
+  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus [field_order=2 tag="json:\"status\""]
+  FIELD ExecutionType : string [field_order=3 tag="json:\"executionType,omitempty\""]
+  FIELD ApprovalMethod : string [field_order=4 tag="json:\"approvalMethod,omitempty\""]
+  FIELD PassRule : string [field_order=5 tag="json:\"passRule,omitempty\""]
+  FIELD PassRatio : *github.com/coldsmirk/vef-framework-go/decimal.Decimal [field_order=6 tag="json:\"passRatio,omitempty\""]
+  FIELD Participants : []github.com/coldsmirk/vef-framework-go/approval.NodeParticipant [field_order=7 tag="json:\"participants,omitempty\""]
+  FIELD CCRecipients : []github.com/coldsmirk/vef-framework-go/approval.CCRecipient [field_order=8 tag="json:\"ccRecipients,omitempty\""]
+  FIELD Activities : []github.com/coldsmirk/vef-framework-go/approval.Activity [field_order=9 tag="json:\"activities,omitempty\""]
+  FIELD StartedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"startedAt,omitempty\""]
+  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=11 tag="json:\"finishedAt,omitempty\""]
 TYPE FlowInitiator : github.com/coldsmirk/vef-framework-go/approval.FlowInitiator
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow_initiator,alias:afi\""]
   FIELD Model : github.com/coldsmirk/vef-framework-go/orm.Model [field_order=2 tag=""]
@@ -863,7 +980,7 @@ TYPE FlowNode : github.com/coldsmirk/vef-framework-go/approval.FlowNode
   FIELD ExecutionType : github.com/coldsmirk/vef-framework-go/approval.ExecutionType [field_order=8 tag="json:\"executionType\" bun:\"execution_type\""]
   FIELD ApprovalMethod : github.com/coldsmirk/vef-framework-go/approval.ApprovalMethod [field_order=9 tag="json:\"approvalMethod\" bun:\"approval_method\""]
   FIELD PassRule : github.com/coldsmirk/vef-framework-go/approval.PassRule [field_order=10 tag="json:\"passRule\" bun:\"pass_rule\""]
-  FIELD PassRatio : github.com/coldsmirk/vef-framework-go/decimal.Decimal [field_order=11 tag="json:\"passRatio\" bun:\"pass_ratio\""]
+  FIELD PassRatio : github.com/coldsmirk/vef-framework-go/decimal.Decimal [field_order=11 tag="json:\"passRatio\" bun:\"pass_ratio,type:numeric(5,2)\""]
   FIELD EmptyAssigneeAction : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction [field_order=12 tag="json:\"emptyAssigneeAction\" bun:\"empty_assignee_action\""]
   FIELD FallbackUserIDs : []string [field_order=13 tag="json:\"fallbackUserIds\" bun:\"fallback_user_ids,type:jsonb\""]
   FIELD AdminUserIDs : []string [field_order=14 tag="json:\"adminUserIds\" bun:\"admin_user_ids,type:jsonb\""]
@@ -903,21 +1020,30 @@ TYPE FlowNodeCC : github.com/coldsmirk/vef-framework-go/approval.FlowNodeCC
   FIELD FormField : *string [field_order=6 tag="json:\"formField\" bun:\"form_field,nullzero\""]
   FIELD Timing : github.com/coldsmirk/vef-framework-go/approval.CCTiming [field_order=7 tag="json:\"timing\" bun:\"timing\""]
 TYPE FlowPublishedEvent : github.com/coldsmirk/vef-framework-go/approval.FlowPublishedEvent
-  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD VersionID : string [field_order=3 tag="json:\"versionId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"occurredTime\""]
+  FIELD FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase [field_order=1 tag=""]
+  FIELD VersionID : string [field_order=2 tag="json:\"versionId\""]
+  FIELD Code : string [promoted_from=FlowEventBase depth=1 field_order=3 tag="json:\"code\""]
+  FIELD FlowID : string [promoted_from=FlowEventBase depth=1 field_order=1 tag="json:\"flowId\""]
+  FIELD Name : string [promoted_from=FlowEventBase depth=1 field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=FlowEventBase depth=1 field_order=5 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=FlowEventBase depth=1 field_order=2 tag="json:\"tenantId\""]
   METHOD EventType : func() string
 TYPE FlowToggledEvent : github.com/coldsmirk/vef-framework-go/approval.FlowToggledEvent
-  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD IsActive : bool [field_order=3 tag="json:\"isActive\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"occurredTime\""]
+  FIELD FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase [field_order=1 tag=""]
+  FIELD IsActive : bool [field_order=2 tag="json:\"isActive\""]
+  FIELD Code : string [promoted_from=FlowEventBase depth=1 field_order=3 tag="json:\"code\""]
+  FIELD FlowID : string [promoted_from=FlowEventBase depth=1 field_order=1 tag="json:\"flowId\""]
+  FIELD Name : string [promoted_from=FlowEventBase depth=1 field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=FlowEventBase depth=1 field_order=5 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=FlowEventBase depth=1 field_order=2 tag="json:\"tenantId\""]
   METHOD EventType : func() string
 TYPE FlowUpdatedEvent : github.com/coldsmirk/vef-framework-go/approval.FlowUpdatedEvent
-  FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=3 tag="json:\"occurredTime\""]
+  FIELD FlowEventBase : github.com/coldsmirk/vef-framework-go/approval.FlowEventBase [field_order=1 tag=""]
+  FIELD Code : string [promoted_from=FlowEventBase depth=1 field_order=3 tag="json:\"code\""]
+  FIELD FlowID : string [promoted_from=FlowEventBase depth=1 field_order=1 tag="json:\"flowId\""]
+  FIELD Name : string [promoted_from=FlowEventBase depth=1 field_order=4 tag="json:\"name\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=FlowEventBase depth=1 field_order=5 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=FlowEventBase depth=1 field_order=2 tag="json:\"tenantId\""]
   METHOD EventType : func() string
 TYPE FlowVersion : github.com/coldsmirk/vef-framework-go/approval.FlowVersion
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow_version,alias:afv\""]
@@ -949,6 +1075,8 @@ TYPE FormFieldDefinition : github.com/coldsmirk/vef-framework-go/approval.FormFi
   FIELD Validation : *github.com/coldsmirk/vef-framework-go/approval.ValidationRule [field_order=8 tag="json:\"validation,omitempty\""]
   FIELD Props : map[string]any [field_order=9 tag="json:\"props,omitempty\""]
   FIELD SortOrder : int [field_order=10 tag="json:\"sortOrder\""]
+  FIELD ColumnType : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType [field_order=11 tag="json:\"columnType,omitempty\""]
+  FIELD Scale : *int [field_order=12 tag="json:\"scale,omitempty\""]
 TYPE FormSnapshot : github.com/coldsmirk/vef-framework-go/approval.FormSnapshot
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_form_snapshot,alias:afs\""]
   FIELD Model : github.com/coldsmirk/vef-framework-go/orm.Model [field_order=2 tag=""]
@@ -956,6 +1084,21 @@ TYPE FormSnapshot : github.com/coldsmirk/vef-framework-go/approval.FormSnapshot
   FIELD InstanceID : string [field_order=4 tag="json:\"instanceId\" bun:\"instance_id\""]
   FIELD NodeID : string [field_order=5 tag="json:\"nodeId\" bun:\"node_id\""]
   FIELD FormData : map[string]any [field_order=6 tag="json:\"formData\" bun:\"form_data,type:jsonb\""]
+TYPE FormTable : github.com/coldsmirk/vef-framework-go/approval.FormTable
+  FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_form_table,alias:aft\""]
+  FIELD CreationAuditedModel : github.com/coldsmirk/vef-framework-go/orm.CreationAuditedModel [field_order=2 tag=""]
+  FIELD FlowID : string [field_order=3 tag="json:\"flowId\" bun:\"flow_id\""]
+  FIELD VersionID : string [field_order=4 tag="json:\"versionId\" bun:\"version_id\""]
+  FIELD PhysicalTableName : string [field_order=5 tag="json:\"physicalTableName\" bun:\"physical_table_name\""]
+TYPE FormTableColumn : github.com/coldsmirk/vef-framework-go/approval.FormTableColumn
+  FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_form_table_column,alias:aftc\""]
+  FIELD CreationAuditedModel : github.com/coldsmirk/vef-framework-go/orm.CreationAuditedModel [field_order=2 tag=""]
+  FIELD FormTableID : string [field_order=3 tag="json:\"formTableId\" bun:\"form_table_id\""]
+  FIELD ColumnName : string [field_order=4 tag="json:\"columnName\" bun:\"column_name\""]
+  FIELD ColumnType : string [field_order=5 tag="json:\"columnType\" bun:\"column_type\""]
+  FIELD IsNullable : bool [field_order=6 tag="json:\"isNullable\" bun:\"is_nullable\""]
+  FIELD SourceFieldKey : *string [field_order=7 tag="json:\"sourceFieldKey\" bun:\"source_field_key,nullzero\""]
+  FIELD SortOrder : int [field_order=8 tag="json:\"sortOrder\" bun:\"sort_order\""]
 TYPE HandleNodeData : github.com/coldsmirk/vef-framework-go/approval.HandleNodeData
   FIELD BaseNodeData : github.com/coldsmirk/vef-framework-go/approval.BaseNodeData [field_order=1 tag=""]
   FIELD TaskNodeData : github.com/coldsmirk/vef-framework-go/approval.TaskNodeData [field_order=2 tag=""]
@@ -968,7 +1111,7 @@ TYPE HandleNodeData : github.com/coldsmirk/vef-framework-go/approval.HandleNodeD
   FIELD FallbackUserIDs : []string [promoted_from=TaskNodeData depth=1 field_order=4 tag="json:\"fallbackUserIds,omitempty\""]
   FIELD FieldPermissions : map[string]github.com/coldsmirk/vef-framework-go/approval.Permission [promoted_from=TaskNodeData depth=1 field_order=13 tag="json:\"fieldPermissions,omitempty\""]
   FIELD IsOpinionRequired : bool [promoted_from=TaskNodeData depth=1 field_order=7 tag="json:\"isOpinionRequired,omitempty\""]
-  FIELD IsTransferAllowed : bool [promoted_from=TaskNodeData depth=1 field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
+  FIELD IsTransferAllowed : *bool [promoted_from=TaskNodeData depth=1 field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
   FIELD Name : string [promoted_from=BaseNodeData depth=1 field_order=1 tag="json:\"name,omitempty\""]
   FIELD TimeoutAction : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction [promoted_from=TaskNodeData depth=1 field_order=9 tag="json:\"timeoutAction,omitempty\""]
   FIELD TimeoutHours : int [promoted_from=TaskNodeData depth=1 field_order=8 tag="json:\"timeoutHours,omitempty\""]
@@ -989,44 +1132,78 @@ TYPE Instance : github.com/coldsmirk/vef-framework-go/approval.Instance
   FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
   FIELD TenantID : string [field_order=3 tag="json:\"tenantId\" bun:\"tenant_id\""]
   FIELD FlowID : string [field_order=4 tag="json:\"flowId\" bun:\"flow_id\""]
-  FIELD FlowVersionID : string [field_order=5 tag="json:\"flowVersionId\" bun:\"flow_version_id\""]
-  FIELD Title : string [field_order=6 tag="json:\"title\" bun:\"title\""]
-  FIELD InstanceNo : string [field_order=7 tag="json:\"instanceNo\" bun:\"instance_no\""]
-  FIELD ApplicantID : string [field_order=8 tag="json:\"applicantId\" bun:\"applicant_id\""]
-  FIELD ApplicantName : string [field_order=9 tag="json:\"applicantName\" bun:\"applicant_name\""]
-  FIELD ApplicantDepartmentID : *string [field_order=10 tag="json:\"applicantDepartmentId\" bun:\"applicant_department_id,nullzero\""]
-  FIELD ApplicantDepartmentName : *string [field_order=11 tag="json:\"applicantDepartmentName\" bun:\"applicant_department_name,nullzero\""]
-  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=12 tag="json:\"status\" bun:\"status\""]
-  FIELD CurrentNodeID : *string [field_order=13 tag="json:\"currentNodeId\" bun:\"current_node_id,nullzero\""]
-  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=14 tag="json:\"finishedAt\" bun:\"finished_at,nullzero\""]
-  FIELD BusinessRecordID : *string [field_order=15 tag="json:\"businessRecordId\" bun:\"business_record_id,nullzero\""]
-  FIELD FormData : map[string]any [field_order=16 tag="json:\"formData\" bun:\"form_data,type:jsonb,nullzero\""]
+  FIELD FlowCode : string [field_order=5 tag="json:\"flowCode\" bun:\"flow_code\""]
+  FIELD FlowVersionID : string [field_order=6 tag="json:\"flowVersionId\" bun:\"flow_version_id\""]
+  FIELD Title : string [field_order=7 tag="json:\"title\" bun:\"title\""]
+  FIELD InstanceNo : string [field_order=8 tag="json:\"instanceNo\" bun:\"instance_no\""]
+  FIELD ApplicantID : string [field_order=9 tag="json:\"applicantId\" bun:\"applicant_id\""]
+  FIELD ApplicantName : string [field_order=10 tag="json:\"applicantName\" bun:\"applicant_name\""]
+  FIELD ApplicantDepartmentID : *string [field_order=11 tag="json:\"applicantDepartmentId\" bun:\"applicant_department_id,nullzero\""]
+  FIELD ApplicantDepartmentName : *string [field_order=12 tag="json:\"applicantDepartmentName\" bun:\"applicant_department_name,nullzero\""]
+  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=13 tag="json:\"status\" bun:\"status\""]
+  FIELD CurrentNodeID : *string [field_order=14 tag="json:\"currentNodeId\" bun:\"current_node_id,nullzero\""]
+  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=15 tag="json:\"finishedAt\" bun:\"finished_at,nullzero\""]
+  FIELD BusinessRef : *string [field_order=16 tag="json:\"businessRef\" bun:\"business_ref,nullzero\""]
+  FIELD FormData : map[string]any [field_order=17 tag="json:\"formData\" bun:\"form_data,type:jsonb,nullzero\""]
+  FIELD Globals : map[string]any [field_order=18 tag="json:\"globals\" bun:\"globals,type:jsonb,nullzero\""]
+  METHOD Applicant : func() github.com/coldsmirk/vef-framework-go/approval.UserInfo
 CONST InstanceApproved : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "approved"
 TYPE InstanceBindingFailedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceBindingFailedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD FlowID : string [field_order=3 tag="json:\"flowId\""]
-  FIELD FinalStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=4 tag="json:\"finalStatus\""]
-  FIELD BusinessTable : string [field_order=5 tag="json:\"businessTable\""]
-  FIELD ErrorMessage : string [field_order=6 tag="json:\"errorMessage\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD FinalStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=2 tag="json:\"finalStatus\""]
+  FIELD BusinessTable : string [field_order=3 tag="json:\"businessTable\""]
+  FIELD ErrorMessage : string [field_order=4 tag="json:\"errorMessage\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE InstanceCompletedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceCompletedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD FinalStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=3 tag="json:\"finalStatus\""]
-  FIELD FinishedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"finishedAt\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD FinalStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus [field_order=2 tag="json:\"finalStatus\""]
+  FIELD FinishedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=3 tag="json:\"finishedAt\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE InstanceCreatedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceCreatedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD FlowID : string [field_order=3 tag="json:\"flowId\""]
-  FIELD Title : string [field_order=4 tag="json:\"title\""]
-  FIELD ApplicantID : string [field_order=5 tag="json:\"applicantId\""]
-  FIELD ApplicantName : string [field_order=6 tag="json:\"applicantName\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
+TYPE InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase
+  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [field_order=2 tag="json:\"instanceNo\""]
+  FIELD TenantID : string [field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [field_order=4 tag="json:\"title\""]
+  FIELD FlowID : string [field_order=5 tag="json:\"flowId\""]
+  FIELD FlowCode : string [field_order=6 tag="json:\"flowCode\""]
+  FIELD BusinessRef : *string [field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=8 tag="json:\"applicant\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"occurredTime\""]
+TYPE InstanceFlowGraph : github.com/coldsmirk/vef-framework-go/approval.InstanceFlowGraph
+  FIELD Nodes : []github.com/coldsmirk/vef-framework-go/approval.FlowGraphNode [field_order=1 tag="json:\"nodes\""]
+  FIELD Edges : []github.com/coldsmirk/vef-framework-go/approval.FlowGraphEdge [field_order=2 tag="json:\"edges\""]
+TYPE InstanceGlobalsResolver : github.com/coldsmirk/vef-framework-go/approval.InstanceGlobalsResolver
+  METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, flowCode string) (map[string]any, error)
 TYPE InstanceLifecycleHook : github.com/coldsmirk/vef-framework-go/approval.InstanceLifecycleHook
   METHOD OnInstanceCompleted : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, instance *github.com/coldsmirk/vef-framework-go/approval.Instance, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus) error
   METHOD OnInstanceCreated : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) error
@@ -1034,27 +1211,52 @@ TYPE InstanceNoGenerator : github.com/coldsmirk/vef-framework-go/approval.Instan
   METHOD Generate : func(ctx context.Context, flowCode string) (string, error)
 CONST InstanceRejected : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "rejected"
 TYPE InstanceResubmittedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceResubmittedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD OperatorID : string [field_order=3 tag="json:\"operatorId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST InstanceReturned : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "returned"
 TYPE InstanceReturnedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceReturnedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD FromNodeID : string [field_order=3 tag="json:\"fromNodeId\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD FromNodeID : string [field_order=2 tag="json:\"fromNodeId\""]
+  FIELD FromNodeName : string [field_order=3 tag="json:\"fromNodeName\""]
   FIELD ToNodeID : string [field_order=4 tag="json:\"toNodeId\""]
-  FIELD OperatorID : string [field_order=5 tag="json:\"operatorId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=6 tag="json:\"occurredTime\""]
+  FIELD ToNodeName : string [field_order=5 tag="json:\"toNodeName\""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=6 tag="json:\"operator\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE InstanceRolledBackEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceRolledBackEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD FromNodeID : string [field_order=3 tag="json:\"fromNodeId\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD FromNodeID : string [field_order=2 tag="json:\"fromNodeId\""]
+  FIELD FromNodeName : string [field_order=3 tag="json:\"fromNodeName\""]
   FIELD ToNodeID : string [field_order=4 tag="json:\"toNodeId\""]
-  FIELD OperatorID : string [field_order=5 tag="json:\"operatorId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=6 tag="json:\"occurredTime\""]
+  FIELD ToNodeName : string [field_order=5 tag="json:\"toNodeName\""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=6 tag="json:\"operator\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST InstanceRunning : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "running"
 TYPE InstanceStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus
@@ -1063,46 +1265,64 @@ TYPE InstanceStatus : github.com/coldsmirk/vef-framework-go/approval.InstanceSta
 CONST InstanceTerminated : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "terminated"
 CONST InstanceWithdrawn : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "withdrawn"
 TYPE InstanceWithdrawnEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceWithdrawnEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD OperatorID : string [field_order=3 tag="json:\"operatorId\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"occurredTime\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 FUNC IsSuperAdmin : func(p *github.com/coldsmirk/vef-framework-go/security.Principal) bool
-FUNC NewAssigneesAddedEvent : func(instanceID string, tenantID string, nodeID string, taskID string, addType github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType, assigneeIDs []string, assigneeNames map[string]string) *github.com/coldsmirk/vef-framework-go/approval.AssigneesAddedEvent
-FUNC NewAssigneesRemovedEvent : func(instanceID string, tenantID string, nodeID string, taskID string, assigneeIDs []string, assigneeNames map[string]string) *github.com/coldsmirk/vef-framework-go/approval.AssigneesRemovedEvent
-FUNC NewCCNotifiedEvent : func(instanceID string, tenantID string, nodeID string, ccUserIDs []string, ccUserNames map[string]string, isManual bool) *github.com/coldsmirk/vef-framework-go/approval.CCNotifiedEvent
-FUNC NewFlowCreatedEvent : func(flowID string, tenantID string, code string, name string, categoryID string) *github.com/coldsmirk/vef-framework-go/approval.FlowCreatedEvent
-FUNC NewFlowDeployedEvent : func(flowID string, tenantID string, versionID string, version int) *github.com/coldsmirk/vef-framework-go/approval.FlowDeployedEvent
-FUNC NewFlowPublishedEvent : func(flowID string, tenantID string, versionID string) *github.com/coldsmirk/vef-framework-go/approval.FlowPublishedEvent
-FUNC NewFlowToggledEvent : func(flowID string, tenantID string, isActive bool) *github.com/coldsmirk/vef-framework-go/approval.FlowToggledEvent
-FUNC NewFlowUpdatedEvent : func(flowID string, tenantID string) *github.com/coldsmirk/vef-framework-go/approval.FlowUpdatedEvent
+FUNC NewAssigneesAddedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, addType github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType, assignees []github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.AssigneesAddedEvent
+FUNC NewAssigneesRemovedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, assignees []github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.AssigneesRemovedEvent
+FUNC NewCCNotifiedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, recipients []github.com/coldsmirk/vef-framework-go/approval.UserInfo, isManual bool) *github.com/coldsmirk/vef-framework-go/approval.CCNotifiedEvent
+FUNC NewFlowCreatedEvent : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow) *github.com/coldsmirk/vef-framework-go/approval.FlowCreatedEvent
+FUNC NewFlowDeployedEvent : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow, versionID string, version int) *github.com/coldsmirk/vef-framework-go/approval.FlowDeployedEvent
+FUNC NewFlowEventBase : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow) github.com/coldsmirk/vef-framework-go/approval.FlowEventBase
+FUNC NewFlowPublishedEvent : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow, versionID string) *github.com/coldsmirk/vef-framework-go/approval.FlowPublishedEvent
+FUNC NewFlowToggledEvent : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow, isActive bool) *github.com/coldsmirk/vef-framework-go/approval.FlowToggledEvent
+FUNC NewFlowUpdatedEvent : func(flow *github.com/coldsmirk/vef-framework-go/approval.Flow) *github.com/coldsmirk/vef-framework-go/approval.FlowUpdatedEvent
 FUNC NewFormData : func(data map[string]any) github.com/coldsmirk/vef-framework-go/approval.FormData
-FUNC NewInstanceBindingFailedEvent : func(instanceID string, tenantID string, flowID string, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus, businessTable string, errorMessage string) *github.com/coldsmirk/vef-framework-go/approval.InstanceBindingFailedEvent
-FUNC NewInstanceCompletedEvent : func(instanceID string, tenantID string, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus) *github.com/coldsmirk/vef-framework-go/approval.InstanceCompletedEvent
-FUNC NewInstanceCreatedEvent : func(instanceID string, tenantID string, flowID string, title string, applicantID string, applicantName string) *github.com/coldsmirk/vef-framework-go/approval.InstanceCreatedEvent
-FUNC NewInstanceResubmittedEvent : func(instanceID string, tenantID string, operatorID string) *github.com/coldsmirk/vef-framework-go/approval.InstanceResubmittedEvent
-FUNC NewInstanceReturnedEvent : func(instanceID string, tenantID string, fromNodeID string, toNodeID string, operatorID string) *github.com/coldsmirk/vef-framework-go/approval.InstanceReturnedEvent
-FUNC NewInstanceRolledBackEvent : func(instanceID string, tenantID string, fromNodeID string, toNodeID string, operatorID string) *github.com/coldsmirk/vef-framework-go/approval.InstanceRolledBackEvent
-FUNC NewInstanceWithdrawnEvent : func(instanceID string, tenantID string, operatorID string) *github.com/coldsmirk/vef-framework-go/approval.InstanceWithdrawnEvent
-FUNC NewNodeAutoPassedEvent : func(instanceID string, tenantID string, nodeID string, reason string) *github.com/coldsmirk/vef-framework-go/approval.NodeAutoPassedEvent
-FUNC NewNodeEnteredEvent : func(instanceID string, tenantID string, nodeID string, nodeName string) *github.com/coldsmirk/vef-framework-go/approval.NodeEnteredEvent
-FUNC NewTaskApprovedEvent : func(taskID string, tenantID string, instanceID string, nodeID string, operatorID string, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskApprovedEvent
-FUNC NewTaskCreatedEvent : func(taskID string, tenantID string, instanceID string, nodeID string, assigneeID string, assigneeName string, deadline *github.com/coldsmirk/vef-framework-go/timex.DateTime) *github.com/coldsmirk/vef-framework-go/approval.TaskCreatedEvent
-FUNC NewTaskDeadlineWarningEvent : func(taskID string, tenantID string, instanceID string, nodeID string, assigneeID string, assigneeName string, deadline github.com/coldsmirk/vef-framework-go/timex.DateTime, hoursLeft int) *github.com/coldsmirk/vef-framework-go/approval.TaskDeadlineWarningEvent
-FUNC NewTaskHandledEvent : func(taskID string, tenantID string, instanceID string, nodeID string, operatorID string, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskHandledEvent
-FUNC NewTaskReassignedEvent : func(taskID string, tenantID string, instanceID string, nodeID string, fromUserID string, fromUserName string, toUserID string, toUserName string, reason string) *github.com/coldsmirk/vef-framework-go/approval.TaskReassignedEvent
-FUNC NewTaskRejectedEvent : func(taskID string, tenantID string, instanceID string, nodeID string, operatorID string, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskRejectedEvent
-FUNC NewTaskTimedOutEvent : func(taskID string, tenantID string, instanceID string, nodeID string, assigneeID string, assigneeName string, deadline github.com/coldsmirk/vef-framework-go/timex.DateTime) *github.com/coldsmirk/vef-framework-go/approval.TaskTimedOutEvent
-FUNC NewTaskTransferredEvent : func(taskID string, tenantID string, instanceID string, nodeID string, fromUserID string, fromUserName string, toUserID string, toUserName string, reason string) *github.com/coldsmirk/vef-framework-go/approval.TaskTransferredEvent
-FUNC NewTaskUrgedEvent : func(instanceID string, tenantID string, nodeID string, taskID string, urgerID string, urgerName string, targetUserID string, targetUserName string, message string) *github.com/coldsmirk/vef-framework-go/approval.TaskUrgedEvent
+FUNC NewInstanceBindingFailedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus, businessTable string, errorMessage string) *github.com/coldsmirk/vef-framework-go/approval.InstanceBindingFailedEvent
+FUNC NewInstanceCompletedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, finalStatus github.com/coldsmirk/vef-framework-go/approval.InstanceStatus) *github.com/coldsmirk/vef-framework-go/approval.InstanceCompletedEvent
+FUNC NewInstanceCreatedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance) *github.com/coldsmirk/vef-framework-go/approval.InstanceCreatedEvent
+FUNC NewInstanceEventBase : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance) github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase
+FUNC NewInstanceResubmittedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.InstanceResubmittedEvent
+FUNC NewInstanceReturnedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, fromNode *github.com/coldsmirk/vef-framework-go/approval.FlowNode, toNode *github.com/coldsmirk/vef-framework-go/approval.FlowNode, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.InstanceReturnedEvent
+FUNC NewInstanceRolledBackEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, fromNode *github.com/coldsmirk/vef-framework-go/approval.FlowNode, toNode *github.com/coldsmirk/vef-framework-go/approval.FlowNode, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.InstanceRolledBackEvent
+FUNC NewInstanceWithdrawnEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo) *github.com/coldsmirk/vef-framework-go/approval.InstanceWithdrawnEvent
+FUNC NewNodeAutoPassedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, reason string) *github.com/coldsmirk/vef-framework-go/approval.NodeAutoPassedEvent
+FUNC NewTaskApprovedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskApprovedEvent
+FUNC NewTaskCanceledEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, reason string) *github.com/coldsmirk/vef-framework-go/approval.TaskCanceledEvent
+FUNC NewTaskCreatedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode) *github.com/coldsmirk/vef-framework-go/approval.TaskCreatedEvent
+FUNC NewTaskDeadlineWarningEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, hoursLeft int) *github.com/coldsmirk/vef-framework-go/approval.TaskDeadlineWarningEvent
+FUNC NewTaskEventBase : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode) github.com/coldsmirk/vef-framework-go/approval.TaskEventBase
+FUNC NewTaskHandledEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskHandledEvent
+FUNC NewTaskReassignedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, from github.com/coldsmirk/vef-framework-go/approval.UserInfo, to github.com/coldsmirk/vef-framework-go/approval.UserInfo, reason string) *github.com/coldsmirk/vef-framework-go/approval.TaskReassignedEvent
+FUNC NewTaskRejectedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, operator github.com/coldsmirk/vef-framework-go/approval.UserInfo, opinion string) *github.com/coldsmirk/vef-framework-go/approval.TaskRejectedEvent
+FUNC NewTaskTimedOutEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode) *github.com/coldsmirk/vef-framework-go/approval.TaskTimedOutEvent
+FUNC NewTaskTransferredEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, from github.com/coldsmirk/vef-framework-go/approval.UserInfo, to github.com/coldsmirk/vef-framework-go/approval.UserInfo, reason string) *github.com/coldsmirk/vef-framework-go/approval.TaskTransferredEvent
+FUNC NewTaskUrgedEvent : func(instance *github.com/coldsmirk/vef-framework-go/approval.Instance, task *github.com/coldsmirk/vef-framework-go/approval.Task, node *github.com/coldsmirk/vef-framework-go/approval.FlowNode, urger github.com/coldsmirk/vef-framework-go/approval.UserInfo, message string) *github.com/coldsmirk/vef-framework-go/approval.TaskUrgedEvent
 CONST NodeApproval : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "approval"
 TYPE NodeAutoPassedEvent : github.com/coldsmirk/vef-framework-go/approval.NodeAutoPassedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD NodeID : string [field_order=2 tag="json:\"nodeId\""]
+  FIELD NodeName : string [field_order=3 tag="json:\"nodeName\""]
   FIELD Reason : string [field_order=4 tag="json:\"reason\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"occurredTime\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST NodeCC : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "cc"
 CONST NodeCondition : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "condition"
@@ -1118,27 +1338,62 @@ TYPE NodeDefinition : github.com/coldsmirk/vef-framework-go/approval.NodeDefinit
   FIELD Data : encoding/json.RawMessage [field_order=4 tag="json:\"data,omitempty\""]
   METHOD ParseData : func() (github.com/coldsmirk/vef-framework-go/approval.NodeData, error)
 CONST NodeEnd : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "end"
-TYPE NodeEnteredEvent : github.com/coldsmirk/vef-framework-go/approval.NodeEnteredEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
-  FIELD NodeName : string [field_order=4 tag="json:\"nodeName\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"occurredTime\""]
-  METHOD EventType : func() string
 CONST NodeHandle : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "handle"
 TYPE NodeKind : github.com/coldsmirk/vef-framework-go/approval.NodeKind
+TYPE NodeParticipant : github.com/coldsmirk/vef-framework-go/approval.NodeParticipant
+  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
+  FIELD User : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"user\""]
+  FIELD Delegator : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=3 tag="json:\"delegator,omitempty\""]
+  FIELD Status : string [field_order=4 tag="json:\"status\""]
+  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=5 tag="json:\"deadline,omitempty\""]
+  FIELD IsTimeout : bool [field_order=6 tag="json:\"isTimeout,omitempty\""]
+  FIELD Opinion : *string [field_order=7 tag="json:\"opinion,omitempty\""]
+  FIELD Attachments : []string [field_order=8 tag="json:\"attachments,omitempty\""]
+  FIELD ActionTime : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"actionTime,omitempty\""]
+  FIELD TransferTo : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=10 tag="json:\"transferTo,omitempty\""]
+CONST NodeProgressActive : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "active"
+CONST NodeProgressCanceled : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "canceled"
+CONST NodeProgressPassed : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "passed"
+CONST NodeProgressPending : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "pending"
+CONST NodeProgressRejected : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "rejected"
+CONST NodeProgressReturned : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus = "returned"
+TYPE NodeProgressStatus : github.com/coldsmirk/vef-framework-go/approval.NodeProgressStatus
 CONST NodeStart : github.com/coldsmirk/vef-framework-go/approval.NodeKind = "start"
-TYPE OperatorInfo : github.com/coldsmirk/vef-framework-go/approval.OperatorInfo
-  FIELD ID : string [field_order=1 tag="json:\"id\""]
-  FIELD Name : string [field_order=2 tag="json:\"name\""]
-  FIELD DepartmentID : *string [field_order=3 tag="json:\"departmentId,omitempty\""]
-  FIELD DepartmentName : *string [field_order=4 tag="json:\"departmentName,omitempty\""]
-  METHOD NewActionLog : func(instanceID string, action github.com/coldsmirk/vef-framework-go/approval.ActionType) *github.com/coldsmirk/vef-framework-go/approval.ActionLog
+TYPE NodeVisit : github.com/coldsmirk/vef-framework-go/approval.NodeVisit
+  FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_node_visit,alias:anv\""]
+  FIELD CreationAuditedModel : github.com/coldsmirk/vef-framework-go/orm.CreationAuditedModel [field_order=2 tag=""]
+  FIELD TenantID : string [field_order=3 tag="json:\"tenantId\" bun:\"tenant_id\""]
+  FIELD InstanceID : string [field_order=4 tag="json:\"instanceId\" bun:\"instance_id\""]
+  FIELD NodeID : string [field_order=5 tag="json:\"nodeId\" bun:\"node_id\""]
+  FIELD Sequence : int [field_order=6 tag="json:\"sequence\" bun:\"sequence\""]
+  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus [field_order=7 tag="json:\"status\" bun:\"status\""]
+  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=8 tag="json:\"finishedAt\" bun:\"finished_at,nullzero\""]
+CONST NodeVisitActive : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus = "active"
+CONST NodeVisitCanceled : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus = "canceled"
+CONST NodeVisitPassed : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus = "passed"
+CONST NodeVisitRejected : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus = "rejected"
+CONST NodeVisitReturned : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus = "returned"
+TYPE NodeVisitStatus : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus
+  METHOD String : func() string
+CONST OperatorContains : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "contains"
+CONST OperatorEndsWith : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "ends_with"
+CONST OperatorEquals : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "eq"
+CONST OperatorGreater : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "gt"
+CONST OperatorGreaterOrEq : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "gte"
+CONST OperatorIn : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "in"
+CONST OperatorIsEmpty : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "is_empty"
+CONST OperatorIsNotEmpty : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "is_not_empty"
+CONST OperatorLess : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "lt"
+CONST OperatorLessOrEq : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "lte"
+CONST OperatorNotContains : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "not_contains"
+CONST OperatorNotEquals : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "ne"
+CONST OperatorNotIn : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "not_in"
+CONST OperatorStartsWith : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "starts_with"
 CONST PassAll : github.com/coldsmirk/vef-framework-go/approval.PassRule = "all"
 CONST PassAny : github.com/coldsmirk/vef-framework-go/approval.PassRule = "any"
-CONST PassAnyReject : github.com/coldsmirk/vef-framework-go/approval.PassRule = "any_reject"
 CONST PassRatio : github.com/coldsmirk/vef-framework-go/approval.PassRule = "ratio"
 TYPE PassRule : github.com/coldsmirk/vef-framework-go/approval.PassRule
+  METHOD IsValid : func() bool
 TYPE PassRuleContext : github.com/coldsmirk/vef-framework-go/approval.PassRuleContext
   FIELD ApprovedCount : int [field_order=1 tag=""]
   FIELD RejectedCount : int [field_order=2 tag=""]
@@ -1165,20 +1420,23 @@ TYPE PrincipalDepartmentResolver : github.com/coldsmirk/vef-framework-go/approva
 TYPE PrincipalTenantResolver : github.com/coldsmirk/vef-framework-go/approval.PrincipalTenantResolver
   METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (string, error)
 TYPE ResolvedAssignee : github.com/coldsmirk/vef-framework-go/approval.ResolvedAssignee
-  FIELD UserID : string [field_order=1 tag=""]
-  FIELD UserName : string [field_order=2 tag=""]
-  FIELD DelegatorID : *string [field_order=3 tag=""]
-  FIELD DelegatorName : *string [field_order=4 tag=""]
+  FIELD User : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=1 tag=""]
+  FIELD Delegator : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag=""]
+TYPE RoleMembershipChecker : github.com/coldsmirk/vef-framework-go/approval.RoleMembershipChecker
+  METHOD UserHasRole : func(ctx context.Context, userID string, roleID string) (bool, error)
 CONST RollbackAny : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "any"
 CONST RollbackDataClear : github.com/coldsmirk/vef-framework-go/approval.RollbackDataStrategy = "clear"
 CONST RollbackDataKeep : github.com/coldsmirk/vef-framework-go/approval.RollbackDataStrategy = "keep"
 TYPE RollbackDataStrategy : github.com/coldsmirk/vef-framework-go/approval.RollbackDataStrategy
+  METHOD IsValid : func() bool
 CONST RollbackNone : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "none"
 CONST RollbackPrevious : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "previous"
 CONST RollbackSpecified : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "specified"
 CONST RollbackStart : github.com/coldsmirk/vef-framework-go/approval.RollbackType = "start"
 TYPE RollbackType : github.com/coldsmirk/vef-framework-go/approval.RollbackType
+  METHOD IsValid : func() bool
 TYPE SameApplicantAction : github.com/coldsmirk/vef-framework-go/approval.SameApplicantAction
+  METHOD IsValid : func() bool
 CONST SameApplicantAutoPass : github.com/coldsmirk/vef-framework-go/approval.SameApplicantAction = "auto_pass"
 CONST SameApplicantSelfApprove : github.com/coldsmirk/vef-framework-go/approval.SameApplicantAction = "self_approve"
 CONST SameApplicantTransferSuperior : github.com/coldsmirk/vef-framework-go/approval.SameApplicantAction = "transfer_superior"
@@ -1192,6 +1450,8 @@ TYPE StartNodeData : github.com/coldsmirk/vef-framework-go/approval.StartNodeDat
   METHOD Kind : func() github.com/coldsmirk/vef-framework-go/approval.NodeKind
 CONST StorageJSON : github.com/coldsmirk/vef-framework-go/approval.StorageMode = "json"
 TYPE StorageMode : github.com/coldsmirk/vef-framework-go/approval.StorageMode
+  METHOD IsValid : func() bool
+CONST StorageTable : github.com/coldsmirk/vef-framework-go/approval.StorageMode = "table"
 CONST SuperAdminRole : untyped string = "approval:super_admin"
 VAR SystemCaller : github.com/coldsmirk/vef-framework-go/approval.CallerContext
 TYPE Task : github.com/coldsmirk/vef-framework-go/approval.Task
@@ -1200,60 +1460,133 @@ TYPE Task : github.com/coldsmirk/vef-framework-go/approval.Task
   FIELD TenantID : string [field_order=3 tag="json:\"tenantId\" bun:\"tenant_id\""]
   FIELD InstanceID : string [field_order=4 tag="json:\"instanceId\" bun:\"instance_id\""]
   FIELD NodeID : string [field_order=5 tag="json:\"nodeId\" bun:\"node_id\""]
-  FIELD AssigneeID : string [field_order=6 tag="json:\"assigneeId\" bun:\"assignee_id\""]
-  FIELD AssigneeName : string [field_order=7 tag="json:\"assigneeName\" bun:\"assignee_name\""]
-  FIELD DelegatorID : *string [field_order=8 tag="json:\"delegatorId\" bun:\"delegator_id,nullzero\""]
-  FIELD DelegatorName : *string [field_order=9 tag="json:\"delegatorName\" bun:\"delegator_name,nullzero\""]
-  FIELD SortOrder : int [field_order=10 tag="json:\"sortOrder\" bun:\"sort_order\""]
-  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.TaskStatus [field_order=11 tag="json:\"status\" bun:\"status\""]
-  FIELD ReadAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"readAt\" bun:\"read_at,nullzero\""]
-  FIELD ParentTaskID : *string [field_order=13 tag="json:\"parentTaskId\" bun:\"parent_task_id,nullzero\""]
-  FIELD AddAssigneeType : *github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=14 tag="json:\"addAssigneeType\" bun:\"add_assignee_type,nullzero\""]
-  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=15 tag="json:\"deadline\" bun:\"deadline,nullzero\""]
-  FIELD IsTimeout : bool [field_order=16 tag="json:\"isTimeout\" bun:\"is_timeout\""]
-  FIELD IsPreWarningSent : bool [field_order=17 tag="json:\"isPreWarningSent\" bun:\"is_pre_warning_sent\""]
-  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=18 tag="json:\"finishedAt\" bun:\"finished_at,nullzero\""]
+  FIELD VisitID : string [field_order=6 tag="json:\"visitId\" bun:\"visit_id\""]
+  FIELD AssigneeID : string [field_order=7 tag="json:\"assigneeId\" bun:\"assignee_id\""]
+  FIELD AssigneeName : string [field_order=8 tag="json:\"assigneeName\" bun:\"assignee_name\""]
+  FIELD AssigneeDepartmentID : *string [field_order=9 tag="json:\"assigneeDepartmentId\" bun:\"assignee_department_id,nullzero\""]
+  FIELD AssigneeDepartmentName : *string [field_order=10 tag="json:\"assigneeDepartmentName\" bun:\"assignee_department_name,nullzero\""]
+  FIELD DelegatorID : *string [field_order=11 tag="json:\"delegatorId\" bun:\"delegator_id,nullzero\""]
+  FIELD DelegatorName : *string [field_order=12 tag="json:\"delegatorName\" bun:\"delegator_name,nullzero\""]
+  FIELD DelegatorDepartmentID : *string [field_order=13 tag="json:\"delegatorDepartmentId\" bun:\"delegator_department_id,nullzero\""]
+  FIELD DelegatorDepartmentName : *string [field_order=14 tag="json:\"delegatorDepartmentName\" bun:\"delegator_department_name,nullzero\""]
+  FIELD SortOrder : int [field_order=15 tag="json:\"sortOrder\" bun:\"sort_order\""]
+  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.TaskStatus [field_order=16 tag="json:\"status\" bun:\"status\""]
+  FIELD ReadAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=17 tag="json:\"readAt\" bun:\"read_at,nullzero\""]
+  FIELD ParentTaskID : *string [field_order=18 tag="json:\"parentTaskId\" bun:\"parent_task_id,nullzero\""]
+  FIELD AddAssigneeType : *github.com/coldsmirk/vef-framework-go/approval.AddAssigneeType [field_order=19 tag="json:\"addAssigneeType\" bun:\"add_assignee_type,nullzero\""]
+  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=20 tag="json:\"deadline\" bun:\"deadline,nullzero\""]
+  FIELD IsTimeout : bool [field_order=21 tag="json:\"isTimeout\" bun:\"is_timeout\""]
+  FIELD IsPreWarningSent : bool [field_order=22 tag="json:\"isPreWarningSent\" bun:\"is_pre_warning_sent\""]
+  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=23 tag="json:\"finishedAt\" bun:\"finished_at,nullzero\""]
+  METHOD Assignee : func() github.com/coldsmirk/vef-framework-go/approval.UserInfo
+  METHOD Delegator : func() *github.com/coldsmirk/vef-framework-go/approval.UserInfo
 CONST TaskApproved : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "approved"
 TYPE TaskApprovedEvent : github.com/coldsmirk/vef-framework-go/approval.TaskApprovedEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD OperatorID : string [field_order=5 tag="json:\"operatorId\""]
-  FIELD Opinion : *string [field_order=6 tag="json:\"opinion,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Opinion : *string [field_order=3 tag="json:\"opinion,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST TaskCanceled : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "canceled"
+TYPE TaskCanceledEvent : github.com/coldsmirk/vef-framework-go/approval.TaskCanceledEvent
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Assignee : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"assignee\""]
+  FIELD Reason : string [field_order=3 tag="json:\"reason\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
+  METHOD EventType : func() string
 TYPE TaskCreatedEvent : github.com/coldsmirk/vef-framework-go/approval.TaskCreatedEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD AssigneeID : string [field_order=5 tag="json:\"assigneeId\""]
-  FIELD AssigneeName : string [field_order=6 tag="json:\"assigneeName\""]
-  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"deadline,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=8 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Assignee : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"assignee\""]
+  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=3 tag="json:\"deadline,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE TaskDeadlineWarningEvent : github.com/coldsmirk/vef-framework-go/approval.TaskDeadlineWarningEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD AssigneeID : string [field_order=5 tag="json:\"assigneeId\""]
-  FIELD AssigneeName : string [field_order=6 tag="json:\"assigneeName\""]
-  FIELD Deadline : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"deadline\""]
-  FIELD HoursLeft : int [field_order=8 tag="json:\"hoursLeft\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Assignee : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"assignee\""]
+  FIELD Deadline : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=3 tag="json:\"deadline\""]
+  FIELD HoursLeft : int [field_order=4 tag="json:\"hoursLeft\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
+TYPE TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
+  FIELD TaskID : string [field_order=2 tag="json:\"taskId\""]
+  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [field_order=4 tag="json:\"nodeName\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=InstanceEventBase depth=1 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=InstanceEventBase depth=1 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=InstanceEventBase depth=1 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=InstanceEventBase depth=1 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=InstanceEventBase depth=1 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=InstanceEventBase depth=1 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=InstanceEventBase depth=1 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=InstanceEventBase depth=1 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=InstanceEventBase depth=1 field_order=4 tag="json:\"title\""]
 CONST TaskHandled : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "handled"
 TYPE TaskHandledEvent : github.com/coldsmirk/vef-framework-go/approval.TaskHandledEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD OperatorID : string [field_order=5 tag="json:\"operatorId\""]
-  FIELD Opinion : *string [field_order=6 tag="json:\"opinion,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Opinion : *string [field_order=3 tag="json:\"opinion,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE TaskNodeData : github.com/coldsmirk/vef-framework-go/approval.TaskNodeData
   FIELD Assignees : []github.com/coldsmirk/vef-framework-go/approval.AssigneeDefinition [field_order=1 tag="json:\"assignees,omitempty\""]
@@ -1261,7 +1594,7 @@ TYPE TaskNodeData : github.com/coldsmirk/vef-framework-go/approval.TaskNodeData
   FIELD EmptyAssigneeAction : github.com/coldsmirk/vef-framework-go/approval.EmptyAssigneeAction [field_order=3 tag="json:\"emptyAssigneeAction,omitempty\""]
   FIELD FallbackUserIDs : []string [field_order=4 tag="json:\"fallbackUserIds,omitempty\""]
   FIELD AdminUserIDs : []string [field_order=5 tag="json:\"adminUserIds,omitempty\""]
-  FIELD IsTransferAllowed : bool [field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
+  FIELD IsTransferAllowed : *bool [field_order=6 tag="json:\"isTransferAllowed,omitempty\""]
   FIELD IsOpinionRequired : bool [field_order=7 tag="json:\"isOpinionRequired,omitempty\""]
   FIELD TimeoutHours : int [field_order=8 tag="json:\"timeoutHours,omitempty\""]
   FIELD TimeoutAction : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction [field_order=9 tag="json:\"timeoutAction,omitempty\""]
@@ -1273,26 +1606,42 @@ TYPE TaskNodeData : github.com/coldsmirk/vef-framework-go/approval.TaskNodeData
   METHOD GetCCs : func() []github.com/coldsmirk/vef-framework-go/approval.CCDefinition
 CONST TaskPending : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "pending"
 TYPE TaskReassignedEvent : github.com/coldsmirk/vef-framework-go/approval.TaskReassignedEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD FromUserID : string [field_order=5 tag="json:\"fromUserId\""]
-  FIELD FromUserName : string [field_order=6 tag="json:\"fromUserName\""]
-  FIELD ToUserID : string [field_order=7 tag="json:\"toUserId\""]
-  FIELD ToUserName : string [field_order=8 tag="json:\"toUserName\""]
-  FIELD Reason : *string [field_order=9 tag="json:\"reason,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD From : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"from\""]
+  FIELD To : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=3 tag="json:\"to\""]
+  FIELD Reason : *string [field_order=4 tag="json:\"reason,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST TaskRejected : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "rejected"
 TYPE TaskRejectedEvent : github.com/coldsmirk/vef-framework-go/approval.TaskRejectedEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD OperatorID : string [field_order=5 tag="json:\"operatorId\""]
-  FIELD Opinion : *string [field_order=6 tag="json:\"opinion,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"operator\""]
+  FIELD Opinion : *string [field_order=3 tag="json:\"opinion,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST TaskRemoved : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "removed"
 CONST TaskRolledBack : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "rolled_back"
@@ -1301,42 +1650,86 @@ TYPE TaskStatus : github.com/coldsmirk/vef-framework-go/approval.TaskStatus
   METHOD IsFinal : func() bool
   METHOD String : func() string
 TYPE TaskTimedOutEvent : github.com/coldsmirk/vef-framework-go/approval.TaskTimedOutEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD AssigneeID : string [field_order=5 tag="json:\"assigneeId\""]
-  FIELD AssigneeName : string [field_order=6 tag="json:\"assigneeName\""]
-  FIELD Deadline : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"deadline\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=8 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Assignee : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"assignee\""]
+  FIELD Deadline : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=3 tag="json:\"deadline\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST TaskTransferred : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "transferred"
 TYPE TaskTransferredEvent : github.com/coldsmirk/vef-framework-go/approval.TaskTransferredEvent
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD InstanceID : string [field_order=3 tag="json:\"instanceId\""]
-  FIELD NodeID : string [field_order=4 tag="json:\"nodeId\""]
-  FIELD FromUserID : string [field_order=5 tag="json:\"fromUserId\""]
-  FIELD FromUserName : string [field_order=6 tag="json:\"fromUserName\""]
-  FIELD ToUserID : string [field_order=7 tag="json:\"toUserId\""]
-  FIELD ToUserName : string [field_order=8 tag="json:\"toUserName\""]
-  FIELD Reason : *string [field_order=9 tag="json:\"reason,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD From : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"from\""]
+  FIELD To : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=3 tag="json:\"to\""]
+  FIELD Reason : *string [field_order=4 tag="json:\"reason,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 TYPE TaskUrgedEvent : github.com/coldsmirk/vef-framework-go/approval.TaskUrgedEvent
-  FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
-  FIELD TenantID : string [field_order=2 tag="json:\"tenantId\""]
-  FIELD NodeID : string [field_order=3 tag="json:\"nodeId\""]
-  FIELD TaskID : string [field_order=4 tag="json:\"taskId\""]
-  FIELD UrgerID : string [field_order=5 tag="json:\"urgerId\""]
-  FIELD UrgerName : string [field_order=6 tag="json:\"urgerName\""]
-  FIELD TargetUserID : string [field_order=7 tag="json:\"targetUserId\""]
-  FIELD TargetUserName : string [field_order=8 tag="json:\"targetUserName\""]
-  FIELD Message : *string [field_order=9 tag="json:\"message,omitempty\""]
-  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"occurredTime\""]
+  FIELD TaskEventBase : github.com/coldsmirk/vef-framework-go/approval.TaskEventBase [field_order=1 tag=""]
+  FIELD Urger : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=2 tag="json:\"urger\""]
+  FIELD Target : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=3 tag="json:\"target\""]
+  FIELD Message : *string [field_order=4 tag="json:\"message,omitempty\""]
+  FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [promoted_from=TaskEventBase depth=1 field_order=1 tag=""]
+  FIELD NodeID : string [promoted_from=TaskEventBase depth=1 field_order=3 tag="json:\"nodeId\""]
+  FIELD NodeName : string [promoted_from=TaskEventBase depth=1 field_order=4 tag="json:\"nodeName\""]
+  FIELD TaskID : string [promoted_from=TaskEventBase depth=1 field_order=2 tag="json:\"taskId\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=8 tag="json:\"applicant\""]
+  FIELD BusinessRef : *string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=7 tag="json:\"businessRef,omitempty\""]
+  FIELD FlowCode : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=6 tag="json:\"flowCode\""]
+  FIELD FlowID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=5 tag="json:\"flowId\""]
+  FIELD InstanceID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=1 tag="json:\"instanceId\""]
+  FIELD InstanceNo : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=2 tag="json:\"instanceNo\""]
+  FIELD OccurredTime : github.com/coldsmirk/vef-framework-go/timex.DateTime [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=9 tag="json:\"occurredTime\""]
+  FIELD TenantID : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=3 tag="json:\"tenantId\""]
+  FIELD Title : string [promoted_from=TaskEventBase.InstanceEventBase depth=2 field_order=4 tag="json:\"title\""]
   METHOD EventType : func() string
 CONST TaskWaiting : github.com/coldsmirk/vef-framework-go/approval.TaskStatus = "waiting"
+TYPE TimelineEntry : github.com/coldsmirk/vef-framework-go/approval.TimelineEntry
+  FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind [field_order=1 tag="json:\"kind\""]
+  FIELD NodeID : *string [field_order=2 tag="json:\"nodeId,omitempty\""]
+  FIELD Name : string [field_order=3 tag="json:\"name,omitempty\""]
+  FIELD Status : github.com/coldsmirk/vef-framework-go/approval.NodeVisitStatus [field_order=4 tag="json:\"status,omitempty\""]
+  FIELD ExecutionType : string [field_order=5 tag="json:\"executionType,omitempty\""]
+  FIELD ApprovalMethod : string [field_order=6 tag="json:\"approvalMethod,omitempty\""]
+  FIELD PassRule : string [field_order=7 tag="json:\"passRule,omitempty\""]
+  FIELD PassRatio : *github.com/coldsmirk/vef-framework-go/decimal.Decimal [field_order=8 tag="json:\"passRatio,omitempty\""]
+  FIELD Participants : []github.com/coldsmirk/vef-framework-go/approval.NodeParticipant [field_order=9 tag="json:\"participants,omitempty\""]
+  FIELD CCRecipients : []github.com/coldsmirk/vef-framework-go/approval.CCRecipient [field_order=10 tag="json:\"ccRecipients,omitempty\""]
+  FIELD Activities : []github.com/coldsmirk/vef-framework-go/approval.Activity [field_order=11 tag="json:\"activities,omitempty\""]
+  FIELD StartedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"startedAt\""]
+  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=13 tag="json:\"finishedAt,omitempty\""]
+CONST TimelineEntryApproval : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "approval"
+CONST TimelineEntryCC : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "cc"
+CONST TimelineEntryHandle : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "handle"
+TYPE TimelineEntryKind : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind
+CONST TimelineEntryStart : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "start"
+CONST TimelineEntryTerminate : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "terminate"
+CONST TimelineEntryWithdraw : github.com/coldsmirk/vef-framework-go/approval.TimelineEntryKind = "withdraw"
 TYPE TimeoutAction : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction
+  METHOD IsValid : func() bool
 CONST TimeoutActionAutoPass : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction = "auto_pass"
 CONST TimeoutActionAutoReject : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction = "auto_reject"
 CONST TimeoutActionNone : github.com/coldsmirk/vef-framework-go/approval.TimeoutAction = "none"
@@ -1351,12 +1744,21 @@ TYPE UrgeRecord : github.com/coldsmirk/vef-framework-go/approval.UrgeRecord
   FIELD TaskID : *string [field_order=6 tag="json:\"taskId\" bun:\"task_id,nullzero\""]
   FIELD UrgerID : string [field_order=7 tag="json:\"urgerId\" bun:\"urger_id\""]
   FIELD UrgerName : string [field_order=8 tag="json:\"urgerName\" bun:\"urger_name\""]
-  FIELD TargetUserID : string [field_order=9 tag="json:\"targetUserId\" bun:\"target_user_id\""]
-  FIELD TargetUserName : string [field_order=10 tag="json:\"targetUserName\" bun:\"target_user_name\""]
-  FIELD Message : string [field_order=11 tag="json:\"message\" bun:\"message\""]
+  FIELD UrgerDepartmentID : *string [field_order=9 tag="json:\"urgerDepartmentId\" bun:\"urger_department_id,nullzero\""]
+  FIELD UrgerDepartmentName : *string [field_order=10 tag="json:\"urgerDepartmentName\" bun:\"urger_department_name,nullzero\""]
+  FIELD TargetUserID : string [field_order=11 tag="json:\"targetUserId\" bun:\"target_user_id\""]
+  FIELD TargetUserName : string [field_order=12 tag="json:\"targetUserName\" bun:\"target_user_name\""]
+  FIELD TargetUserDepartmentID : *string [field_order=13 tag="json:\"targetUserDepartmentId\" bun:\"target_user_department_id,nullzero\""]
+  FIELD TargetUserDepartmentName : *string [field_order=14 tag="json:\"targetUserDepartmentName\" bun:\"target_user_department_name,nullzero\""]
+  FIELD Message : string [field_order=15 tag="json:\"message\" bun:\"message\""]
+  METHOD Target : func() github.com/coldsmirk/vef-framework-go/approval.UserInfo
+  METHOD Urger : func() github.com/coldsmirk/vef-framework-go/approval.UserInfo
 TYPE UserInfo : github.com/coldsmirk/vef-framework-go/approval.UserInfo
   FIELD ID : string [field_order=1 tag="json:\"id\""]
   FIELD Name : string [field_order=2 tag="json:\"name\""]
+  FIELD DepartmentID : *string [field_order=3 tag="json:\"departmentId,omitempty\""]
+  FIELD DepartmentName : *string [field_order=4 tag="json:\"departmentName,omitempty\""]
+  METHOD NewActionLog : func(instanceID string, action github.com/coldsmirk/vef-framework-go/approval.ActionType) *github.com/coldsmirk/vef-framework-go/approval.ActionLog
 TYPE UserInfoResolver : github.com/coldsmirk/vef-framework-go/approval.UserInfoResolver
   METHOD ResolveUsers : func(ctx context.Context, userIDs []string) (map[string]github.com/coldsmirk/vef-framework-go/approval.UserInfo, error)
 FUNC ValidateBusinessIdentifier : func(id string) error
@@ -1376,19 +1778,17 @@ TYPE VersionStatus : github.com/coldsmirk/vef-framework-go/approval.VersionStatu
 TYPE ActionLog : github.com/coldsmirk/vef-framework-go/approval/admin.ActionLog
   FIELD LogID : string [field_order=1 tag="json:\"logId\""]
   FIELD Action : string [field_order=2 tag="json:\"action\""]
-  FIELD OperatorID : string [field_order=3 tag="json:\"operatorId\""]
-  FIELD OperatorName : string [field_order=4 tag="json:\"operatorName\""]
-  FIELD OperatorDepartmentName : *string [field_order=5 tag="json:\"operatorDepartmentName,omitempty\""]
-  FIELD TransferToID : *string [field_order=6 tag="json:\"transferToId,omitempty\""]
-  FIELD TransferToName : *string [field_order=7 tag="json:\"transferToName,omitempty\""]
-  FIELD Opinion : *string [field_order=8 tag="json:\"opinion,omitempty\""]
-  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"createdAt\""]
-TYPE FlowNodeInfo : github.com/coldsmirk/vef-framework-go/approval/admin.FlowNodeInfo
-  FIELD NodeID : string [field_order=1 tag="json:\"nodeId\""]
-  FIELD Key : string [field_order=2 tag="json:\"key\""]
-  FIELD Kind : string [field_order=3 tag="json:\"kind\""]
-  FIELD Name : string [field_order=4 tag="json:\"name\""]
-  FIELD ExecutionType : string [field_order=5 tag="json:\"executionType\""]
+  FIELD NodeID : *string [field_order=3 tag="json:\"nodeId,omitempty\""]
+  FIELD TaskID : *string [field_order=4 tag="json:\"taskId,omitempty\""]
+  FIELD Operator : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=5 tag="json:\"operator\""]
+  FIELD TransferTo : *github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=6 tag="json:\"transferTo,omitempty\""]
+  FIELD RollbackToNodeID : *string [field_order=7 tag="json:\"rollbackToNodeId,omitempty\""]
+  FIELD AddedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=8 tag="json:\"addedAssignees,omitempty\""]
+  FIELD RemovedAssignees : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=9 tag="json:\"removedAssignees,omitempty\""]
+  FIELD CCUsers : []github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=10 tag="json:\"ccUsers,omitempty\""]
+  FIELD Opinion : *string [field_order=11 tag="json:\"opinion,omitempty\""]
+  FIELD Attachments : []string [field_order=12 tag="json:\"attachments,omitempty\""]
+  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=13 tag="json:\"createdAt\""]
 TYPE Instance : github.com/coldsmirk/vef-framework-go/approval/admin.Instance
   FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
   FIELD InstanceNo : string [field_order=2 tag="json:\"instanceNo\""]
@@ -1404,9 +1804,9 @@ TYPE Instance : github.com/coldsmirk/vef-framework-go/approval/admin.Instance
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"finishedAt,omitempty\""]
 TYPE InstanceDetail : github.com/coldsmirk/vef-framework-go/approval/admin.InstanceDetail
   FIELD Instance : github.com/coldsmirk/vef-framework-go/approval/admin.InstanceDetailInfo [field_order=1 tag="json:\"instance\""]
-  FIELD Tasks : []github.com/coldsmirk/vef-framework-go/approval/admin.TaskDetailInfo [field_order=2 tag="json:\"tasks\""]
-  FIELD ActionLogs : []github.com/coldsmirk/vef-framework-go/approval/admin.ActionLog [field_order=3 tag="json:\"actionLogs\""]
-  FIELD FlowNodes : []github.com/coldsmirk/vef-framework-go/approval/admin.FlowNodeInfo [field_order=4 tag="json:\"flowNodes\""]
+  FIELD FormSchema : *github.com/coldsmirk/vef-framework-go/approval.FormDefinition [field_order=2 tag="json:\"formSchema,omitempty\""]
+  FIELD Timeline : []github.com/coldsmirk/vef-framework-go/approval.TimelineEntry [field_order=3 tag="json:\"timeline\""]
+  FIELD FlowGraph : github.com/coldsmirk/vef-framework-go/approval.InstanceFlowGraph [field_order=4 tag="json:\"flowGraph\""]
 TYPE InstanceDetailInfo : github.com/coldsmirk/vef-framework-go/approval/admin.InstanceDetailInfo
   FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
   FIELD InstanceNo : string [field_order=2 tag="json:\"instanceNo\""]
@@ -1415,11 +1815,11 @@ TYPE InstanceDetailInfo : github.com/coldsmirk/vef-framework-go/approval/admin.I
   FIELD FlowID : string [field_order=5 tag="json:\"flowId\""]
   FIELD FlowName : string [field_order=6 tag="json:\"flowName\""]
   FIELD FlowVersionID : string [field_order=7 tag="json:\"flowVersionId\""]
-  FIELD ApplicantID : string [field_order=8 tag="json:\"applicantId\""]
-  FIELD ApplicantName : string [field_order=9 tag="json:\"applicantName\""]
-  FIELD Status : string [field_order=10 tag="json:\"status\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=8 tag="json:\"applicant\""]
+  FIELD Status : string [field_order=9 tag="json:\"status\""]
+  FIELD CurrentNodeID : *string [field_order=10 tag="json:\"currentNodeId,omitempty\""]
   FIELD CurrentNodeName : *string [field_order=11 tag="json:\"currentNodeName,omitempty\""]
-  FIELD BusinessRecordID : *string [field_order=12 tag="json:\"businessRecordId,omitempty\""]
+  FIELD BusinessRef : *string [field_order=12 tag="json:\"businessRef,omitempty\""]
   FIELD FormData : map[string]any [field_order=13 tag="json:\"formData,omitempty\""]
   FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=14 tag="json:\"createdAt\""]
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=15 tag="json:\"finishedAt,omitempty\""]
@@ -1443,27 +1843,8 @@ TYPE Task : github.com/coldsmirk/vef-framework-go/approval/admin.Task
   FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"createdAt\""]
   FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"deadline,omitempty\""]
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=11 tag="json:\"finishedAt,omitempty\""]
-TYPE TaskDetailInfo : github.com/coldsmirk/vef-framework-go/approval/admin.TaskDetailInfo
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD NodeID : string [field_order=2 tag="json:\"nodeId\""]
-  FIELD NodeName : string [field_order=3 tag="json:\"nodeName\""]
-  FIELD AssigneeID : string [field_order=4 tag="json:\"assigneeId\""]
-  FIELD AssigneeName : string [field_order=5 tag="json:\"assigneeName\""]
-  FIELD DelegatorID : *string [field_order=6 tag="json:\"delegatorId,omitempty\""]
-  FIELD DelegatorName : *string [field_order=7 tag="json:\"delegatorName,omitempty\""]
-  FIELD Status : string [field_order=8 tag="json:\"status\""]
-  FIELD SortOrder : int [field_order=9 tag="json:\"sortOrder\""]
-  FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"deadline,omitempty\""]
-  FIELD IsTimeout : bool [field_order=11 tag="json:\"isTimeout\""]
-  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"createdAt\""]
-  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=13 tag="json:\"finishedAt,omitempty\""]
 
 ## github.com/coldsmirk/vef-framework-go/approval/my
-TYPE ActionLogInfo : github.com/coldsmirk/vef-framework-go/approval/my.ActionLogInfo
-  FIELD Action : string [field_order=1 tag="json:\"action\""]
-  FIELD OperatorName : string [field_order=2 tag="json:\"operatorName\""]
-  FIELD Opinion : *string [field_order=3 tag="json:\"opinion,omitempty\""]
-  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=4 tag="json:\"createdAt\""]
 TYPE AvailableFlow : github.com/coldsmirk/vef-framework-go/approval/my.AvailableFlow
   FIELD FlowID : string [field_order=1 tag="json:\"flowId\""]
   FIELD FlowCode : string [field_order=2 tag="json:\"flowCode\""]
@@ -1494,11 +1875,6 @@ TYPE CompletedTask : github.com/coldsmirk/vef-framework-go/approval/my.Completed
   FIELD NodeName : string [field_order=8 tag="json:\"nodeName\""]
   FIELD Status : string [field_order=9 tag="json:\"status\""]
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"finishedAt,omitempty\""]
-TYPE FlowNodeInfo : github.com/coldsmirk/vef-framework-go/approval/my.FlowNodeInfo
-  FIELD NodeID : string [field_order=1 tag="json:\"nodeId\""]
-  FIELD Key : string [field_order=2 tag="json:\"key\""]
-  FIELD Kind : string [field_order=3 tag="json:\"kind\""]
-  FIELD Name : string [field_order=4 tag="json:\"name\""]
 TYPE InitiatedInstance : github.com/coldsmirk/vef-framework-go/approval/my.InitiatedInstance
   FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
   FIELD InstanceNo : string [field_order=2 tag="json:\"instanceNo\""]
@@ -1511,9 +1887,9 @@ TYPE InitiatedInstance : github.com/coldsmirk/vef-framework-go/approval/my.Initi
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"finishedAt,omitempty\""]
 TYPE InstanceDetail : github.com/coldsmirk/vef-framework-go/approval/my.InstanceDetail
   FIELD Instance : github.com/coldsmirk/vef-framework-go/approval/my.InstanceInfo [field_order=1 tag="json:\"instance\""]
-  FIELD Tasks : []github.com/coldsmirk/vef-framework-go/approval/my.TaskInfo [field_order=2 tag="json:\"tasks\""]
-  FIELD ActionLogs : []github.com/coldsmirk/vef-framework-go/approval/my.ActionLogInfo [field_order=3 tag="json:\"actionLogs\""]
-  FIELD FlowNodes : []github.com/coldsmirk/vef-framework-go/approval/my.FlowNodeInfo [field_order=4 tag="json:\"flowNodes\""]
+  FIELD FormSchema : *github.com/coldsmirk/vef-framework-go/approval.FormDefinition [field_order=2 tag="json:\"formSchema,omitempty\""]
+  FIELD Timeline : []github.com/coldsmirk/vef-framework-go/approval.TimelineEntry [field_order=3 tag="json:\"timeline\""]
+  FIELD FlowGraph : github.com/coldsmirk/vef-framework-go/approval.InstanceFlowGraph [field_order=4 tag="json:\"flowGraph\""]
   FIELD AvailableActions : []string [field_order=5 tag="json:\"availableActions\""]
 TYPE InstanceInfo : github.com/coldsmirk/vef-framework-go/approval/my.InstanceInfo
   FIELD InstanceID : string [field_order=1 tag="json:\"instanceId\""]
@@ -1521,11 +1897,11 @@ TYPE InstanceInfo : github.com/coldsmirk/vef-framework-go/approval/my.InstanceIn
   FIELD Title : string [field_order=3 tag="json:\"title\""]
   FIELD FlowName : string [field_order=4 tag="json:\"flowName\""]
   FIELD FlowIcon : *string [field_order=5 tag="json:\"flowIcon,omitempty\""]
-  FIELD ApplicantID : string [field_order=6 tag="json:\"applicantId\""]
-  FIELD ApplicantName : string [field_order=7 tag="json:\"applicantName\""]
-  FIELD Status : string [field_order=8 tag="json:\"status\""]
+  FIELD Applicant : github.com/coldsmirk/vef-framework-go/approval.UserInfo [field_order=6 tag="json:\"applicant\""]
+  FIELD Status : string [field_order=7 tag="json:\"status\""]
+  FIELD CurrentNodeID : *string [field_order=8 tag="json:\"currentNodeId,omitempty\""]
   FIELD CurrentNodeName : *string [field_order=9 tag="json:\"currentNodeName,omitempty\""]
-  FIELD BusinessRecordID : *string [field_order=10 tag="json:\"businessRecordId,omitempty\""]
+  FIELD BusinessRef : *string [field_order=10 tag="json:\"businessRef,omitempty\""]
   FIELD FormData : map[string]any [field_order=11 tag="json:\"formData,omitempty\""]
   FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=12 tag="json:\"createdAt\""]
   FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=13 tag="json:\"finishedAt,omitempty\""]
@@ -1544,15 +1920,6 @@ TYPE PendingTask : github.com/coldsmirk/vef-framework-go/approval/my.PendingTask
   FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=9 tag="json:\"createdAt\""]
   FIELD Deadline : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=10 tag="json:\"deadline,omitempty\""]
   FIELD IsTimeout : bool [field_order=11 tag="json:\"isTimeout\""]
-TYPE TaskInfo : github.com/coldsmirk/vef-framework-go/approval/my.TaskInfo
-  FIELD TaskID : string [field_order=1 tag="json:\"taskId\""]
-  FIELD NodeName : string [field_order=2 tag="json:\"nodeName\""]
-  FIELD AssigneeID : string [field_order=3 tag="json:\"assigneeId\""]
-  FIELD AssigneeName : string [field_order=4 tag="json:\"assigneeName\""]
-  FIELD Status : string [field_order=5 tag="json:\"status\""]
-  FIELD SortOrder : int [field_order=6 tag="json:\"sortOrder\""]
-  FIELD CreatedAt : github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=7 tag="json:\"createdAt\""]
-  FIELD FinishedAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=8 tag="json:\"finishedAt,omitempty\""]
 
 ## github.com/coldsmirk/vef-framework-go/cache
 TYPE Cache : github.com/coldsmirk/vef-framework-go/cache.Cache[T any]
@@ -1588,6 +1955,7 @@ TYPE MemoryOption : github.com/coldsmirk/vef-framework-go/cache.MemoryOption
 FUNC NewInvalidating : func[T any](loader github.com/coldsmirk/vef-framework-go/cache.KeyedLoaderFunc[T], logger github.com/coldsmirk/vef-framework-go/logx.Logger) *github.com/coldsmirk/vef-framework-go/cache.Invalidating[T]
 FUNC NewMemory : func[T any](opts ...github.com/coldsmirk/vef-framework-go/cache.MemoryOption) github.com/coldsmirk/vef-framework-go/cache.Cache[T]
 FUNC NewPrefixKeyBuilder : func(prefix string) *github.com/coldsmirk/vef-framework-go/cache.PrefixKeyBuilder
+FUNC NewPrefixKeyBuilderWithSeparator : func(prefix string, separator string) *github.com/coldsmirk/vef-framework-go/cache.PrefixKeyBuilder
 FUNC NewRedis : func[T any](client *github.com/redis/go-redis/v9.Client, namespace string, opts ...github.com/coldsmirk/vef-framework-go/cache.RedisOption) github.com/coldsmirk/vef-framework-go/cache.Cache[T]
 TYPE PrefixKeyBuilder : github.com/coldsmirk/vef-framework-go/cache.PrefixKeyBuilder
   METHOD Build : func(keyParts ...string) string
@@ -1660,11 +2028,11 @@ TYPE ApprovalConfig : github.com/coldsmirk/vef-framework-go/config.ApprovalConfi
   FIELD UrgeRecordRetention : time.Duration [field_order=7 tag="config:\"urge_record_retention\""]
   FIELD CCRecordRetention : time.Duration [field_order=8 tag="config:\"cc_record_retention\""]
   METHOD ApplyDefaults : func()
-TYPE Config : github.com/coldsmirk/vef-framework-go/config.Config
-  METHOD Unmarshal : func(key string, target any) error
-TYPE CorsConfig : github.com/coldsmirk/vef-framework-go/config.CorsConfig
+TYPE CORSConfig : github.com/coldsmirk/vef-framework-go/config.CORSConfig
   FIELD Enabled : bool [field_order=1 tag="config:\"enabled\""]
   FIELD AllowOrigins : []string [field_order=2 tag="config:\"allow_origins\""]
+TYPE Config : github.com/coldsmirk/vef-framework-go/config.Config
+  METHOD Unmarshal : func(key string, target any) error
 TYPE DBKind : github.com/coldsmirk/vef-framework-go/config.DBKind
 TYPE DataSourceConfig : github.com/coldsmirk/vef-framework-go/config.DataSourceConfig
   FIELD Kind : github.com/coldsmirk/vef-framework-go/config.DBKind [field_order=1 tag="config:\"type\""]
@@ -1676,6 +2044,8 @@ TYPE DataSourceConfig : github.com/coldsmirk/vef-framework-go/config.DataSourceC
   FIELD Schema : string [field_order=7 tag="config:\"schema\""]
   FIELD Path : string [field_order=8 tag="config:\"path\""]
   FIELD EnableSQLGuard : bool [field_order=9 tag="config:\"enable_sql_guard\""]
+  FIELD SSLMode : github.com/coldsmirk/vef-framework-go/config.SSLMode [field_order=10 tag="config:\"ssl_mode\""]
+  FIELD SSLRootCert : string [field_order=11 tag="config:\"ssl_root_cert\""]
 TYPE DataSourcesConfig : github.com/coldsmirk/vef-framework-go/config.DataSourcesConfig
   FIELD Map : map[string]github.com/coldsmirk/vef-framework-go/config.DataSourceConfig [field_order=1 tag=""]
   METHOD Primary : func() github.com/coldsmirk/vef-framework-go/config.DataSourceConfig
@@ -1691,9 +2061,9 @@ CONST DefaultSweepBatchSize : int = 200
 CONST DefaultSweepInterval : time.Duration = 300000000000
 CONST EnvConfigPath : untyped string = "VEF_CONFIG_PATH"
 CONST EnvI18NLanguage : untyped string = "VEF_I18N_LANGUAGE"
-CONST EnvKeyPrefix : untyped string = "VEF"
 CONST EnvLogLevel : untyped string = "VEF_LOG_LEVEL"
 CONST EnvNodeID : untyped string = "VEF_NODE_ID"
+CONST EnvPrefix : untyped string = "VEF"
 VAR ErrInboxRetentionTooShort : error
 TYPE EventConfig : github.com/coldsmirk/vef-framework-go/config.EventConfig
   FIELD DefaultTransport : string [field_order=1 tag="config:\"default_transport\""]
@@ -1747,8 +2117,11 @@ TYPE EventRedisStreamTransportConfig : github.com/coldsmirk/vef-framework-go/con
   FIELD ClaimIdle : time.Duration [field_order=5 tag="config:\"claim_idle\""]
   FIELD ClaimInterval : time.Duration [field_order=6 tag="config:\"claim_interval\""]
   FIELD ClaimBatchSize : int64 [field_order=7 tag="config:\"claim_batch_size\""]
-  FIELD ConsumerID : string [field_order=8 tag="config:\"consumer_id\""]
-  FIELD StartID : string [field_order=9 tag="config:\"start_id\""]
+  FIELD ReaperConcurrency : int [field_order=8 tag="config:\"reaper_concurrency\""]
+  FIELD HandlerTimeout : time.Duration [field_order=9 tag="config:\"handler_timeout\""]
+  FIELD SetupTimeout : time.Duration [field_order=10 tag="config:\"setup_timeout\""]
+  FIELD ConsumerID : string [field_order=11 tag="config:\"consumer_id\""]
+  FIELD StartID : string [field_order=12 tag="config:\"start_id\""]
 TYPE EventRoutingRule : github.com/coldsmirk/vef-framework-go/config.EventRoutingRule
   FIELD Pattern : string [field_order=1 tag="config:\"pattern\""]
   FIELD Transports : []string [field_order=2 tag="config:\"transports\""]
@@ -1786,12 +2159,18 @@ TYPE RedisConfig : github.com/coldsmirk/vef-framework-go/config.RedisConfig
   FIELD Network : string [field_order=7 tag="config:\"network\""]
 CONST SQLServer : github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlserver"
 CONST SQLite : github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlite"
+CONST SSLDisable : github.com/coldsmirk/vef-framework-go/config.SSLMode = "disable"
+TYPE SSLMode : github.com/coldsmirk/vef-framework-go/config.SSLMode
+CONST SSLRequire : github.com/coldsmirk/vef-framework-go/config.SSLMode = "require"
+CONST SSLVerifyCA : github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-ca"
+CONST SSLVerifyFull : github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-full"
 TYPE SecurityConfig : github.com/coldsmirk/vef-framework-go/config.SecurityConfig
   FIELD Secret : string [field_order=1 tag="config:\"secret\""]
   FIELD TokenExpires : time.Duration [field_order=2 tag="config:\"token_expires\""]
   FIELD RefreshNotBefore : time.Duration [field_order=3 tag="config:\"refresh_not_before\""]
   FIELD LoginRateLimit : int [field_order=4 tag="config:\"login_rate_limit\""]
   FIELD RefreshRateLimit : int [field_order=5 tag="config:\"refresh_rate_limit\""]
+  FIELD IPWhitelists : map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]
 TYPE StorageConfig : github.com/coldsmirk/vef-framework-go/config.StorageConfig
   FIELD Provider : github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]
   FIELD AutoMigrate : bool [field_order=2 tag="config:\"auto_migrate\""]
@@ -1940,7 +2319,6 @@ TYPE Builder : github.com/coldsmirk/vef-framework-go/crud.Builder[T any]
   METHOD Public : func() T
   METHOD RateLimit : func(maxRequests int, period time.Duration) T
   METHOD RequiredPermission : func(token string) T
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) T
   METHOD Timeout : func(timeout time.Duration) T
 TYPE Create : github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams any]
   METHOD Action : func(action string) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
@@ -1950,7 +2328,6 @@ TYPE Create : github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams 
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
   METHOD WithPostCreate : func(processor github.com/coldsmirk/vef-framework-go/crud.PostCreateProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
   METHOD WithPreCreate : func(processor github.com/coldsmirk/vef-framework-go/crud.PreCreateProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
@@ -1962,7 +2339,6 @@ TYPE CreateMany : github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, 
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
   METHOD WithPostCreateMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PostCreateManyProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
   METHOD WithPreCreateMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PreCreateManyProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
@@ -1995,7 +2371,6 @@ TYPE Delete : github.com/coldsmirk/vef-framework-go/crud.Delete[TModel any]
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
   METHOD WithPostDelete : func(processor github.com/coldsmirk/vef-framework-go/crud.PostDeleteProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
   METHOD WithPreDelete : func(processor github.com/coldsmirk/vef-framework-go/crud.PreDeleteProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.Delete[TModel]
@@ -2008,7 +2383,6 @@ TYPE DeleteMany : github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel a
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
   METHOD WithPostDeleteMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PostDeleteManyProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
   METHOD WithPreDeleteMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PreDeleteManyProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.DeleteMany[TModel]
@@ -2049,7 +2423,6 @@ TYPE Export : github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch 
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.Export[TModel, TSearch]
@@ -2077,7 +2450,6 @@ TYPE Find : github.com/coldsmirk/vef-framework-go/crud.Find[TModel, TSearch, TPr
   METHOD Public : func() TOperation
   METHOD RateLimit : func(maxRequests int, period time.Duration) TOperation
   METHOD RequiredPermission : func(token string) TOperation
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) TOperation
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) TOperation
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) TOperation
@@ -2100,7 +2472,6 @@ TYPE FindAll : github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearc
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindAll[TModel, TSearch]
@@ -2123,7 +2494,6 @@ TYPE FindOne : github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearc
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindOne[TModel, TSearch]
@@ -2151,7 +2521,6 @@ TYPE FindOptions : github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindOptions[TModel, TSearch]
@@ -2175,7 +2544,6 @@ TYPE FindPage : github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSea
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindPage[TModel, TSearch]
@@ -2199,7 +2567,6 @@ TYPE FindTree : github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSea
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindTree[TModel, TSearch]
@@ -2224,7 +2591,6 @@ TYPE FindTreeOptions : github.com/coldsmirk/vef-framework-go/crud.FindTreeOption
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
   METHOD Setup : func(db github.com/coldsmirk/vef-framework-go/orm.DB, config *github.com/coldsmirk/vef-framework-go/crud.FindOperationConfig, opts ...*github.com/coldsmirk/vef-framework-go/crud.FindOperationOption) error
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
   METHOD WithAuditUserNames : func(userModel any, nameColumn ...string) github.com/coldsmirk/vef-framework-go/crud.FindTreeOptions[TModel, TSearch]
@@ -2251,7 +2617,6 @@ TYPE Import : github.com/coldsmirk/vef-framework-go/crud.Import[TModel any]
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD WithCsvOptions : func(opts ...github.com/coldsmirk/vef-framework-go/csv.ImportOption) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD WithDefaultFormat : func(format github.com/coldsmirk/vef-framework-go/crud.TabularFormat) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
@@ -2259,6 +2624,10 @@ TYPE Import : github.com/coldsmirk/vef-framework-go/crud.Import[TModel any]
   METHOD WithPostImport : func(processor github.com/coldsmirk/vef-framework-go/crud.PostImportProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
   METHOD WithPreImport : func(processor github.com/coldsmirk/vef-framework-go/crud.PreImportProcessor[TModel]) github.com/coldsmirk/vef-framework-go/crud.Import[TModel]
 CONST LabelColumn : untyped string = "label"
+CONST MessageCreated : untyped string = "crud_created"
+CONST MessageDeleted : untyped string = "crud_deleted"
+CONST MessageImported : untyped string = "crud_imported"
+CONST MessageUpdated : untyped string = "crud_updated"
 FUNC NewBuilder : func[T any](self T, kind ...github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Builder[T]
 FUNC NewCreate : func[TModel, TParams any](kind ...github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Create[TModel, TParams]
 FUNC NewCreateMany : func[TModel, TParams any](kind ...github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.CreateMany[TModel, TParams]
@@ -2351,7 +2720,6 @@ TYPE Update : github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams 
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
   METHOD WithPostUpdate : func(processor github.com/coldsmirk/vef-framework-go/crud.PostUpdateProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
   METHOD WithPreUpdate : func(processor github.com/coldsmirk/vef-framework-go/crud.PreUpdateProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.Update[TModel, TParams]
@@ -2364,7 +2732,6 @@ TYPE UpdateMany : github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, 
   METHOD Public : func() github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
   METHOD RateLimit : func(maxRequests int, period time.Duration) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
   METHOD RequiredPermission : func(token string) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
-  METHOD ResourceKind : func(kind github.com/coldsmirk/vef-framework-go/api.Kind) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
   METHOD Timeout : func(timeout time.Duration) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
   METHOD WithPostUpdateMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PostUpdateManyProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
   METHOD WithPreUpdateMany : func(processor github.com/coldsmirk/vef-framework-go/crud.PreUpdateManyProcessor[TModel, TParams]) github.com/coldsmirk/vef-framework-go/crud.UpdateMany[TModel, TParams]
@@ -2415,6 +2782,8 @@ VAR ErrPrivateKeyRequiredForSign : error
 VAR ErrPublicKeyRequiredForEncrypt : error
 VAR ErrPublicKeyRequiredForVerify : error
 VAR ErrUnsupportedPEMType : error
+TYPE FixedIVDecrypter : github.com/coldsmirk/vef-framework-go/cryptox.FixedIVDecrypter
+  METHOD DecryptWithFixedIV : func(ciphertext string) (string, error)
 FUNC GenerateECDSAKey : func(curve github.com/coldsmirk/vef-framework-go/cryptox.ECDSACurve) (*crypto/ecdsa.PrivateKey, error)
 FUNC GenerateECIESKey : func(curve github.com/coldsmirk/vef-framework-go/cryptox.ECIESCurve) (*crypto/ecdh.PrivateKey, error)
 FUNC NewAES : func(key []byte, opts ...github.com/coldsmirk/vef-framework-go/cryptox.AESOption) (github.com/coldsmirk/vef-framework-go/cryptox.Cipher, error)
@@ -2446,9 +2815,6 @@ CONST RsaModeOAEP : github.com/coldsmirk/vef-framework-go/cryptox.RSAMode = "OAE
 CONST RsaModePKCS1v15 : github.com/coldsmirk/vef-framework-go/cryptox.RSAMode = "PKCS1v15"
 CONST RsaSignModePKCS1v15 : github.com/coldsmirk/vef-framework-go/cryptox.RSASignMode = "PKCS1v15"
 CONST RsaSignModePSS : github.com/coldsmirk/vef-framework-go/cryptox.RSASignMode = "PSS"
-TYPE SM4Mode : github.com/coldsmirk/vef-framework-go/cryptox.SM4Mode
-CONST SM4ModeCBC : github.com/coldsmirk/vef-framework-go/cryptox.SM4Mode = "CBC"
-CONST SM4ModeECB : github.com/coldsmirk/vef-framework-go/cryptox.SM4Mode = "ECB"
 TYPE SM4Option : github.com/coldsmirk/vef-framework-go/cryptox.SM4Option
 TYPE Signer : github.com/coldsmirk/vef-framework-go/cryptox.Signer
   METHOD Sign : func(data string) (signature string, err error)
@@ -2458,7 +2824,6 @@ FUNC WithAESMode : func(mode github.com/coldsmirk/vef-framework-go/cryptox.AESMo
 FUNC WithRSAMode : func(mode github.com/coldsmirk/vef-framework-go/cryptox.RSAMode) github.com/coldsmirk/vef-framework-go/cryptox.RSAOption
 FUNC WithRSASignMode : func(signMode github.com/coldsmirk/vef-framework-go/cryptox.RSASignMode) github.com/coldsmirk/vef-framework-go/cryptox.RSAOption
 FUNC WithSM4Iv : func(iv []byte) github.com/coldsmirk/vef-framework-go/cryptox.SM4Option
-FUNC WithSM4Mode : func(mode github.com/coldsmirk/vef-framework-go/cryptox.SM4Mode) github.com/coldsmirk/vef-framework-go/cryptox.SM4Option
 
 ## github.com/coldsmirk/vef-framework-go/csv
 TYPE ExportOption : github.com/coldsmirk/vef-framework-go/csv.ExportOption
@@ -2859,12 +3224,17 @@ TYPE Config : github.com/coldsmirk/vef-framework-go/event/transport/redisstream.
   FIELD ClaimIdle : time.Duration [field_order=4 tag=""]
   FIELD ClaimInterval : time.Duration [field_order=5 tag=""]
   FIELD ClaimBatchSize : int64 [field_order=6 tag=""]
-  FIELD ConsumerID : string [field_order=7 tag=""]
-  FIELD StartID : string [field_order=8 tag=""]
+  FIELD ReaperConcurrency : int [field_order=7 tag=""]
+  FIELD HandlerTimeout : time.Duration [field_order=8 tag=""]
+  FIELD SetupTimeout : time.Duration [field_order=9 tag=""]
+  FIELD ConsumerID : string [field_order=10 tag=""]
+  FIELD StartID : string [field_order=11 tag=""]
   METHOD EffectiveBlockTimeout : func() time.Duration
   METHOD EffectiveClaimBatchSize : func() int64
   METHOD EffectiveClaimIdle : func() time.Duration
   METHOD EffectiveClaimInterval : func() time.Duration
+  METHOD EffectiveReaperConcurrency : func() int
+  METHOD EffectiveSetupTimeout : func() time.Duration
   METHOD EffectiveStartID : func() string
   METHOD EffectiveStreamPrefix : func() string
   METHOD StreamKey : func(eventType string) string
@@ -3091,6 +3461,8 @@ TYPE Logger : github.com/coldsmirk/vef-framework-go/logx.Logger
   METHOD Warn : func(message string)
   METHOD Warnf : func(template string, args ...any)
   METHOD WithCallerSkip : func(skip int) github.com/coldsmirk/vef-framework-go/logx.Logger
+TYPE LoggerConfigurable : github.com/coldsmirk/vef-framework-go/logx.LoggerConfigurable[T any]
+  METHOD WithLogger : func(logger github.com/coldsmirk/vef-framework-go/logx.Logger) T
 
 ## github.com/coldsmirk/vef-framework-go/mapx
 VAR DecoderHook : github.com/go-viper/mapstructure/v2.DecodeHookFunc
@@ -4232,8 +4604,9 @@ TYPE DeleteQuery : github.com/coldsmirk/vef-framework-go/orm.DeleteQuery
   METHOD WhereDeleted : func() github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
   METHOD WherePK : func(columns ...string) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
   METHOD With : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
+  METHOD WithOrderedValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
   METHOD WithRecursive : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
-  METHOD WithValues : func(name string, model any, withOrder ...bool) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
+  METHOD WithValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.DeleteQuery
 TYPE DenseRankBuilder : github.com/coldsmirk/vef-framework-go/orm.DenseRankBuilder
   METHOD Over : func() github.com/coldsmirk/vef-framework-go/internal/orm.WindowFrameablePartitionBuilder
 TYPE Dialect : github.com/coldsmirk/vef-framework-go/orm.Dialect
@@ -4553,8 +4926,9 @@ TYPE InsertQuery : github.com/coldsmirk/vef-framework-go/orm.InsertQuery
   METHOD TableFrom : func(model any, alias ...string) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
   METHOD TableSubQuery : func(builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery), alias ...string) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
   METHOD With : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
+  METHOD WithOrderedValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
   METHOD WithRecursive : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
-  METHOD WithValues : func(name string, model any, withOrder ...bool) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
+  METHOD WithValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.InsertQuery
 TYPE JSONArrayAggBuilder : github.com/coldsmirk/vef-framework-go/orm.JSONArrayAggBuilder
   METHOD Column : func(column string) github.com/coldsmirk/vef-framework-go/internal/orm.JSONArrayAggBuilder
   METHOD Distinct : func() github.com/coldsmirk/vef-framework-go/internal/orm.JSONArrayAggBuilder
@@ -4641,8 +5015,9 @@ TYPE MergeQuery : github.com/coldsmirk/vef-framework-go/orm.MergeQuery
   METHOD WhenNotMatchedBySource : func(builder ...func(github.com/coldsmirk/vef-framework-go/internal/orm.ConditionBuilder)) github.com/coldsmirk/vef-framework-go/internal/orm.MergeWhenBuilder
   METHOD WhenNotMatchedByTarget : func(builder ...func(github.com/coldsmirk/vef-framework-go/internal/orm.ConditionBuilder)) github.com/coldsmirk/vef-framework-go/internal/orm.MergeWhenBuilder
   METHOD With : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.MergeQuery
+  METHOD WithOrderedValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.MergeQuery
   METHOD WithRecursive : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.MergeQuery
-  METHOD WithValues : func(name string, model any, withOrder ...bool) github.com/coldsmirk/vef-framework-go/internal/orm.MergeQuery
+  METHOD WithValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.MergeQuery
 TYPE MergeUpdateBuilder : github.com/coldsmirk/vef-framework-go/orm.MergeUpdateBuilder
   METHOD Set : func(column string, value any) github.com/coldsmirk/vef-framework-go/internal/orm.MergeUpdateBuilder
   METHOD SetAll : func(excludedColumns ...string) github.com/coldsmirk/vef-framework-go/internal/orm.MergeUpdateBuilder
@@ -4706,6 +5081,7 @@ TYPE QueryBuilder : github.com/coldsmirk/vef-framework-go/orm.QueryBuilder
   METHOD BuildCondition : func(builder func(github.com/coldsmirk/vef-framework-go/internal/orm.ConditionBuilder)) interface{github.com/uptrace/bun/schema.QueryAppender; github.com/coldsmirk/vef-framework-go/internal/orm.ConditionBuilder}
   METHOD BuildSubQuery : func(builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) *github.com/uptrace/bun.SelectQuery
   METHOD CreateSubQuery : func(subQuery *github.com/uptrace/bun.SelectQuery) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
+  METHOD DB : func() github.com/coldsmirk/vef-framework-go/internal/orm.DB
   METHOD Dialect : func() github.com/uptrace/bun/schema.Dialect
   METHOD ExprBuilder : func() github.com/coldsmirk/vef-framework-go/internal/orm.ExprBuilder
   METHOD GetTable : func() *github.com/uptrace/bun/schema.Table
@@ -4713,6 +5089,7 @@ TYPE QueryBuilder : github.com/coldsmirk/vef-framework-go/orm.QueryBuilder
   METHOD String : func() string
 TYPE RankBuilder : github.com/coldsmirk/vef-framework-go/orm.RankBuilder
   METHOD Over : func() github.com/coldsmirk/vef-framework-go/internal/orm.WindowFrameablePartitionBuilder
+TYPE RawDefault : github.com/coldsmirk/vef-framework-go/orm.RawDefault
 TYPE RawQuery : github.com/coldsmirk/vef-framework-go/orm.RawQuery
   METHOD Exec : func(ctx context.Context, dest ...any) (database/sql.Result, error)
   METHOD Scan : func(ctx context.Context, dest ...any) error
@@ -4819,8 +5196,9 @@ TYPE SelectQuery : github.com/coldsmirk/vef-framework-go/orm.SelectQuery
   METHOD WhereDeleted : func() github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
   METHOD WherePK : func(columns ...string) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
   METHOD With : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
+  METHOD WithOrderedValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
   METHOD WithRecursive : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
-  METHOD WithValues : func(name string, model any, withOrder ...bool) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
+  METHOD WithValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery
 CONST StatisticalDefault : github.com/coldsmirk/vef-framework-go/internal/orm.StatisticalMode = 0
 TYPE StatisticalMode : github.com/coldsmirk/vef-framework-go/orm.StatisticalMode
   METHOD String : func() string
@@ -4950,8 +5328,9 @@ TYPE UpdateQuery : github.com/coldsmirk/vef-framework-go/orm.UpdateQuery
   METHOD WhereDeleted : func() github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
   METHOD WherePK : func(columns ...string) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
   METHOD With : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
+  METHOD WithOrderedValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
   METHOD WithRecursive : func(name string, builder func(query github.com/coldsmirk/vef-framework-go/internal/orm.SelectQuery)) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
-  METHOD WithValues : func(name string, model any, withOrder ...bool) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
+  METHOD WithValues : func(name string, model any) github.com/coldsmirk/vef-framework-go/internal/orm.UpdateQuery
 TYPE VarianceBuilder : github.com/coldsmirk/vef-framework-go/orm.VarianceBuilder
   METHOD Column : func(column string) github.com/coldsmirk/vef-framework-go/internal/orm.VarianceBuilder
   METHOD Expr : func(expr any) github.com/coldsmirk/vef-framework-go/internal/orm.VarianceBuilder
@@ -5144,10 +5523,12 @@ FUNC ValueOrElse : func[T any](p *T, fn func() T) T
 FUNC Zero : func[T any]() T
 
 ## github.com/coldsmirk/vef-framework-go/reflectx
+CONST BreadthFirst : github.com/coldsmirk/vef-framework-go/reflectx.TraversalMode = 1
 FUNC CollectMethods : func(target reflect.Value) map[string]reflect.Value
 FUNC Contains : func(collection any, element any) bool
 CONST Continue : github.com/coldsmirk/vef-framework-go/reflectx.VisitAction = 0
 FUNC ConvertValue : func(sourceValue reflect.Value, targetType reflect.Type) (reflect.Value, error)
+CONST DepthFirst : github.com/coldsmirk/vef-framework-go/reflectx.TraversalMode = 0
 FUNC Equal : func(a any, b any) bool
 VAR ErrCannotConvertType : error
 TYPE FieldTypeVisitor : github.com/coldsmirk/vef-framework-go/reflectx.FieldTypeVisitor
@@ -5212,6 +5593,7 @@ VAR ToUint64E : func(i any) (uint64, error)
 VAR ToUint8 : func(i any) uint8
 VAR ToUint8E : func(i any) (uint8, error)
 VAR ToUintE : func(i any) (uint, error)
+TYPE TraversalMode : github.com/coldsmirk/vef-framework-go/reflectx.TraversalMode
 TYPE TypeVisitor : github.com/coldsmirk/vef-framework-go/reflectx.TypeVisitor
   FIELD VisitStructType : github.com/coldsmirk/vef-framework-go/reflectx.StructTypeVisitor [field_order=1 tag=""]
   FIELD VisitFieldType : github.com/coldsmirk/vef-framework-go/reflectx.FieldTypeVisitor [field_order=2 tag=""]
@@ -5226,13 +5608,15 @@ TYPE Visitor : github.com/coldsmirk/vef-framework-go/reflectx.Visitor
   FIELD VisitField : github.com/coldsmirk/vef-framework-go/reflectx.FieldVisitor [field_order=2 tag=""]
   FIELD VisitMethod : github.com/coldsmirk/vef-framework-go/reflectx.MethodVisitor [field_order=3 tag=""]
 TYPE VisitorConfig : github.com/coldsmirk/vef-framework-go/reflectx.VisitorConfig
-  FIELD Recursive : bool [field_order=1 tag=""]
-  FIELD DiveTag : github.com/coldsmirk/vef-framework-go/reflectx.TagConfig [field_order=2 tag=""]
-  FIELD MaxDepth : int [field_order=3 tag=""]
+  FIELD TraversalMode : github.com/coldsmirk/vef-framework-go/reflectx.TraversalMode [field_order=1 tag=""]
+  FIELD Recursive : bool [field_order=2 tag=""]
+  FIELD DiveTag : github.com/coldsmirk/vef-framework-go/reflectx.TagConfig [field_order=3 tag=""]
+  FIELD MaxDepth : int [field_order=4 tag=""]
 TYPE VisitorOption : github.com/coldsmirk/vef-framework-go/reflectx.VisitorOption
 FUNC WithDisableRecursive : func() github.com/coldsmirk/vef-framework-go/reflectx.VisitorOption
 FUNC WithDiveTag : func(tagName string, tagValue string) github.com/coldsmirk/vef-framework-go/reflectx.VisitorOption
 FUNC WithMaxDepth : func(maxDepth int) github.com/coldsmirk/vef-framework-go/reflectx.VisitorOption
+FUNC WithTraversalMode : func(mode github.com/coldsmirk/vef-framework-go/reflectx.TraversalMode) github.com/coldsmirk/vef-framework-go/reflectx.VisitorOption
 
 ## github.com/coldsmirk/vef-framework-go/result
 FUNC AsErr : func(err error) (github.com/coldsmirk/vef-framework-go/result.Error, bool)
@@ -5389,12 +5773,10 @@ TYPE Search : github.com/coldsmirk/vef-framework-go/search.Search
 CONST StartsWith : github.com/coldsmirk/vef-framework-go/search.Operator = "startsWith"
 CONST StartsWithIgnoreCase : github.com/coldsmirk/vef-framework-go/search.Operator = "iStartsWith"
 CONST TagSearch : untyped string = "search"
-CONST TypeBool : untyped string = "bool"
 CONST TypeDate : untyped string = "date"
 CONST TypeDateTime : untyped string = "datetime"
 CONST TypeDecimal : untyped string = "dec"
 CONST TypeInt : untyped string = "int"
-CONST TypeString : untyped string = "str"
 CONST TypeTime : untyped string = "time"
 
 ## github.com/coldsmirk/vef-framework-go/security
@@ -5425,11 +5807,12 @@ TYPE ChallengeProvider : github.com/coldsmirk/vef-framework-go/security.Challeng
   METHOD Type : func() string
 TYPE ChallengeState : github.com/coldsmirk/vef-framework-go/security.ChallengeState
   FIELD Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [field_order=1 tag=""]
-  FIELD Pending : []string [field_order=2 tag=""]
-  FIELD Resolved : []string [field_order=3 tag=""]
+  FIELD Username : string [field_order=2 tag=""]
+  FIELD Pending : []string [field_order=3 tag=""]
+  FIELD Resolved : []string [field_order=4 tag=""]
 CONST ChallengeTokenExpires : time.Duration = 300000000000
 TYPE ChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.ChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 CONST ChallengeTypeDepartmentSelection : untyped string = "department_selection"
 CONST ChallengeTypeEmail : untyped string = "email_otp"
@@ -5440,6 +5823,7 @@ CONST ClaimChallengePending : untyped string = "pnd"
 CONST ClaimChallengePrincipalName : untyped string = "pnm"
 CONST ClaimChallengePrincipalType : untyped string = "ptp"
 CONST ClaimChallengeResolved : untyped string = "rsd"
+CONST ClaimChallengeUsername : untyped string = "unm"
 TYPE DataPermissionApplier : github.com/coldsmirk/vef-framework-go/security.DataPermissionApplier
   METHOD Apply : func(query github.com/coldsmirk/vef-framework-go/orm.SelectQuery) error
 TYPE DataPermissionResolver : github.com/coldsmirk/vef-framework-go/security.DataPermissionResolver
@@ -5473,6 +5857,7 @@ TYPE DepartmentSelector : github.com/coldsmirk/vef-framework-go/security.Departm
 VAR ErrAppIDRequired : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrAuthHeaderInvalid : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrAuthHeaderMissing : github.com/coldsmirk/vef-framework-go/result.Error
+VAR ErrChallengeResolveFailed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrChallengeTokenInvalid : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrChallengeTypeInvalid : github.com/coldsmirk/vef-framework-go/result.Error
 CONST ErrCodeAppIDRequired : untyped int = 1009
@@ -5553,6 +5938,10 @@ CONST GenderFemale : github.com/coldsmirk/vef-framework-go/security.Gender = "fe
 CONST GenderMale : github.com/coldsmirk/vef-framework-go/security.Gender = "male"
 CONST GenderUnknown : github.com/coldsmirk/vef-framework-go/security.Gender = "unknown"
 FUNC GenerateSecret : func() (string, error)
+TYPE IPWhitelist : github.com/coldsmirk/vef-framework-go/security.IPWhitelist
+  FIELD Entries : []string [field_order=1 tag=""]
+TYPE IPWhitelistLoader : github.com/coldsmirk/vef-framework-go/security.IPWhitelistLoader
+  METHOD LoadByName : func(ctx context.Context, name string) (*github.com/coldsmirk/vef-framework-go/security.IPWhitelist, error)
 TYPE IPWhitelistValidator : github.com/coldsmirk/vef-framework-go/security.IPWhitelistValidator
   METHOD IsAllowed : func(ipStr string) bool
   METHOD IsEmpty : func() bool
@@ -5560,7 +5949,7 @@ TYPE JWT : github.com/coldsmirk/vef-framework-go/security.JWT
   METHOD Generate : func(claimsBuilder *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder, expires time.Duration, notBefore time.Duration) (string, error)
   METHOD Parse : func(tokenString string) (*github.com/coldsmirk/vef-framework-go/security.JWTClaimsAccessor, error)
 TYPE JWTChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.JWTChallengeTokenStore
-  METHOD Generate : func(_ context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(_ context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
   METHOD Parse : func(_ context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE JWTClaimsAccessor : github.com/coldsmirk/vef-framework-go/security.JWTClaimsAccessor
   METHOD Claim : func(key string) any
@@ -5583,8 +5972,8 @@ TYPE JWTClaimsBuilder : github.com/coldsmirk/vef-framework-go/security.JWTClaims
   METHOD WithSubject : func(subject string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
   METHOD WithType : func(typ string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
 TYPE JWTConfig : github.com/coldsmirk/vef-framework-go/security.JWTConfig
-  FIELD Secret : string [field_order=1 tag="config:\"secret\""]
-  FIELD Audience : string [field_order=2 tag="config:\"audience\""]
+  FIELD Secret : string [field_order=1 tag=""]
+  FIELD Audience : string [field_order=2 tag=""]
 CONST JWTIssuer : untyped string = "vef"
 TYPE LoginChallenge : github.com/coldsmirk/vef-framework-go/security.LoginChallenge
   FIELD Type : string [field_order=1 tag="json:\"type\""]
@@ -5616,7 +6005,7 @@ TYPE LoginResult : github.com/coldsmirk/vef-framework-go/security.LoginResult
   FIELD ChallengeToken : string [field_order=2 tag="json:\"challengeToken,omitempty\""]
   FIELD Challenge : *github.com/coldsmirk/vef-framework-go/security.LoginChallenge [field_order=3 tag="json:\"challenge,omitempty\""]
 TYPE MemoryChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.MemoryChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE MemoryNonceStore : github.com/coldsmirk/vef-framework-go/security.MemoryNonceStore
   METHOD StoreIfAbsent : func(ctx context.Context, appID string, nonce string, ttl time.Duration) (bool, error)
@@ -5629,6 +6018,7 @@ FUNC NewDepartmentSelectionChallengeProvider : func(loader github.com/coldsmirk/
 FUNC NewEmailChallengeProvider : func(evaluator github.com/coldsmirk/vef-framework-go/security.OTPEvaluator, store github.com/coldsmirk/vef-framework-go/security.OTPCodeStore, delivery github.com/coldsmirk/vef-framework-go/security.OTPCodeDelivery) *github.com/coldsmirk/vef-framework-go/security.OTPChallengeProvider
 FUNC NewExternalApp : func(id string, name string, roles ...string) *github.com/coldsmirk/vef-framework-go/security.Principal
 FUNC NewIPWhitelistValidator : func(whitelist string) *github.com/coldsmirk/vef-framework-go/security.IPWhitelistValidator
+FUNC NewIPWhitelistValidatorFromEntries : func(entries []string) *github.com/coldsmirk/vef-framework-go/security.IPWhitelistValidator
 FUNC NewJWT : func(config *github.com/coldsmirk/vef-framework-go/security.JWTConfig) (*github.com/coldsmirk/vef-framework-go/security.JWT, error)
 FUNC NewJWTChallengeTokenStore : func(jwt *github.com/coldsmirk/vef-framework-go/security.JWT) github.com/coldsmirk/vef-framework-go/security.ChallengeTokenStore
 FUNC NewJWTClaimsAccessor : func(claims github.com/golang-jwt/jwt/v5.MapClaims) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsAccessor
@@ -5718,7 +6108,7 @@ CONST PrioritySelf : untyped int = 10
 FUNC PublishRolePermissionsChangedEvent : func(ctx context.Context, bus github.com/coldsmirk/vef-framework-go/event.Bus, roles ...string) error
 CONST QueryKeyAccessToken : untyped string = "__accessToken"
 TYPE RedisChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.RedisChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE RedisNonceStore : github.com/coldsmirk/vef-framework-go/security.RedisNonceStore
   METHOD StoreIfAbsent : func(ctx context.Context, appID string, nonce string, ttl time.Duration) (bool, error)
@@ -5786,7 +6176,7 @@ TYPE UserMenu : github.com/coldsmirk/vef-framework-go/security.UserMenu
   FIELD Path : string [field_order=2 tag="json:\"path\""]
   FIELD Name : string [field_order=3 tag="json:\"name\""]
   FIELD Icon : *string [field_order=4 tag="json:\"icon\""]
-  FIELD Meta : map[string]any [field_order=5 tag="json:\"metadata,omitempty\""]
+  FIELD Meta : map[string]any [field_order=5 tag="json:\"meta,omitempty\""]
   FIELD Children : []github.com/coldsmirk/vef-framework-go/security.UserMenu [field_order=6 tag="json:\"children,omitempty\""]
 TYPE UserMenuType : github.com/coldsmirk/vef-framework-go/security.UserMenuType
 CONST UserMenuTypeDashboard : github.com/coldsmirk/vef-framework-go/security.UserMenuType = "dashboard"
@@ -5800,6 +6190,10 @@ FUNC WithTOTPDestination : func(destination string) github.com/coldsmirk/vef-fra
 FUNC WithTimestampTolerance : func(tolerance time.Duration) github.com/coldsmirk/vef-framework-go/security.SignatureOption
 
 ## github.com/coldsmirk/vef-framework-go/sequence
+TYPE DBStore : github.com/coldsmirk/vef-framework-go/sequence.DBStore
+  METHOD Init : func(ctx context.Context) error
+  METHOD Reserve : func(ctx context.Context, key string, count int, now github.com/coldsmirk/vef-framework-go/timex.DateTime) (*github.com/coldsmirk/vef-framework-go/sequence.Rule, int, error)
+CONST DBStoreTableName : untyped string = "sys_sequence_rule"
 VAR ErrInvalidCount : error
 VAR ErrRuleNotFound : error
 VAR ErrSequenceOverflow : error
@@ -5810,11 +6204,16 @@ TYPE Generator : github.com/coldsmirk/vef-framework-go/sequence.Generator
 TYPE MemoryStore : github.com/coldsmirk/vef-framework-go/sequence.MemoryStore
   METHOD Register : func(rules ...*github.com/coldsmirk/vef-framework-go/sequence.Rule)
   METHOD Reserve : func(_ context.Context, key string, count int, now github.com/coldsmirk/vef-framework-go/timex.DateTime) (*github.com/coldsmirk/vef-framework-go/sequence.Rule, int, error)
+FUNC NewDBStore : func(db github.com/coldsmirk/vef-framework-go/orm.DB) *github.com/coldsmirk/vef-framework-go/sequence.DBStore
 FUNC NewMemoryStore : func() *github.com/coldsmirk/vef-framework-go/sequence.MemoryStore
+FUNC NewRedisStore : func(client *github.com/redis/go-redis/v9.Client) *github.com/coldsmirk/vef-framework-go/sequence.RedisStore
 CONST OverflowError : github.com/coldsmirk/vef-framework-go/sequence.OverflowStrategy = "error"
 CONST OverflowExtend : github.com/coldsmirk/vef-framework-go/sequence.OverflowStrategy = "extend"
 CONST OverflowReset : github.com/coldsmirk/vef-framework-go/sequence.OverflowStrategy = "reset"
 TYPE OverflowStrategy : github.com/coldsmirk/vef-framework-go/sequence.OverflowStrategy
+TYPE RedisStore : github.com/coldsmirk/vef-framework-go/sequence.RedisStore
+  METHOD RegisterRule : func(ctx context.Context, rule *github.com/coldsmirk/vef-framework-go/sequence.Rule) error
+  METHOD Reserve : func(ctx context.Context, key string, count int, now github.com/coldsmirk/vef-framework-go/timex.DateTime) (*github.com/coldsmirk/vef-framework-go/sequence.Rule, int, error)
 TYPE ResetCycle : github.com/coldsmirk/vef-framework-go/sequence.ResetCycle
 CONST ResetDaily : github.com/coldsmirk/vef-framework-go/sequence.ResetCycle = "D"
 CONST ResetMonthly : github.com/coldsmirk/vef-framework-go/sequence.ResetCycle = "M"
@@ -5838,6 +6237,24 @@ TYPE Rule : github.com/coldsmirk/vef-framework-go/sequence.Rule
   FIELD LastResetAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=13 tag=""]
   FIELD IsActive : bool [field_order=14 tag=""]
   METHOD Clone : func() *github.com/coldsmirk/vef-framework-go/sequence.Rule
+TYPE RuleModel : github.com/coldsmirk/vef-framework-go/sequence.RuleModel
+  FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:sys_sequence_rule,alias:ssr\""]
+  FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
+  FIELD Key : string [field_order=3 tag="bun:\"key,notnull,unique\""]
+  FIELD Name : string [field_order=4 tag="bun:\"name,notnull\""]
+  FIELD Prefix : *string [field_order=5 tag="bun:\"prefix,type:varchar(32)\""]
+  FIELD Suffix : *string [field_order=6 tag="bun:\"suffix,type:varchar(32)\""]
+  FIELD DateFormat : *string [field_order=7 tag="bun:\"date_format,type:varchar(32)\""]
+  FIELD SeqLength : int16 [field_order=8 tag="bun:\"seq_length,notnull,default:4\""]
+  FIELD SeqStep : int16 [field_order=9 tag="bun:\"seq_step,notnull,default:1\""]
+  FIELD StartValue : int [field_order=10 tag="bun:\"start_value,notnull,default:0\""]
+  FIELD MaxValue : int [field_order=11 tag="bun:\"max_value,notnull,default:0\""]
+  FIELD OverflowStrategy : github.com/coldsmirk/vef-framework-go/sequence.OverflowStrategy [field_order=12 tag="bun:\"overflow_strategy,notnull,default:'error'\""]
+  FIELD ResetCycle : github.com/coldsmirk/vef-framework-go/sequence.ResetCycle [field_order=13 tag="bun:\"reset_cycle,notnull,default:'N'\""]
+  FIELD CurrentValue : int [field_order=14 tag="bun:\"current_value,notnull,default:0\""]
+  FIELD LastResetAt : *github.com/coldsmirk/vef-framework-go/timex.DateTime [field_order=15 tag="bun:\"last_reset_at,type:timestamp\""]
+  FIELD IsActive : bool [field_order=16 tag="bun:\"is_active,notnull,default:true\""]
+  FIELD Remark : *string [field_order=17 tag="bun:\"remark,type:varchar(256)\""]
 TYPE Store : github.com/coldsmirk/vef-framework-go/sequence.Store
   METHOD Reserve : func(ctx context.Context, key string, count int, now github.com/coldsmirk/vef-framework-go/timex.DateTime) (rule *github.com/coldsmirk/vef-framework-go/sequence.Rule, newValue int, err error)
 
@@ -5866,6 +6283,7 @@ TYPE OrderSpec : github.com/coldsmirk/vef-framework-go/sortx.OrderSpec
 TYPE AbortMultipartOptions : github.com/coldsmirk/vef-framework-go/storage.AbortMultipartOptions
   FIELD Key : string [field_order=1 tag=""]
   FIELD UploadID : string [field_order=2 tag=""]
+FUNC CanonicalizeMetadataKeys : func(m map[string]string) map[string]string
 TYPE ClaimConsumer : github.com/coldsmirk/vef-framework-go/storage.ClaimConsumer
   METHOD Consume : func(ctx context.Context, tx github.com/coldsmirk/vef-framework-go/orm.DB, principal *github.com/coldsmirk/vef-framework-go/security.Principal, keys []string) error
 TYPE CompleteMultipartOptions : github.com/coldsmirk/vef-framework-go/storage.CompleteMultipartOptions
@@ -6036,7 +6454,7 @@ TYPE Service : github.com/coldsmirk/vef-framework-go/storage.Service
   METHOD CopyObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.CopyObjectOptions) (*github.com/coldsmirk/vef-framework-go/storage.ObjectInfo, error)
   METHOD DeleteObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.DeleteObjectOptions) error
   METHOD DeleteObjects : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.DeleteObjectsOptions) error
-  METHOD GetObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.GetObjectOptions) (io.ReadCloser, error)
+  METHOD GetObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.GetObjectOptions) (io.ReadCloser, *github.com/coldsmirk/vef-framework-go/storage.ObjectInfo, error)
   METHOD PutObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.PutObjectOptions) (*github.com/coldsmirk/vef-framework-go/storage.ObjectInfo, error)
   METHOD StatObject : func(ctx context.Context, opts github.com/coldsmirk/vef-framework-go/storage.StatObjectOptions) (*github.com/coldsmirk/vef-framework-go/storage.ObjectInfo, error)
 TYPE StatObjectOptions : github.com/coldsmirk/vef-framework-go/storage.StatObjectOptions
@@ -6135,6 +6553,11 @@ TYPE ImportError : github.com/coldsmirk/vef-framework-go/tabular.ImportError
   FIELD Err : error [field_order=4 tag=""]
   METHOD Error : func() string
   METHOD Unwrap : func() error
+FUNC ImportRows : func(rows [][]string, adapter github.com/coldsmirk/vef-framework-go/tabular.RowAdapter, parsers map[string]github.com/coldsmirk/vef-framework-go/tabular.ValueParser, opts github.com/coldsmirk/vef-framework-go/tabular.ImportRowsOptions) (any, []github.com/coldsmirk/vef-framework-go/tabular.ImportError, error)
+TYPE ImportRowsOptions : github.com/coldsmirk/vef-framework-go/tabular.ImportRowsOptions
+  FIELD SkipRows : int [field_order=1 tag=""]
+  FIELD HasHeader : bool [field_order=2 tag=""]
+  FIELD TrimSpace : bool [field_order=3 tag=""]
 TYPE Importer : github.com/coldsmirk/vef-framework-go/tabular.Importer
   METHOD Import : func(reader io.Reader) (any, []github.com/coldsmirk/vef-framework-go/tabular.ImportError, error)
   METHOD ImportFromFile : func(filename string) (any, []github.com/coldsmirk/vef-framework-go/tabular.ImportError, error)
@@ -6385,5 +6808,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.28.0"
+CONST VEFVersion : untyped string = "v0.35.0"
 ```

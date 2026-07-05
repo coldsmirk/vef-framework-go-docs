@@ -589,7 +589,7 @@ func verifySourceTerms(sourceRoot string) []string {
 		{
 			path: "internal/mold/mold.go",
 			terms: []string{
-				"tagName:         \"mold\"",
+				"tagName:          \"mold\"",
 				"func New() *MoldTransformer",
 				"func (t *MoldTransformer) Register(tag string, fn mold.Func)",
 				"panic(\"mold: transformation tag cannot be empty\")",

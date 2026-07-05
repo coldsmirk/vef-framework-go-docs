@@ -77,7 +77,7 @@ values are `GenderMale` (`male`), `GenderFemale` (`female`), and
 
 `UserInfo` serializes as `id`, `name`, `gender`, `avatar`,
 `permissionTokens`, `menus`, and optional `details`. `UserMenu` serializes as
-`type`, `path`, `name`, `icon`, optional `metadata`, and optional `children`.
+`type`, `path`, `name`, `icon`, optional `meta`, and optional `children`.
 
 ## Resource-Level Meaning
 

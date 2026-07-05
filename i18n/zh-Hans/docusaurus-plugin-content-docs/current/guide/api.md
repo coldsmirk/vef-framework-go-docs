@@ -8,10 +8,10 @@ sidebar_position: 1
 
 ## 已审查公开 Surface
 
-当前源码审计覆盖 `github.com/coldsmirk/vef-framework-go/api` 的 66 个
-top-level exported symbols、45 个 exported fields 和 40 个 exported methods。
+当前源码审计覆盖 `github.com/coldsmirk/vef-framework-go/api` 的 70 个
+top-level exported symbols、44 个 exported fields 和 36 个 exported methods。
 已审查 public-surface fingerprint 是
-`a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e`。
+`0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`。
 
 生成的 [公开 API 索引](../reference/public-api-index) 是所有 exported
 symbol、exported field 和 exported method 的无遗漏清单。本指南负责说明这些
@@ -25,7 +25,7 @@ surface 背后的受支持行为和运行时 contract。
 | engine 和 routing 扩展 | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
 | request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler 扩展 | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit、headers、versions、errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -145,9 +145,8 @@ type OperationSpec struct {
 }
 ```
 
-运行期 engine 会把它物化为 `Operation`。`RequiresAuth()` 和
-`HasRateLimit()` helper 是公开的，供 router strategy、middleware、诊断和测试
-使用。`Operation` 和 `Request` 都嵌入了 `Identifier`，所以
+运行期 engine 会把它物化为带最终 `Auth` 和 `RateLimit` 指针的 `Operation`，
+供 router strategy、middleware、诊断和测试使用。`Operation` 和 `Request` 都嵌入了 `Identifier`，所以
 `Identifier.String()` 会提升为 `Operation.String()` 和 `Request.String()`。
 
 Operation 默认化规则：
@@ -250,7 +249,7 @@ var userParams UserParams
 err := request.Params.Decode(&userParams)
 
 // 访问单个值
-value, exists := request.GetParam("username")
+value, exists := request.Params["username"]
 ```
 
 ### Meta
@@ -265,7 +264,7 @@ var pageable page.Pageable
 err := request.Meta.Decode(&pageable)
 
 // 访问单个值
-value, exists := request.GetMeta("format")
+value, exists := request.Meta["format"]
 ```
 
 ### Params vs Meta
@@ -282,7 +281,7 @@ value, exists := request.GetMeta("format")
 
 ```go
 type AuthConfig struct {
-    Strategy string         // "none"、"bearer"、"signature" 或自定义
+    Strategy string         // "none"、"bearer"、"signature"、"ip" 或自定义
     Options  map[string]any // 策略特定选项
 }
 ```
@@ -297,6 +296,7 @@ type AuthConfig struct {
 | 无认证 | `api.AuthStrategyNone` | 公开访问 |
 | Bearer | `api.AuthStrategyBearer` | Bearer 令牌认证 |
 | 签名 | `api.AuthStrategySignature` | 请求签名认证 |
+| IP | `api.AuthStrategyIP` | 来源 IP 白名单认证 |
 
 ### 辅助函数
 
@@ -304,7 +304,21 @@ type AuthConfig struct {
 api.Public()        // 策略为 "none" 的 AuthConfig
 api.BearerAuth()    // 策略为 "bearer" 的 AuthConfig
 api.SignatureAuth() // 策略为 "signature" 的 AuthConfig
+api.IPAuth()        // 策略为 "ip"，使用 "default" whitelist
+api.IPAuth("ops")   // 策略为 "ip"，使用 "ops" whitelist
 ```
+
+`api.IPAuth(...)` 接受 0 或 1 个 whitelist 名称。不传时使用
+`api.DefaultIPWhitelist`（`"default"`）；选中的名称会写入
+`AuthConfig.Options` 的 `api.AuthOptionWhitelist`。传入多个名称会 panic。
+内置 IP strategy 通过 `security.IPWhitelistLoader` 解析命名列表；默认 loader
+读取 `vef.security.ip_whitelists`。所有认证失败都返回
+`security.ErrIPNotAllowed`，缺失或为空的命名 whitelist 会 fail-closed，而不会
+降级为公开访问。位于反向代理之后时，需要配置 `vef.app.trusted_proxies`，让
+Fiber 解析到真实客户端 IP。
+
+自定义认证策略实现 `api.AuthStrategy`，并通过
+`vef.ProvideAuthStrategy(...)` 注册到 `vef:api:auth_strategies`。
 
 ### 资源级 vs 操作级认证
 
@@ -333,14 +347,13 @@ type RateLimitConfig struct {
 crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
-内置 rate limiter 使用 sliding window。`Max <= 0` 时，
-`Operation.HasRateLimit()` 对该 operation 返回 false。框架默认 key 包含
+内置 rate limiter 使用 sliding window。`Operation.RateLimit` 为 nil 或
+`RateLimit.Max <= 0` 时，该 operation 不启用限流。框架默认 key 包含
 resource、version、action、解析后的客户端 IP 和 principal ID；匿名请求使用
 anonymous principal。
 
-`HasRateLimit()` 只有在 `RateLimit != nil` 且 `RateLimit.Max > 0` 时才返回
-true。`RequiresAuth()` 假定 `Auth` 非 nil，并返回
-`Auth.Strategy != api.AuthStrategyNone` 的结果。
+Operation 认证配置由 `Operation.Auth` 承载；公开 operation 会解析为
+`api.AuthStrategyNone`，受保护 operation 则携带选中的 auth strategy 和 options。
 
 ## Engine
 
@@ -407,9 +420,9 @@ func (r *UserResource) Create(ctx fiber.Ctx, params UserParams, db orm.DB) error
 | 版本 | `api.VersionV1`, `api.VersionV2`, `api.VersionV3`, `api.VersionV4`, `api.VersionV5`, `api.VersionV6`, `api.VersionV7`, `api.VersionV8`, `api.VersionV9` |
 | 请求 header | `api.HeaderXAppID`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXMetaPrefix` |
 | 审计 | `api.AuditEvent`, `api.SubscribeAuditEvent` |
-| 认证 registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.ResourceOption` |
+| 认证 registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.AuthStrategyNone`, `api.AuthStrategyBearer`, `api.AuthStrategySignature`, `api.AuthStrategyIP`, `api.AuthOptionWhitelist`, `api.DefaultIPWhitelist`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.ResourceOption` |
 | operation 收集 | `api.Operation`, `api.OperationSpec`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| 请求 helper | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, 提升而来的 `Operation.String()`, 提升而来的 `Request.String()`, `Request.GetParam(...)`, `Request.GetMeta(...)`, `Params.Decode(...)`, `Meta.Decode(...)` |
+| 请求 helper | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, 提升而来的 `Operation.String()`, 提升而来的 `Request.String()`, `Params.Decode(...)`, `Meta.Decode(...)` |
 | marker struct | `api.P` 表示 params，`api.M` 表示 meta |
 | handler/router 扩展 | `api.Middleware`, `api.RouterStrategy`, `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver`, `api.ValidateActionName(action, kind) error` |
 | sentinel 错误 | 还包括 `api.ErrInvalidRequestParams`、`api.ErrInvalidRequestMeta`、`api.ErrInvalidParamsType`、`api.ErrInvalidMetaType` 和 `ErrInvalidVersionFormat`，用于解码后请求/运行时校验 |

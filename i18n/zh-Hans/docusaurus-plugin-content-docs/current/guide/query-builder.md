@@ -6,7 +6,7 @@ sidebar_position: 6
 
 VEF 的查询构建主要围绕 typed search 结构体、`search` 标签和 CRUD 的 find 类扩展点展开。目标是把查询规则放在字段定义附近，而不是把一堆字符串条件散落在 handler 里。
 
-审查说明：本页覆盖 46 public search entries，其中包括 1 grouped search method entry，分布在 1 search receiver/type family；成组 search surface 包含 0 exported search field entries 和 1 exported search method entry。
+审查说明：本页覆盖 44 public search entries，其中包括 1 grouped search method entry，分布在 1 search receiver/type family；成组 search surface 包含 0 exported search field entries 和 1 exported search method entry。
 
 ## Search 结构体模型
 
@@ -181,7 +181,7 @@ Name string `search:"alias=u,column=name,operator=contains"`
 | 参数键 | 含义 |
 | --- | --- |
 | `delimiter` | 解析字符串区间或集合时使用的分隔符 |
-| `type` | 显式解析类型，例如 `int`、`str`、`bool`、`dec`、`date`、`datetime`、`time` |
+| `type` | 显式解析类型；字符串区间支持 `int`、`dec`、`date`、`datetime`、`time`；字符串形式的 `in` 支持 `int`，其他情况保持字符串 |
 
 字符串区间通过 `type:int`、`type:dec`、`type:date`、`type:datetime` 或
 `type:time` 选择具体 parser。
@@ -311,7 +311,7 @@ type QueryMeta struct {
 | parser | `search.New`, `search.NewFor[T]`, `search.Search`, `search.Applier` |
 | tag 常量 | `TagSearch`, `IgnoreField`, `AttrOperator`, `AttrColumn`, `AttrAlias`, `AttrParams`, `AttrDive` |
 | operator | `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, `LessThanOrEqual`, `Between`, `NotBetween`, `In`, `NotIn`, `IsNull`, `IsNotNull`, `Contains`, `NotContains`, `ContainsIgnoreCase`, `NotContainsIgnoreCase`, `StartsWith`, `NotStartsWith`, `StartsWithIgnoreCase`, `NotStartsWithIgnoreCase`, `EndsWith`, `NotEndsWith`, `EndsWithIgnoreCase`, `NotEndsWithIgnoreCase` |
-| 参数常量 | `ParamDelimiter`, `ParamType`, `TypeString`, `TypeInt`, `TypeBool`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
+| 参数常量 | `ParamDelimiter`, `ParamType`, `TypeInt`, `TypeDecimal`, `TypeDate`, `TypeDateTime`, `TypeTime` |
 
 `Search.Apply(...)` 会把已经解析好的 search schema 应用到 ORM condition
 builder；CRUD find builder 在把 `search` tag 翻译成 SQL 条件时会内部调用它。

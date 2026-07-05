@@ -28,8 +28,8 @@ upstream Bun alias method signatures are tracked separately in the public API
 index. Query interfaces that embed `fmt.Stringer` expose `String()` for
 SQL/debug rendering; exact signatures are tracked in the public API index.
 
-The grouped-family audit locks 1,344 grouped ORM method entries across 105
-receiver families: 1,107 VEF-owned method entries and 237 Bun pass-through
+The grouped-family audit locks 1,350 grouped ORM method entries across 105
+receiver families: 1,113 VEF-owned method entries and 237 Bun pass-through
 method entries. The verifier pins the sorted member signatures and receiver
 distribution, so any new, removed, reclassified, or signature-changed ORM
 method requires a source-guided review before the audit passes again.
@@ -654,6 +654,12 @@ db.NewSelect().Model(&departments).
 	Scan(ctx)
 ```
 
+`SelectQuery`, `InsertQuery`, `UpdateQuery`, `DeleteQuery`, and `MergeQuery`
+all expose `WithValues(name, model)` for VALUES-based CTEs and
+`WithOrderedValues(name, model)` for VALUES CTEs that append an ordinal column
+so slice order can be preserved. The current `WithValues` signature does not
+accept an ordering flag; call `WithOrderedValues` when order matters.
+
 ## Set Operations
 
 ```go
@@ -1063,6 +1069,10 @@ db.NewSelect().Model(&users).IncludeDeleted().Scan(ctx)
 The `orm` package intentionally re-exports the lower-level query-builder
 contracts used by application code:
 
+The shared `QueryBuilder` contract exposes `QueryBuilder.DB()` to return the
+VEF `orm.DB` that created the query, alongside dialect, table metadata,
+expression-builder, subquery, and condition-builder helpers.
+
 | API group | Public surface |
 | --- | --- |
 | database entry points | `DB`, `Tx`, `Executor`, `RawQuery`, `SelectQuery`, `InsertQuery`, `UpdateQuery`, `DeleteQuery`, `MergeQuery`, `CreateTableQuery`, `DropTableQuery`, `CreateIndexQuery`, `DropIndexQuery`, `TruncateTableQuery`, `AddColumnQuery`, `DropColumnQuery`, `TableTarget`, `QueryBuilder` |
@@ -1072,11 +1082,15 @@ contracts used by application code:
 | core builders | `ConditionBuilder`, `ExprBuilder`, `OrderBuilder`, `CaseBuilder`, `CaseWhenBuilder`, `ConflictBuilder`, `ConflictAction`, `ConflictUpdateBuilder`, `MergeWhenBuilder`, `MergeUpdateBuilder`, `MergeInsertBuilder`, `RelationSpec` |
 | aggregate builders | `CountBuilder`, `SumBuilder`, `AvgBuilder`, `MinBuilder`, `MaxBuilder`, `StringAggBuilder`, `ArrayAggBuilder`, `StdDevBuilder`, `VarianceBuilder`, `JSONObjectAggBuilder`, `JSONArrayAggBuilder`, `BitOrBuilder`, `BitAndBuilder`, `BoolOrBuilder`, `BoolAndBuilder` |
 | window builders | `WindowCountBuilder`, `WindowSumBuilder`, `WindowAvgBuilder`, `WindowMinBuilder`, `WindowMaxBuilder`, `WindowStringAggBuilder`, `WindowArrayAggBuilder`, `WindowStdDevBuilder`, `WindowVarianceBuilder`, `WindowJSONObjectAggBuilder`, `WindowJSONArrayAggBuilder`, `WindowBitOrBuilder`, `WindowBitAndBuilder`, `WindowBoolOrBuilder`, `WindowBoolAndBuilder`, `RowNumberBuilder`, `RankBuilder`, `DenseRankBuilder`, `PercentRankBuilder`, `CumeDistBuilder`, `NTileBuilder`, `LagBuilder`, `LeadBuilder`, `FirstValueBuilder`, `LastValueBuilder`, `NthValueBuilder` |
-| DDL builders and types | `DataTypeDef`, `ColumnConstraint`, `PrimaryKeyBuilder`, `UniqueBuilder`, `CheckBuilder`, `ForeignKeyBuilder`, `ReferenceAction`, `IndexMethod`, `PartitionStrategy` |
+| DDL builders and types | `DataTypeDef`, `ColumnConstraint`, `RawDefault`, `PrimaryKeyBuilder`, `UniqueBuilder`, `CheckBuilder`, `ForeignKeyBuilder`, `ReferenceAction`, `IndexMethod`, `PartitionStrategy` |
 | expression placeholders | `PlaceholderKeyOperator`, `ExprOperator`, `ExprTableColumns`, `ExprColumns`, `ExprTablePKs`, `ExprPKs`, `ExprTableName`, `ExprTableAlias` |
 | audit constants | `ColumnID`, `ColumnCreatedAt`, `ColumnUpdatedAt`, `ColumnCreatedBy`, `ColumnUpdatedBy`, `ColumnCreatedByName`, `ColumnUpdatedByName`, `FieldID`, `FieldCreatedAt`, `FieldUpdatedAt`, `FieldCreatedBy`, `FieldUpdatedBy`, `FieldCreatedByName`, `FieldUpdatedByName`, `OperatorSystem`, `OperatorCronJob`, `OperatorAnonymous` |
 | enum families | `JoinType`, `FuzzyKind`, `NullsMode`, `FromDirection`, `FrameType`, `FrameBoundKind`, `StatisticalMode`, `DateTimeUnit`, `JoinDefault`, `JoinInner`, `JoinLeft`, `JoinRight`, `JoinFull`, `JoinCross`, `FuzzyStarts`, `FuzzyEnds`, `FuzzyContains`, `NullsDefault`, `NullsRespect`, `NullsIgnore`, `FromDefault`, `FromFirst`, `FromLast`, `FrameDefault`, `FrameRows`, `FrameRange`, `FrameGroups`, `FrameBoundNone`, `FrameBoundUnboundedPreceding`, `FrameBoundUnboundedFollowing`, `FrameBoundCurrentRow`, `FrameBoundPreceding`, `FrameBoundFollowing`, `StatisticalDefault`, `StatisticalPopulation`, `StatisticalSample`, `ConflictDoNothing`, `ConflictDoUpdate`, `UnitYear`, `UnitMonth`, `UnitDay`, `UnitHour`, `UnitMinute`, `UnitSecond`, `ReferenceCascade`, `ReferenceRestrict`, `ReferenceSetNull`, `ReferenceSetDefault`, `ReferenceNoAction`, `IndexBTree`, `IndexHash`, `IndexGIN`, `IndexGiST`, `IndexSPGiST`, `IndexBRIN`, `PartitionRange`, `PartitionList`, `PartitionHash` |
 | helpers | `Applier`, `ApplyFunc`, `ApplySort`, `DataType`, `PrimaryKey`, `NotNull`, `Nullable`, `Default`, `Unique`, `Check`, `References`, `AutoIncrement`, `PKField`, `ColumnInfo` |
+
+Use `orm.RawDefault("CURRENT_TIMESTAMP")` only when a DDL default must render a
+trusted SQL expression verbatim. Plain `orm.Default(value)` keeps ordinary
+strings, booleans, and numeric values on the safe literal/bound-value path.
 
 ## Next Step
 

@@ -16,9 +16,9 @@ helper 名称前缀不足以判断实际 wiring 方式，要看具体机制：
 
 | 机制 | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
 | 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
-| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
 | 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
 
 替换型 helper 是单服务 override，不是 append-only extension point。除非你明确
@@ -30,13 +30,19 @@ helper 名称前缀不足以判断实际 wiring 方式，要看具体机制：
 
 ```go
 vef.ProvideAPIResource(...)
+vef.ProvideAuthStrategy(...)
 ```
 
 对应 FX group：
 
 ```text
 vef:api:resources
+vef:api:auth_strategies
 ```
+
+`ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。
+资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置
+策略是 `none`、`bearer`、`signature` 和 `ip`。
 
 ## 应用级 middleware
 
@@ -256,12 +262,21 @@ vef:approval:lifecycle_hooks
 使用：
 
 ```go
-vef.SupplyBusinessBindingHook(...)
+vef.SupplyBusinessRefProvider(...)
+vef.SupplyBusinessRefResolver(...)
 ```
 
-这会替换默认 `approval.BusinessBindingHook`，用于
-`Flow.BindingMode == BindingBusiness` 的场景。实现负责把审批实例和宿主
-业务表桥接起来；异步状态回写路径必须保持幂等。
+`SupplyBusinessRefProvider` 会替换默认 no-op 的
+`approval.BusinessRefProvider`。它在 `Flow.BindingMode == BindingBusiness`
+的 `start_instance` 事务内运行，宿主可在这里解析或创建业务行，并返回 opaque
+的 `Instance.BusinessRef`。
+
+`SupplyBusinessRefResolver` 会替换默认 identity 的
+`approval.BusinessRefResolver`。当 `Instance.BusinessRef` 不是裸业务主键时，
+通过它把 opaque ref 解析成引擎写回时用于匹配 `Flow.BusinessPkField` 的值。
+
+审批终态写回由 engine 拥有；宿主可用 `approval.InstanceLifecycleHook` 或事件订阅
+在其周围扩展，但不再替换写回路径本身。
 
 ## 日志
 
@@ -273,8 +288,10 @@ vef.NamedLogger(name)
 
 当集成代码需要在 DI 之外拿框架 `logx.Logger` 时，可以使用
 `vef.NamedLogger(name)` 这个 root-package 便捷函数。它返回
-`logx.Logger`；`logx` package 本身只公开 `Level` constants、
-`Level.String()` 和 `Logger` interface contract。
+`logx.Logger`；`logx` package 本身公开 `Level` constants、
+`Level.String()`、`Logger` interface contract，以及
+`LoggerConfigurable[T]`，供 immutable component 通过 `WithLogger` 返回配置了
+logger 的副本。
 
 ## API 参数注入解析器
 

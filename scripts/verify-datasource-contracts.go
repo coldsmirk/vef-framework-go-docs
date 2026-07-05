@@ -409,7 +409,7 @@ func verifySourceContracts(sourceRoot string) []string {
 		{
 			path: "datasource/registry.go",
 			terms: []string{
-				"const PrimaryName = \"primary\"",
+				"const PrimaryName = config.PrimaryDataSourceName",
 				"type Registry interface",
 				"Primary() orm.DB",
 				"Get(name string) (orm.DB, error)",

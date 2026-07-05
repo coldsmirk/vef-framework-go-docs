@@ -9,9 +9,9 @@ The `api` package is the foundation of VEF's request handling layer. It defines 
 ## Reviewed Public Surface
 
 The current source audit for `github.com/coldsmirk/vef-framework-go/api` covers
-66 top-level exported symbols, 45 exported fields, and 40 exported methods. The
+70 top-level exported symbols, 44 exported fields, and 36 exported methods. The
 reviewed public-surface fingerprint is
-`a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e`.
+`0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`.
 
 The generated [Public API Index](../reference/public-api-index) is the
 no-omissions checklist for every exported symbol, exported field, and exported
@@ -26,7 +26,7 @@ Reviewed API groups in this guide:
 | engine and routing extension | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
 | request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler extension | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -147,10 +147,10 @@ type OperationSpec struct {
 }
 ```
 
-At runtime the engine materializes an `Operation`. Its `RequiresAuth()` and
-`HasRateLimit()` helpers are public for router strategies, middleware,
-diagnostics, and tests. `Operation` and `Request` both embed `Identifier`, so
-`Identifier.String()` is promoted to `Operation.String()` and `Request.String()`.
+At runtime the engine materializes an `Operation` with final `Auth` and
+`RateLimit` pointers for router strategies, middleware, diagnostics, and tests.
+`Operation` and `Request` both embed `Identifier`, so `Identifier.String()` is
+promoted to `Operation.String()` and `Request.String()`.
 
 Operation defaulting rules:
 
@@ -253,7 +253,7 @@ var userParams UserParams
 err := request.Params.Decode(&userParams)
 
 // Access individual values
-value, exists := request.GetParam("username")
+value, exists := request.Params["username"]
 ```
 
 ### Meta
@@ -268,7 +268,7 @@ var pageable page.Pageable
 err := request.Meta.Decode(&pageable)
 
 // Access individual values
-value, exists := request.GetMeta("format")
+value, exists := request.Meta["format"]
 ```
 
 ### Params vs Meta
@@ -285,7 +285,7 @@ value, exists := request.GetMeta("format")
 
 ```go
 type AuthConfig struct {
-    Strategy string         // "none", "bearer", "signature", or custom
+    Strategy string         // "none", "bearer", "signature", "ip", or custom
     Options  map[string]any // Strategy-specific options
 }
 ```
@@ -300,6 +300,7 @@ resource or operation customizes auth without mutating shared config.
 | None | `api.AuthStrategyNone` | No authentication (public) |
 | Bearer | `api.AuthStrategyBearer` | Bearer token authentication |
 | Signature | `api.AuthStrategySignature` | Request signature authentication |
+| IP | `api.AuthStrategyIP` | Source-IP whitelist authentication |
 
 ### Helper Functions
 
@@ -307,7 +308,22 @@ resource or operation customizes auth without mutating shared config.
 api.Public()        // AuthConfig with strategy "none"
 api.BearerAuth()    // AuthConfig with strategy "bearer"
 api.SignatureAuth() // AuthConfig with strategy "signature"
+api.IPAuth()        // AuthConfig with strategy "ip" and whitelist "default"
+api.IPAuth("ops")   // AuthConfig with strategy "ip" and whitelist "ops"
 ```
+
+`api.IPAuth(...)` accepts zero or one whitelist name. With no argument it uses
+`api.DefaultIPWhitelist` (`"default"`); the selected name is stored under
+`api.AuthOptionWhitelist` in `AuthConfig.Options`. Passing more than one name
+panics. The built-in IP strategy resolves the named list through
+`security.IPWhitelistLoader`; the default loader reads
+`vef.security.ip_whitelists`. All auth failures deny with
+`security.ErrIPNotAllowed`, and an empty or missing named whitelist is
+fail-closed rather than treated as public access. Behind a reverse proxy,
+configure `vef.app.trusted_proxies` so Fiber resolves the real client IP.
+
+Custom authentication strategies implement `api.AuthStrategy` and register with
+`vef.ProvideAuthStrategy(...)` into `vef:api:auth_strategies`.
 
 ### Auth at Resource vs Operation Level
 
@@ -336,14 +352,14 @@ Usage via CRUD builder:
 crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
-The built-in rate limiter uses a sliding window. `Max <= 0` means
-`Operation.HasRateLimit()` returns false for that operation. The framework's
+The built-in rate limiter uses a sliding window. A nil `Operation.RateLimit` or
+`RateLimit.Max <= 0` disables limiting for that operation. The framework's
 default key includes resource, version, action, resolved client IP, and the
 principal ID; anonymous requests use the anonymous principal.
 
-`HasRateLimit()` returns true only when `RateLimit != nil` and
-`RateLimit.Max > 0`. `RequiresAuth()` assumes `Auth` is non-nil and returns the
-result of `Auth.Strategy != api.AuthStrategyNone`.
+Operation auth is carried by `Operation.Auth`; a public operation resolves to
+`api.AuthStrategyNone`, while protected operations carry the selected auth
+strategy and options.
 
 ## Engine
 
@@ -410,9 +426,9 @@ Additional public API surface:
 | versions | `api.VersionV1`, `api.VersionV2`, `api.VersionV3`, `api.VersionV4`, `api.VersionV5`, `api.VersionV6`, `api.VersionV7`, `api.VersionV8`, `api.VersionV9` |
 | request headers | `api.HeaderXAppID`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXMetaPrefix` |
 | audit | `api.AuditEvent`, `api.SubscribeAuditEvent` |
-| auth registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.ResourceOption` |
+| auth registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.AuthStrategyNone`, `api.AuthStrategyBearer`, `api.AuthStrategySignature`, `api.AuthStrategyIP`, `api.AuthOptionWhitelist`, `api.DefaultIPWhitelist`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.ResourceOption` |
 | operation collection | `api.Operation`, `api.OperationSpec`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request helpers | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, promoted `Operation.String()`, promoted `Request.String()`, `Request.GetParam(...)`, `Request.GetMeta(...)`, `Params.Decode(...)`, `Meta.Decode(...)` |
+| request helpers | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, promoted `Operation.String()`, promoted `Request.String()`, `Params.Decode(...)`, `Meta.Decode(...)` |
 | marker structs | `api.P` for params and `api.M` for meta |
 | handler/router extension | `api.Middleware`, `api.RouterStrategy`, `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver`, `api.ValidateActionName(action, kind) error` |
 | sentinel errors | also includes `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, and `ErrInvalidVersionFormat` for decoded request/runtime validation |

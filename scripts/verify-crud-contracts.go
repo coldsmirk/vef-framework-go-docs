@@ -21,17 +21,17 @@ import (
 
 const (
 	crudPackage                     = "github.com/coldsmirk/vef-framework-go/crud"
-	crudFingerprint                 = "38785e1c261925b26022f3f642f95dbd90acb67afaacaa1dc78ab38e2f37fe4f"
-	crudTopLevel                    = 125
+	crudFingerprint                 = "2f13a6adc30cc0203584e004a78b2090a461e74bf21291533cd955a85ea3105d"
+	crudTopLevel                    = 129
 	crudFields                      = 36
-	crudMethods                     = 279
-	crudEntries                     = 440
-	crudGroupedEntries              = 315
+	crudMethods                     = 263
+	crudEntries                     = 428
+	crudGroupedEntries              = 299
 	crudGroupedFields               = 36
-	crudGroupedMethods              = 279
+	crudGroupedMethods              = 263
 	crudGroupedReceivers            = 27
-	crudGroupedSignatureFingerprint = "043a337b22edab77e96311c6a1140aa8a7df5a120b3d79c18c309f8eaf31e18b"
-	crudGroupedReceiverFingerprint  = "fee10a864140a836ecf13f14d7a4f4f8888ab0dc8c1330e1d479f97f191d51c4"
+	crudGroupedSignatureFingerprint = "ad294250b01cbbd2f67019f48524ca9771c867a2b68d99b1017b977326a2006d"
+	crudGroupedReceiverFingerprint  = "f20b3dc2a881bf0b206babbe89a687cde293e74a641c95dece429dd8ecd692e7"
 
 	englishCrudPath         = "docs/guide/crud.md"
 	chineseCrudPath         = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/crud.md"
@@ -169,7 +169,7 @@ func main() {
 		panic(fmt.Errorf("CRUD contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("CRUD contract docs verified: %d public entries, 315 grouped builder entries, source-derived action/error/DTO/hook contracts, 6 doc corpora\n", len(auditEntries))
+	fmt.Printf("CRUD contract docs verified: %d public entries, 299 grouped builder entries, source-derived action/error/DTO/hook contracts, 6 doc corpora\n", len(auditEntries))
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -296,10 +296,10 @@ func verifyGroupedCRUDSurface(entries []auditEntry, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"315 grouped CRUD builder entries",
+			"299 grouped CRUD builder entries",
 			"27 receiver families",
 			"36 public field entries",
-			"279 public method entries",
+			"263 public method entries",
 		} {
 			if !containsNormalized(doc.content, term) {
 				failures = append(failures, doc.label+" missing grouped CRUD audit term "+term)
@@ -547,7 +547,6 @@ func verifySourceContracts(sourceRoot string) []string {
 			path: "crud/builder.go",
 			terms: []string{
 				"type Builder[T any] interface",
-				"ResourceKind(kind api.Kind) T",
 				"Action(action string) T",
 				"EnableAudit() T",
 				"Timeout(timeout time.Duration) T",

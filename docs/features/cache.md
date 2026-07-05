@@ -31,6 +31,7 @@ The package has no exported fields. Its public top-level API is:
 | `cache.KeyBuilder` | interface with `Build(keyParts ...string) string` |
 | `cache.PrefixKeyBuilder` | prefix-based implementation of `KeyBuilder` |
 | `cache.NewPrefixKeyBuilder(prefix string) *cache.PrefixKeyBuilder` | builds a key builder with `:` as the separator |
+| `cache.NewPrefixKeyBuilderWithSeparator(prefix, separator string) *cache.PrefixKeyBuilder` | builds a prefix key builder with a custom separator; the separator is used exactly as provided |
 | `cache.LoaderFunc[T]` | `func(ctx context.Context) (T, error)` used by `Cache.GetOrLoad` and `SingleflightMixin.GetOrLoad` |
 | `cache.KeyedLoaderFunc[T]` | `func(ctx context.Context, key string) (T, error)` used by `Invalidating` |
 | `cache.GetFunc[T]` | `func(context.Context, string) (T, bool)` callback used by `SingleflightMixin` |
@@ -110,6 +111,7 @@ Redis TTL rules match the memory backend: a positive per-call TTL wins, otherwis
 | `cache.Key()` | `""` |
 | `cache.NewPrefixKeyBuilder("app").Build()` | `app` |
 | `cache.NewPrefixKeyBuilder("app").Build("user", "123")` | `app:user:123` |
+| `cache.NewPrefixKeyBuilderWithSeparator("app", "/").Build("user", "123")` | `app/user/123` |
 
 `cache.KeyBuilder` is intentionally small:
 

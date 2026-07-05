@@ -6,7 +6,7 @@ sidebar_position: 1
 
 VEF is built on Uber FX. The public `vef` package re-exports the core FX helpers so that most applications can stay inside one consistent API surface.
 
-Audit note: the root `vef` package coverage spans this page, [Extension Points](../reference/extension-points), and [Application Lifecycle](./lifecycle). Together they cover 49 public root-package entries: 48 top-level entries, 0 exported field entries, and 1 grouped `Lifecycle.Append` method entry.
+Audit note: the root `vef` package coverage spans this page, [Extension Points](../reference/extension-points), and [Application Lifecycle](./lifecycle). Together they cover 51 public root-package entries: 50 top-level entries, 0 exported field entries, and 1 grouped `Lifecycle.Append` method entry.
 
 ## The key idea
 
@@ -83,6 +83,7 @@ This keeps most application code from importing `fx` directly unless you need so
 Several framework features are connected through FX groups. These are the most important ones for application developers:
 
 - `vef:api:resources`
+- `vef:api:auth_strategies`
 - `vef:app:middlewares`
 - `vef:cqrs:behaviors`
 - `vef:security:challenge_providers`
@@ -100,9 +101,9 @@ The helper functions in `di.go` exist mainly to register values into those group
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
-| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
 
 The replacement helpers are not additive. For example,
@@ -125,6 +126,7 @@ The same pattern is used for other extension points:
 
 ```go
 vef.ProvideMiddleware(NewAuditTrailMiddleware)
+vef.ProvideAuthStrategy(NewAPIKeyStrategy)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
 vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
 vef.ProvideMCPTools(NewToolProvider)
@@ -147,7 +149,8 @@ members:
 - `vef.ProvideEventErrorSink(...)`
 - `vef.SupplyFileACL(...)`
 - `vef.SupplyURLKeyMapper(...)`
-- `vef.SupplyBusinessBindingHook(...)`
+- `vef.SupplyBusinessRefProvider(...)`
+- `vef.SupplyBusinessRefResolver(...)`
 
 `vef.SupplyMCPServerInfo(...)` is different: it supplies a single
 `mcp.ServerInfo` value. `vef.SupplySPAConfigs(...)` is also different: it

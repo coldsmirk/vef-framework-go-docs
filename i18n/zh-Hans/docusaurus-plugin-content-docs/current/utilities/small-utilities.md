@@ -322,12 +322,12 @@ Fiber 会按自己的 proxy settings 处理 `X-Forwarded-For`。
 
 反射和转换 helper。
 
-`reflectx` 的 public surface 包含 78 个 exported top-level entries 和 11 个
+`reflectx` 的 public surface 包含 82 个 exported top-level entries 和 12 个
 exported fields。它没有 exported methods。
 
-Surface summary: 78 exported top-level entries, 11 exported fields, no exported
+Surface summary: 82 exported top-level entries, 12 exported fields, no exported
 methods, fingerprint
-`bb62b3bd50f5b54c5af99deb16b7cfb61fa52e69f92e3ab789dc81c744f6d3de`。
+`0c7f22e87dd56b6a1e33be78c9bb398abee1b4b776888a4a3a64d94167751bba`。
 
 | API 组 | Audited public APIs |
 | --- | --- |
@@ -336,14 +336,14 @@ methods, fingerprint
 | type compatibility and methods | `reflectx.Indirect`, `reflectx.IsPointerToStruct`, `reflectx.IsSimilarType`, `reflectx.IsTypeCompatible`, `reflectx.ConvertValue`, `reflectx.ErrCannotConvertType`, `reflectx.FindMethod`, `reflectx.CollectMethods` |
 | string field helpers | `reflectx.IsStringType`, `reflectx.IsStringSliceType`, `reflectx.IsStringMapType`, `reflectx.GetStringValue`, `reflectx.SetStringValue`, `reflectx.GetStringSliceValue`, `reflectx.SetStringSliceValue`, `reflectx.GetStringMapValue`, `reflectx.SetStringMapValue` |
 | value helpers | `reflectx.IsEmpty`, `reflectx.IsNotEmpty`, `reflectx.IsNumeric`, `reflectx.IsInteger`, `reflectx.IsSignedInt`, `reflectx.IsUnsignedInt`, `reflectx.IsFloat`, `reflectx.Equal`, `reflectx.Contains` |
-| visitor actions, callbacks, and options | `reflectx.VisitAction`, `reflectx.Continue`, `reflectx.Stop`, `reflectx.SkipChildren`, `reflectx.TagConfig`, `reflectx.VisitorConfig`, `reflectx.VisitorOption`, `reflectx.Visitor`, `reflectx.StructVisitor`, `reflectx.FieldVisitor`, `reflectx.MethodVisitor`, `reflectx.TypeVisitor`, `reflectx.StructTypeVisitor`, `reflectx.FieldTypeVisitor`, `reflectx.MethodTypeVisitor`, `reflectx.VisitOf`, `reflectx.Visit`, `reflectx.VisitType`, `reflectx.VisitFor`, `reflectx.WithDisableRecursive`, `reflectx.WithDiveTag`, `reflectx.WithMaxDepth` |
+| visitor actions, callbacks, traversal modes, and options | `reflectx.VisitAction`, `reflectx.Continue`, `reflectx.Stop`, `reflectx.SkipChildren`, `reflectx.TraversalMode`, `reflectx.DepthFirst`, `reflectx.BreadthFirst`, `reflectx.TagConfig`, `reflectx.VisitorConfig`, `reflectx.VisitorOption`, `reflectx.Visitor`, `reflectx.StructVisitor`, `reflectx.FieldVisitor`, `reflectx.MethodVisitor`, `reflectx.TypeVisitor`, `reflectx.StructTypeVisitor`, `reflectx.FieldTypeVisitor`, `reflectx.MethodTypeVisitor`, `reflectx.VisitOf`, `reflectx.Visit`, `reflectx.VisitType`, `reflectx.VisitFor`, `reflectx.WithTraversalMode`, `reflectx.WithDisableRecursive`, `reflectx.WithDiveTag`, `reflectx.WithMaxDepth` |
 
 Exported fields：
 
 | Type | Fields |
 | --- | --- |
 | `reflectx.TagConfig` | `TagConfig.Name`, `TagConfig.Value` |
-| `reflectx.VisitorConfig` | `VisitorConfig.Recursive`, `VisitorConfig.DiveTag`, `VisitorConfig.MaxDepth` |
+| `reflectx.VisitorConfig` | `VisitorConfig.TraversalMode`, `VisitorConfig.Recursive`, `VisitorConfig.DiveTag`, `VisitorConfig.MaxDepth` |
 | `reflectx.Visitor` | `Visitor.VisitStruct`, `Visitor.VisitField`, `Visitor.VisitMethod` |
 | `reflectx.TypeVisitor` | `TypeVisitor.VisitStructType`, `TypeVisitor.VisitFieldType`, `TypeVisitor.VisitMethodType` |
 
@@ -388,12 +388,14 @@ cross-category numeric comparisons 返回 false。exact-type comparable values
 slices/arrays 通过 `reflectx.Equal` 比较，以及 maps 通过 key lookup，且支持
 convertible map keys。
 
-Visitor traversal 使用 depth-first order。`reflectx.Continue = 0`、
+Visitor traversal 默认使用 depth-first order。`reflectx.DepthFirst = 0`、
+`reflectx.BreadthFirst = 1`、`reflectx.Continue = 0`、
 `reflectx.Stop = 1`、`reflectx.SkipChildren = 2`。默认
-`VisitorConfig.Recursive` 为 true，`VisitorConfig.DiveTag` 是
+`VisitorConfig.TraversalMode` 为 `DepthFirst`，`VisitorConfig.Recursive` 为 true，`VisitorConfig.DiveTag` 是
 `TagConfig{Name: "visit", Value: "dive"}`，`VisitorConfig.MaxDepth == 0` 表示
 unlimited depth。Anonymous struct fields 会自动 recurse；named struct fields
 只有在 tag 匹配 `VisitorConfig.DiveTag` 时才 recurse。
+`reflectx.WithTraversalMode` 选择 `DepthFirst` 或 `BreadthFirst`；
 `reflectx.WithDisableRecursive` 设置 `VisitorConfig.Recursive = false`；
 `reflectx.WithDiveTag` 替换 tag selector；`reflectx.WithMaxDepth` 设置 depth
 cap，且 traversal 在 `depth >= MaxDepth` 时停止向下。`reflectx.SkipChildren`
@@ -419,11 +421,11 @@ absolute index path，method callbacks 会通过 pointer method set 访问。
 
 框架使用的日志契约。
 
-`logx` 的 public surface 包含 7 个 exported top-level entries 和 15 个
+`logx` 的 public surface 包含 8 个 exported top-level entries 和 16 个
 exported methods。它没有 exported fields。
 
-Surface summary: 7 exported top-level entries, 15 exported methods, no exported fields, fingerprint
-`4ff9c19b53d9985911e2985c2763802337d6a69f783962bb73b9ee7424481eaf`。
+Surface summary: 8 exported top-level entries, 16 exported methods, no exported fields, fingerprint
+`2512ac2e4b928560900dfb481cda5645aeda3afbd4229fafa3a42dedcf19d4a3`。
 
 | API | Contract | 作用 |
 | --- | --- |
@@ -434,6 +436,7 @@ Surface summary: 7 exported top-level entries, 15 exported methods, no exported 
 | `logx.LevelError = 4` | error level constant | 表示非预期应用行为的高优先级日志。 |
 | `logx.LevelPanic = 5` | panic level constant | 记录消息后触发 panic。 |
 | `logx.Logger` | logging interface | 由框架提供的 logger 和自定义 logger 实现的契约。 |
+| `logx.LoggerConfigurable[T]` | generic interface | 由 immutable component 实现，通过 `WithLogger` 返回配置了 logger 的副本。 |
 
 `Level.String() string` 返回 `debug`、`info`、`warn`、`error` 或 `panic`。
 未知 level 值，包括 zero value，返回 `unknown`。
@@ -454,6 +457,7 @@ Surface summary: 7 exported top-level entries, 15 exported methods, no exported 
 | `Logger.Errorf(template string, args ...any)` | 记录 formatted error message |
 | `Logger.Panic(message string)` | 记录 panic message 后触发 panic |
 | `Logger.Panicf(template string, args ...any)` | 记录 formatted panic message 后触发 panic |
+| `LoggerConfigurable[T].WithLogger(logger logx.Logger) T` | 返回配置了指定 logger 的 component 副本 |
 
 当集成代码需要在 dependency injection 之外拿框架 logger 时，可以调用
 `vef.NamedLogger(name string) logx.Logger`。这个 helper 从 root `vef`
@@ -468,7 +472,7 @@ functions、没有 exported types、没有 exported fields，也没有 exported 
 
 | API | Contract | 作用 |
 | --- | --- |
-| `VEFVersion` | `version.VEFVersion` 是 untyped string constant，当前值为 `"v0.28.0"`。 | 当前框架版本字符串。 |
+| `VEFVersion` | `version.VEFVersion` 是 untyped string constant，当前值为 `"v0.35.0"`。 | 当前框架版本字符串。 |
 
 源码注释把该值描述为当前 VEF Framework version 的 semver format。公开值包含
 前导 `v` prefix。

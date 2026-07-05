@@ -11,7 +11,7 @@ sidebar_position: 14
 一个序列号生成器由两部分组成：
 
 - **`sequence.Rule`** —— 格式与重置策略（前缀、日期格式、计数器位宽、重置周期、溢出策略）。
-- **`sequence.Store`** —— rule 与当前计数器的存储位置。当前内置运行时 store 是内存实现；如果需要其他持久化模型，可以实现同一个接口。Store 负责原子地递增计数器。
+- **`sequence.Store`** —— rule 与当前计数器的存储位置。默认运行时 store 是内存实现；公开包同时提供数据库和 Redis store，适合持久化或分布式部署。如果需要其他持久化模型，也可以实现同一个接口。Store 负责原子地递增计数器。
 
 框架已经把 `sequence.Generator` 装配好了，也会暴露具体的 `*sequence.MemoryStore`，所以业务模块可以在启动期 seed rule，然后调用 `Generate(ctx, key)`。
 
@@ -137,7 +137,19 @@ func SeedSequenceRules(store *sequence.MemoryStore) {
 }
 ```
 
-> `sequence.Store` 仍然是接口，但旧的内置 DB / Redis store 已经不在公开包里。如果应用需要持久化或分布式计数后端，应自行实现 `sequence.Store` 并提供给 FX。
+### 数据库
+
+`sequence.NewDBStore(db)` 返回基于 `sys_sequence_rule` 表的
+`*sequence.DBStore`，表名常量是 `sequence.DBStoreTableName`。`DBStore.Init(ctx)`
+会在表不存在时创建它；`Reserve(...)` 会对 rule 行加锁并在数据库事务内原子预留计数。
+`sequence.RuleModel` 是该表对应的 ORM model。
+
+### Redis
+
+`sequence.NewRedisStore(client)` 返回适合分布式部署的 `*sequence.RedisStore`。
+规则以 Redis hash 存在 `vef:sequence:<key>` 前缀下；`RedisStore.RegisterRule(ctx, rule)`
+用于 seed 或替换一条规则，`Reserve(...)` 使用 Redis `WATCH` / transaction retry
+原子预留计数。
 
 每个 store 都**要求 rule 先存在再调用 `Generate(...)`**。调一个 store 里没有的 key 会得到 `sequence.ErrRuleNotFound`。
 
@@ -148,6 +160,8 @@ func SeedSequenceRules(store *sequence.MemoryStore) {
 | `sequence.Store.Reserve(ctx, key, count, now)` | 为某个 rule 原子预留 `count` 个序号，并返回 rule 快照与本批最终计数值 |
 | `sequence.MemoryStore.Register(rules...)` | 使用深拷贝预加载或替换内存规则 |
 | `sequence.MemoryStore.Reserve(...)` | `Store.Reserve` 的内存实现；返回克隆后的 rule 快照 |
+| `sequence.NewDBStore(db)` / `sequence.DBStore` | 基于 `sequence.DBStoreTableName`（`sys_sequence_rule`）和 `sequence.RuleModel` 的数据库 store |
+| `sequence.NewRedisStore(client)` / `sequence.RedisStore` | Redis store；用 `RedisStore.RegisterRule(ctx, rule)` seed hash-backed 规则 |
 | `sequence.Rule.Clone()` | 深拷贝一个 rule 快照 |
 
 ## 生成序列号

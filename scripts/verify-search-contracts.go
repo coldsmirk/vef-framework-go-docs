@@ -18,11 +18,11 @@ import (
 const (
 	searchPackage = "github.com/coldsmirk/vef-framework-go/search"
 
-	searchFingerprint = "80e58c5d9990255abf62c11f442cba4a1b1a314fd2722f3eb44c3026d75faec4"
-	searchTopLevel    = 45
+	searchFingerprint = "e5daf3aeeade69b48eb2c0419003c930df8746c739eab98b1e131c22f9424cab"
+	searchTopLevel    = 43
 	searchFields      = 0
 	searchMethods     = 1
-	searchEntries     = 46
+	searchEntries     = 44
 
 	searchGroupedEntries              = 1
 	searchGroupedFields               = 0
@@ -153,7 +153,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Search contract docs verified: 46 public entries, 1 grouped Search.Apply method, tag grammar and apply semantics")
+	fmt.Println("Search contract docs verified: 44 public entries, 1 grouped Search.Apply method, tag grammar and apply semantics")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -386,7 +386,7 @@ func verifyGroupedSearchSurface(entries []auditEntry, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"46 public search entries",
+			"44 public search entries",
 			"1 grouped search method entry",
 			"1 search receiver/type family",
 			"0 exported search field entries",
@@ -442,8 +442,6 @@ func verifySearchDocs(entries []auditEntry, docs []corpus) []string {
 		"`ParamDelimiter`",
 		"`ParamType`",
 		"`TypeInt`",
-		"`TypeString`",
-		"`TypeBool`",
 		"`TypeDecimal`",
 		"`TypeDate`",
 		"`TypeDateTime`",
@@ -527,8 +525,6 @@ func verifySourceTerms(sourceRoot string) []string {
 				"ParamType      = \"type\"",
 				"IgnoreField = \"-\"",
 				"TypeInt      = \"int\"",
-				"TypeString   = \"str\"",
-				"TypeBool     = \"bool\"",
 				"TypeDecimal  = \"dec\"",
 				"TypeDate     = \"date\"",
 				"TypeDateTime = \"datetime\"",

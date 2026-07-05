@@ -101,10 +101,10 @@ func main() {
 	failures = append(failures, missingTerms(chineseTopicDocs, chinesePublicDocSurfaceTerms())...)
 
 	failures = append(failures, missingTerms(englishAPIDocs, []string{
-		"66 top-level exported symbols",
-		"45 exported fields",
-		"40 exported methods",
-		"fingerprint is `a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e`",
+		"70 top-level exported symbols",
+		"44 exported fields",
+		"36 exported methods",
+		"fingerprint is `0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`",
 		"`api.NewRPCResource` and `api.NewRESTResource` validate the resource name",
 		"construction time",
 		"They panic when validation fails",
@@ -122,16 +122,17 @@ func main() {
 		"`Action` | required; direct `WithOperations(...)` specs",
 		"`30s`",
 		"`Max=100`, `Period=5m`",
-		"`HasRateLimit()` returns true only when `RateLimit != nil` and `RateLimit.Max > 0`",
-		"`RequiresAuth()` assumes `Auth` is non-nil",
-		"`Auth.Strategy != api.AuthStrategyNone`",
+			"`Operation.RateLimit`",
+			"`RateLimit.Max <= 0` disables limiting",
+			"`Operation.Auth`",
+			"`api.AuthStrategyNone`",
 		"`Params.Decode` and `Meta.Decode` require a pointer to a struct",
 	})...)
 	failures = append(failures, missingTerms(chineseAPIDocs, []string{
-		"66 个 top-level exported symbols",
-		"45 个 exported fields",
-		"40 个 exported methods",
-		"fingerprint 是 `a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e`",
+		"70 个 top-level exported symbols",
+		"44 个 exported fields",
+		"36 个 exported methods",
+		"fingerprint 是 `0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`",
 		"`api.NewRPCResource` 和 `api.NewRESTResource` 会在构造期校验 resource",
 		"校验失败会 panic",
 		"`api.ValidateActionName(action, kind)`",
@@ -147,9 +148,10 @@ func main() {
 		"`Action` | 必填；直接 `WithOperations(...)`",
 		"`30s`",
 		"`Max=100`、`Period=5m`",
-		"`HasRateLimit()` 只有在 `RateLimit != nil` 且 `RateLimit.Max > 0` 时才返回 true",
-		"`RequiresAuth()` 假定 `Auth` 非 nil",
-		"`Auth.Strategy != api.AuthStrategyNone`",
+			"`Operation.RateLimit`",
+			"`RateLimit.Max <= 0` 时，该 operation 不启用限流",
+			"`Operation.Auth`",
+			"`api.AuthStrategyNone`",
 		"`Params.Decode` 和 `Meta.Decode` 都要求传入 struct 指针",
 	})...)
 	failures = append(failures, missingTerms(englishHandlerDocs, []string{
@@ -271,13 +273,11 @@ func main() {
 				"Action string",
 				"RequiredPermission string",
 				"RateLimit *RateLimitConfig",
-				"type Operation struct",
-				"Identifier",
-				"func (o *Operation) HasRateLimit() bool",
-				"return o.RateLimit != nil && o.RateLimit.Max > 0",
-				"func (o *Operation) RequiresAuth() bool",
-				"return o.Auth.Strategy != AuthStrategyNone",
-				"type RateLimitConfig struct",
+					"type Operation struct",
+					"Identifier",
+					"Auth *AuthConfig",
+					"RateLimit *RateLimitConfig",
+					"type RateLimitConfig struct",
 				"type OperationsProvider interface",
 				"type OperationsCollector interface",
 			},
@@ -297,13 +297,11 @@ func main() {
 				"func (m Meta) Decode(out any) error",
 				"reflectx.IsPointerToStruct",
 				"type Request struct",
-				"Identifier",
-				"Params Params `json:\"params\"`",
-				"Meta   Meta   `json:\"meta\"`",
-				"func (r *Request) GetParam(key string) (any, bool)",
-				"func (r *Request) GetMeta(key string) (any, bool)",
+					"Identifier",
+					"Params Params `json:\"params\"`",
+					"Meta   Meta   `json:\"meta\"`",
+				},
 			},
-		},
 		{
 			path: "api/auth.go",
 			terms: []string{
@@ -489,7 +487,7 @@ func main() {
 		panic(fmt.Errorf("api contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("API contract docs verified: 66 top-level public symbols, 40 public methods, 45 public fields, %d source/runtime files, 8 doc mirrors\n", len(sourceChecks))
+	fmt.Printf("API contract docs verified: 70 top-level public symbols, 36 public methods, 44 public fields, %d source/runtime files, 8 doc mirrors\n", len(sourceChecks))
 }
 
 func readAuditLedger(path string) auditLedger {
@@ -533,8 +531,8 @@ func apiLedgerEntries(ledger auditLedger) map[string]auditLedgerEntry {
 		entries[key] = entry
 	}
 
-	if len(entries) != 151 {
-		panic(fmt.Sprintf("expected 151 API audit ledger entries, got %d", len(entries)))
+	if len(entries) != 150 {
+		panic(fmt.Sprintf("expected 150 API audit ledger entries, got %d", len(entries)))
 	}
 
 	return entries
@@ -548,19 +546,19 @@ func verifyContractReview(ledger contractLedger) []string {
 
 		surface := review.ReviewedSurface
 		var failures []string
-		if surface.TopLevel != 66 {
+		if surface.TopLevel != 70 {
 			failures = append(failures, fmt.Sprintf("contract review top_level mismatch: got %d", surface.TopLevel))
 		}
-		if surface.Fields != 45 {
+		if surface.Fields != 44 {
 			failures = append(failures, fmt.Sprintf("contract review fields mismatch: got %d", surface.Fields))
 		}
-		if surface.Methods != 40 {
+		if surface.Methods != 36 {
 			failures = append(failures, fmt.Sprintf("contract review methods mismatch: got %d", surface.Methods))
 		}
-		if surface.EntryCount != 151 {
+		if surface.EntryCount != 150 {
 			failures = append(failures, fmt.Sprintf("contract review entry_count mismatch: got %d", surface.EntryCount))
 		}
-		if surface.Fingerprint != "a8ef51431b3e8661cfd8687b36c7b9a5458651788c2454fbd165c700f19f5b3e" {
+		if surface.Fingerprint != "0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef" {
 			failures = append(failures, "contract review fingerprint mismatch: got "+surface.Fingerprint)
 		}
 

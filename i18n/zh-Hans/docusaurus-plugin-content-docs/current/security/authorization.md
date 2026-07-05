@@ -74,7 +74,7 @@ unsubscribe function。
 
 `UserInfo` 的 JSON 字段是 `id`、`name`、`gender`、`avatar`、
 `permissionTokens`、`menus` 和可选 `details`。`UserMenu` 的 JSON 字段是
-`type`、`path`、`name`、`icon`、可选 `metadata` 和可选 `children`。
+`type`、`path`、`name`、`icon`、可选 `meta` 和可选 `children`。
 
 ## 资源层面的意义
 

@@ -14,9 +14,9 @@ The helper name prefix is not enough to tell how the value is wired. Use the mec
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
-| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessBindingHook`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
 
 Replacement helpers are single-service overrides, not append-only extension
@@ -26,12 +26,19 @@ FX option to replace an earlier one.
 ## API and app groups
 
 - `vef:api:resources`
+- `vef:api:auth_strategies`
 - `vef:app:middlewares`
 
 Helpers:
 
 - `vef.ProvideAPIResource(...)`
+- `vef.ProvideAuthStrategy(...)`
 - `vef.ProvideMiddleware(...)`
+
+`ProvideAuthStrategy` appends a custom `api.AuthStrategy` into the auth-strategy
+group. The strategy is selected by the name returned from `Name()` through
+`api.AuthConfig.Strategy`; built-in strategies are `none`, `bearer`,
+`signature`, and `ip`.
 
 ## Minimal module example
 
@@ -217,14 +224,24 @@ event subscriptions for asynchronous integrations that should run after commit.
 
 ## Approval business binding
 
-Helper:
+Helpers:
 
-- `vef.SupplyBusinessBindingHook(...)`
+- `vef.SupplyBusinessRefProvider(...)`
+- `vef.SupplyBusinessRefResolver(...)`
 
-This replaces the default `approval.BusinessBindingHook` used when
-`Flow.BindingMode == BindingBusiness`. Implementations bridge approval instances
-to the host application's business rows and must be idempotent on asynchronous
-status write-back.
+`SupplyBusinessRefProvider` replaces the default no-op
+`approval.BusinessRefProvider`. It runs inside `start_instance` when
+`Flow.BindingMode == BindingBusiness` and lets the host resolve or allocate the
+business row, returning the opaque `Instance.BusinessRef`.
+
+`SupplyBusinessRefResolver` replaces the default identity
+`approval.BusinessRefResolver`. Register one when `Instance.BusinessRef` is not
+the bare primary key and the engine-owned write-back needs to extract the value
+matched against `Flow.BusinessPkField`.
+
+Approval status write-back itself is owned by the engine. Hosts extend around it
+with `approval.InstanceLifecycleHook` or event subscriptions; they no longer
+replace the write-back path.
 
 ## Logging
 
@@ -234,8 +251,10 @@ Helper:
 
 Use this root-package convenience function when integration code needs a
 framework `logx.Logger` outside dependency injection. It returns
-`logx.Logger`; the `logx` package itself exposes only the `Level` constants,
-`Level.String()`, and the `Logger` interface contract.
+`logx.Logger`; the `logx` package itself exposes the `Level` constants,
+`Level.String()`, the `Logger` interface contract, and
+`LoggerConfigurable[T]` for immutable components that return a
+logger-configured copy from `WithLogger`.
 
 ## See also
 

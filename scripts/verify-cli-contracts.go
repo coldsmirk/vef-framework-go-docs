@@ -498,7 +498,7 @@ func verifySourceContracts(sourceRoot string) []string {
 		{"cmd/vef-cli/cmd/modelschema/generator.go", "extractEmbedPrefixFromTag"},
 		{"cmd/vef-cli/cmd/modelschema/generator.go", "hasScanonlyTagFromTag"},
 		{"cmd/vef-cli/cmd/modelschema/generator.go", "reservedMethodNames"},
-		{"cmd/vef-cli/cmd/modelschema/generator.go", `strings.HasPrefix(strings.TrimSpace(part), "rel:")`},
+			{"cmd/vef-cli/cmd/modelschema/generator.go", `parsed.hasOption("rel") || parsed.hasOption("m2m")`},
 		{"cmd/vef-cli/cmd/modelschema/generator_test.go", "SchemaTypeIsUnexportedAndOnlyVarIsExported"},
 		{"cmd/vef-cli/cmd/modelschema/generator_test.go", "ScanonlyExcludedFromColumns"},
 		{"cmd/vef-cli/cmd/modelschema/generator_test.go", "EmbedPrefixApplied"},

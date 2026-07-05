@@ -197,13 +197,19 @@ type ExportError struct {
 | schema | `NewSchema`, `NewSchemaFor[T]`, `NewSchemaFromSpecs`, `Column`, `ColumnSpec`, and `Schema` lookup methods |
 | adapters | `NewStructAdapter`, `NewStructAdapterFor[T]`, `NewMapAdapter`, `NewMapAdapterFromSpecs`, `RowAdapter`, `RowReader`, `RowWriter`, `RowView`, `RowBuilder` |
 | typed wrappers | `NewTypedImporter[T]`, `NewTypedExporter[T]`, `TypedImporter[T]`, `TypedExporter[T]` |
-| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
+| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `ImportRows`, `ImportRowsOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
 | formatter/parser registry | `ResolveFormatter`, `ResolveFormatters`, `ResolveParser`, `ResolveParsers`, `IsDefaultFormatter`, `NewDefaultFormatter`, `NewDefaultParser` |
 | constants/errors | `TagTabular`, `IgnoreField`, `AttrDive`, `AttrName`, `AttrOrder`, `AttrWidth`, `AttrDefault`, `AttrFormatter`, `AttrParser`, `AttrFormat`, and tabular sentinels such as `ErrDataMustBeSlice`, `ErrDuplicateColumnKey`, `ErrDuplicateHeaderName`, `ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrNoDataRowsFound`, `ErrRequiredMissing`, `ErrSchemaMismatch`, `ErrTypedRowMismatch`, `ErrUnknownColumn`, `ErrUnsetField`, `ErrUnsupportedType` |
 
-The tabular package audit currently locks **143 public tabular entries** in the
-generated API ledger. The grouped member surface covers **75 grouped tabular
-field/method entries** across **20 tabular receiver/type families**: **37
+`tabular.ImportRows(rows, adapter, parsers, opts)` parses a materialized
+`[][]string` table through a `RowAdapter`. `ImportRowsOptions` controls
+`SkipRows`, header-based versus positional mapping, and whitespace trimming.
+CSV and Excel importers delegate to this shared core after reading their source
+format.
+
+The tabular package audit currently locks **148 public tabular entries** in the
+generated API ledger. The grouped member surface covers **78 grouped tabular
+field/method entries** across **21 tabular receiver/type families**: **40
 exported tabular field entries** and **38 exported tabular method entries**.
 The generated public API index remains the complete signature list; this page
 documents the schema, mapping, parser/formatter, adapter, and error-contract
@@ -215,7 +221,7 @@ Additional audited fields and adapter methods:
 | --- | --- |
 | column metadata | `Column.Default`, `Column.Width`, `Column.Order`, `Column.Parser`, `Column.ParserFn`, `Column.FormatterFn`, `Column.Index` |
 | dynamic specs | `ColumnSpec.Default`, `ColumnSpec.Width`, `ColumnSpec.Order`, `ColumnSpec.Parser`, `ColumnSpec.ParserFn`, `ColumnSpec.FormatterFn` |
-| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace` |
+| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace`, `ImportRowsOptions.SkipRows`, `ImportRowsOptions.HasHeader`, `ImportRowsOptions.TrimSpace` |
 | row adapter contract | `RowAdapter.Writer`, `RowReader.All`, `RowView.Get`, `RowBuilder.Set`, `RowWriter.NewRow`, `RowWriter.Commit`, `RowWriter.Build` |
 | schema lookup | `Schema.ColumnByKey`, `Schema.ColumnByName` |
 | typed wrappers | `TypedExporter.Inner`, `TypedImporter.Inner` |

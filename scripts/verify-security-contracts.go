@@ -16,12 +16,12 @@ const (
 	auditLedgerPath = "scripts/api-audit-ledger.json"
 	securityPackage = "github.com/coldsmirk/vef-framework-go/security"
 
-	securityGroupedEntryCount           = 174
-	securityGroupedFieldCount           = 75
-	securityGroupedMethodCount          = 99
-	securityGroupedReceiverCount        = 66
-	securityGroupedSignatureFingerprint = "929d935fa6c1a0035edeb168ad53f46e62a29c2b83fee32ae322131e53a8cb9b"
-	securityGroupedReceiverFingerprint  = "6064db54b11081b0eec6e15754a4fae7d0995dfb3b69bc887dcaf09b570b3637"
+	securityGroupedEntryCount           = 177
+	securityGroupedFieldCount           = 77
+	securityGroupedMethodCount          = 100
+	securityGroupedReceiverCount        = 68
+	securityGroupedSignatureFingerprint = "31ae1d4b55670fa7b205351be83ddf1155206b3b3e726c0daa87e60e3520beb4"
+	securityGroupedReceiverFingerprint  = "75b34f454220048cd7bec56b1534ddd6aaa6a6bebbea58d4a8dbcf98fae8412b"
 )
 
 type corpus struct {
@@ -81,7 +81,7 @@ func main() {
 		panic(fmt.Errorf("security contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("Security contract docs verified: 174 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
+	fmt.Printf("Security contract docs verified: 177 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
 		len(authDocs), len(authzDocs), len(dataPermDocs))
 }
 
@@ -135,10 +135,10 @@ func verifyGroupedSecuritySurface(audit auditLedger, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"174 grouped security field/method entries",
-			"66 receiver/type families",
-			"75 public field entries",
-			"99 public method entries",
+			"177 grouped security field/method entries",
+			"68 receiver/type families",
+			"77 public field entries",
+			"100 public method entries",
 		} {
 			if !containsNormalized(doc.content, term) {
 				failures = append(failures, doc.label+" missing grouped security audit term "+term)
@@ -479,14 +479,14 @@ func authChecks() []check {
 				"return nil, ErrSignatureSecretRequired",
 				"return fmt.Appendf(nil, \"app_id=%s&method=%s&nonce=%s&path=%s&timestamp=%d\"",
 				"if s.nonceStore == nil",
-				"s.timestampTolerance+nonceTTLBuffer",
+				"2*s.timestampTolerance + nonceTTLBuffer",
 			},
 			docTerms: []string{
 				"`HMAC-SHA256`",
 				"`HMAC-SHA512`",
 				"`HMAC-SM3`",
 				"`5m`",
-				"tolerance + `1m`",
+				"`2*tolerance + 1m`",
 				"`MemoryNonceStore`",
 				"`ErrSignatureSecretRequired`",
 				"app_id=<appID>&method=<method>&nonce=<nonce>&path=<path>&timestamp=<timestamp>",
@@ -497,8 +497,10 @@ func authChecks() []check {
 		{
 			sourcePath: "security/ip_whitelist.go",
 			sourceTerms: []string{
-				"whitelist = strings.TrimSpace(whitelist)",
-				"validator.isEmpty = true",
+				"return NewIPWhitelistValidatorFromEntries(strings.Split(whitelist, \",\"))",
+				"entry = strings.TrimSpace(entry)",
+				"hasValidEntry := false",
+				"validator.isEmpty = !validator.invalid && !hasValidEntry",
 				"validator.invalid = true",
 				"if v.isEmpty",
 				"if v.invalid",
@@ -708,7 +710,8 @@ func authzChecks() []check {
 				"UserMenuTypeDashboard UserMenuType = \"dashboard\"",
 				"UserMenuTypeReport    UserMenuType = \"report\"",
 				"`json:\"permissionTokens\"`",
-				"`json:\"metadata,omitempty\"`",
+				"`json:\"meta,omitempty\"`",
+				"`json:\"details,omitempty\"`",
 				"`json:\"children,omitempty\"`",
 			},
 			docTerms: []string{
@@ -721,7 +724,7 @@ func authzChecks() []check {
 				"`dashboard`",
 				"`report`",
 				"`permissionTokens`",
-				"`metadata`",
+				"`meta`",
 				"`children`",
 			},
 		},

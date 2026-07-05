@@ -17,15 +17,15 @@ import (
 const (
 	ormPackage = "github.com/coldsmirk/vef-framework-go/orm"
 
-	ormGroupedEntryCount           = 1344
-	ormGroupedSignatureFingerprint = "f574c328a07f7b4327b5f2aaef3c0c764944646e86c68c1b39074e16a5159213"
-	ormGroupedReceiverFingerprint  = "bab12b79667b04f575db693412e98aba559d9123dfafbbaab236c72861cc4e8e"
+	ormGroupedEntryCount           = 1350
+	ormGroupedSignatureFingerprint = "dee79f633409b3a6abac018fa3451a6a25a6d4ba2948424e63c28e7a96bfd240"
+	ormGroupedReceiverFingerprint  = "c8920541a1b519fb01853860e9499c2ee6e21b65c5221d473732a2e1f2a990b9"
 
 	ormBunGroupedEntryCount           = 237
 	ormBunGroupedSignatureFingerprint = "15339acc44fcf86555dace5fc0f63177864ee437c1666100d0048e1da9a2d22a"
 
-	ormVEFOwnedGroupedEntryCount           = 1107
-	ormVEFOwnedGroupedSignatureFingerprint = "cd4b93ddfa4dd28feaac6093ca22212e6a933ce2ba8b4548973e2772ba64da0f"
+	ormVEFOwnedGroupedEntryCount           = 1113
+	ormVEFOwnedGroupedSignatureFingerprint = "0f0a7b25408d1d1730fc57b54505ede3fe43770fd1b38632d3491a0406a8d3e3"
 )
 
 type corpus struct {
@@ -109,7 +109,7 @@ func main() {
 	commonDocTerms := []string{
 		"VEF-owned ORM method families",
 		"receiver/category",
-		"1,344 grouped ORM method entries",
+		"1,350 grouped ORM method entries",
 		"orm.SelectQuery",
 		"orm.InsertQuery",
 		"orm.UpdateQuery",
@@ -135,13 +135,16 @@ func main() {
 		"public API index",
 		"ScanAndCount(ctx)",
 		"Count(ctx)",
+		"WithValues(name, model)",
+		"WithOrderedValues(name, model)",
+		"QueryBuilder.DB()",
 	}
 	englishDocTerms := []string{
 		"Do not read VEF query-interface behavior from the Bun aliases",
 		"These rows describe VEF `orm.SelectQuery` execution methods",
 		"not the upstream `orm.BunSelectQuery` pass-through alias",
 		"105 receiver families",
-		"1,107 VEF-owned method entries",
+		"1,113 VEF-owned method entries",
 		"237 Bun pass-through method entries",
 	}
 	chineseDocTerms := []string{
@@ -149,7 +152,7 @@ func main() {
 		"以下行描述的是 VEF `orm.SelectQuery` 执行方法",
 		"不是上游 `orm.BunSelectQuery` pass-through alias",
 		"105 个 receiver families",
-		"1,107 个是 VEF-owned method entries",
+		"1,113 个是 VEF-owned method entries",
 		"237 个是 Bun pass-through method entries",
 	}
 
@@ -165,7 +168,7 @@ func main() {
 		panic(fmt.Errorf("ORM contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Println("ORM contract docs verified: public facade aliases, VEF/Bun execution boundary, 1,344 grouped method entries, go test ./orm")
+	fmt.Println("ORM contract docs verified: public facade aliases, VEF/Bun execution boundary, 1,350 grouped method entries, go test ./orm")
 }
 
 func readCorpus(label, path string) corpus {

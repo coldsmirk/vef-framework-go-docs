@@ -15,11 +15,11 @@ import (
 
 const (
 	reflectxPackage     = "github.com/coldsmirk/vef-framework-go/reflectx"
-	reflectxFingerprint = "bb62b3bd50f5b54c5af99deb16b7cfb61fa52e69f92e3ab789dc81c744f6d3de"
-	reflectxTopLevel    = 78
-	reflectxFields      = 11
+	reflectxFingerprint = "0c7f22e87dd56b6a1e33be78c9bb398abee1b4b776888a4a3a64d94167751bba"
+	reflectxTopLevel    = 82
+	reflectxFields      = 12
 	reflectxMethods     = 0
-	reflectxEntries     = 89
+	reflectxEntries     = 94
 
 	englishSmallUtilitiesPath = "docs/utilities/small-utilities.md"
 	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"
@@ -227,6 +227,7 @@ func verifyExpectedFields(entries []auditEntry) []string {
 	expected := []string{
 		"TagConfig.Name",
 		"TagConfig.Value",
+		"VisitorConfig.TraversalMode",
 		"VisitorConfig.Recursive",
 		"VisitorConfig.DiveTag",
 		"VisitorConfig.MaxDepth",
@@ -370,8 +371,8 @@ func hasCodeReference(content, ref string) bool {
 func smallUtilitiesTerms() []string {
 	return []string{
 		reflectxFingerprint,
-		"78 exported top-level",
-		"11 exported fields",
+		"82 exported top-level",
+		"12 exported fields",
 		"no exported\nmethods",
 		"reflectx.ToString",
 		"reflectx.ToBoolE",
@@ -381,7 +382,12 @@ func smallUtilitiesTerms() []string {
 		"reflectx.Equal",
 		"reflectx.Contains",
 		"reflectx.VisitFor",
+		"reflectx.TraversalMode",
+		"reflectx.DepthFirst",
+		"reflectx.BreadthFirst",
+		"reflectx.WithTraversalMode",
 		"TagConfig.Name",
+		"VisitorConfig.TraversalMode",
 		"VisitorConfig.Recursive",
 		"Visitor.VisitMethod",
 		"TypeVisitor.VisitMethodType",
@@ -399,6 +405,8 @@ func smallUtilitiesTerms() []string {
 		"nil string pointers/slices/maps",
 		"cross-category",
 		"convertible map keys",
+		"reflectx.DepthFirst = 0",
+		"reflectx.BreadthFirst = 1",
 		"reflectx.Continue = 0",
 		"reflectx.Stop = 1",
 		"reflectx.SkipChildren = 2",
@@ -474,7 +482,7 @@ func expectedContractTerms(id string) []string {
 	case reflectxPackage + "#runtime-contract:empty-equal-contains":
 		return []string{"reflectx.IsEmpty", "*string", "reflectx.Equal", "cross-category", "reflectx.Contains", "convertible map keys"}
 	case reflectxPackage + "#runtime-contract:struct-visitor-dive-depth-contract":
-		return []string{"reflectx.Continue = 0", "reflectx.Stop = 1", "reflectx.SkipChildren = 2", "TagConfig{Name: \"visit\", Value: \"dive\"}", "VisitorConfig.MaxDepth == 0", "depth >= MaxDepth", "StructField.Index", "absolute index path", "pointer method set"}
+		return []string{"reflectx.DepthFirst = 0", "reflectx.BreadthFirst = 1", "reflectx.WithTraversalMode", "VisitorConfig.TraversalMode", "reflectx.Continue = 0", "reflectx.Stop = 1", "reflectx.SkipChildren = 2", "TagConfig{Name: \"visit\", Value: \"dive\"}", "VisitorConfig.MaxDepth == 0", "depth >= MaxDepth", "StructField.Index", "absolute index path", "pointer method set"}
 	default:
 		panic("unknown reflectx contract id " + id)
 	}
@@ -527,10 +535,16 @@ func verifySourceContracts(sourceRoot string) []string {
 		{"reflectx/value.go", `return va.Interface() == vb.Interface()`},
 		{"reflectx/value.go", `strings.Contains(rv.String(), ev.String())`},
 		{"reflectx/value.go", `if !ev.Type().ConvertibleTo(mapKeyType)`},
+		{"reflectx/visitor.go", `type TraversalMode int`},
+		{"reflectx/visitor.go", `DepthFirst TraversalMode = iota`},
+		{"reflectx/visitor.go", `BreadthFirst`},
 		{"reflectx/visitor.go", `Continue VisitAction = iota`},
 		{"reflectx/visitor.go", `SkipChildren`},
-		{"reflectx/visitor.go", `Recursive: true`},
-		{"reflectx/visitor.go", `DiveTag:   TagConfig{Name: "visit", Value: "dive"}`},
+		{"reflectx/visitor.go", `func WithTraversalMode(mode TraversalMode) VisitorOption`},
+		{"reflectx/visitor.go", `TraversalMode: DepthFirst`},
+		{"reflectx/visitor.go", `Recursive:     true`},
+		{"reflectx/visitor.go", `DiveTag:       TagConfig{Name: "visit", Value: "dive"}`},
+		{"reflectx/visitor.go", `if config.TraversalMode == DepthFirst`},
 		{"reflectx/visitor.go", `if config.MaxDepth > 0 && depth >= config.MaxDepth`},
 		{"reflectx/visitor.go", `if ancestors.Contains(targetType)`},
 		{"reflectx/visitor.go", `if !field.CanInterface()`},

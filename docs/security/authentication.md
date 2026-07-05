@@ -6,8 +6,8 @@ sidebar_position: 1
 
 VEF authentication happens at the API operation layer. Every operation has an auth configuration, and the API middleware chain resolves a principal before the handler runs.
 
-The security grouped-family audit pins 174 grouped security field/method
-entries across 66 receiver/type families: 75 public field entries and 99 public
+The security grouped-family audit pins 177 grouped security field/method
+entries across 68 receiver/type families: 77 public field entries and 100 public
 method entries. These entries cover auth DTO wire fields, principal/token
 helpers, signature and challenge providers, data-scope methods,
 permission/resolver interfaces, and event fields; the verifier locks their
@@ -252,8 +252,8 @@ The built-in login resources expose that state field as `challengeToken`.
 for tests or single-instance deployments; `RedisChallengeTokenStore` is for
 distributed deployments. Challenge tokens expire after `ChallengeTokenExpires`.
 The JWT-backed store uses `ClaimChallengePrincipalType`,
-`ClaimChallengePrincipalName`, `ClaimChallengePending`, and
-`ClaimChallengeResolved` as compact claim keys.
+`ClaimChallengePrincipalName`, `ClaimChallengeUsername`,
+`ClaimChallengePending`, and `ClaimChallengeResolved` as compact claim keys.
 
 Challenge token stores have different wire/storage shapes:
 
@@ -264,10 +264,11 @@ Challenge token stores have different wire/storage shapes:
 | `RedisChallengeTokenStore` | UUID token stored under `vef:security:challenge:<token>` for `ChallengeTokenExpires` |
 
 The JWT challenge claim keys are `ptp` (`ClaimChallengePrincipalType`), `pnm`
-(`ClaimChallengePrincipalName`), `pnd` (`ClaimChallengePending`), and `rsd`
-(`ClaimChallengeResolved`). Challenge parsing accepts empty principal type as a
-backwards-compatible user principal, accepts `user`, `external_app`, and
-`system`, and rejects unknown principal types.
+(`ClaimChallengePrincipalName`), `unm` (`ClaimChallengeUsername`), `pnd`
+(`ClaimChallengePending`), and `rsd` (`ClaimChallengeResolved`). Challenge
+parsing accepts empty principal type as a backwards-compatible user principal,
+accepts `user`, `external_app`, and `system`, and rejects unknown principal
+types.
 
 Challenge providers are sorted by `Order()` in ascending order. The built-in
 convenience providers use `100` for TOTP, `200` for SMS, `300` for email, `400`
@@ -324,7 +325,7 @@ you intentionally want to disable nonce storage for that helper. The built-in
 `SignatureAuthenticator` injects the application `NonceStore` when one is
 provided, otherwise each verification uses the low-level helper's process-local
 memory store. `MemoryNonceStore` is local to one process; `RedisNonceStore` is
-the distributed option. Stored nonces use the timestamp tolerance plus a
+the distributed option. Stored nonces use twice the timestamp tolerance plus a
 1-minute buffer as TTL.
 
 The signed payload is exactly:
@@ -343,6 +344,12 @@ an invalid whitelist is fail-closed and denies all requests. When an
 `ExternalAppConfig.IPWhitelist` is non-empty but the request IP cannot be
 resolved, `SignatureAuthenticator` also fails closed with `ErrIPNotAllowed`.
 
+`security.NewIPWhitelistValidatorFromEntries(entries)` is the slice-based
+counterpart used by the built-in `api.IPAuth(...)` strategy. The strategy
+resolves a named `security.IPWhitelist` through `security.IPWhitelistLoader`;
+the default loader reads `vef.security.ip_whitelists`, while applications may
+provide their own loader for database or config-center backed lists.
+
 Signature storage keys and defaults:
 
 | Contract | Value |
@@ -351,7 +358,7 @@ Signature storage keys and defaults:
 | algorithms | `HMAC-SHA256`, `HMAC-SHA512`, `HMAC-SM3` |
 | default algorithm | `HMAC-SHA256` |
 | default tolerance | `5m` |
-| nonce TTL | tolerance + `1m` |
+| nonce TTL | `2*tolerance + 1m` |
 | Redis nonce prefix | `vef:security:nonce:` |
 | disable replay checking | `WithNonceStore(nil)` |
 
@@ -402,7 +409,8 @@ Authentication-related sentinels include `ErrUnauthenticated`,
 `ErrChallengeTypeInvalid`, `ErrOTPCodeRequired`, `ErrOTPCodeInvalid`,
 `ErrNewPasswordRequired`, `ErrDepartmentRequired`, plus the factory helpers
 `ErrCredentialsInvalid(message)` and `ErrPrincipalInvalid(message)`.
-`ErrCodeChallengeResolveFailed` is reserved for challenge resolution failures.
+`ErrCodeChallengeResolveFailed` and `ErrChallengeResolveFailed` are reserved
+for challenge resolution failures.
 
 Low-level secret parsing errors use `ErrDecodeJWTSecretFailed`,
 `ErrGenerateJWTSecretFailed`, `ErrDecodeSignatureSecretFailed`, and

@@ -33,8 +33,8 @@ func NewUserResource() api.Resource {
 
 框架之所以能自动收集这些 CRUD builder，是因为它们本身实现了 `api.OperationsProvider`。
 
-Grouped-family audit 固定了 315 grouped CRUD builder entries，覆盖 27
-receiver families：其中 36 public field entries、279 public method entries。
+Grouped-family audit 固定了 299 grouped CRUD builder entries，覆盖 27
+receiver families：其中 36 public field entries、263 public method entries。
 这些 entries 覆盖预置 builder families、通用 builder controls、query-shaping
 helpers、批量 params、tree/data-option DTOs、import/export customization 和
 processor hooks；verifier 会锁定排序后的签名和 receiver/type 分布。
@@ -93,7 +93,7 @@ type UserSearch struct {
 
 ## 预置 Builder 总览
 
-| Builder | 默认 RPC action | 可用 REST override 示例 | 输入契约 | 输出契约 | 典型用途 |
+| Builder | 默认 RPC action | REST 语法等价写法 | 输入契约 | 输出契约 | 典型用途 |
 | --- | --- | --- | --- | --- | --- |
 | `NewCreate[TModel, TParams]` | `create` | `post` | `params` 中的 `TParams` | 主键 map | 创建单条记录 |
 | `NewUpdate[TModel, TParams]` | `update` | `put` | `params` 中的 `TParams`，且需要包含主键字段 | 成功结果 | 更新单条记录 |
@@ -110,19 +110,23 @@ type UserSearch struct {
 | `NewExport[TModel, TSearch]` | `export` | `get export` | `params` 中的 `TSearch` + `meta` 中的导出格式 | 文件下载 | Excel / CSV 导出 |
 | `NewImport[TModel]` | `import` | `post import` | multipart 上传文件 + `meta` 中的导入格式 | `{total: n}` | Excel / CSV 导入 |
 
+mutation builder 的成功响应使用公开 i18n message-key 常量：
+
+| 常量 | 限定名 | 值 |
+| --- | --- | --- |
+| `MessageCreated` | `crud.MessageCreated` | `crud_created` |
+| `MessageUpdated` | `crud.MessageUpdated` | `crud_updated` |
+| `MessageDeleted` | `crud.MessageDeleted` | `crud_deleted` |
+| `MessageImported` | `crud.MessageImported` | `crud_imported` |
+
 当前源码中导出的 `RESTAction*` constants 包含 `post /`、`put /:id`、
 `get /page` 这类 slash route pattern。这些常量会出现在公开 API 索引中，
 但 public `api.ValidateActionName` / `api.NewRESTResource` 校验只接受小写
 HTTP verb，以及可选的 kebab-case 子资源。因此在当前源码下，直接把
-`api.KindREST` 传给预置 CRUD 构造器，会在默认 action 校验时 panic。若要
-构建 REST 风格 CRUD 操作，应先用普通构造器创建 builder，再显式设置一个
-可通过公开 REST 语法的 action：
-
-```go
-crud.NewFindPage[User, UserSearch]().
-	ResourceKind(api.KindREST).
-	Action("get page")
-```
+`api.KindREST` 传给预置 CRUD 构造器，会在用户代码有机会覆盖 action 之前，
+就在默认 action 校验时 panic。预置 CRUD builder 应按 RPC operation 使用。
+如果某个资源必须暴露 REST 风格路由，请直接用 `api` package 和 handler
+实现对应 REST operation，而不是把 `api.KindREST` 传给 `crud.New*`。
 
 导出的 REST action 常量值如下：
 
@@ -149,7 +153,6 @@ crud.NewFindPage[User, UserSearch]().
 
 | 方法 | 作用 |
 | --- | --- |
-| `ResourceKind(kind)` | 切换为 RPC 或 REST 命名/校验规则 |
 | `Action(action)` | 覆盖默认 action 名 |
 | `Public()` | 将该操作标记为无需认证 |
 | `RequiredPermission(token)` | 要求调用方具备某个权限点 |
@@ -159,9 +162,9 @@ crud.NewFindPage[User, UserSearch]().
 
 一个容易忽略的点：
 
-- `Action(...)` 会按当前 `ResourceKind(...)` 进行校验
-- 如果你要覆盖 REST action，应该先调用 `ResourceKind(api.KindREST)`，
-  并使用公开 REST 语法：`method` 或 `method kebab-sub-resource`
+- `Action(...)` 会按照构造 builder 时选定的 kind 校验
+- 对预置 CRUD 构造器，保留默认 RPC kind，并使用 `find_page` 或
+  `create_many` 这类 snake_case action 名
 
 ## Find 系列共享配置
 

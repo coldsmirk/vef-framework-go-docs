@@ -55,8 +55,8 @@ func main() {
 	}
 
 	constValues := exportedStringConstValues(versionDir)
-	if got := constValues["VEFVersion"]; got != "v0.28.0" {
-		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.28.0"))
+	if got := constValues["VEFVersion"]; got != "v0.35.0" {
+		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.35.0"))
 	}
 
 	for _, doc := range []corpus{publicIndex, chinesePublicIndex} {
@@ -73,7 +73,7 @@ func main() {
 		"no exported fields",
 		"no exported methods",
 		"untyped string constant",
-		"currently equal to `\"v0.28.0\"`",
+		"currently equal to `\"v0.35.0\"`",
 		"semver format",
 		"leading `v` prefix",
 	})...)
@@ -84,7 +84,7 @@ func main() {
 		"没有 exported fields",
 		"没有 exported methods",
 		"untyped string constant",
-		"当前值为 `\"v0.28.0\"`",
+		"当前值为 `\"v0.35.0\"`",
 		"semver format",
 		"前导 `v` prefix",
 	})...)
@@ -93,7 +93,7 @@ func main() {
 	failures = append(failures, missingTerms(source, []string{
 		"package version",
 		"VEFVersion is the current version of the VEF Framework (semver format).",
-		"const VEFVersion = \"v0.28.0\"",
+		"const VEFVersion = \"v0.35.0\"",
 	})...)
 	failures = append(failures, runPackageTests(sourceRoot)...)
 
@@ -250,14 +250,14 @@ func publicDocSurfaceTerms() []string {
 	return []string{
 		"`VEFVersion`",
 		"`version.VEFVersion`",
-		"`\"v0.28.0\"`",
+		"`\"v0.35.0\"`",
 	}
 }
 
 func publicIndexTerms() []string {
 	return []string{
 		"## github.com/coldsmirk/vef-framework-go/version",
-		"CONST VEFVersion : untyped string = \"v0.28.0\"",
+		"CONST VEFVersion : untyped string = \"v0.35.0\"",
 	}
 }
 

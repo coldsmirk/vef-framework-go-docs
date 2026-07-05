@@ -46,8 +46,8 @@ are decoded from `params`; fields listed as `meta.*` are decoded from `meta`.
 The generated [Runtime API Index](../reference/runtime-api-index) contains the
 exhaustive JSON field ledger for every request and response DTO.
 
-The grouped-family audit also pins 766 grouped approval field/method entries:
-607 approval package entries, 76 approval/admin DTO field entries, and 83
+The grouped-family audit also pins 1059 grouped approval field/method entries:
+930 approval package entries, 62 approval/admin DTO field entries, and 67
 approval/my DTO field entries. These entries cover the public Go DTO fields,
 domain event fields, node-data helpers, lifecycle hooks, resolver interfaces,
 and status helper methods whose exact signatures are listed in the public API
@@ -58,11 +58,11 @@ distribution.
 
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
-| `find_tree` | `approval:category:query` | `CategorySearch` | Tenant-scoped tree query |
-| `find_tree_options` | `approval:category:query` | `CategorySearch` + `DataOptionConfig` | Tenant-scoped tree options |
-| `create` | `approval:category:create` | `CategoryParams` | Non-super-admin tenant is stamped from caller |
-| `update` | `approval:category:update` | `CategoryParams` | Non-super-admin can only mutate own tenant |
-| `delete` | `approval:category:delete` | Primary-key params | Non-super-admin can only delete own tenant |
+| `find_tree` | `approval.category.query` | `CategorySearch` | Tenant-scoped tree query |
+| `find_tree_options` | `approval.category.query` | `CategorySearch` + `DataOptionConfig` | Tenant-scoped tree options |
+| `create` | `approval.category.create` | `CategoryParams` | Non-super-admin tenant is stamped from caller |
+| `update` | `approval.category.update` | `CategoryParams` | Non-super-admin can only mutate own tenant |
+| `delete` | `approval.category.delete` | Primary-key params | Non-super-admin can only delete own tenant |
 
 | Action | Request fields |
 | --- | --- |
@@ -76,10 +76,10 @@ distribution.
 
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
-| `find_page` | `approval:delegation:query` | `DelegationSearch` + pageable meta | Non-super-admin sees own delegations |
-| `create` | `approval:delegation:create` | `DelegationParams` | Non-super-admin delegator is stamped from caller |
-| `update` | `approval:delegation:update` | `DelegationParams` | Non-super-admin cannot reassign ownership |
-| `delete` | `approval:delegation:delete` | Primary-key params | Owner-scoped for non-super-admin |
+| `find_page` | `approval.delegation.query` | `DelegationSearch` + pageable meta | Non-super-admin sees own delegations |
+| `create` | `approval.delegation.create` | `DelegationParams` | Non-super-admin delegator is stamped from caller |
+| `update` | `approval.delegation.update` | `DelegationParams` | Non-super-admin cannot reassign ownership |
+| `delete` | `approval.delegation.delete` | Primary-key params | Owner-scoped for non-super-admin |
 
 | Action | Request fields |
 | --- | --- |
@@ -92,24 +92,26 @@ distribution.
 
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
-| `create` | `approval:flow:create` | `CreateFlowParams` | Audited |
-| `deploy` | `approval:flow:deploy` | `DeployFlowParams` | Audited |
-| `publish_version` | `approval:flow:publish` | `PublishVersionParams` | Audited |
-| `update_flow` | `approval:flow:update` | `UpdateFlowParams` | Audited |
-| `toggle_active` | `approval:flow:update` | `ToggleActiveParams` | Audited |
-| `get_graph` | `approval:flow:query` | `GetGraphParams` | Reads published graph |
-| `find_flows` | `approval:flow:query` | `FindFlowsParams` | Paged query |
-| `find_versions` | `approval:flow:query` | `FindVersionsParams` | Lists versions for one flow |
+| `create` | `approval.flow.create` | `CreateFlowParams` | Audited |
+| `deploy` | `approval.flow.deploy` | `DeployFlowParams` | Audited |
+| `publish_version` | `approval.flow.publish` | `PublishVersionParams` | Audited |
+| `update_flow` | `approval.flow.update` | `UpdateFlowParams` | Audited |
+| `toggle_active` | `approval.flow.update` | `ToggleActiveParams` | Audited |
+| `get_graph` | `approval.flow.query` | `GetGraphParams` | Reads published graph |
+| `find_flows` | `approval.flow.query` | `FindFlowsParams` | Paged query |
+| `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | Lists initiator configuration |
+| `find_versions` | `approval.flow.query` | `FindVersionsParams` | Lists versions for one flow |
 
 | Action | Request fields |
 | --- | --- |
 | `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessTitleField`, `params.businessStatusField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
-| `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formDefinition` |
+| `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formDefinition`, `params.storageMode` |
 | `publish_version` | `params.versionId` required |
 | `update_flow` | `params.flowId` required, `params.name` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
 | `toggle_active` | `params.flowId` required, `params.isActive` |
 | `get_graph` | `params.flowId` required, `params.tenantId` |
 | `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.page`, `params.pageSize` |
+| `find_initiators` | `params.flowId` required, `params.tenantId` |
 | `find_versions` | `params.flowId` required, `params.tenantId` |
 
 `params.initiators` entries use `kind` (`user`, `role`, or `department`) and
@@ -121,20 +123,20 @@ by `ValidateBusinessIdentifier`.
 
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
-| `start` | `approval:instance:start` | `StartInstanceParams` | Audited |
-| `process_task` | `approval:task:process` | `ProcessTaskParams` | Audited; `action` must be `approve`, `reject`, `transfer`, `rollback`, or `handle` |
-| `withdraw` | `approval:instance:withdraw` | `WithdrawParams` | Audited |
-| `resubmit` | `approval:instance:resubmit` | `ResubmitParams` | Audited; accepts returned or withdrawn instances |
-| `add_cc` | `approval:instance:cc` | `AddCCParams` | Audited |
-| `mark_cc_read` | `approval:instance:cc` | `MarkCCReadParams` | Read receipt, not audited |
-| `add_assignee` | `approval:task:add_assignee` | `AddAssigneeParams` | Audited; `addType` is `before`, `after`, or `parallel` |
-| `remove_assignee` | `approval:task:remove_assignee` | `RemoveAssigneeParams` | Audited |
-| `urge_task` | `approval:task:urge` | `UrgeTaskParams` | Extra rate limit: max `10` per `1m` |
+| `start` | `approval.instance.start` | `StartInstanceParams` | Audited |
+| `process_task` | `approval.task.process` | `ProcessTaskParams` | Audited; `action` must be `approve`, `reject`, `transfer`, `rollback`, or `handle` |
+| `withdraw` | `approval.instance.withdraw` | `WithdrawParams` | Audited |
+| `resubmit` | `approval.instance.resubmit` | `ResubmitParams` | Audited; accepts returned or withdrawn instances |
+| `add_cc` | `approval.instance.cc` | `AddCCParams` | Audited |
+| `mark_cc_read` | `approval.instance.cc` | `MarkCCReadParams` | Read receipt, not audited |
+| `add_assignee` | `approval.task.add_assignee` | `AddAssigneeParams` | Audited; `addType` is `before`, `after`, or `parallel` |
+| `remove_assignee` | `approval.task.remove_assignee` | `RemoveAssigneeParams` | Audited |
+| `urge_task` | `approval.task.urge` | `UrgeTaskParams` | Extra rate limit: max `10` per `1m` |
 
 | Action | Request fields |
 | --- | --- |
-| `start` | `params.tenantId` required, `params.flowCode` required, `params.businessRecordId`, `params.formData` |
-| `process_task` | `params.taskId` required, `params.action` required (`approve`, `reject`, `transfer`, `rollback`, or `handle`), `params.opinion` max 2000 chars, `params.formData`, `params.transferToId`, `params.targetNodeId` |
+| `start` | `params.tenantId` required, `params.flowCode` required, `params.businessRef`, `params.formData` |
+| `process_task` | `params.taskId` required, `params.action` required (`approve`, `reject`, `transfer`, `rollback`, or `handle`), `params.opinion` max 2000 chars, `params.formData`, `params.attachments`, `params.transferToId`, `params.targetNodeId` |
 | `withdraw` | `params.instanceId` required, `params.reason` max 2000 chars |
 | `resubmit` | `params.instanceId` required, `params.formData` |
 | `add_cc` | `params.instanceId` required, `params.ccUserIds` required, 1-50 IDs |
@@ -168,13 +170,14 @@ the authenticated principal.
 | `get_pending_counts` | `params.tenantId` |
 | `get_instance_detail` | `params.instanceId` required |
 
-The `my.InstanceDetail` JSON payload includes `taskId`, `formData`, and
-`actionLogs` fields for task references, submitted form data, and action-log
-history.
+The `my.InstanceDetail` JSON payload includes `instance`, `formSchema`,
+`timeline`, `flowGraph`, and `availableActions`. `instance.formData` carries
+submitted form data, and `instance.businessRef` is the opaque business
+reference when the flow is business-bound.
 
 `availableActions` is a query-layer UI hint. For the applicant it includes
-`withdraw` when the instance is `running`, and `resubmit` when the instance is
-`rejected` or `returned`. For pending tasks it includes `handle` for handle
+`withdraw` when the instance can transition to `withdrawn`, and `resubmit` when
+the instance is returned or withdrawn. For pending tasks it includes `handle` for handle
 nodes, otherwise `approve`, then `reject`, plus `transfer`, `rollback`,
 `add_assignee`, or `add_cc` when the current node allows them. If the instance
 has any pending task, it also includes `urge`. Command handlers still perform
@@ -184,13 +187,13 @@ their own validation.
 
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
-| `find_instances` | `approval:instance:query` | `AdminFindInstancesParams` | Tenant-filtered for non-super-admin |
-| `find_tasks` | `approval:task:query` | `AdminFindTasksParams` | Tenant-filtered for non-super-admin |
-| `get_instance_detail` | `approval:instance:detail` | `AdminGetInstanceDetailParams` | Full admin detail |
-| `find_action_logs` | `approval:log:query` | `AdminFindActionLogsParams` | Requires `instanceId` |
-| `get_metrics` | `approval:metrics:query` | `AdminGetMetricsParams` | Aggregated metrics |
-| `terminate_instance` | `approval:instance:terminate` | `AdminTerminateInstanceParams` | Audited |
-| `reassign_task` | `approval:task:reassign` | `AdminReassignTaskParams` | Audited |
+| `find_instances` | `approval.instance.query` | `AdminFindInstancesParams` | Tenant-filtered for non-super-admin |
+| `find_tasks` | `approval.task.query` | `AdminFindTasksParams` | Tenant-filtered for non-super-admin |
+| `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | Full admin detail |
+| `find_action_logs` | `approval.log.query` | `AdminFindActionLogsParams` | Requires `instanceId` |
+| `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | Aggregated metrics |
+| `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | Audited |
+| `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | Audited |
 
 | Action | Request fields |
 | --- | --- |
@@ -206,8 +209,9 @@ For admin list and metrics queries, non-super-admin callers ignore a submitted
 `tenantId` override and are filtered to their own tenant. Super-admin callers
 may pass `tenantId` to filter one tenant or omit it for cross-tenant visibility.
 
-Admin list/detail DTOs keep the tenant and history fields on the wire as
-`tenantId` and `actionLogs`.
+Admin list/detail DTOs keep tenant scope on the wire as `tenantId`. The raw
+audit trail is still available through `find_action_logs`; detail responses
+carry timeline and flow-graph projections for rendering.
 
 ### Response DTO Fields
 
@@ -217,11 +221,9 @@ Admin responses use the DTOs from `approval/admin`:
 | --- | --- |
 | `admin.Instance` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `applicantId`, `applicantName`, `status`, `currentNodeName`, `createdAt`, `finishedAt` |
 | `admin.Task` | `taskId`, `instanceId`, `instanceTitle`, `flowName`, `nodeName`, `assigneeId`, `assigneeName`, `status`, `createdAt`, `deadline`, `finishedAt` |
-| `admin.InstanceDetail` | `instance`, `tasks`, `actionLogs`, `flowNodes` |
-| `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `applicantId`, `applicantName`, `status`, `currentNodeName`, `businessRecordId`, `formData`, `createdAt`, `finishedAt` |
-| `admin.TaskDetailInfo` | `taskId`, `nodeId`, `nodeName`, `assigneeId`, `assigneeName`, `delegatorId`, `delegatorName`, `status`, `sortOrder`, `deadline`, `isTimeout`, `createdAt`, `finishedAt` |
-| `admin.ActionLog` | `logId`, `action`, `operatorId`, `operatorName`, `operatorDepartmentName`, `transferToId`, `transferToName`, `opinion`, `createdAt` |
-| `admin.FlowNodeInfo` | `nodeId`, `key`, `kind`, `name`, `executionType` |
+| `admin.InstanceDetail` | `instance`, `formSchema`, `timeline`, `flowGraph` |
+| `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
+| `admin.ActionLog` | `logId`, `action`, `nodeId`, `taskId`, `operator`, `transferTo`, `rollbackToNodeId`, `addedAssignees`, `removedAssignees`, `ccUsers`, `opinion`, `attachments`, `createdAt` |
 | `admin.Metrics` | `tenantId`, `capturedAt`, `instanceCounts`, `taskCounts`, `timeoutTaskCount`, `avgCompletionSeconds`, `pendingBindingFailures` |
 
 Self-service responses use the DTOs from `approval/my`:
@@ -234,11 +236,8 @@ Self-service responses use the DTOs from `approval/my`:
 | `my.CompletedTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicantName`, `nodeName`, `status`, `finishedAt` |
 | `my.CCRecord` | `ccRecordId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicantName`, `nodeName`, `isRead`, `createdAt` |
 | `my.PendingCounts` | `pendingTaskCount`, `unreadCcCount` |
-| `my.InstanceDetail` | `instance`, `tasks`, `actionLogs`, `flowNodes`, `availableActions` |
-| `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `applicantId`, `applicantName`, `status`, `currentNodeName`, `businessRecordId`, `formData`, `createdAt`, `finishedAt` |
-| `my.TaskInfo` | `taskId`, `nodeName`, `assigneeId`, `assigneeName`, `status`, `sortOrder`, `createdAt`, `finishedAt` |
-| `my.ActionLogInfo` | `action`, `operatorName`, `opinion`, `createdAt` |
-| `my.FlowNodeInfo` | `nodeId`, `key`, `kind`, `name` |
+| `my.InstanceDetail` | `instance`, `formSchema`, `timeline`, `flowGraph`, `availableActions` |
+| `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
 
 ## Architecture Overview
 
@@ -310,10 +309,13 @@ are combined with AND logic, while multiple groups on the same branch are
 combined with OR logic.
 
 `ConditionField` uses the structured `Subject` / `Operator` / `Value` fields.
-The built-in evaluator converts it to an `expr-lang` expression. Supported
-operators are `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`, `not_in`,
-`contains`, `not_contains`, `starts_with`, `ends_with`, `is_empty`, and
-`is_not_empty`; unknown operators evaluate to `false`.
+`Operator` is `ConditionOperator`; the exported constants are
+`OperatorEquals`, `OperatorNotEquals`, `OperatorGreater`,
+`OperatorGreaterOrEq`, `OperatorLess`, `OperatorLessOrEq`, `OperatorIn`,
+`OperatorNotIn`, `OperatorContains`, `OperatorNotContains`,
+`OperatorStartsWith`, `OperatorEndsWith`, `OperatorIsEmpty`, and
+`OperatorIsNotEmpty`. The built-in evaluator converts field conditions to an
+`expr-lang` expression; unknown operators evaluate to `false`.
 
 `ConditionExpression` evaluates the raw `Expression` string with `expr-lang`.
 The evaluation environment exposes:
@@ -323,10 +325,19 @@ The evaluation environment exposes:
 | `formData` | the instance `FormData` as a map |
 | `applicantId` | current applicant ID |
 | `applicantDepartmentId` | applicant department ID, or `""` when absent |
+| globals | host-resolved `Instance.Globals` values exposed as top-level bindings |
 
 Approval conditions intentionally use `expr-lang` directly, not the public
-`expression.Engine` feature. That keeps approval workflows pure-Go today; the
-current public `expression.Engine` backend is Zen and requires CGO.
+`expression.Engine` wrapper. That keeps workflow condition semantics tied to
+the approval evaluator and independent of expression module wiring.
+
+Host applications can implement `approval.InstanceGlobalsResolver` to resolve
+global variables from the authenticated principal at instance start. The
+snapshot is persisted on `Instance.Globals`; clients cannot submit it in the
+`start` request. Field conditions resolve `Subject` against globals before
+`formData`, and expression conditions expose globals as top-level bindings while
+the built-in `formData`, `applicantId`, and `applicantDepartmentId` names win
+collisions.
 
 ## Approval Methods
 
@@ -388,7 +399,10 @@ The runtime state machine declares only these valid instance transitions:
 | `running` | `terminated` |
 | `running` | `returned` |
 | `returned` | `running` |
+| `returned` | `terminated` |
+| `returned` | `withdrawn` |
 | `withdrawn` | `running` |
+| `withdrawn` | `terminated` |
 
 ### Instance Statuses
 
@@ -500,8 +514,9 @@ The enum type is `TimeoutAction`.
 | Mode | Constant | Wire value | Location |
 | --- | --- | --- | --- |
 | JSON | `StorageJSON` | `json` | `apv_instance.form_data` (JSONB column) |
+| Table | `StorageTable` | `table` | a generated physical table per published version, with `apv_instance.form_data` still populated as the canonical JSON snapshot |
 
-`StorageJSON` is the only storage mode currently exported by the package.
+`StorageMode.IsValid()` accepts both exported modes. Table mode records generated DDL metadata through `FormTable` and `FormTableColumn`.
 
 Flow design and persistence models exposed by the public package include
 `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`,
@@ -515,12 +530,66 @@ Additional flow-designer enums:
 | Enum | Wire values |
 | --- | --- |
 | `InitiatorKind` | `user`, `role`, `department` |
-| `ExecutionType` | `manual`, `auto`, `auto_pass`, `auto_reject` |
+| `ExecutionType` | `manual`, `auto_pass`, `auto_reject` |
 | `ConditionKind` | `field`, `expression` |
 | `CCKind` | `user`, `role`, `department`, `form_field` |
 | `CCTiming` | `always`, `on_approve`, `on_reject` |
 | `FieldKind` | `input`, `textarea`, `select`, `number`, `date`, `upload` |
+| `ColumnDataType` | `string`, `text`, `integer`, `decimal`, `boolean`, `date`, `datetime`, `json` |
 | `Permission` | `visible`, `editable`, `hidden`, `required` |
+
+### Table Storage Metadata
+
+When a published version uses `StorageTable`, the framework exposes two public metadata models:
+
+| Model | Purpose | Key JSON fields |
+| --- | --- | --- |
+| `FormTable` | one generated physical table per flow version | `flowId`, `versionId`, `physicalTableName` |
+| `FormTableColumn` | one generated column per form field or built-in column | `formTableId`, `columnName`, `columnType`, `isNullable`, `sourceFieldKey`, `sortOrder` |
+
+`ColumnDataType` is the logical field-to-column vocabulary used by form definitions before the storage layer maps it to dialect-specific SQL types.
+
+### Designer Defaults
+
+`NodeData.ApplyTo` resolves omitted designer fields to exported defaults so the runtime matches an untouched designer control:
+
+| Constant | Value |
+| --- | --- |
+| `DefaultExecutionType` | `ExecutionManual` |
+| `DefaultApprovalMethod` | `ApprovalParallel` |
+| `DefaultPassRule` | `PassAll` |
+| `DefaultEmptyAssigneeAction` | `EmptyAssigneeAutoPass` |
+| `DefaultSameApplicantAction` | `SameApplicantSelfApprove` |
+| `DefaultConsecutiveApproverAction` | `ConsecutiveApproverNone` |
+| `DefaultRollbackType` | `RollbackPrevious` |
+| `DefaultRollbackDataStrategy` | `RollbackDataKeep` |
+| `DefaultTimeoutAction` | `TimeoutActionNone` |
+| `DefaultCCTiming` | `CCTimingAlways` |
+| `DefaultHandleApprovalMethod` | `ApprovalSequential` |
+| `DefaultHandlePassRule` | `PassAny` |
+| `DefaultUrgeCooldownMinutes` | `30` |
+| `DefaultTenantID` | `"default"` |
+
+### Instance Progress Projections
+
+Admin and user instance-detail responses expose two read-only projections beside the instance snapshot:
+
+| Projection | Public types | Purpose |
+| --- | --- | --- |
+| timeline | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` | chronological account of the path the instance actually took |
+| flow graph | `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge` | React Flow-compatible graph annotated with runtime progress |
+
+`FlowGraphNode.ID` is the React Flow design-time node id. `FlowGraphNode.NodeID` is the persistent flow-node id used by action logs and rollback targets.
+
+Progress and timeline enums are exported explicitly:
+
+| Enum | Constants |
+| --- | --- |
+| `TimelineEntryKind` | `TimelineEntryStart`, `TimelineEntryApproval`, `TimelineEntryHandle`, `TimelineEntryCC`, `TimelineEntryWithdraw`, `TimelineEntryTerminate` |
+| `NodeVisitStatus` | `NodeVisitActive`, `NodeVisitPassed`, `NodeVisitRejected`, `NodeVisitReturned`, `NodeVisitCanceled` |
+| `NodeProgressStatus` | `NodeProgressPending`, `NodeProgressActive`, `NodeProgressPassed`, `NodeProgressRejected`, `NodeProgressReturned`, `NodeProgressCanceled` |
+
+The persisted visit model behind these projections is `NodeVisit`.
 
 ## Event Publication
 
@@ -535,56 +604,53 @@ Subscribers must:
 
 ### Domain Event Types
 
-All approval events implement `event.Event` and embed enough payload to drive
-integrations without a follow-up read. Common event JSON fields include
-`tenantId` and `occurredTime`; the tables below list the event topic wire value
-and the event-specific payload fields.
+All approval events implement `DomainEvent`; `AllEventTypes()` is the exhaustive exported registry of their topic strings. Instance and task events embed `InstanceEventBase` (`instanceId`, `instanceNo`, `tenantId`, `title`, `flowId`, `flowCode`, optional `businessRef`, `applicant`, `occurredTime`). Task events additionally embed `TaskEventBase` (`taskId`, `nodeId`, `nodeName`). Flow events embed `FlowEventBase` (`flowId`, `tenantId`, `code`, `name`, `occurredTime`). The tables below list fields beyond those bases.
 
 Instance lifecycle:
 
 | Type constant | Topic | Payload / constructor | Payload fields beyond common fields | When |
 | --- | --- | --- | --- | --- |
-| `EventTypeInstanceCreated` | `approval.instance.created` | `InstanceCreatedEvent`, `NewInstanceCreatedEvent` | `instanceId`, `flowId`, `title`, `applicantId`, `applicantName` | a new instance was started |
-| `EventTypeInstanceCompleted` | `approval.instance.completed` | `InstanceCompletedEvent`, `NewInstanceCompletedEvent` | `instanceId`, `finalStatus`, `finishedAt` | instance reached a terminal status |
-| `EventTypeInstanceWithdrawn` | `approval.instance.withdrawn` | `InstanceWithdrawnEvent`, `NewInstanceWithdrawnEvent` | `instanceId`, `operatorId` | applicant withdrew the instance |
-| `EventTypeInstanceRolledBack` | `approval.instance.rolled_back` | `InstanceRolledBackEvent`, `NewInstanceRolledBackEvent` | `instanceId`, `fromNodeId`, `toNodeId`, `operatorId` | instance was rolled back to a previous node |
-| `EventTypeInstanceReturned` | `approval.instance.returned` | `InstanceReturnedEvent`, `NewInstanceReturnedEvent` | `instanceId`, `fromNodeId`, `toNodeId`, `operatorId` | instance was returned to applicant |
-| `EventTypeInstanceResubmitted` | `approval.instance.resubmitted` | `InstanceResubmittedEvent`, `NewInstanceResubmittedEvent` | `instanceId`, `operatorId` | returned or withdrawn instance was resubmitted |
-| `EventTypeInstanceBindingFailed` | `approval.instance.binding_failed` | `InstanceBindingFailedEvent`, `NewInstanceBindingFailedEvent` | `instanceId`, `flowId`, `finalStatus`, `businessTable`, `errorMessage` | the binding listener could not write back the final status to the business row |
+| `EventTypeInstanceCreated` | `approval.instance.created` | `InstanceCreatedEvent`, `NewInstanceCreatedEvent` | none | a new instance was started |
+| `EventTypeInstanceCompleted` | `approval.instance.completed` | `InstanceCompletedEvent`, `NewInstanceCompletedEvent` | `finalStatus`, `finishedAt` | instance reached a terminal status |
+| `EventTypeInstanceWithdrawn` | `approval.instance.withdrawn` | `InstanceWithdrawnEvent`, `NewInstanceWithdrawnEvent` | `operator` (`UserInfo`) | applicant withdrew the instance |
+| `EventTypeInstanceRolledBack` | `approval.instance.rolled_back` | `InstanceRolledBackEvent`, `NewInstanceRolledBackEvent` | `fromNodeId`, `fromNodeName`, `toNodeId`, `toNodeName`, `operator` (`UserInfo`) | instance was rolled back to a previous node |
+| `EventTypeInstanceReturned` | `approval.instance.returned` | `InstanceReturnedEvent`, `NewInstanceReturnedEvent` | `fromNodeId`, `fromNodeName`, `toNodeId`, `toNodeName`, `operator` (`UserInfo`) | instance was returned to applicant |
+| `EventTypeInstanceResubmitted` | `approval.instance.resubmitted` | `InstanceResubmittedEvent`, `NewInstanceResubmittedEvent` | `operator` (`UserInfo`) | returned or withdrawn instance was resubmitted |
+| `EventTypeInstanceBindingFailed` | `approval.instance.binding_failed` | `InstanceBindingFailedEvent`, `NewInstanceBindingFailedEvent` | `finalStatus`, `businessTable`, `errorMessage` | the engine-owned write-back could not persist the final status to the business row |
 
 Node lifecycle:
 
 | Type constant | Topic | Payload / constructor | Payload fields beyond common fields | When |
 | --- | --- | --- | --- | --- |
-| `EventTypeNodeEntered` | `approval.node.entered` | `NodeEnteredEvent`, `NewNodeEnteredEvent` | `instanceId`, `nodeId`, `nodeName` | engine activated a node |
-| `EventTypeNodeAutoPassed` | `approval.node.auto_passed` | `NodeAutoPassedEvent`, `NewNodeAutoPassedEvent` | `instanceId`, `nodeId`, `reason` | a node auto-passed because no assignees were found |
+| `EventTypeNodeAutoPassed` | `approval.node.auto_passed` | `NodeAutoPassedEvent`, `NewNodeAutoPassedEvent` | `nodeId`, `nodeName`, `reason` | a node auto-passed because of auto-pass execution, empty-assignee handling, or same-applicant handling |
 
 Task lifecycle:
 
 | Type constant | Topic | Payload / constructor | Payload fields beyond common fields | When |
 | --- | --- | --- | --- | --- |
-| `EventTypeTaskCreated` | `approval.task.created` | `TaskCreatedEvent`, `NewTaskCreatedEvent` | `taskId`, `instanceId`, `nodeId`, `assigneeId`, `assigneeName`, `deadline` | a task was created; sequential follow-up tasks may start with `deadline` omitted while waiting |
-| `EventTypeTaskApproved` | `approval.task.approved` | `TaskApprovedEvent`, `NewTaskApprovedEvent` | `taskId`, `instanceId`, `nodeId`, `operatorId`, `opinion` | task approved |
-| `EventTypeTaskHandled` | `approval.task.handled` | `TaskHandledEvent`, `NewTaskHandledEvent` | `taskId`, `instanceId`, `nodeId`, `operatorId`, `opinion` | handle task completed |
-| `EventTypeTaskRejected` | `approval.task.rejected` | `TaskRejectedEvent`, `NewTaskRejectedEvent` | `taskId`, `instanceId`, `nodeId`, `operatorId`, `opinion` | task rejected |
-| `EventTypeTaskTransferred` | `approval.task.transferred` | `TaskTransferredEvent`, `NewTaskTransferredEvent` | `taskId`, `instanceId`, `nodeId`, `fromUserId`, `fromUserName`, `toUserId`, `toUserName`, `reason` | task transferred to another user |
-| `EventTypeTaskReassigned` | `approval.task.reassigned` | `TaskReassignedEvent`, `NewTaskReassignedEvent` | `taskId`, `instanceId`, `nodeId`, `fromUserId`, `fromUserName`, `toUserId`, `toUserName`, `reason` | admin reassigned a task |
-| `EventTypeTaskTimedOut` | `approval.task.timed_out` | `TaskTimedOutEvent`, `NewTaskTimedOutEvent` | `taskId`, `instanceId`, `nodeId`, `assigneeId`, `assigneeName`, `deadline` | timeout scanner fired the configured timeout action |
-| `EventTypeAssigneesAdded` | `approval.task.assignees_added` | `AssigneesAddedEvent`, `NewAssigneesAddedEvent` | `instanceId`, `nodeId`, `taskId`, `addType`, `assigneeIds`, `assigneeNames` | dynamic assignees added |
-| `EventTypeAssigneesRemoved` | `approval.task.assignees_removed` | `AssigneesRemovedEvent`, `NewAssigneesRemovedEvent` | `instanceId`, `nodeId`, `taskId`, `assigneeIds`, `assigneeNames` | dynamic assignees removed |
-| `EventTypeTaskDeadlineWarning` | `approval.task.deadline_warning` | `TaskDeadlineWarningEvent`, `NewTaskDeadlineWarningEvent` | `taskId`, `instanceId`, `nodeId`, `assigneeId`, `assigneeName`, `deadline`, `hoursLeft` | pre-warning scanner flagged an approaching deadline |
-| `EventTypeTaskUrged` | `approval.task.urged` | `TaskUrgedEvent`, `NewTaskUrgedEvent` | `instanceId`, `nodeId`, `taskId`, `urgerId`, `urgerName`, `targetUserId`, `targetUserName`, `message` | applicant urged an assignee |
+| `EventTypeTaskCreated` | `approval.task.created` | `TaskCreatedEvent`, `NewTaskCreatedEvent` | `assignee` (`UserInfo`), `deadline` | a task was created; sequential follow-up tasks may start with `deadline` omitted while waiting |
+| `EventTypeTaskApproved` | `approval.task.approved` | `TaskApprovedEvent`, `NewTaskApprovedEvent` | `operator` (`UserInfo`), `opinion` | task approved |
+| `EventTypeTaskHandled` | `approval.task.handled` | `TaskHandledEvent`, `NewTaskHandledEvent` | `operator` (`UserInfo`), `opinion` | handle task completed |
+| `EventTypeTaskRejected` | `approval.task.rejected` | `TaskRejectedEvent`, `NewTaskRejectedEvent` | `operator` (`UserInfo`), `opinion` | task rejected |
+| `EventTypeTaskCanceled` | `approval.task.canceled` | `TaskCanceledEvent`, `NewTaskCanceledEvent` | `assignee` (`UserInfo`), `reason` | engine canceled a task that no longer needs a decision |
+| `EventTypeTaskTransferred` | `approval.task.transferred` | `TaskTransferredEvent`, `NewTaskTransferredEvent` | `from` (`UserInfo`), `to` (`UserInfo`), `reason` | task transferred to another user |
+| `EventTypeTaskReassigned` | `approval.task.reassigned` | `TaskReassignedEvent`, `NewTaskReassignedEvent` | `from` (`UserInfo`), `to` (`UserInfo`), `reason` | admin reassigned a task |
+| `EventTypeTaskTimedOut` | `approval.task.timed_out` | `TaskTimedOutEvent`, `NewTaskTimedOutEvent` | `assignee` (`UserInfo`), `deadline` | timeout scanner fired the configured timeout action |
+| `EventTypeAssigneesAdded` | `approval.task.assignees_added` | `AssigneesAddedEvent`, `NewAssigneesAddedEvent` | `addType`, `assignees` (`[]UserInfo`) | dynamic assignees added |
+| `EventTypeAssigneesRemoved` | `approval.task.assignees_removed` | `AssigneesRemovedEvent`, `NewAssigneesRemovedEvent` | `assignees` (`[]UserInfo`) | dynamic assignees removed |
+| `EventTypeTaskDeadlineWarning` | `approval.task.deadline_warning` | `TaskDeadlineWarningEvent`, `NewTaskDeadlineWarningEvent` | `assignee` (`UserInfo`), `deadline`, `hoursLeft` | pre-warning scanner flagged an approaching deadline |
+| `EventTypeTaskUrged` | `approval.task.urged` | `TaskUrgedEvent`, `NewTaskUrgedEvent` | `urger` (`UserInfo`), `target` (`UserInfo`), `message` | applicant urged an assignee |
 
 CC + Flow:
 
 | Type constant | Topic | Payload / constructor | Payload fields beyond common fields | When |
 | --- | --- | --- | --- | --- |
-| `EventTypeCCNotified` | `approval.cc.notified` | `CCNotifiedEvent`, `NewCCNotifiedEvent` | `instanceId`, `nodeId`, `ccUserIds`, `ccUserNames`, `isManual` | a CC node delivered notifications |
-| `EventTypeFlowCreated` | `approval.flow.created` | `FlowCreatedEvent`, `NewFlowCreatedEvent` | `flowId`, `code`, `name`, `categoryId` | flow created |
-| `EventTypeFlowUpdated` | `approval.flow.updated` | `FlowUpdatedEvent`, `NewFlowUpdatedEvent` | `flowId` | flow updated |
-| `EventTypeFlowDeployed` | `approval.flow.deployed` | `FlowDeployedEvent`, `NewFlowDeployedEvent` | `flowId`, `versionId`, `version` | flow version deployed |
-| `EventTypeFlowToggled` | `approval.flow.toggled` | `FlowToggledEvent`, `NewFlowToggledEvent` | `flowId`, `isActive` | flow active flag changed |
-| `EventTypeFlowPublished` | `approval.flow.published` | `FlowPublishedEvent`, `NewFlowPublishedEvent` | `flowId`, `versionId` | flow version published |
+| `EventTypeCCNotified` | `approval.cc.notified` | `CCNotifiedEvent`, `NewCCNotifiedEvent` | `nodeId`, `nodeName`, `recipients` (`[]UserInfo`), `isManual` | a CC node or manual CC action delivered notifications |
+| `EventTypeFlowCreated` | `approval.flow.created` | `FlowCreatedEvent`, `NewFlowCreatedEvent` | `categoryId` | flow created |
+| `EventTypeFlowUpdated` | `approval.flow.updated` | `FlowUpdatedEvent`, `NewFlowUpdatedEvent` | none | flow updated |
+| `EventTypeFlowDeployed` | `approval.flow.deployed` | `FlowDeployedEvent`, `NewFlowDeployedEvent` | `versionId`, `version` | flow version deployed |
+| `EventTypeFlowToggled` | `approval.flow.toggled` | `FlowToggledEvent`, `NewFlowToggledEvent` | `isActive` | flow active flag changed |
+| `EventTypeFlowPublished` | `approval.flow.published` | `FlowPublishedEvent`, `NewFlowPublishedEvent` | `versionId` | flow version published |
 
 ## Caller Context and Multi-Tenant Safety
 
@@ -603,7 +669,8 @@ Cross-tenant attempts return `approval.ErrCrossTenantAccess`. `IsSuperAdmin(p)` 
 | Extension point | Phase | Failure semantics |
 | --- | --- | --- |
 | `approval.InstanceLifecycleHook` (FX group `vef:approval:lifecycle_hooks`) | synchronous, inside the business transaction | returning an error rolls back the surrounding command |
-| `approval.BusinessBindingHook` | mixed: `OnInstanceCreated` runs inside start_instance transaction; `WriteBackStatus` runs asynchronously from the binding listener after `InstanceCompletedEvent` | sync failure rolls back instance creation; async failure publishes `InstanceBindingFailedEvent` instead of rolling back |
+| `approval.BusinessRefProvider` | synchronous, inside the start-instance transaction | returning an error rolls back instance creation |
+| `approval.BusinessRefResolver` | asynchronous write-back path after `InstanceCompletedEvent` | returning an error fails the engine-owned write-back, publishes `InstanceBindingFailedEvent`, and is retried by the outbox path |
 | event subscriptions (`event.SubscribeTyped`) | asynchronous, after the transaction commits | the bus retries via the outbox relay; consumers must be idempotent |
 
 ### `InstanceLifecycleHook`
@@ -617,20 +684,25 @@ type InstanceLifecycleHook interface {
 
 Use lifecycle hooks for invariants that must hold inside the transaction (e.g. allocating a tightly-coupled business row). Use event subscriptions for everything else.
 
-### `BusinessBindingHook`
+### `BusinessRefProvider` and `BusinessRefResolver`
 
 ```go
-type BusinessBindingHook interface {
-    OnInstanceCreated(ctx context.Context, db orm.DB, flow *Flow, instance *Instance) (businessRecordID string, err error)
-    WriteBackStatus(ctx context.Context, db orm.DB, flow *Flow, instance *Instance, finalStatus InstanceStatus) error
+type BusinessRefProvider interface {
+    OnInstanceCreated(ctx context.Context, db orm.DB, flow *Flow, instance *Instance) (businessRef string, err error)
+}
+
+type BusinessRefResolver interface {
+    ResolveRecordID(ctx context.Context, flow *Flow, businessRef string) (string, error)
 }
 ```
 
-Bridge between the approval engine and the host's business tables when `Flow.BindingMode == BindingBusiness`. Inject via `vef.SupplyBusinessBindingHook`. The `WriteBackStatus` async path runs from the binding listener — implementations must be idempotent because the outbox relay may retry.
+`BusinessRefProvider` supplies or allocates the opaque `Instance.BusinessRef` when `Flow.BindingMode == BindingBusiness`; inject it with `vef.SupplyBusinessRefProvider`. The engine never parses `BusinessRef` directly. During final-status write-back, it asks `BusinessRefResolver` (default: identity) to extract the record id matched against `Flow.BusinessPkField`; inject custom composite-ref handling with `vef.SupplyBusinessRefResolver`.
+
+The approval engine owns the status write-back (`UPDATE businessTable SET businessStatusField = ? WHERE businessPkField = ?`). Hosts can add lifecycle hooks or event subscribers around that behavior, but the write-back itself is configuration-driven and not replaced by an extension hook.
 
 ## Business Identifier Validation
 
-`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessTable`, `BusinessPkField`, `BusinessTitleField`, `BusinessStatusField`) that the default binding hook interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
+`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessTable`, `BusinessPkField`, `BusinessTitleField`, `BusinessStatusField`) that the engine-owned write-back interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
 
 ```go
 if err := approval.ValidateBusinessIdentifier(table); err != nil {
@@ -668,6 +740,11 @@ surface rather than importing the internal Go symbols.
 | `40006` | `ErrCodeFlowCodeExists` | `ErrFlowCodeExists` | `approval_flow_code_exists` | duplicate flow code |
 | `40007` | `ErrCodeVersionNotFound` | `ErrVersionNotFound` | `approval_version_not_found` | flow version lookup failed |
 | `40008` | `ErrCodeInvalidBusinessIdentifier` | `ErrInvalidBusinessIdentifier` | `approval_invalid_business_identifier` | business table / field identifier failed validation |
+| `40009` | `ErrCodeInvalidTitleTemplate` | `ErrInvalidTitleTemplate` | `approval_invalid_title_template` | instance title template failed parsing |
+| `40010` | `ErrCodeInvalidFormDesign` | `ErrInvalidFormDesign` | `approval_invalid_form_design` | form schema failed design-time validation |
+| `40011` | `ErrCodeBindingIncomplete` | `ErrBindingIncomplete` | `approval_binding_incomplete` | business binding is missing required table / primary-key / status fields |
+| `40012` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy requested a storage mode other than `json` or `table` |
+| `40013` | `ErrCodeFlowBindingLocked` | `ErrFlowBindingLocked` | `approval_flow_binding_locked` | flow business-binding settings are locked while instances are running |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance lookup failed |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | instance is already complete |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | caller cannot initiate this flow |
@@ -689,17 +766,18 @@ surface rather than importing the internal Go symbols.
 | `40213` | `ErrCodeInvalidRollbackTarget` | `ErrInvalidRollbackTarget` | `approval_invalid_rollback_target` | rollback target is not allowed |
 | `40214` | `ErrCodeLastAssigneeRemoval` | `ErrLastAssigneeRemoval` | `approval_last_assignee_removal` | removal would leave no active assignee |
 | `40215` | `ErrCodeInvalidTransferTarget` | `ErrInvalidTransferTarget` | `approval_invalid_transfer_target` | transfer or reassignment target is invalid |
+| `40216` | `ErrCodeNoUsersSpecified` | `ErrNoUsersSpecified` | `approval_no_users_specified` | user-list operation received no target users |
 | `40301` | `ErrCodeNoAssignee` | `ErrNoAssignee` | `approval_no_assignee` | no assignee could be resolved |
 | `40302` | `ErrCodeAssigneeResolveFailed` | `ErrAssigneeResolveFailed` | `approval_assignee_resolve_failed` | assignee resolver failed |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormValidationFailed` | `approval_form_validation_failed` | general form validation failure |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormDataTooLarge` | `approval_form_data_too_large` | same code; JSON-encoded `formData` exceeded 64 KiB |
-| `40401` | `ErrCodeFormValidationFailed` | dynamic form validation `result.Err` | `approval_form_field_not_defined`, `approval_form_field_required`, `approval_form_field_must_be_string`, `approval_form_field_must_be_number`, `approval_form_field_min_length`, `approval_form_field_max_length`, `approval_form_field_invalid_validation`, `approval_form_field_pattern_mismatch`, `approval_form_field_min_value`, `approval_form_field_max_value`, `approval_form_field_empty`, `approval_form_field_invalid_file_item`, `approval_form_field_must_be_file`, `approval_form_field_invalid_value` | field-level validation messages are constructed dynamically |
+| `40401` | `ErrCodeFormValidationFailed` | dynamic form validation `result.Err` | `approval_form_field_not_defined`, `approval_form_field_required`, `approval_form_field_must_be_string`, `approval_form_field_must_be_number`, `approval_form_field_must_be_integer`, `approval_form_field_min_length`, `approval_form_field_max_length`, `approval_form_field_invalid_validation`, `approval_form_field_pattern_mismatch`, `approval_form_field_min_value`, `approval_form_field_max_value`, `approval_form_field_empty`, `approval_form_field_invalid_file_item`, `approval_form_field_must_be_file`, `approval_form_field_invalid_value` | field-level validation messages are constructed dynamically |
 | `40402` | `ErrCodeFieldNotEditable` | `ErrFieldNotEditable` | `approval_field_not_editable` | submitted field is not editable for this task |
 | `40501` | `ErrCodeDelegationNotFound` | `ErrDelegationNotFound` | `approval_delegation_not_found` | delegation lookup failed |
 | `40502` | `ErrCodeDelegationConflict` | `ErrDelegationConflict` | `approval_delegation_conflict` | delegation window conflicts with an existing delegation |
 | `40601` | `ErrCodeUrgeCooldown` | dynamic urge `result.Err` | `approval_urge_too_frequent` | no static sentinel; message is rendered with `minutes`; non-positive `urgeCooldownMinutes` defaults to 30 minutes |
 | `40701` | `ErrCodeAccessDenied` | `ErrAccessDenied` | `approval_access_denied` | caller lacks approval-domain access |
-| `40702` | `ErrCodeInstanceNotRunning` | `ErrInstanceNotRunning` | `approval_instance_not_running` | admin action requires a running instance |
+| `40702` | `ErrCodeTerminateNotAllowed` | `ErrTerminateNotAllowed` | `approval_terminate_not_allowed` | terminate is not allowed from the current instance state |
 
 Startup and tenant-resolution diagnostics such as
 `ErrEventRouteNotTransactional`, `ErrEventRouteNotSubscribable`, and
@@ -712,20 +790,22 @@ event routing or tenant principal details are misconfigured.
 | Area | Public API |
 | --- | --- |
 | caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
-| form data | `FormData`, `NewFormData`, `FormDefinition`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldOption` |
-| flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `OperatorInfo`, `UrgeRecord` |
+| form data | `FormData`, `NewFormData`, `FormDefinition`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldOption`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
+| table storage | `FormTable`, `FormTableColumn` |
+| flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `OperatorInfo`, `UrgeRecord`, `DefaultTenantID` |
 | node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
-| conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator` |
-| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
+| conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver` |
+| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
 | CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCRecord` |
-| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAuto`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden` |
+| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
 | rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
 | action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
 | pass rules | `PassRule`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
-| events | all `New...Event` constructors, `DomainEvent`, `PayloadOccurredAt`, and the `EventType...` constants |
-| extension interfaces | `InstanceLifecycleHook`, `BusinessBindingHook`, `InstanceNoGenerator`, `ConditionEvaluator`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver` |
-| admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `TaskDetailInfo`, `ActionLog`, `FlowNodeInfo`, `Metrics` |
-| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `TaskInfo`, `ActionLogInfo`, `FlowNodeInfo`, `PendingCounts` |
+| progress views | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` |
+| events | all `New...Event` constructors, `DomainEvent`, `InstanceEventBase`, `TaskEventBase`, `FlowEventBase`, `NewInstanceEventBase`, `NewTaskEventBase`, `NewFlowEventBase`, `PayloadOccurredAt`, `AllEventTypes`, and the `EventType...` constants |
+| extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
+| admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics` |
+| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts` |
 
 ## Delegation
 
@@ -809,7 +889,7 @@ During task processing, submitted `formData` is merged only for fields whose
 
 `FormDefinition` uses a `fields` array. Each `FormFieldDefinition` entry uses
 `key`, `kind`, `label`, `placeholder`, `defaultValue`, `isRequired`,
-`options`, `validation`, `props`, and `sortOrder`. Each option uses `label`
+`options`, `validation`, `props`, `sortOrder`, `columnType`, and `scale`. Each option uses `label`
 and `value`.
 
 `validation` supports `minLength`, `maxLength`, `min`, `max`, `pattern`, and

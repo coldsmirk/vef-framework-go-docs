@@ -18,18 +18,18 @@ import (
 const (
 	tabularPackage = "github.com/coldsmirk/vef-framework-go/tabular"
 
-	tabularFingerprint = "4bd760b4d107c89e997d9354f50b7a39c3fe441019e4b0e676bb6aeaf2ed5b94"
-	tabularTopLevel    = 68
-	tabularFields      = 37
+	tabularFingerprint = "65c7b3443ac833a4c442a5d2e9491a51b30adc33016775d545dc47fcad922fc8"
+	tabularTopLevel    = 70
+	tabularFields      = 40
 	tabularMethods     = 38
-	tabularEntries     = 143
+	tabularEntries     = 148
 
-	tabularGroupedEntries              = 75
-	tabularGroupedFields               = 37
+	tabularGroupedEntries              = 78
+	tabularGroupedFields               = 40
 	tabularGroupedMethods              = 38
-	tabularGroupedReceivers            = 20
-	tabularGroupedSignatureFingerprint = "ad9d25935821a4995a105325e8ee31250becdab85063bc9b6b8c37c77a09c89a"
-	tabularGroupedReceiverFingerprint  = "1d5eac3f748671a7761a9fbf07c39fbf4d86e4aa35b8f79a46e600a1fd6fa67d"
+	tabularGroupedReceivers            = 21
+	tabularGroupedSignatureFingerprint = "7da9d313ffb54ec5be332e956d7c9ac5cef9dfd2599af1e6c4d5fc544871bad2"
+	tabularGroupedReceiverFingerprint  = "a7496ccafce00ecb7d01e86ba95870095c62bc0b1889fff71eca2f6e18f46455"
 
 	englishTabularPath = "docs/features/tabular.md"
 	chineseTabularPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/tabular.md"
@@ -155,7 +155,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Tabular contract docs verified: 143 public entries, 75 grouped entries, schema/mapping/tag contracts")
+	fmt.Println("Tabular contract docs verified: 148 public entries, 78 grouped entries, schema/mapping/tag contracts")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -402,10 +402,10 @@ func verifyGroupedTabularSurface(entries []auditEntry, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"143 public tabular entries",
-			"75 grouped tabular field/method entries",
-			"20 tabular receiver/type families",
-			"37 exported tabular field entries",
+			"148 public tabular entries",
+			"78 grouped tabular field/method entries",
+			"21 tabular receiver/type families",
+			"40 exported tabular field entries",
 			"38 exported tabular method entries",
 		} {
 			if !containsNormalized(doc.content, term) {

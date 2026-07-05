@@ -162,12 +162,12 @@ type errorContract struct {
 
 var approvalPackages = []expectedPackage{
 	{
-		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    277,
-		fields:      513,
-		methods:     94,
-		entries:     884,
-		fingerprint: "f8086450d9790ea6cb76b9573942d917ab8fd8fe487c73b02fb9ea2a918e769c",
+			pkg:         "github.com/coldsmirk/vef-framework-go/approval",
+			topLevel:    355,
+			fields:      808,
+			methods:     122,
+			entries:     1285,
+			fingerprint: "fc49fa894b4365b398806a61af9ddfd9c832a5c87017052ce51b4f8377a1fff6",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -177,23 +177,23 @@ var approvalPackages = []expectedPackage{
 		},
 	},
 	{
-		pkg:         "github.com/coldsmirk/vef-framework-go/approval/admin",
-		topLevel:    8,
-		fields:      76,
-		methods:     0,
-		entries:     84,
-		fingerprint: "08f3b53e9da4a840e3735ad92ccb4e95baadc897dd32e60cd32e68d529b53946",
+			pkg:         "github.com/coldsmirk/vef-framework-go/approval/admin",
+			topLevel:    6,
+			fields:      62,
+			methods:     0,
+			entries:     68,
+			fingerprint: "b6d2ddacf99583d37246cbbc2d3ddaca3d3e3ca6ad79feaa152efba53f97e532",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/admin#dto-wire-shape:approval-admin-dtos",
 		},
 	},
 	{
-		pkg:         "github.com/coldsmirk/vef-framework-go/approval/my",
-		topLevel:    11,
-		fields:      83,
-		methods:     0,
-		entries:     94,
-		fingerprint: "1adf9b1e03bfc9c03db57fd2ad1884935bf43f5fedc62555564ce54922dd4e51",
+			pkg:         "github.com/coldsmirk/vef-framework-go/approval/my",
+			topLevel:    8,
+			fields:      67,
+			methods:     0,
+			entries:     75,
+			fingerprint: "12a1f18f5b3cf7b969dc853cf2e3547f7dc5bf47d0d1687a8c5c7c8a823b4a2a",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos",
 		},
@@ -202,31 +202,31 @@ var approvalPackages = []expectedPackage{
 
 var approvalGroupedSurfaces = []groupedSurface{
 	{
-		pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
-		entryCount:           607,
-		fieldCount:           513,
-		methodCount:          94,
-		receiverCount:        83,
-		signatureFingerprint: "ea1e5a783a088bff359a9181e96e6d7dd5d07cc6ebdeaa179b6b2f3fb90eeaf8",
-		receiverFingerprint:  "0b7b1ac726e42083cc281ffb1f38b9ee3f5a1e011ac010791a2a89ff25de4d88",
+			pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
+			entryCount:           930,
+			fieldCount:           808,
+			methodCount:          122,
+			receiverCount:        116,
+			signatureFingerprint: "031c28a2b625d2b9ea669aa2d7a0a8775b139aaf5f9562acddbf889820941d74",
+			receiverFingerprint:  "04011ecdc98025025bc09896bdafc4baaa074d550a3f32821c26b495a3c098cb",
 	},
 	{
-		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
-		entryCount:           76,
-		fieldCount:           76,
-		methodCount:          0,
-		receiverCount:        8,
-		signatureFingerprint: "c398b3a5910afb1188032e2923ef2898a6420569308d91a52b9bfc2716941653",
-		receiverFingerprint:  "1efe0dc9f1fbea3aff77b5c40c4a735ab18bb92908fd8efb5145870ffcbb6bb6",
+			pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
+			entryCount:           62,
+			fieldCount:           62,
+			methodCount:          0,
+			receiverCount:        6,
+			signatureFingerprint: "475311d87d32ff0b7e9cedc0fd0366090efe33fef214d0a54440a8e5c0d81751",
+			receiverFingerprint:  "e97b4ac7b0d5d3c65288db274e386c7b4648e74e71edf074d82547ba338da450",
 	},
 	{
-		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/my",
-		entryCount:           83,
-		fieldCount:           83,
-		methodCount:          0,
-		receiverCount:        11,
-		signatureFingerprint: "43a5d1369dc9a7201da8cbf2ab9368dcb8b2f06a1f5af6f5adeebc04efe3e993",
-		receiverFingerprint:  "ac2800d995a28bfaff8cc928f885c738e6538d449b467a9075416cc12f7964f7",
+			pkg:                  "github.com/coldsmirk/vef-framework-go/approval/my",
+			entryCount:           67,
+			fieldCount:           67,
+			methodCount:          0,
+			receiverCount:        8,
+			signatureFingerprint: "d936856fb78ecd3473f13145547be66fb4177ad9d9ee740508259bf934618506",
+			receiverFingerprint:  "90da0c2371d31980421d8f0d1b8ce762754bffeaec3c83337b38bbb491da3b36",
 	},
 }
 
@@ -273,7 +273,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Approval contract docs verified: 3 public packages, 766 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
+	fmt.Printf("Approval contract docs verified: 3 public packages, 1059 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
 }
 
 func verifyPackageSurfaces(m manifest, contracts contractLedger, live map[string]liveInventoryEntry) []string {
@@ -427,16 +427,16 @@ func verifyGroupedApprovalSurfaces(audit auditLedger, docs []corpus) []string {
 		receiverRows := receiverRows(receiverCountsByPackage[surface.pkg])
 		failures = append(failures, verifyGroupedSurfaceFingerprint(surface.pkg+" receiver families", receiverRows, surface.receiverCount, surface.receiverFingerprint)...)
 	}
-	if totalGrouped != 766 {
-		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 766", totalGrouped))
+	if totalGrouped != 1059 {
+		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1059", totalGrouped))
 	}
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"766 grouped approval field/method entries",
-			"607 approval package entries",
-			"76 approval/admin DTO field entries",
-			"83 approval/my DTO field entries",
+			"1059 grouped approval field/method entries",
+			"930 approval package entries",
+			"62 approval/admin DTO field entries",
+			"67 approval/my DTO field entries",
 		} {
 			if !containsNormalized(doc.content, term) {
 				failures = append(failures, doc.label+" missing grouped approval audit term "+term)
@@ -646,9 +646,12 @@ func verifyStateMachines(sourceRoot string, constsByName map[string]stringConst,
 		"`running` | `approved`",
 		"`running` | `rejected`",
 		"`running` | `returned`",
-		"`running` | `terminated`",
-		"`running` | `withdrawn`",
-		"`withdrawn` | `running`",
+			"`running` | `terminated`",
+			"`running` | `withdrawn`",
+			"`returned` | `terminated`",
+			"`returned` | `withdrawn`",
+			"`withdrawn` | `running`",
+			"`withdrawn` | `terminated`",
 	}
 	wantTask := []string{
 		"`pending` | `approved`",
@@ -761,11 +764,31 @@ func verifyRequestDTOs(sourceRoot string, docs []corpus) []string {
 }
 
 func verifyResponseDTOs(sourceRoot string, docs []corpus) []string {
-	adminFields := extractStructJSONFields(sourceRoot, "approval/admin/types.go")
-	for typeName, fields := range extractStructJSONFields(sourceRoot, "approval/admin/metrics.go") {
-		adminFields[typeName] = fields
+	adminFields := map[string][]string{}
+	for _, path := range []string{
+		"approval/admin/instance.go",
+		"approval/admin/instance_detail.go",
+		"approval/admin/task.go",
+		"approval/admin/metrics.go",
+	} {
+		for typeName, fields := range extractStructJSONFields(sourceRoot, path) {
+			adminFields[typeName] = fields
+		}
 	}
-	myFields := extractStructJSONFields(sourceRoot, "approval/my/types.go")
+	myFields := map[string][]string{}
+	for _, path := range []string{
+		"approval/my/pending_tasks.go",
+		"approval/my/completed_tasks.go",
+		"approval/my/cc_records.go",
+		"approval/my/initiated_instances.go",
+		"approval/my/available_flows.go",
+		"approval/my/instance_detail.go",
+		"approval/my/pending_counts.go",
+	} {
+		for typeName, fields := range extractStructJSONFields(sourceRoot, path) {
+			myFields[typeName] = fields
+		}
+	}
 
 	var failures []string
 	for _, doc := range docs {
@@ -958,11 +981,11 @@ func verifyErrors(sourceRoot string, docs []corpus) []string {
 }
 
 func verifyResubmitAndAvailableActions(sourceRoot string, docs []corpus) []string {
-	resubmitSource := readFile(filepath.Join(sourceRoot, "internal/approval/command/resubmit.go"))
+	resubmitSource := readFile(filepath.Join(sourceRoot, "internal/approval/command/resubmit_instance.go"))
 	availableActionsSource := readFile(filepath.Join(sourceRoot, "internal/approval/query/get_my_instance_detail.go"))
 	var failures []string
 	for _, term := range []string{
-		"CanTransition(instance.Status, approval.InstanceRunning)",
+		"engine.InstanceStateMachine.CanTransition(instance.Status, approval.InstanceRunning)",
 		"shared.ErrResubmitNotAllowed",
 		"approval.ActionResubmit",
 		"NewInstanceResubmittedEvent",
@@ -972,9 +995,9 @@ func verifyResubmitAndAvailableActions(sourceRoot string, docs []corpus) []strin
 		}
 	}
 	for _, term := range []string{
-		"instance.Status == approval.InstanceRunning",
+		"engine.InstanceStateMachine.CanTransition(instance.Status, approval.InstanceWithdrawn)",
 		"actions.Add(\"withdraw\")",
-		"instance.Status == approval.InstanceRejected || instance.Status == approval.InstanceReturned",
+		"engine.InstanceStateMachine.CanTransition(instance.Status, approval.InstanceRunning)",
 		"actions.Add(\"resubmit\")",
 		"actions.Add(\"handle\")",
 		"actions.Add(\"approve\")",
@@ -1011,12 +1034,13 @@ func verifyTenantBindingAndExtensionTerms(docs []corpus) []string {
 	terms := []string{
 		"approval:super_admin",
 		"CallerContext",
-		"SystemCaller",
-		"PrincipalTenantResolver",
-		"PrincipalDepartmentResolver",
-		"BusinessBindingHook",
-		"InstanceLifecycleHook",
-		"vef:approval:lifecycle_hooks",
+			"SystemCaller",
+			"PrincipalTenantResolver",
+			"PrincipalDepartmentResolver",
+			"BusinessRefProvider",
+			"BusinessRefResolver",
+			"InstanceLifecycleHook",
+			"vef:approval:lifecycle_hooks",
 		"BusinessTable",
 		"BusinessPkField",
 		"BusinessTitleField",

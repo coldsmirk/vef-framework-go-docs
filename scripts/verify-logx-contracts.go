@@ -15,11 +15,11 @@ import (
 
 const (
 	logxPackage     = "github.com/coldsmirk/vef-framework-go/logx"
-	logxFingerprint = "4ff9c19b53d9985911e2985c2763802337d6a69f783962bb73b9ee7424481eaf"
-	logxTopLevel    = 7
+	logxFingerprint = "2512ac2e4b928560900dfb481cda5645aeda3afbd4229fafa3a42dedcf19d4a3"
+	logxTopLevel    = 8
 	logxFields      = 0
-	logxMethods     = 15
-	logxEntries     = 22
+	logxMethods     = 16
+	logxEntries     = 24
 
 	englishSmallUtilitiesPath = "docs/utilities/small-utilities.md"
 	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"
@@ -235,28 +235,30 @@ func verifyAuditEntries(entries []auditEntry) []string {
 
 func verifyExpectedEntries(entries []auditEntry) []string {
 	expected := map[string]string{
-		"Level":                 "Level : github.com/coldsmirk/vef-framework-go/logx.Level",
-		"LevelDebug":            "LevelDebug : github.com/coldsmirk/vef-framework-go/logx.Level = 1",
-		"LevelInfo":             "LevelInfo : github.com/coldsmirk/vef-framework-go/logx.Level = 2",
-		"LevelWarn":             "LevelWarn : github.com/coldsmirk/vef-framework-go/logx.Level = 3",
-		"LevelError":            "LevelError : github.com/coldsmirk/vef-framework-go/logx.Level = 4",
-		"LevelPanic":            "LevelPanic : github.com/coldsmirk/vef-framework-go/logx.Level = 5",
-		"Logger":                "Logger : github.com/coldsmirk/vef-framework-go/logx.Logger",
-		"Level.String":          "String : func() string",
-		"Logger.Named":          "Named : func(name string) github.com/coldsmirk/vef-framework-go/logx.Logger",
-		"Logger.WithCallerSkip": "WithCallerSkip : func(skip int) github.com/coldsmirk/vef-framework-go/logx.Logger",
-		"Logger.Enabled":        "Enabled : func(level github.com/coldsmirk/vef-framework-go/logx.Level) bool",
-		"Logger.Sync":           "Sync : func()",
-		"Logger.Debug":          "Debug : func(message string)",
-		"Logger.Debugf":         "Debugf : func(template string, args ...any)",
-		"Logger.Info":           "Info : func(message string)",
-		"Logger.Infof":          "Infof : func(template string, args ...any)",
-		"Logger.Warn":           "Warn : func(message string)",
-		"Logger.Warnf":          "Warnf : func(template string, args ...any)",
-		"Logger.Error":          "Error : func(message string)",
-		"Logger.Errorf":         "Errorf : func(template string, args ...any)",
-		"Logger.Panic":          "Panic : func(message string)",
-		"Logger.Panicf":         "Panicf : func(template string, args ...any)",
+		"Level":                         "Level : github.com/coldsmirk/vef-framework-go/logx.Level",
+		"LevelDebug":                    "LevelDebug : github.com/coldsmirk/vef-framework-go/logx.Level = 1",
+		"LevelInfo":                     "LevelInfo : github.com/coldsmirk/vef-framework-go/logx.Level = 2",
+		"LevelWarn":                     "LevelWarn : github.com/coldsmirk/vef-framework-go/logx.Level = 3",
+		"LevelError":                    "LevelError : github.com/coldsmirk/vef-framework-go/logx.Level = 4",
+		"LevelPanic":                    "LevelPanic : github.com/coldsmirk/vef-framework-go/logx.Level = 5",
+		"Logger":                        "Logger : github.com/coldsmirk/vef-framework-go/logx.Logger",
+		"LoggerConfigurable":            "LoggerConfigurable : github.com/coldsmirk/vef-framework-go/logx.LoggerConfigurable[T any]",
+		"Level.String":                  "String : func() string",
+		"Logger.Named":                  "Named : func(name string) github.com/coldsmirk/vef-framework-go/logx.Logger",
+		"Logger.WithCallerSkip":         "WithCallerSkip : func(skip int) github.com/coldsmirk/vef-framework-go/logx.Logger",
+		"Logger.Enabled":                "Enabled : func(level github.com/coldsmirk/vef-framework-go/logx.Level) bool",
+		"Logger.Sync":                   "Sync : func()",
+		"Logger.Debug":                  "Debug : func(message string)",
+		"Logger.Debugf":                 "Debugf : func(template string, args ...any)",
+		"Logger.Info":                   "Info : func(message string)",
+		"Logger.Infof":                  "Infof : func(template string, args ...any)",
+		"Logger.Warn":                   "Warn : func(message string)",
+		"Logger.Warnf":                  "Warnf : func(template string, args ...any)",
+		"Logger.Error":                  "Error : func(message string)",
+		"Logger.Errorf":                 "Errorf : func(template string, args ...any)",
+		"Logger.Panic":                  "Panic : func(message string)",
+		"Logger.Panicf":                 "Panicf : func(template string, args ...any)",
+		"LoggerConfigurable.WithLogger": "WithLogger : func(logger github.com/coldsmirk/vef-framework-go/logx.Logger) T",
 	}
 
 	seen := map[string]string{}
@@ -344,12 +346,23 @@ func verifyDocumentedSurface(doc corpus, entries []auditEntry) []string {
 		if entry.Kind == "top" {
 			ref = "logx." + entry.Symbol
 		}
-		if !hasCodeReference(doc.content, ref) {
+		if !hasLogxAuditReference(doc.content, ref) {
 			failures = append(failures, fmt.Sprintf("%s missing audited logx entry `%s`", doc.label, ref))
 		}
 	}
 
 	return failures
+}
+
+func hasLogxAuditReference(content, ref string) bool {
+	if hasCodeReference(content, ref) {
+		return true
+	}
+	if ref == "LoggerConfigurable.WithLogger" {
+		return hasCodeReference(content, "LoggerConfigurable[T].WithLogger")
+	}
+
+	return false
 }
 
 func verifyNoPhantomLogxRefs(doc corpus, entries []auditEntry) []string {
@@ -457,8 +470,8 @@ func hasCodeReference(content, ref string) bool {
 func smallUtilitiesTerms() []string {
 	return []string{
 		logxFingerprint,
-		"7 exported top-level",
-		"15 exported",
+		"8 exported top-level",
+		"16 exported",
 		"no exported fields",
 		"`logx.Level`",
 		"`logx.LevelDebug = 1`",
@@ -467,6 +480,7 @@ func smallUtilitiesTerms() []string {
 		"`logx.LevelError = 4`",
 		"`logx.LevelPanic = 5`",
 		"`logx.Logger`",
+		"`logx.LoggerConfigurable[T]`",
 		"`Level.String() string`",
 		"`unknown`",
 		"zero value",
@@ -484,6 +498,7 @@ func smallUtilitiesTerms() []string {
 		"`Logger.Errorf(template string, args ...any)`",
 		"`Logger.Panic(message string)`",
 		"`Logger.Panicf(template string, args ...any)`",
+		"`LoggerConfigurable[T].WithLogger(logger logx.Logger) T`",
 		"`vef.NamedLogger(name string) logx.Logger`",
 	}
 }
@@ -495,6 +510,7 @@ func verifyExtensionTerms(doc corpus) []string {
 		"`Level`",
 		"`Level.String()`",
 		"`Logger`",
+		"`LoggerConfigurable[T]`",
 	})
 }
 
@@ -524,12 +540,14 @@ func verifyContractLedger(review contractPackageReview, contract contractEntry, 
 		"logx.LevelError = 4",
 		"logx.LevelPanic = 5",
 		"logx.Logger",
+		"logx.LoggerConfigurable[T]",
 		"Level.String()",
 		"unknown",
 		"Logger.Named(name string) logx.Logger",
 		"Logger.Sync()",
 		"Logger.Debugf(template string, args ...any)",
 		"Logger.Panicf(template string, args ...any)",
+		"LoggerConfigurable[T].WithLogger(logger logx.Logger) T",
 		"vef.NamedLogger(name string) logx.Logger",
 	} {
 		if !contains(contract.Terms, term) {
@@ -601,6 +619,8 @@ func verifySourceContracts(sourceRoot string) []string {
 		{"logx/logger.go", `Errorf(template string, args ...any)`},
 		{"logx/logger.go", `Panic(message string)`},
 		{"logx/logger.go", `Panicf(template string, args ...any)`},
+		{"logx/logger.go", `type LoggerConfigurable[T any] interface {`},
+		{"logx/logger.go", `WithLogger(logger Logger) T`},
 		{"logx/logger_test.go", `{"Debug", LevelDebug, "debug"}`},
 		{"logx/logger_test.go", `{"Info", LevelInfo, "info"}`},
 		{"logx/logger_test.go", `{"Warn", LevelWarn, "warn"}`},

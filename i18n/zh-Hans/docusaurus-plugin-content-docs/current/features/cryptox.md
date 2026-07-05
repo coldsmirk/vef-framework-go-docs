@@ -6,7 +6,7 @@ sidebar_position: 10
 
 `cryptox` 包提供统一的加密/解密和数字签名接口，支持多种算法。
 
-审查说明：本页覆盖 85 public cryptox entries，其中包括 8 grouped cryptox method entries，分布在 3 cryptox receiver/type families；成组 cipher/signer surface 包含 0 exported cryptox field entries 和 8 exported cryptox method entries。
+审查说明：本页覆盖 83 public cryptox entries，其中包括 9 grouped cryptox method entries，分布在 4 cryptox receiver/type families；成组 cipher/signer surface 包含 0 exported cryptox field entries 和 9 exported cryptox method entries。
 
 ## 接口
 
@@ -43,6 +43,22 @@ type CipherSigner interface {
 }
 ```
 
+### FixedIVDecrypter
+
+`FixedIVDecrypter` 由能够使用调用方固定 IV 解密外部 ciphertext 的 block-cipher
+模式实现：
+
+```go
+type FixedIVDecrypter interface {
+    DecryptWithFixedIV(ciphertext string) (string, error)
+}
+```
+
+VEF 原生 ciphertext 会携带每次生成的新随机 IV，应使用 `Cipher.Decrypt`。
+`DecryptWithFixedIV` 是 AES-CBC/SM4-CBC 互操作场景的 escape hatch：外部对端发送
+未前置 IV 的 base64 ciphertext 时，解密会使用构造时通过 `WithAESIv` 或
+`WithSM4Iv` 配置的固定 IV。
+
 ## 支持的算法
 
 所有构造函数返回框架的 `Cipher` / `Signer` / `CipherSigner` 接口。编码辅助构造器按算法提供：AES 和 SM4 提供 `*FromHex` / `*FromBase64`；RSA、SM2、ECDSA 提供 `*FromPEM` / `*FromHex` / `*FromBase64`；ECIES 提供 bytes、hex 和 base64 构造器。
@@ -55,10 +71,9 @@ import "github.com/coldsmirk/vef-framework-go/cryptox"
 // key 必须是 16 / 24 / 32 字节，默认 GCM 模式（带认证，IV 自动生成）。
 cipher, err := cryptox.NewAES(key)
 
-// 切到 CBC 模式必须显式提供 IV：
+// 切到 CBC 模式；Encrypt 会生成随机 IV 并前置到 ciphertext。
 cbcCipher, err := cryptox.NewAES(key,
     cryptox.WithAESMode(cryptox.AesModeCbc),
-    cryptox.WithAESIv(iv), // 16 字节
 )
 
 encrypted, err := cipher.Encrypt("hello world")
@@ -66,6 +81,17 @@ plaintext, err := cipher.Decrypt(encrypted)
 ```
 
 变体：`cryptox.NewAESFromHex(keyHex, ...)`、`cryptox.NewAESFromBase64(keyBase64, ...)`。
+
+如果要和发送 bare ciphertext（未前置 IV）的 AES-CBC 外部系统互操作，
+需要配置固定 IV，并调用 `FixedIVDecrypter.DecryptWithFixedIV`：
+
+```go
+fixedCipher, err := cryptox.NewAES(key,
+    cryptox.WithAESMode(cryptox.AesModeCbc),
+    cryptox.WithAESIv(iv), // 16 字节
+)
+plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
+```
 
 ### RSA（非对称加密 + 签名）
 
@@ -103,17 +129,22 @@ valid, err := cipher.Verify("data", signature)
 ### SM4（国密 — 对称）
 
 ```go
-// 默认 CBC 模式，必须传 IV。key：16 字节。
-cipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
-
-// 或切到 ECB（不需要 IV，但更不安全）：
-ecbCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Mode(cryptox.SM4ModeECB))
+// SM4 使用 CBC；Encrypt 会生成随机 IV 并前置到 ciphertext。
+cipher, err := cryptox.NewSM4(key) // key：16 字节
 
 encrypted, err := cipher.Encrypt("data")
 plaintext, err := cipher.Decrypt(encrypted)
 ```
 
 变体：`cryptox.NewSM4FromHex`、`cryptox.NewSM4FromBase64`。
+
+如果要和发送 bare ciphertext（未前置 IV）的 SM4-CBC 外部系统互操作，
+需要配置固定 IV，并调用 `FixedIVDecrypter.DecryptWithFixedIV`：
+
+```go
+fixedCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
+plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
+```
 
 ### ECDSA（仅签名）
 
@@ -161,7 +192,7 @@ plaintext, err := cipher.Decrypt(encrypted)
 | --- | --- |
 | AES modes/options | `AESMode`, `AesModeGcm`, `AesModeCbc`, `WithAESMode(mode)`, `WithAESIv(iv)` |
 | RSA modes/options | `RSAMode`, `RSASignMode`, `RsaModeOAEP`, `RsaModePKCS1v15`, `RsaSignModePSS`, `RsaSignModePKCS1v15`, `WithRSAMode(mode)`, `WithRSASignMode(mode)` |
-| SM4 modes/options | `SM4Mode`, `SM4ModeCBC`, `SM4ModeECB`, `WithSM4Mode(mode)`, `WithSM4Iv(iv)` |
+| SM4 options | `WithSM4Iv(iv)` |
 | ECDSA curves | `ECDSACurve`, `EcdsaCurveP224`, `EcdsaCurveP256`, `EcdsaCurveP384`, `EcdsaCurveP521` |
 | ECIES curves | `ECIESCurve`, `EciesCurveP256`, `EciesCurveP384`, `EciesCurveP521`, `EciesCurveX25519` |
 | key helpers | `GenerateECDSAKey(curve)`, `GenerateECIESKey(curve)` |

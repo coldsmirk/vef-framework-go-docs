@@ -6,7 +6,7 @@ sidebar_position: 10
 
 The `cryptox` package provides a unified interface for encryption/decryption and digital signing across multiple algorithms.
 
-Audit note: this page covers 85 public cryptox entries, including 8 grouped cryptox method entries across 3 cryptox receiver/type families. The grouped cipher/signer surface contains 0 exported cryptox field entries and 8 exported cryptox method entries.
+Audit note: this page covers 83 public cryptox entries, including 9 grouped cryptox method entries across 4 cryptox receiver/type families. The grouped cipher/signer surface contains 0 exported cryptox field entries and 9 exported cryptox method entries.
 
 ## Interfaces
 
@@ -43,6 +43,22 @@ type CipherSigner interface {
 }
 ```
 
+### FixedIVDecrypter
+
+`FixedIVDecrypter` is implemented by block-cipher modes that can decrypt
+external ciphertext produced with a caller-supplied constant IV:
+
+```go
+type FixedIVDecrypter interface {
+    DecryptWithFixedIV(ciphertext string) (string, error)
+}
+```
+
+Native VEF ciphertext carries a fresh random IV and should use
+`Cipher.Decrypt`. `DecryptWithFixedIV` is an interop escape hatch for
+AES-CBC/SM4-CBC peers that send base64 ciphertext without the prepended IV; the
+fixed IV must have been configured with `WithAESIv` or `WithSM4Iv`.
+
 ## Supported Algorithms
 
 All constructors return the framework's `Cipher` / `Signer` / `CipherSigner`
@@ -58,10 +74,9 @@ import "github.com/coldsmirk/vef-framework-go/cryptox"
 // key must be 16 / 24 / 32 bytes. Default mode is GCM (authenticated; IV is generated per call).
 cipher, err := cryptox.NewAES(key)
 
-// Use CBC instead — IV must be supplied explicitly.
+// Use CBC instead. Encrypt generates a fresh IV and prepends it to ciphertext.
 cbcCipher, err := cryptox.NewAES(key,
     cryptox.WithAESMode(cryptox.AesModeCbc),
-    cryptox.WithAESIv(iv), // 16 bytes
 )
 
 encrypted, err := cipher.Encrypt("hello world")
@@ -69,6 +84,17 @@ plaintext, err := cipher.Decrypt(encrypted)
 ```
 
 Variants: `cryptox.NewAESFromHex(keyHex, ...)`, `cryptox.NewAESFromBase64(keyBase64, ...)`.
+
+For AES-CBC interop with peers that send bare ciphertext without a prepended IV,
+configure the fixed IV and call `FixedIVDecrypter.DecryptWithFixedIV`:
+
+```go
+fixedCipher, err := cryptox.NewAES(key,
+    cryptox.WithAESMode(cryptox.AesModeCbc),
+    cryptox.WithAESIv(iv), // 16 bytes
+)
+plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
+```
 
 ### RSA (Asymmetric Encryption + Signing)
 
@@ -107,17 +133,22 @@ Variants: `cryptox.NewSM2(privateKey, publicKey)`, `cryptox.NewSM2FromHex`, `cry
 ### SM4 (Chinese National Standard — Symmetric)
 
 ```go
-// Default mode is CBC — IV is REQUIRED. key: 16 bytes.
-cipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
-
-// Or switch to ECB (no IV needed, less secure):
-ecbCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Mode(cryptox.SM4ModeECB))
+// SM4 uses CBC. Encrypt generates a fresh IV and prepends it to ciphertext.
+cipher, err := cryptox.NewSM4(key) // key: 16 bytes
 
 encrypted, err := cipher.Encrypt("data")
 plaintext, err := cipher.Decrypt(encrypted)
 ```
 
 Variants: `cryptox.NewSM4FromHex`, `cryptox.NewSM4FromBase64`.
+
+For SM4-CBC interop with peers that send bare ciphertext without a prepended IV,
+configure the fixed IV and call `FixedIVDecrypter.DecryptWithFixedIV`:
+
+```go
+fixedCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
+plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
+```
 
 ### ECDSA (Signing Only)
 
@@ -166,7 +197,7 @@ does the same for `ECDSACurve`.
 | --- | --- |
 | AES modes/options | `AESMode`, `AesModeGcm`, `AesModeCbc`, `WithAESMode(mode)`, `WithAESIv(iv)` |
 | RSA modes/options | `RSAMode`, `RSASignMode`, `RsaModeOAEP`, `RsaModePKCS1v15`, `RsaSignModePSS`, `RsaSignModePKCS1v15`, `WithRSAMode(mode)`, `WithRSASignMode(mode)` |
-| SM4 modes/options | `SM4Mode`, `SM4ModeCBC`, `SM4ModeECB`, `WithSM4Mode(mode)`, `WithSM4Iv(iv)` |
+| SM4 options | `WithSM4Iv(iv)` |
 | ECDSA curves | `ECDSACurve`, `EcdsaCurveP224`, `EcdsaCurveP256`, `EcdsaCurveP384`, `EcdsaCurveP521` |
 | ECIES curves | `ECIESCurve`, `EciesCurveP256`, `EciesCurveP384`, `EciesCurveP521`, `EciesCurveX25519` |
 | key helpers | `GenerateECDSAKey(curve)`, `GenerateECIESKey(curve)` |

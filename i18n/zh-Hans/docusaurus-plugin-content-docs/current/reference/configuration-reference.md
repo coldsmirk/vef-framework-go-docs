@@ -37,10 +37,10 @@ type = "sqlite"
 
 ## 已审公共表面
 
-本页已经对照 live Go source 和生成的 public API index 审查。`github.com/coldsmirk/vef-framework-go/config` 当前公开 48 个 top-level exported symbols、106 个 exported fields、23 个 exported methods。public surface fingerprint 是 `de693b52c579df70d9133046ba06aaa4045eafae8898eaf764405ee9d6973df8`。
+本页已经对照 live Go source 和生成的 public API index 审查。`github.com/coldsmirk/vef-framework-go/config` 当前公开 53 个 top-level exported symbols、112 个 exported fields、23 个 exported methods。public surface fingerprint 是 `f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65`。
 
-Grouped-family audit 固定了 129 grouped configuration entries，覆盖 21 个
-config struct/interface families：其中 106 exported configuration fields、23
+Grouped-family audit 固定了 135 grouped configuration entries，覆盖 21 个
+config struct/interface families：其中 112 exported configuration fields、23
 exported configuration methods。这些 entries 覆盖 config tags、field order、
 effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 会锁定排序后的签名和 receiver/type 分布。
@@ -52,7 +52,7 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.AppConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.AppConfig` |
 | `config.ApprovalConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.ApprovalConfig` |
 | `config.Config` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.Config` |
-| `config.CorsConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.CorsConfig` |
+| `config.CORSConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.CORSConfig` |
 | `config.DBKind` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DBKind` |
 | `config.DataSourceConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DataSourceConfig` |
 | `config.DataSourcesConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.DataSourcesConfig` |
@@ -68,7 +68,7 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.DefaultSweepInterval` | `CONST` | `time.Duration = 300000000000` |
 | `config.EnvConfigPath` | `CONST` | `untyped string = "VEF_CONFIG_PATH"` |
 | `config.EnvI18NLanguage` | `CONST` | `untyped string = "VEF_I18N_LANGUAGE"` |
-| `config.EnvKeyPrefix` | `CONST` | `untyped string = "VEF"` |
+| `config.EnvPrefix` | `CONST` | `untyped string = "VEF"` |
 | `config.EnvLogLevel` | `CONST` | `untyped string = "VEF_LOG_LEVEL"` |
 | `config.EnvNodeID` | `CONST` | `untyped string = "VEF_NODE_ID"` |
 | `config.ErrInboxRetentionTooShort` | `VAR` | `error` |
@@ -92,6 +92,11 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.SQLServer` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlserver"` |
 | `config.SQLite` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "sqlite"` |
 | `config.SecurityConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SecurityConfig` |
+| `config.SSLDisable` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "disable"` |
+| `config.SSLMode` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SSLMode` |
+| `config.SSLRequire` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "require"` |
+| `config.SSLVerifyCA` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-ca"` |
+| `config.SSLVerifyFull` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-full"` |
 | `config.StorageConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.StorageConfig` |
 | `config.StorageFilesystem` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "filesystem"` |
 | `config.StorageMemory` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "memory"` |
@@ -114,8 +119,8 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.ApprovalConfig.FormSnapshotRetention` | `time.Duration [field_order=6 tag="config:\"form_snapshot_retention\""]` |
 | `config.ApprovalConfig.UrgeRecordRetention` | `time.Duration [field_order=7 tag="config:\"urge_record_retention\""]` |
 | `config.ApprovalConfig.CCRecordRetention` | `time.Duration [field_order=8 tag="config:\"cc_record_retention\""]` |
-| `config.CorsConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
-| `config.CorsConfig.AllowOrigins` | `[]string [field_order=2 tag="config:\"allow_origins\""]` |
+| `config.CORSConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
+| `config.CORSConfig.AllowOrigins` | `[]string [field_order=2 tag="config:\"allow_origins\""]` |
 | `config.DataSourceConfig.Kind` | `github.com/coldsmirk/vef-framework-go/config.DBKind [field_order=1 tag="config:\"type\""]` |
 | `config.DataSourceConfig.Host` | `string [field_order=2 tag="config:\"host\""]` |
 | `config.DataSourceConfig.Port` | `uint16 [field_order=3 tag="config:\"port\""]` |
@@ -125,6 +130,8 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.DataSourceConfig.Schema` | `string [field_order=7 tag="config:\"schema\""]` |
 | `config.DataSourceConfig.Path` | `string [field_order=8 tag="config:\"path\""]` |
 | `config.DataSourceConfig.EnableSQLGuard` | `bool [field_order=9 tag="config:\"enable_sql_guard\""]` |
+| `config.DataSourceConfig.SSLMode` | `github.com/coldsmirk/vef-framework-go/config.SSLMode [field_order=10 tag="config:\"ssl_mode\""]` |
+| `config.DataSourceConfig.SSLRootCert` | `string [field_order=11 tag="config:\"ssl_root_cert\""]` |
 | `config.DataSourcesConfig.Map` | `map[string]github.com/coldsmirk/vef-framework-go/config.DataSourceConfig [field_order=1 tag=""]` |
 | `config.EventConfig.DefaultTransport` | `string [field_order=1 tag="config:\"default_transport\""]` |
 | `config.EventConfig.AsyncQueueSize` | `int [field_order=2 tag="config:\"async_queue_size\""]` |
@@ -162,8 +169,11 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.EventRedisStreamTransportConfig.ClaimIdle` | `time.Duration [field_order=5 tag="config:\"claim_idle\""]` |
 | `config.EventRedisStreamTransportConfig.ClaimInterval` | `time.Duration [field_order=6 tag="config:\"claim_interval\""]` |
 | `config.EventRedisStreamTransportConfig.ClaimBatchSize` | `int64 [field_order=7 tag="config:\"claim_batch_size\""]` |
-| `config.EventRedisStreamTransportConfig.ConsumerID` | `string [field_order=8 tag="config:\"consumer_id\""]` |
-| `config.EventRedisStreamTransportConfig.StartID` | `string [field_order=9 tag="config:\"start_id\""]` |
+| `config.EventRedisStreamTransportConfig.ReaperConcurrency` | `int [field_order=8 tag="config:\"reaper_concurrency\""]` |
+| `config.EventRedisStreamTransportConfig.HandlerTimeout` | `time.Duration [field_order=9 tag="config:\"handler_timeout\""]` |
+| `config.EventRedisStreamTransportConfig.SetupTimeout` | `time.Duration [field_order=10 tag="config:\"setup_timeout\""]` |
+| `config.EventRedisStreamTransportConfig.ConsumerID` | `string [field_order=11 tag="config:\"consumer_id\""]` |
+| `config.EventRedisStreamTransportConfig.StartID` | `string [field_order=12 tag="config:\"start_id\""]` |
 | `config.EventRoutingRule.Pattern` | `string [field_order=1 tag="config:\"pattern\""]` |
 | `config.EventRoutingRule.Transports` | `[]string [field_order=2 tag="config:\"transports\""]` |
 | `config.EventTransportsConfig.Memory` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig [field_order=1 tag="config:\"memory\""]` |
@@ -193,6 +203,7 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.SecurityConfig.RefreshNotBefore` | `time.Duration [field_order=3 tag="config:\"refresh_not_before\""]` |
 | `config.SecurityConfig.LoginRateLimit` | `int [field_order=4 tag="config:\"login_rate_limit\""]` |
 | `config.SecurityConfig.RefreshRateLimit` | `int [field_order=5 tag="config:\"refresh_rate_limit\""]` |
+| `config.SecurityConfig.IPWhitelists` | `map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]` |
 | `config.StorageConfig.Provider` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]` |
 | `config.StorageConfig.AutoMigrate` | `bool [field_order=2 tag="config:\"auto_migrate\""]` |
 | `config.StorageConfig.MinIO` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig [field_order=3 tag="config:\"minio\""]` |
@@ -293,6 +304,8 @@ path = "./analytics.db"
 | `schema` | `string` | 支持 schema 的驱动下使用的 schema 名。 |
 | `path` | `string` | SQLite 文件路径。 |
 | `enable_sql_guard` | `bool` | 是否启用 SQL guard。 |
+| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | 网络数据库 dialect 的 TLS 模式；省略时等价于 `disable`。 |
+| `ssl_root_cert` | `string` | `verify-ca` 和 `verify-full` 使用的可选 PEM CA bundle 路径；为空时使用主机系统证书池。 |
 
 说明：
 
@@ -410,7 +423,7 @@ path = "./analytics.db"
 | `publish_timeout` | `duration` | 单次 transport Publish 调用上限，默认 `5s`。 |
 | `transports.memory.*` | — | 内存 transport 配置：`queue_size` 默认 `1024`，`full_policy` 默认 `error`，`publish_timeout` 默认不设上限，且只在 `full_policy = "block"` 时生效。 |
 | `transports.outbox.*` | — | outbox transport 配置：`enabled`、`relay_interval` 默认 `10s`、`max_retries` 默认 `10`、`batch_size` 默认 `100`、`lease_multiplier` 默认 `4`、`min_lease` 默认 `15s`、`sink` 默认 `memory`、`cleanup_interval` 默认 `1h`、`completed_ttl` 默认 `168h`；cleanup 字段属于框架配置，不是 `event/transport/outbox.Config` 字段。 |
-| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）。 |
+| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`reaper_concurrency` 默认 `4`、`handler_timeout` 默认 `30s`、`setup_timeout` 默认 `5s`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）。 |
 | `middleware.*` | `bool` | 中间件开关：`logging`、`tracing`、`tracing_strict`、`metrics`、`recover`、`inbox`。 |
 | `inbox.*` | — | Inbox 去重表配置：`retention` 默认 `168h`、`processing_lease` 默认 `10m`、`cleanup_interval` 默认 `1h`。 |
 | `routing` | `[]{pattern, transports}` | 路由规则列表，按 `path.Match` 语义自顶向下匹配。 |

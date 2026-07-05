@@ -32,11 +32,13 @@ func main() {
 
 	publicSymbols := exportedTopLevelNames(filepath.Join(sourceRoot, "sequence"))
 	expectedSymbols := []string{
-		"ErrInvalidCount", "ErrRuleNotFound", "ErrSequenceOverflow",
+		"DBStore", "DBStoreTableName", "ErrInvalidCount",
+		"ErrRuleNotFound", "ErrSequenceOverflow",
 		"FormatDate", "Generator", "MemoryStore", "NewMemoryStore",
-		"OverflowError", "OverflowExtend", "OverflowReset", "OverflowStrategy",
-		"ResetCycle", "ResetDaily", "ResetMonthly", "ResetNone",
-		"ResetQuarterly", "ResetWeekly", "ResetYearly", "Rule", "Store",
+		"NewDBStore", "NewRedisStore", "OverflowError", "OverflowExtend",
+		"OverflowReset", "OverflowStrategy", "RedisStore", "ResetCycle",
+		"ResetDaily", "ResetMonthly", "ResetNone", "ResetQuarterly",
+		"ResetWeekly", "ResetYearly", "Rule", "RuleModel", "Store",
 	}
 
 	var failures []string
@@ -111,6 +113,41 @@ func main() {
 			},
 		},
 		{
+			path: "sequence/db_store.go",
+			terms: []string{
+				"const DBStoreTableName = \"sys_sequence_rule\"",
+				"type RuleModel struct",
+				"`bun:\"table:sys_sequence_rule,alias:ssr\"`",
+				"func NewDBStore(db orm.DB) *DBStore",
+				"Model((*RuleModel)(nil))",
+				"IfNotExists()",
+				"s.db.RunInTx(ctx, func(ctx context.Context, tx orm.DB) error",
+				"cb.Equals(\"key\", key).",
+				"IsTrue(\"is_active\")",
+				"ForUpdate()",
+				"return ErrRuleNotFound",
+				"rule.CurrentValue += rule.SeqStep * count",
+				"Set(\"current_value\", newValue)",
+				"query.Set(\"last_reset_at\", rule.LastResetAt)",
+			},
+		},
+		{
+			path: "sequence/redis_store.go",
+			terms: []string{
+				"const redisSequencePrefix = \"vef:sequence:\"",
+				"func NewRedisStore(client *redis.Client) *RedisStore",
+				"rKey := redisSequencePrefix + key",
+				"s.client.Watch(ctx, func(tx *redis.Tx) error",
+				"if len(fields) == 0",
+				"return ErrRuleNotFound",
+				"errors.Is(err, redis.TxFailedErr)",
+				"func (s *RedisStore) RegisterRule(ctx context.Context, rule *Rule) error",
+				"\"current_value\":     rule.CurrentValue",
+				"fields[\"last_reset_at\"] = rule.LastResetAt.String()",
+				"parseRedisRule",
+			},
+		},
+		{
 			path: "sequence/sequence.go",
 			terms: []string{
 				"Generate(ctx context.Context, key string) (string, error)",
@@ -155,6 +192,9 @@ func main() {
 		"LastResetAt == nil", "OverflowError", "OverflowReset",
 		"OverflowExtend", "ErrSequenceOverflow", "SeqLength",
 		"Store.Reserve", "NewMemoryStore", "MemoryStore.Register",
+		"NewDBStore", "DBStore", "DBStoreTableName", "DBStore.Init",
+		"RuleModel", "NewRedisStore", "RedisStore",
+		"RedisStore.RegisterRule", "vef:sequence:<key>", "WATCH",
 		"GenerateN", "SeqStep", "ErrInvalidCount", "ErrRuleNotFound",
 		"FormatDate", "yyyy", "yy", "MM", "dd", "HH", "mm", "ss",
 	}

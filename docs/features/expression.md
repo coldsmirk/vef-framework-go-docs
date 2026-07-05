@@ -5,7 +5,7 @@ sidebar_position: 15
 # Expression Engine
 
 The `expression` package exposes a backend-agnostic expression contract. The
-current framework runtime wires a Zen-backed engine and makes it available to
+current framework runtime wires a pure-Go `expr-lang` engine and makes it available to
 API handlers and mold field transformations.
 
 The older [`js` package](./js-engine) is still a separate Goja JavaScript
@@ -15,10 +15,11 @@ behind the stable `expression.Engine` interface.
 ## Runtime Backend
 
 VEF currently provides the engine from the core boot graph, backed by
-`github.com/gorules/zen-go`.
+`github.com/expr-lang/expr`.
 
-Because `zen-go` is cgo-based, projects using the default framework runtime must
-build with `CGO_ENABLED=1` and a working C toolchain.
+The current backend is pure Go. The expression module itself does not require
+CGO; whether your application enables CGO depends on the database drivers or
+other native integrations you choose.
 
 ## Core API
 
@@ -35,12 +36,12 @@ type Program interface {
 ```
 
 - `Evaluate` compiles and evaluates a source expression in one step.
-- `Compile` returns a reusable `Program`; backend validation may still be
-  deferred until `Run`.
+- `Compile` returns a reusable `Program`; the current backend parses and
+  validates the expression eagerly.
 - `env` is the variable environment. It can be a map or a struct with JSON
   tags.
-- Context cancellation is best-effort. The current Zen backend honors an
-  already-canceled context before starting the synchronous cgo call, but cannot
+- Context cancellation is best-effort. The current `expr-lang` backend honors
+  an already-canceled context before starting synchronous evaluation, but cannot
   interrupt evaluation already in flight.
 
 ## Evaluating Values
@@ -120,7 +121,7 @@ func CalculateTotal(
 }
 ```
 
-Application code should depend on `expression.Engine`, not the internal Zen
+Application code should depend on `expression.Engine`, not the internal expr-lang
 adapter.
 
 ## Mold `expr` Fields
@@ -164,8 +165,9 @@ Error details:
 | empty mold `expr` tag | returns `expression: empty expression in field tag` |
 | non-settable mold target field | returns `expression: target field is not settable` |
 
-With the current Zen backend, malformed expressions can be accepted by
-`Compile(...)` and fail later from `Program.Run(...)`.
+With the current `expr-lang` backend, malformed expressions fail during
+`Compile(...)`; runtime type/value failures can still surface from
+`Program.Run(...)`.
 
 Supporting public APIs include `CompileOption`, `CompileOptions`,
 `CompileOptions.Predicate`, `AsPredicate()`, `ErrCodeEvaluationFailed`, and

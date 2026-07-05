@@ -28,7 +28,7 @@ const (
 	localesFieldCount    = 0
 	localesMethodCount   = 0
 	localesEntryCount    = 1
-	localeMessageCount   = 160
+	localeMessageCount   = 171
 )
 
 type corpus struct {
@@ -171,7 +171,7 @@ func englishDocTerms() []string {
 		"1 top-level exported symbol, 0 exported fields, and 0 exported methods",
 		"public surface fingerprint is `" + localesFingerprint + "`",
 		"`i18n.GetSupportedLanguages()` returns a copy",
-		"`en.json` and `zh-CN.json` catalogs contain the same 160 message IDs",
+		"`en.json` and `zh-CN.json` catalogs contain the same 171 message IDs",
 		"`i18n.DefaultLanguage` | default language constant (`zh-CN`)",
 		"`i18n.GetSupportedLanguages()` | return a copy of the supported language codes (`zh-CN`, `en`)",
 		"`i18n.IsLanguageSupported(code)` | report whether a language code is supported",
@@ -214,7 +214,7 @@ func chineseDocTerms() []string {
 		"1 个 top-level exported symbol、0 个 exported fields、0 个 exported methods",
 		"public surface fingerprint 是 `" + localesFingerprint + "`",
 		"`i18n.GetSupportedLanguages()` 返回 supported-language slice 的副本",
-		"`en.json` 和 `zh-CN.json` catalogs 各包含同一组 160 个 message IDs",
+		"`en.json` 和 `zh-CN.json` catalogs 各包含同一组 171 个 message IDs",
 		"`i18n.DefaultLanguage` | 默认语言常量（`zh-CN`）",
 		"`i18n.GetSupportedLanguages()` | 返回支持的语言代码副本（`zh-CN`、`en`）",
 		"`i18n.IsLanguageSupported(code)` | 判断语言代码是否受支持",
@@ -256,12 +256,12 @@ func verifySourceContracts(sourceRoot string) []string {
 		terms []string
 	}{
 		{
-			path: "config/env.go",
-			terms: []string{
-				"EnvKeyPrefix    = \"VEF\"",
-				"EnvI18NLanguage = EnvKeyPrefix + \"_I18N_LANGUAGE\"",
+				path: "config/env.go",
+				terms: []string{
+					"EnvPrefix       = \"VEF\"",
+					"EnvI18NLanguage = EnvPrefix + \"_I18N_LANGUAGE\"",
+				},
 			},
-		},
 		{
 			path: "i18n/i18n.go",
 			terms: []string{

@@ -26,7 +26,7 @@ for all HTTP methods at middleware order `500`.
 
 Server identity comes from `mcp.ServerInfo` when supplied. Otherwise the server
 name falls back to `vef.app.name`, then to `vef-mcp-server`; the default version
-is `v1.0.0`, and default instructions are empty.
+is `version.VEFVersion`, and default instructions are empty.
 
 ## What The Module Provides
 
@@ -177,7 +177,10 @@ Schema generation follows the framework's MCP-specific reflector settings:
 - package-derived `$id` values are not generated
 - the generated `$schema` property is removed because MCP input schemas do not use it
 - `mcp.SchemaOf(nil)` returns `nil`
-- `mcp.MustSchemaOf(nil)` panics with `mcp: failed to generate schema`
+- `mcp.MustSchemaOf(nil)` panics with `mcp: cannot generate schema for nil value`
+- schema-generation failures in `mcp.MustSchemaFor[T]()` and
+  `mcp.MustSchemaOf(v)` panic with `mcp: generate schema: ...`, preserving the
+  underlying cause
 - `mcp.MustSchemaFor[T]()` and `mcp.MustSchemaOf(v)` are convenience helpers for places where schema generation failure should be a boot-time error
 
 Supported `jsonschema` tag keywords are:

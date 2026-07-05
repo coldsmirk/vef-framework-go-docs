@@ -33,8 +33,8 @@ func NewUserResource() api.Resource {
 
 The framework collects embedded CRUD builders automatically because they implement `api.OperationsProvider`.
 
-The grouped-family audit pins 315 grouped CRUD builder entries across 27
-receiver families: 36 public field entries and 279 public method entries. These
+The grouped-family audit pins 299 grouped CRUD builder entries across 27
+receiver families: 36 public field entries and 263 public method entries. These
 entries cover the prebuilt builder families, common builder controls,
 query-shaping helpers, batch params, tree/data-option DTOs, import/export
 customization, and processor hooks; the verifier locks their sorted signatures
@@ -94,7 +94,7 @@ Operation families use them like this:
 
 ## Prebuilt Builder Matrix
 
-| Builder | Default RPC action | Valid REST override example | Input contract | Output contract | Typical use |
+| Builder | Default RPC action | REST grammar equivalent | Input contract | Output contract | Typical use |
 | --- | --- | --- | --- | --- | --- |
 | `NewCreate[TModel, TParams]` | `create` | `post` | `TParams` from `params` | primary-key map | create one record |
 | `NewUpdate[TModel, TParams]` | `update` | `put` | `TParams` from `params`, including PK fields | success result | update one record |
@@ -111,20 +111,26 @@ Operation families use them like this:
 | `NewExport[TModel, TSearch]` | `export` | `get export` | `TSearch` from `params` + export format from `meta` | file download | Excel or CSV export |
 | `NewImport[TModel]` | `import` | `post import` | multipart file upload + import format from `meta` | `{total: n}` | Excel or CSV import |
 
+Mutation builders use exported i18n message-key constants for successful
+responses:
+
+| Constant | Qualified name | Value |
+| --- | --- | --- |
+| `MessageCreated` | `crud.MessageCreated` | `crud_created` |
+| `MessageUpdated` | `crud.MessageUpdated` | `crud_updated` |
+| `MessageDeleted` | `crud.MessageDeleted` | `crud_deleted` |
+| `MessageImported` | `crud.MessageImported` | `crud_imported` |
+
 The exported `RESTAction*` constants currently contain slash-style route
 patterns such as `post /`, `put /:id`, and `get /page`. Those constants are
 listed in the public API index for completeness, but the public
 `api.ValidateActionName` / `api.NewRESTResource` validation accepts only a
 lowercase HTTP verb plus an optional kebab-case sub-resource. In the current
 source tree, passing `api.KindREST` directly to a prebuilt CRUD constructor
-therefore panics during default action validation. To build a REST-shaped CRUD
-operation, create the builder normally and then provide a valid REST action:
-
-```go
-crud.NewFindPage[User, UserSearch]().
-	ResourceKind(api.KindREST).
-	Action("get page")
-```
+therefore panics during default action validation before user code can override
+the action. Use the prebuilt CRUD builders as RPC operations. When a resource
+must expose REST-shaped routes, implement those REST operations directly with
+the `api` package and handlers instead of passing `api.KindREST` to `crud.New*`.
 
 Exported REST action constant values:
 
@@ -151,7 +157,6 @@ Every CRUD builder inherits the common controls from `Builder[T]`:
 
 | Method | Effect |
 | --- | --- |
-| `ResourceKind(kind)` | switches the builder between RPC and REST naming/validation rules |
 | `Action(action)` | overrides the default action name |
 | `Public()` | marks the operation as unauthenticated |
 | `RequiredPermission(token)` | requires a permission token for access |
@@ -161,9 +166,9 @@ Every CRUD builder inherits the common controls from `Builder[T]`:
 
 Important detail:
 
-- `Action(...)` is validated according to the current `ResourceKind(...)`
-- if you are overriding a REST action, set `ResourceKind(api.KindREST)` first
-  and use the public REST grammar: `method` or `method kebab-sub-resource`
+- `Action(...)` validates against the builder kind chosen at construction time
+- for the prebuilt CRUD constructors, keep the default RPC kind and use
+  snake_case action names such as `find_page` or `create_many`
 
 ## Shared Find Controls
 

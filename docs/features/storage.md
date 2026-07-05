@@ -31,7 +31,7 @@ Application code depends on `storage.Service`, never on a provider-specific type
 ```go
 type Service interface {
     PutObject(ctx, opts PutObjectOptions) (*ObjectInfo, error)
-    GetObject(ctx, opts GetObjectOptions) (io.ReadCloser, error)
+    GetObject(ctx, opts GetObjectOptions) (io.ReadCloser, *ObjectInfo, error)
     DeleteObject(ctx, opts DeleteObjectOptions) error
     DeleteObjects(ctx, opts DeleteObjectsOptions) error
     CopyObject(ctx, opts CopyObjectOptions) (*ObjectInfo, error)
@@ -40,6 +40,9 @@ type Service interface {
 ```
 
 Option types: `PutObjectOptions`, `GetObjectOptions`, `DeleteObjectOptions`, `DeleteObjectsOptions`, `CopyObjectOptions`, `StatObjectOptions`. Use the option struct for every call — direct positional arguments are not supported on purpose so that adding fields stays additive.
+
+`GetObject` returns the body reader together with best-effort `ObjectInfo`.
+Callers must close the reader and nil-check the `ObjectInfo`.
 
 ## Multipart Upload
 
@@ -331,11 +334,17 @@ Public supporting APIs:
 | lifecycle services | `ClaimConsumer`, `DeleteEnqueuer`, `Files`, `FilesFor[T]` |
 | storage interfaces | `Service`, `Multipart`, `FileACL`, `URLKeyMapper` |
 | URL mappers | `DefaultFileACL`, `IdentityURLKeyMapper`, `ProxyURLKeyMapper`, `DefaultProxyPrefix` |
+| metadata helpers | `CanonicalizeMetadataKeys` |
 | option structs | `PutObjectOptions`, `GetObjectOptions`, `DeleteObjectOptions`, `DeleteObjectsOptions`, `CopyObjectOptions`, `StatObjectOptions`, `InitMultipartOptions`, `PutPartOptions`, `CompleteMultipartOptions`, `AbortMultipartOptions` |
 | result structs | `ObjectInfo`, `MultipartSession`, `PartInfo`, `CompletedPart`, `FileRef` |
 | meta constants | `MetaType`, `MetaTypeUploadedFile`, `MetaTypeRichText`, `MetaTypeMarkdown` |
 
-The storage package audit currently locks **181 public storage entries** in the
+`storage.CanonicalizeMetadataKeys(m)` returns a new metadata map whose keys use
+the S3/HTTP-header canonical form, such as `author` to `Author`; nil or empty
+input returns nil. Every backend applies this helper at the store boundary so
+metadata round-trips in one provider-neutral shape.
+
+The storage package audit currently locks **182 public storage entries** in the
 generated API ledger. The grouped member surface covers **81 grouped storage
 field/method entries** across **29 storage receiver/type families**: **50
 exported storage field entries** and **31 exported storage method entries**.

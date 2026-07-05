@@ -573,7 +573,7 @@ func verifySourceTerms(sourceRoot string) []string {
 				"convertTable(table)",
 				"IsAutoIncrement: hasAutoIncrement(col)",
 				"referentialActionToString",
-				"case \"serial\", \"bigserial\", \"smallserial\", \"SERIAL\", \"BIGSERIAL\", \"SMALLSERIAL\"",
+				"case \"serial\", \"bigserial\", \"smallserial\"",
 			},
 		},
 		{

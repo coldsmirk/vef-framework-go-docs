@@ -17,17 +17,17 @@ import (
 
 const (
 	configPackage                     = "github.com/coldsmirk/vef-framework-go/config"
-	configFingerprint                 = "de693b52c579df70d9133046ba06aaa4045eafae8898eaf764405ee9d6973df8"
-	configTopLevel                    = 48
-	configFields                      = 106
+	configFingerprint                 = "f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65"
+	configTopLevel                    = 53
+	configFields                      = 112
 	configMethods                     = 23
-	configEntries                     = 177
-	configGroupedEntries              = 129
-	configGroupedFields               = 106
+	configEntries                     = 188
+	configGroupedEntries              = 135
+	configGroupedFields               = 112
 	configGroupedMethods              = 23
 	configGroupedReceivers            = 21
-	configGroupedSignatureFingerprint = "9c9d95c6b14dc7df5e3af15746a5236e4948593579495d145e5c3d9f68276a16"
-	configGroupedReceiverFingerprint  = "62ea4a2b94321a5002abd5d20ed586d683db2c8fdf58bfead8750fa3e2c8a700"
+	configGroupedSignatureFingerprint = "f3a1fa4f2281d8c0d89c1a3163e03bda423541b95368d9d15eaefb866d0d2dac"
+	configGroupedReceiverFingerprint  = "7272919e35fb155fd48e83b8285f875daf39b904d7f48fbc236fa358d77e74c5"
 
 	englishReferencePath = "docs/reference/configuration-reference.md"
 	chineseReferencePath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/configuration-reference.md"
@@ -157,7 +157,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("config contracts verified: 129 grouped configuration entries")
+	fmt.Println("config contracts verified: 135 grouped configuration entries")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -284,8 +284,8 @@ func verifyGroupedConfigSurface(entries []auditEntry, docs []corpus) []string {
 	)...)
 
 	commonTerms := []string{
-		"129 grouped configuration entries",
-		"106 exported configuration fields",
+		"135 grouped configuration entries",
+		"112 exported configuration fields",
 		"23 exported configuration methods",
 	}
 	for _, doc := range docs {
@@ -301,9 +301,9 @@ func verifyGroupedConfigSurface(entries []auditEntry, docs []corpus) []string {
 			continue
 		}
 		for _, term := range []string{
-			"129 grouped configuration entries",
+			"135 grouped configuration entries",
 			"21 config struct/interface families",
-			"106 exported configuration fields",
+			"112 exported configuration fields",
 			"23 exported configuration methods",
 		} {
 			if !containsNormalized(doc.content, term) {
@@ -452,8 +452,8 @@ func referenceTerms(label string) []string {
 	}
 	if strings.HasPrefix(label, "Chinese") {
 		return append(common,
-			"48 个 top-level exported symbols",
-			"106 个 exported fields",
+			"53 个 top-level exported symbols",
+			"112 个 exported fields",
 			"23 个 exported methods",
 			"public surface fingerprint 是 `"+configFingerprint+"`",
 			"方法会返回零值 `config.DataSourceConfig`",
@@ -465,8 +465,8 @@ func referenceTerms(label string) []string {
 	}
 
 	return append(common,
-		"48 top-level exported symbols",
-		"106 exported fields",
+		"53 top-level exported symbols",
+		"112 exported fields",
 		"23 exported methods",
 		"public surface fingerprint is `"+configFingerprint+"`",
 		"the method returns the zero `config.DataSourceConfig`",
@@ -587,15 +587,15 @@ func verifySourceContracts(sourceRoot string) []string {
 			},
 		},
 		{
-			path: "config/env.go",
-			terms: []string{
-				"EnvKeyPrefix    = \"VEF\"",
-				"EnvNodeID       = EnvKeyPrefix + \"_NODE_ID\"",
-				"EnvLogLevel     = EnvKeyPrefix + \"_LOG_LEVEL\"",
-				"EnvConfigPath   = EnvKeyPrefix + \"_CONFIG_PATH\"",
-				"EnvI18NLanguage = EnvKeyPrefix + \"_I18N_LANGUAGE\"",
+				path: "config/env.go",
+				terms: []string{
+					"EnvPrefix       = \"VEF\"",
+					"EnvNodeID       = EnvPrefix + \"_NODE_ID\"",
+					"EnvLogLevel     = EnvPrefix + \"_LOG_LEVEL\"",
+					"EnvConfigPath   = EnvPrefix + \"_CONFIG_PATH\"",
+					"EnvI18NLanguage = EnvPrefix + \"_I18N_LANGUAGE\"",
+				},
 			},
-		},
 		{
 			path: "config/data_sources.go",
 			terms: []string{

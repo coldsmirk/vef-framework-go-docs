@@ -328,6 +328,9 @@ block_timeout    = "5s"
 claim_idle       = "60s"
 claim_interval   = "30s"
 claim_batch_size = 64
+reaper_concurrency = 4
+handler_timeout = "0s"
+setup_timeout   = "5s"
 consumer_id      = "vef"
 start_id         = "0"
 ```
@@ -342,13 +345,16 @@ Redis Streams 契约细节：
 - `consumer_id` 只是可读前缀；运行时会追加 UUID 后缀，避免多个副本在同一 group 内重名。
 - 缺失、非字符串、超大或 JSON 无效的 frame 会被视为 poison message：transport 记录日志、`XACK` 并丢弃。at-least-once 只保证格式正确的 frame。
 - Handler 失败会让消息留在 pending；reaper 会根据 `claim_idle`、`claim_interval` 和 `claim_batch_size` 定期 `XCLAIM` 空闲 pending 条目。
+- `reaper_concurrency` 限制每轮可并行 reclaim 的 subscription 数量。`handler_timeout` 限制 fresh delivery 和 reaper redelivery 的单次 handler 执行时间；`0s` 表示禁用 deadline。`setup_timeout` 限制 `Subscribe` 期间创建 consumer group 的等待时间。
 
 公开 Go 包 `event/transport/redisstream.Config` 包含 `StreamPrefix`、
 `MaxLenApprox`、`BlockTimeout`、`ClaimIdle`、`ClaimInterval`、
-`ClaimBatchSize`、`ConsumerID` 和 `StartID`。`StreamPrefix` 默认是
-`vef:events:`，`BlockTimeout` 默认 `5s`，`ClaimIdle` 默认 `60s`，
-`ClaimInterval` 默认 `30s`，`ClaimBatchSize` 默认 `64`，`StartID` 默认
-`0`。
+`ClaimBatchSize`、`ReaperConcurrency`、`HandlerTimeout`、`SetupTimeout`、
+`ConsumerID` 和 `StartID`。`StreamPrefix` 默认是 `vef:events:`，
+`BlockTimeout` 默认 `5s`，`ClaimIdle` 默认 `60s`，`ClaimInterval` 默认
+`30s`，`ClaimBatchSize` 默认 `64`，`ReaperConcurrency` 默认 `4`，
+`SetupTimeout` 默认 `5s`，`StartID` 默认 `0`。`HandlerTimeout` 默认 `0`，
+表示不启用单次 handler deadline。
 
 ## 错误 Sentinel
 

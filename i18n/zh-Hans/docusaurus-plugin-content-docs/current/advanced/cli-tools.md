@@ -121,14 +121,14 @@ Flags:
 
 生成器会读取目标文件中嵌入 `orm.BaseModel` 的 struct。表元数据来自嵌入
 `orm.BaseModel` 字段上的 `bun` tag：`table:...` 设置表名，`alias:...` 设置
-默认 alias。缺少这些 tag 时，表名默认是 model 名称的 snake_case，alias 默认
-等于表名。
+默认 alias。缺少这些 tag 时，表名默认是 model 名称的 pluralized snake_case，
+alias 默认是 model 名称的 singular snake_case。
 
 字段处理规则如下：
 
 - 只有 exported fields 会生成 accessors
 - `bun:"-"` 字段会被跳过
-- `bun:"rel:*"` 关系字段会被跳过
+- `bun:"rel:*"` 和 `bun:"m2m:*"` 关系字段会被跳过
 - `bun:"user_name"` 这类第一个 `bun` tag 片段会设置列名
 - 没有列名 tag 的字段使用字段名的 snake_case
 - embedded structs 会被展开

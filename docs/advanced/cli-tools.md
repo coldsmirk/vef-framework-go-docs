@@ -121,14 +121,14 @@ directory-to-file generation is rejected.
 The generator reads structs in the target file that embed `orm.BaseModel`.
 Table metadata comes from the embedded `orm.BaseModel` field's `bun` tag:
 `table:...` sets the table name and `alias:...` sets the default alias. Without
-those tag parts, the table defaults to the model name in snake_case and the
-alias defaults to the table name.
+those tag parts, the table defaults to the pluralized snake_case model name and
+the alias defaults to the singular snake_case model name.
 
 Field handling is source-compatible with these rules:
 
 - only exported fields generate accessors
 - `bun:"-"` fields are skipped
-- `bun:"rel:*"` relationship fields are skipped
+- `bun:"rel:*"` and `bun:"m2m:*"` relationship fields are skipped
 - a first `bun` tag component such as `bun:"user_name"` sets the column name
 - fields without a column tag use the field name in snake_case
 - embedded structs are expanded

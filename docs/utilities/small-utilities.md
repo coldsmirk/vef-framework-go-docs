@@ -332,12 +332,12 @@ to its proxy settings.
 
 Reflection and conversion helpers.
 
-The public `reflectx` surface has 78 exported top-level entries and 11 exported
+The public `reflectx` surface has 82 exported top-level entries and 12 exported
 fields. It has no exported methods.
 
-Surface summary: 78 exported top-level entries, 11 exported fields, no exported
+Surface summary: 82 exported top-level entries, 12 exported fields, no exported
 methods, fingerprint
-`bb62b3bd50f5b54c5af99deb16b7cfb61fa52e69f92e3ab789dc81c744f6d3de`.
+`0c7f22e87dd56b6a1e33be78c9bb398abee1b4b776888a4a3a64d94167751bba`.
 
 | API group | Audited public APIs |
 | --- | --- |
@@ -346,14 +346,14 @@ methods, fingerprint
 | type compatibility and methods | `reflectx.Indirect`, `reflectx.IsPointerToStruct`, `reflectx.IsSimilarType`, `reflectx.IsTypeCompatible`, `reflectx.ConvertValue`, `reflectx.ErrCannotConvertType`, `reflectx.FindMethod`, `reflectx.CollectMethods` |
 | string field helpers | `reflectx.IsStringType`, `reflectx.IsStringSliceType`, `reflectx.IsStringMapType`, `reflectx.GetStringValue`, `reflectx.SetStringValue`, `reflectx.GetStringSliceValue`, `reflectx.SetStringSliceValue`, `reflectx.GetStringMapValue`, `reflectx.SetStringMapValue` |
 | value helpers | `reflectx.IsEmpty`, `reflectx.IsNotEmpty`, `reflectx.IsNumeric`, `reflectx.IsInteger`, `reflectx.IsSignedInt`, `reflectx.IsUnsignedInt`, `reflectx.IsFloat`, `reflectx.Equal`, `reflectx.Contains` |
-| visitor actions, callbacks, and options | `reflectx.VisitAction`, `reflectx.Continue`, `reflectx.Stop`, `reflectx.SkipChildren`, `reflectx.TagConfig`, `reflectx.VisitorConfig`, `reflectx.VisitorOption`, `reflectx.Visitor`, `reflectx.StructVisitor`, `reflectx.FieldVisitor`, `reflectx.MethodVisitor`, `reflectx.TypeVisitor`, `reflectx.StructTypeVisitor`, `reflectx.FieldTypeVisitor`, `reflectx.MethodTypeVisitor`, `reflectx.VisitOf`, `reflectx.Visit`, `reflectx.VisitType`, `reflectx.VisitFor`, `reflectx.WithDisableRecursive`, `reflectx.WithDiveTag`, `reflectx.WithMaxDepth` |
+| visitor actions, callbacks, traversal modes, and options | `reflectx.VisitAction`, `reflectx.Continue`, `reflectx.Stop`, `reflectx.SkipChildren`, `reflectx.TraversalMode`, `reflectx.DepthFirst`, `reflectx.BreadthFirst`, `reflectx.TagConfig`, `reflectx.VisitorConfig`, `reflectx.VisitorOption`, `reflectx.Visitor`, `reflectx.StructVisitor`, `reflectx.FieldVisitor`, `reflectx.MethodVisitor`, `reflectx.TypeVisitor`, `reflectx.StructTypeVisitor`, `reflectx.FieldTypeVisitor`, `reflectx.MethodTypeVisitor`, `reflectx.VisitOf`, `reflectx.Visit`, `reflectx.VisitType`, `reflectx.VisitFor`, `reflectx.WithTraversalMode`, `reflectx.WithDisableRecursive`, `reflectx.WithDiveTag`, `reflectx.WithMaxDepth` |
 
 Exported fields:
 
 | Type | Fields |
 | --- | --- |
 | `reflectx.TagConfig` | `TagConfig.Name`, `TagConfig.Value` |
-| `reflectx.VisitorConfig` | `VisitorConfig.Recursive`, `VisitorConfig.DiveTag`, `VisitorConfig.MaxDepth` |
+| `reflectx.VisitorConfig` | `VisitorConfig.TraversalMode`, `VisitorConfig.Recursive`, `VisitorConfig.DiveTag`, `VisitorConfig.MaxDepth` |
 | `reflectx.Visitor` | `Visitor.VisitStruct`, `Visitor.VisitField`, `Visitor.VisitMethod` |
 | `reflectx.TypeVisitor` | `TypeVisitor.VisitStructType`, `TypeVisitor.VisitFieldType`, `TypeVisitor.VisitMethodType` |
 
@@ -399,12 +399,14 @@ same-type non-comparable nil-able values are equal only when both are nil.
 `reflectx.Contains` supports string substring checks with string elements,
 slices/arrays via `reflectx.Equal`, and maps by key lookup with convertible map keys.
 
-Visitor traversal uses depth-first order. `reflectx.Continue = 0`,
+Visitor traversal defaults to depth-first order. `reflectx.DepthFirst = 0`,
+`reflectx.BreadthFirst = 1`, `reflectx.Continue = 0`,
 `reflectx.Stop = 1`, and `reflectx.SkipChildren = 2`. By default
-`VisitorConfig.Recursive` is true, `VisitorConfig.DiveTag` is
+`VisitorConfig.TraversalMode` is `DepthFirst`, `VisitorConfig.Recursive` is true, `VisitorConfig.DiveTag` is
 `TagConfig{Name: "visit", Value: "dive"}`, and `VisitorConfig.MaxDepth == 0`
 means unlimited depth. Anonymous struct fields recurse automatically; named
 struct fields recurse only when their tag matches `VisitorConfig.DiveTag`.
+`reflectx.WithTraversalMode` selects `DepthFirst` or `BreadthFirst`;
 `reflectx.WithDisableRecursive` sets `VisitorConfig.Recursive = false`;
 `reflectx.WithDiveTag` replaces the tag selector; `reflectx.WithMaxDepth` sets
 the depth cap, and traversal stops descending when `depth >= MaxDepth`.
@@ -431,12 +433,12 @@ Framework validation entry points.
 
 Logging contracts used by the framework.
 
-The public `logx` surface has 7 exported top-level entries and 15 exported
+The public `logx` surface has 8 exported top-level entries and 16 exported
 methods. It has no exported fields.
 
-Surface summary: 7 exported top-level entries, 15 exported methods, no exported
+Surface summary: 8 exported top-level entries, 16 exported methods, no exported
 fields, fingerprint
-`4ff9c19b53d9985911e2985c2763802337d6a69f783962bb73b9ee7424481eaf`.
+`2512ac2e4b928560900dfb481cda5645aeda3afbd4229fafa3a42dedcf19d4a3`.
 
 | API | Contract | Purpose |
 | --- | --- |
@@ -447,6 +449,7 @@ fields, fingerprint
 | `logx.LevelError = 4` | error level constant | High-priority logs for unexpected application behavior. |
 | `logx.LevelPanic = 5` | panic level constant | Logs a message and then panics. |
 | `logx.Logger` | logging interface | Contract implemented by framework-provided and custom loggers. |
+| `logx.LoggerConfigurable[T]` | generic interface | Implemented by immutable components that return a logger-configured copy from `WithLogger`. |
 
 `Level.String() string` returns `debug`, `info`, `warn`, `error`, or `panic`.
 Unknown level values, including the zero value, return `unknown`.
@@ -467,6 +470,7 @@ Unknown level values, including the zero value, return `unknown`.
 | `Logger.Errorf(template string, args ...any)` | logs a formatted error message |
 | `Logger.Panic(message string)` | logs a panic message and then panics |
 | `Logger.Panicf(template string, args ...any)` | logs a formatted panic message and then panics |
+| `LoggerConfigurable[T].WithLogger(logger logx.Logger) T` | returns a copy of the component configured with the given logger |
 
 Application integration code can call `vef.NamedLogger(name string) logx.Logger`
 when it needs the framework logger outside dependency injection. That helper is
@@ -482,7 +486,7 @@ functions, no exported types, no exported fields, and no exported methods.
 
 | API | Contract | Purpose |
 | --- | --- |
-| `VEFVersion` | `version.VEFVersion` is an untyped string constant currently equal to `"v0.28.0"`. | Current framework version string. |
+| `VEFVersion` | `version.VEFVersion` is an untyped string constant currently equal to `"v0.35.0"`. | Current framework version string. |
 
 The source comment describes the value as the current VEF Framework version in
 semver format. The published value includes the leading `v` prefix.

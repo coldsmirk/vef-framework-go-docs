@@ -914,7 +914,7 @@ func (x *extractor) extractRESTVerbs() {
 func (x *extractor) extractConfigKeys() {
 	roots := map[string]string{
 		"AppConfig":      "vef.app",
-		"CorsConfig":     "vef.cors",
+		"CORSConfig":     "vef.cors",
 		"SecurityConfig": "vef.security",
 		"RedisConfig":    "vef.redis",
 		"StorageConfig":  "vef.storage",
@@ -1525,7 +1525,7 @@ func (x *extractor) verifyJSONSchemaCoverage() []string {
 func (x *extractor) configFieldKeyIndex() map[string]string {
 	roots := map[string]string{
 		"AppConfig":        "vef.app",
-		"CorsConfig":       "vef.cors",
+		"CORSConfig":       "vef.cors",
 		"SecurityConfig":   "vef.security",
 		"RedisConfig":      "vef.redis",
 		"StorageConfig":    "vef.storage",
@@ -1648,13 +1648,15 @@ func (x *extractor) configDefaultKey(path, typeName, field string, fieldToKey ma
 		}, field)
 	case "event/transport/redisstream/redis_stream.go":
 		return mapFieldToConfigKey("vef.event.transports.redis_stream", map[string]string{
-			"StreamPrefix":   "stream_prefix",
-			"BlockTimeout":   "block_timeout",
-			"ClaimIdle":      "claim_idle",
-			"ClaimInterval":  "claim_interval",
-			"ClaimBatchSize": "claim_batch_size",
-			"ConsumerID":     "consumer_id",
-			"StartID":        "start_id",
+			"StreamPrefix":      "stream_prefix",
+			"BlockTimeout":      "block_timeout",
+			"ClaimIdle":         "claim_idle",
+			"ClaimInterval":     "claim_interval",
+			"ClaimBatchSize":    "claim_batch_size",
+			"ReaperConcurrency": "reaper_concurrency",
+			"SetupTimeout":      "setup_timeout",
+			"ConsumerID":        "consumer_id",
+			"StartID":           "start_id",
 		}, field)
 	}
 

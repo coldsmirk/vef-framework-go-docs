@@ -12,9 +12,10 @@ A serial number generator consists of two pieces:
 
 - **`sequence.Rule`** — the format and reset policy (prefix, date format, counter width, reset cycle, overflow strategy).
 - **`sequence.Store`** — where the rule + current counter live. The built-in
-  runtime store is in-memory; custom stores can implement the same interface for
-  another persistence model. The store is responsible for atomic counter
-  increments.
+  default runtime store is in-memory, and the public package also exposes
+  database and Redis store implementations for durable or distributed
+  deployments. Custom stores can implement the same interface for another
+  persistence model. The store is responsible for atomic counter increments.
 
 The framework wires a `sequence.Generator` for you. It also exposes the concrete
 `*sequence.MemoryStore`, so business modules can seed rules during startup and
@@ -142,10 +143,21 @@ func SeedSequenceRules(store *sequence.MemoryStore) {
 }
 ```
 
-> `sequence.Store` is still an interface, but the old built-in DB and Redis
-> stores are no longer part of the public package. If an application needs a
-> durable or distributed counter backend, implement `sequence.Store` and provide
-> it to FX.
+### Database
+
+`sequence.NewDBStore(db)` returns a `*sequence.DBStore` backed by the
+`sys_sequence_rule` table (`sequence.DBStoreTableName`). `DBStore.Init(ctx)`
+creates the table when it does not exist, and `Reserve(...)` locks the rule row
+for update so each reservation is atomic within the database transaction.
+`sequence.RuleModel` is the ORM model for that table.
+
+### Redis
+
+`sequence.NewRedisStore(client)` returns a `*sequence.RedisStore` for
+distributed deployments. Rules are stored as Redis hashes under the
+`vef:sequence:<key>` prefix; `RedisStore.RegisterRule(ctx, rule)` seeds or
+replaces one rule, and `Reserve(...)` uses Redis `WATCH`/transaction retry to
+reserve counters atomically.
 
 Every store **expects rules to exist before `Generate(...)` is called**. Calling
 `Generate(ctx, "unknown-key")` on a store that doesn't know the rule returns
@@ -158,6 +170,8 @@ The public store API is intentionally small:
 | `sequence.Store.Reserve(ctx, key, count, now)` | atomically reserve `count` numbers for a rule and return the rule snapshot plus the final counter value |
 | `sequence.MemoryStore.Register(rules...)` | preload or replace in-memory rules using deep copies |
 | `sequence.MemoryStore.Reserve(...)` | in-memory implementation of `Store.Reserve`; returns cloned rule snapshots |
+| `sequence.NewDBStore(db)` / `sequence.DBStore` | database-backed store using `sequence.DBStoreTableName` (`sys_sequence_rule`) and `sequence.RuleModel` |
+| `sequence.NewRedisStore(client)` / `sequence.RedisStore` | Redis-backed store with `RedisStore.RegisterRule(ctx, rule)` for seeding hash-backed rules |
 | `sequence.Rule.Clone()` | deep-copy a rule snapshot |
 
 ## Generating numbers

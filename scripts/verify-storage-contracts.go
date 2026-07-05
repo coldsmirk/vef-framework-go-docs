@@ -18,17 +18,17 @@ import (
 const (
 	storagePackage = "github.com/coldsmirk/vef-framework-go/storage"
 
-	storageFingerprint = "63061a418106bce297e7a75552d71c3236b7543f2b0c4ed9184cd6cbef46538c"
-	storageTopLevel    = 100
+	storageFingerprint = "38d5a444291850b9a3b564e6e885c9e3c9bb516237d850a448d1b8d67ad53faf"
+	storageTopLevel    = 101
 	storageFields      = 50
 	storageMethods     = 31
-	storageEntries     = 181
+	storageEntries     = 182
 
 	storageGroupedEntries              = 81
 	storageGroupedFields               = 50
 	storageGroupedMethods              = 31
 	storageGroupedReceivers            = 29
-	storageGroupedSignatureFingerprint = "7d920d6f68fcb574aa1dbb73c31b47d78174e969619f0a246007c59e64598509"
+	storageGroupedSignatureFingerprint = "d1a8f855b01c098ff7f221f5548abbe6df79a7b53aaf7536d4845467dad2316b"
 	storageGroupedReceiverFingerprint  = "1a12dd3b3db4ae47817d0c6435678a7b6060d44f6cd9756adbfe3b5543d13c8d"
 
 	englishStoragePath    = "docs/features/storage.md"
@@ -197,6 +197,8 @@ func main() {
 			sourceTerms: []string{
 				"Service interface", "PutObject", "GetObject", "DeleteObject",
 				"DeleteObjects", "CopyObject", "StatObject", "Multipart interface",
+				"GetObject(ctx context.Context, opts GetObjectOptions) (io.ReadCloser, *ObjectInfo, error)",
+				"Callers MUST close the reader and MUST nil-check the ObjectInfo",
 				"PartSize() int64", "MaxPartCount() int", "InitMultipart",
 				"PutPart", "CompleteMultipart", "AbortMultipart",
 				"MultipartFor", "ErrPartTooSmall", "ErrPartETagMismatch",
@@ -206,6 +208,7 @@ func main() {
 			docTerms: []string{
 				"type Service interface", "PutObject", "GetObject", "DeleteObject",
 				"DeleteObjects", "CopyObject", "StatObject", "type Multipart interface",
+				"GetObject(ctx, opts GetObjectOptions) (io.ReadCloser, *ObjectInfo, error)",
 				"PartSize() int64", "MaxPartCount() int", "InitMultipart",
 				"PutPart", "CompleteMultipart", "AbortMultipart", "MultipartFor",
 				"ErrPartTooSmall", "ErrPartETagMismatch", "ErrPartNumberOutOfRange",
@@ -322,6 +325,22 @@ func main() {
 				"storage.IdentityURLKeyMapper", "storage.DefaultProxyPrefix",
 				"URLToKey", "KeyToURL", "/storage/files/<key>",
 				"ReplaceHtmlURLs", "ReplaceMarkdownURLs",
+			},
+		},
+		{
+			sourcePath: "storage/metadata.go",
+			docGroup:   "feature",
+			sourceTerms: []string{
+				"func CanonicalizeMetadataKeys(m map[string]string) map[string]string",
+				"textproto.CanonicalMIMEHeaderKey",
+				"if len(m) == 0",
+				"out[textproto.CanonicalMIMEHeaderKey(k)] = v",
+			},
+			docTerms: []string{
+				"CanonicalizeMetadataKeys",
+				"S3/HTTP-header canonical form",
+				"provider-neutral",
+				"author",
 			},
 		},
 		{
@@ -719,7 +738,7 @@ func verifyGroupedStorageSurface(entries []auditEntry, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"181 public storage entries",
+			"182 public storage entries",
 			"81 grouped storage field/method entries",
 			"29 storage receiver/type families",
 			"50 exported storage field entries",

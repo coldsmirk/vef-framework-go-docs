@@ -194,13 +194,18 @@ type ExportError struct {
 | schema | `NewSchema`, `NewSchemaFor[T]`, `NewSchemaFromSpecs`, `Column`, `ColumnSpec`，以及 `Schema` lookup 方法 |
 | adapter | `NewStructAdapter`, `NewStructAdapterFor[T]`, `NewMapAdapter`, `NewMapAdapterFromSpecs`, `RowAdapter`, `RowReader`, `RowWriter`, `RowView`, `RowBuilder` |
 | typed wrapper | `NewTypedImporter[T]`, `NewTypedExporter[T]`, `TypedImporter[T]`, `TypedExporter[T]` |
-| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
+| mapping/parsing | `BuildHeaderMapping`, `DefaultPositionalMapping`, `ColumnMapping`, `NewColumnMapping`, `ParseRow`, `ParseRowOptions`, `ImportRows`, `ImportRowsOptions`, `MappingOptions`, `MapOption`, `WithRowValidator`, `RowValidator`, `CellValidator`, `IsEmptyRow` |
 | formatter/parser registry | `ResolveFormatter`, `ResolveFormatters`, `ResolveParser`, `ResolveParsers`, `IsDefaultFormatter`, `NewDefaultFormatter`, `NewDefaultParser` |
 | 常量/错误 | `TagTabular`, `IgnoreField`, `AttrDive`, `AttrName`, `AttrOrder`, `AttrWidth`, `AttrDefault`, `AttrFormatter`, `AttrParser`, `AttrFormat`，以及 `ErrDataMustBeSlice`, `ErrDuplicateColumnKey`, `ErrDuplicateHeaderName`, `ErrMissingColumnKey`, `ErrMissingColumnType`, `ErrNoDataRowsFound`, `ErrRequiredMissing`, `ErrSchemaMismatch`, `ErrTypedRowMismatch`, `ErrUnknownColumn`, `ErrUnsetField`, `ErrUnsupportedType` 等 tabular sentinel |
 
-当前 tabular 包审计在生成的 API ledger 中锁定 **143 public tabular
-entries**。分组 member surface 覆盖 **75 grouped tabular field/method
-entries**，分布在 **20 tabular receiver/type families** 中：其中包含 **37
+`tabular.ImportRows(rows, adapter, parsers, opts)` 会通过 `RowAdapter` 解析一个
+已经 materialized 的 `[][]string` 表格。`ImportRowsOptions` 控制 `SkipRows`、
+是否按 header 映射、以及是否 trim whitespace。CSV 和 Excel importer 读取各自格式后，
+都会委托给这个共享 core。
+
+当前 tabular 包审计在生成的 API ledger 中锁定 **148 public tabular
+entries**。分组 member surface 覆盖 **78 grouped tabular field/method
+entries**，分布在 **21 tabular receiver/type families** 中：其中包含 **40
 exported tabular field entries** 和 **38 exported tabular method entries**。
 生成的公开 API 索引仍是完整签名清单；本页负责说明 schema、mapping、
 parser/formatter、adapter 和错误契约家族。
@@ -211,7 +216,7 @@ parser/formatter、adapter 和错误契约家族。
 | --- | --- |
 | column metadata | `Column.Default`, `Column.Width`, `Column.Order`, `Column.Parser`, `Column.ParserFn`, `Column.FormatterFn`, `Column.Index` |
 | dynamic specs | `ColumnSpec.Default`, `ColumnSpec.Width`, `ColumnSpec.Order`, `ColumnSpec.Parser`, `ColumnSpec.ParserFn`, `ColumnSpec.FormatterFn` |
-| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace` |
+| parsing options | `MappingOptions.TrimSpace`, `ParseRowOptions.TrimSpace`, `ImportRowsOptions.SkipRows`, `ImportRowsOptions.HasHeader`, `ImportRowsOptions.TrimSpace` |
 | row adapter contract | `RowAdapter.Writer`, `RowReader.All`, `RowView.Get`, `RowBuilder.Set`, `RowBuilder.Validate`, `RowWriter.NewRow`, `RowWriter.Commit`, `RowWriter.Build` |
 | schema lookup | `Schema.ColumnByKey`, `Schema.ColumnByName` |
 | typed wrappers | `TypedExporter.Inner`, `TypedImporter.Inner` |

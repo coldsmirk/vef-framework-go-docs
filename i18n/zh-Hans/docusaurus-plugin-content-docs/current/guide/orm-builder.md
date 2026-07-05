@@ -26,8 +26,8 @@ Bun alias 的方法签名会在 public API index 中单独记录。嵌入 `fmt.S
 的 query interfaces 公开 `String()` 用于 SQL/debug 渲染；精确签名记录在
 public API index 中。
 
-Grouped-family audit 锁定了 1,344 grouped ORM method entries，覆盖 105 个
-receiver families：其中 1,107 个是 VEF-owned method entries，237 个是 Bun
+Grouped-family audit 锁定了 1,350 grouped ORM method entries，覆盖 105 个
+receiver families：其中 1,113 个是 VEF-owned method entries，237 个是 Bun
 pass-through method entries。Verifier 会固定排序后的成员签名和 receiver
 分布；任何新增、删除、重新分类或签名变化的 ORM 方法，都必须先按源码重新审查，
 audit 才能再次通过。
@@ -652,6 +652,12 @@ db.NewSelect().Model(&departments).
 	Scan(ctx)
 ```
 
+`SelectQuery`、`InsertQuery`、`UpdateQuery`、`DeleteQuery` 和 `MergeQuery`
+都公开 `WithValues(name, model)` 用于 VALUES-based CTE，也公开
+`WithOrderedValues(name, model)` 用于会追加 ordinal column 的 VALUES CTE，
+从而保留 slice 顺序。当前 `WithValues` 签名不再接收排序 flag；需要顺序时请调用
+`WithOrderedValues`。
+
 ## 集合操作
 
 ```go
@@ -1058,6 +1064,10 @@ db.NewSelect().Model(&users).IncludeDeleted().Scan(ctx)
 
 `orm` 包有意重新导出了应用代码会用到的底层 query-builder 契约：
 
+共享的 `QueryBuilder` contract 公开 `QueryBuilder.DB()`，用于返回创建当前
+query 的 VEF `orm.DB`；它还包含 dialect、table metadata、expression-builder、
+subquery 和 condition-builder helpers。
+
 | API 组 | 公开 surface |
 | --- | --- |
 | 数据库入口 | `DB`, `Tx`, `Executor`, `RawQuery`, `SelectQuery`, `InsertQuery`, `UpdateQuery`, `DeleteQuery`, `MergeQuery`, `CreateTableQuery`, `DropTableQuery`, `CreateIndexQuery`, `DropIndexQuery`, `TruncateTableQuery`, `AddColumnQuery`, `DropColumnQuery`, `TableTarget`, `QueryBuilder` |
@@ -1067,11 +1077,15 @@ db.NewSelect().Model(&users).IncludeDeleted().Scan(ctx)
 | 核心 builder | `ConditionBuilder`, `ExprBuilder`, `OrderBuilder`, `CaseBuilder`, `CaseWhenBuilder`, `ConflictBuilder`, `ConflictAction`, `ConflictUpdateBuilder`, `MergeWhenBuilder`, `MergeUpdateBuilder`, `MergeInsertBuilder`, `RelationSpec` |
 | aggregate builder | `CountBuilder`, `SumBuilder`, `AvgBuilder`, `MinBuilder`, `MaxBuilder`, `StringAggBuilder`, `ArrayAggBuilder`, `StdDevBuilder`, `VarianceBuilder`, `JSONObjectAggBuilder`, `JSONArrayAggBuilder`, `BitOrBuilder`, `BitAndBuilder`, `BoolOrBuilder`, `BoolAndBuilder` |
 | window builder | `WindowCountBuilder`, `WindowSumBuilder`, `WindowAvgBuilder`, `WindowMinBuilder`, `WindowMaxBuilder`, `WindowStringAggBuilder`, `WindowArrayAggBuilder`, `WindowStdDevBuilder`, `WindowVarianceBuilder`, `WindowJSONObjectAggBuilder`, `WindowJSONArrayAggBuilder`, `WindowBitOrBuilder`, `WindowBitAndBuilder`, `WindowBoolOrBuilder`, `WindowBoolAndBuilder`, `RowNumberBuilder`, `RankBuilder`, `DenseRankBuilder`, `PercentRankBuilder`, `CumeDistBuilder`, `NTileBuilder`, `LagBuilder`, `LeadBuilder`, `FirstValueBuilder`, `LastValueBuilder`, `NthValueBuilder` |
-| DDL builder 与类型 | `DataTypeDef`, `ColumnConstraint`, `PrimaryKeyBuilder`, `UniqueBuilder`, `CheckBuilder`, `ForeignKeyBuilder`, `ReferenceAction`, `IndexMethod`, `PartitionStrategy` |
+| DDL builder 与类型 | `DataTypeDef`, `ColumnConstraint`, `RawDefault`, `PrimaryKeyBuilder`, `UniqueBuilder`, `CheckBuilder`, `ForeignKeyBuilder`, `ReferenceAction`, `IndexMethod`, `PartitionStrategy` |
 | 表达式占位符 | `PlaceholderKeyOperator`, `ExprOperator`, `ExprTableColumns`, `ExprColumns`, `ExprTablePKs`, `ExprPKs`, `ExprTableName`, `ExprTableAlias` |
 | 审计常量 | `ColumnID`, `ColumnCreatedAt`, `ColumnUpdatedAt`, `ColumnCreatedBy`, `ColumnUpdatedBy`, `ColumnCreatedByName`, `ColumnUpdatedByName`, `FieldID`, `FieldCreatedAt`, `FieldUpdatedAt`, `FieldCreatedBy`, `FieldUpdatedBy`, `FieldCreatedByName`, `FieldUpdatedByName`, `OperatorSystem`, `OperatorCronJob`, `OperatorAnonymous` |
 | enum family | `JoinType`, `FuzzyKind`, `NullsMode`, `FromDirection`, `FrameType`, `FrameBoundKind`, `StatisticalMode`, `DateTimeUnit`, `JoinDefault`, `JoinInner`, `JoinLeft`, `JoinRight`, `JoinFull`, `JoinCross`, `FuzzyStarts`, `FuzzyEnds`, `FuzzyContains`, `NullsDefault`, `NullsRespect`, `NullsIgnore`, `FromDefault`, `FromFirst`, `FromLast`, `FrameDefault`, `FrameRows`, `FrameRange`, `FrameGroups`, `FrameBoundNone`, `FrameBoundUnboundedPreceding`, `FrameBoundUnboundedFollowing`, `FrameBoundCurrentRow`, `FrameBoundPreceding`, `FrameBoundFollowing`, `StatisticalDefault`, `StatisticalPopulation`, `StatisticalSample`, `ConflictDoNothing`, `ConflictDoUpdate`, `UnitYear`, `UnitMonth`, `UnitDay`, `UnitHour`, `UnitMinute`, `UnitSecond`, `ReferenceCascade`, `ReferenceRestrict`, `ReferenceSetNull`, `ReferenceSetDefault`, `ReferenceNoAction`, `IndexBTree`, `IndexHash`, `IndexGIN`, `IndexGiST`, `IndexSPGiST`, `IndexBRIN`, `PartitionRange`, `PartitionList`, `PartitionHash` |
 | helper | `Applier`, `ApplyFunc`, `ApplySort`, `DataType`, `PrimaryKey`, `NotNull`, `Nullable`, `Default`, `Unique`, `Check`, `References`, `AutoIncrement`, `PKField`, `ColumnInfo` |
+
+只有 DDL default 必须原样渲染可信 SQL 表达式时，才使用
+`orm.RawDefault("CURRENT_TIMESTAMP")`。普通 `orm.Default(value)` 仍让字符串、
+布尔值和数字走安全的 literal/bound-value 路径。
 
 ## 下一步
 

@@ -11,11 +11,9 @@ sidebar_position: 1
 当前框架版本要求：
 
 - Go `1.26.1`
-- `CGO_ENABLED=1`
-- 可用的 C 工具链
 
-内置表达式引擎会链接基于 cgo 的 `zen-go` 库，所以框架当前不能在
-`CGO_ENABLED=0` 下构建。
+内置表达式引擎是 pure Go。expression 模块本身不要求 CGO；只有当你选择
+的数据库驱动或其他 native integration 需要时，才需要启用 CGO。
 
 ## 运行前提
 

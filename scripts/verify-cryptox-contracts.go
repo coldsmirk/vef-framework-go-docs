@@ -18,18 +18,18 @@ import (
 const (
 	cryptoxPackage = "github.com/coldsmirk/vef-framework-go/cryptox"
 
-	cryptoxFingerprint = "10f32dd3a1d0db4bcce8f4dd13998ec92edcb6954a96ef80e3473f38b322718b"
-	cryptoxTopLevel    = 77
+	cryptoxFingerprint = "43e9195e7b9fadff400fb3a5d4c835e7083af3e2fe1bf9eb55e9e699389edfc5"
+	cryptoxTopLevel    = 74
 	cryptoxFields      = 0
-	cryptoxMethods     = 8
-	cryptoxEntries     = 85
+	cryptoxMethods     = 9
+	cryptoxEntries     = 83
 
-	cryptoxGroupedEntries              = 8
+	cryptoxGroupedEntries              = 9
 	cryptoxGroupedFields               = 0
-	cryptoxGroupedMethods              = 8
-	cryptoxGroupedReceivers            = 3
-	cryptoxGroupedSignatureFingerprint = "802b292a995b81ebae5e8e5d583c627c149178d9068166ed301117a228ba9f90"
-	cryptoxGroupedReceiverFingerprint  = "b0289cc9ebdef776d3592c4bf53ff8caf6467fd34fa1b41680b29511d8f7b021"
+	cryptoxGroupedMethods              = 9
+	cryptoxGroupedReceivers            = 4
+	cryptoxGroupedSignatureFingerprint = "e547bf53d2483de657407f3844d89676f2597184a73e2153360d1fc726d1e04f"
+	cryptoxGroupedReceiverFingerprint  = "d096e3f24b0a3a5ecbec9419b9d1c300f3963a1a3aa5cc6168f1d9d05dd1fc50"
 
 	englishCryptoxPath = "docs/features/cryptox.md"
 	chineseCryptoxPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/cryptox.md"
@@ -153,7 +153,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Cryptox contract docs verified: 85 public entries, 8 grouped cipher/signer methods, algorithm modes and key encodings")
+	fmt.Println("Cryptox contract docs verified: 83 public entries, 9 grouped cipher/signer methods, algorithm modes and key encodings")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -199,7 +199,7 @@ func verifyContractLedger(contracts contractLedger, sourceRoot string) []string 
 		"CipherSigner",
 		"AesModeGcm",
 		"RsaModeOAEP",
-		"SM4ModeCBC",
+		"WithSM4Iv",
 		"EciesCurveP256",
 	}
 
@@ -380,11 +380,11 @@ func verifyGroupedCryptoxSurface(entries []auditEntry, docs []corpus) []string {
 
 	for _, doc := range docs {
 		for _, term := range []string{
-			"85 public cryptox entries",
-			"8 grouped cryptox method entries",
-			"3 cryptox receiver/type families",
+			"83 public cryptox entries",
+			"9 grouped cryptox method entries",
+			"4 cryptox receiver/type families",
 			"0 exported cryptox field entries",
-			"8 exported cryptox method entries",
+			"9 exported cryptox method entries",
 		} {
 			if !containsNormalized(doc.content, term) {
 				failures = append(failures, doc.label+" missing grouped cryptox audit term "+term)
@@ -430,8 +430,8 @@ func verifyCryptoxDocs(entries []auditEntry, docs []corpus) []string {
 		"`RsaModePKCS1v15`",
 		"`RsaSignModePSS`",
 		"`RsaSignModePKCS1v15`",
-		"`SM4ModeCBC`",
-		"`SM4ModeECB`",
+		"`FixedIVDecrypter`",
+		"`WithSM4Iv(iv)`",
 		"`EciesCurveP256`",
 		"`EciesCurveX25519`",
 		"`EcdsaCurveP256`",
@@ -516,7 +516,8 @@ func verifySourceTerms(sourceRoot string) []string {
 				"func NewAES(key []byte, opts ...AESOption) (Cipher, error)",
 				"len(key) != 16 && len(key) != 24 && len(key) != 32",
 				"mode: AesModeGcm",
-				"if cipher.mode == AesModeCbc",
+				"if a.mode == AesModeGcm",
+				"return a.encryptCBC(plaintext)",
 				"func NewAESFromHex(keyHex string, opts ...AESOption) (Cipher, error)",
 				"func NewAESFromBase64(keyBase64 string, opts ...AESOption) (Cipher, error)",
 				"base64.StdEncoding.EncodeToString(ciphertext)",
@@ -526,7 +527,7 @@ func verifySourceTerms(sourceRoot string) []string {
 			path: "cryptox/rsa_cipher.go",
 			terms: []string{
 				"type RSAMode string",
-				"RsaModeOAEP     RSAMode = \"OAEP\"",
+				"RsaModeOAEP RSAMode = \"OAEP\"",
 				"RsaModePKCS1v15 RSAMode = \"PKCS1v15\"",
 				"type RSASignMode string",
 				"RsaSignModePSS      RSASignMode = \"PSS\"",
@@ -549,18 +550,16 @@ func verifySourceTerms(sourceRoot string) []string {
 		{
 			path: "cryptox/sm4_cipher.go",
 			terms: []string{
-				"type SM4Mode string",
-				"SM4ModeCBC SM4Mode = \"CBC\"",
-				"SM4ModeECB SM4Mode = \"ECB\"",
 				"type SM4Option func(*sm4Cipher)",
 				"func WithSM4Iv(iv []byte) SM4Option",
-				"func WithSM4Mode(mode SM4Mode) SM4Option",
 				"func NewSM4(key []byte, opts ...SM4Option) (Cipher, error)",
-				"mode: SM4ModeCBC",
-				"if cipher.mode == SM4ModeCBC",
+				"len(key) != sm4.BlockSize",
+				"len(cipher.interopIV) != 0 && len(cipher.interopIV) != sm4.BlockSize",
 				"func NewSM4FromHex(keyHex string, opts ...SM4Option) (Cipher, error)",
 				"func NewSM4FromBase64(keyBase64 string, opts ...SM4Option) (Cipher, error)",
-				"sm4.Sm4Ecb",
+				"func (s *sm4Cipher) DecryptWithFixedIV(ciphertext string) (string, error)",
+				"cipher.NewCBCEncrypter(block, iv).CryptBlocks",
+				"_ FixedIVDecrypter = (*sm4Cipher)(nil)",
 			},
 		},
 		{
