@@ -357,7 +357,6 @@ The enum type is `ApprovalMethod`.
 | All | `PassAll` | `all` | All assignees must approve |
 | Any | `PassAny` | `any` | At least one approval passes |
 | Ratio | `PassRatio` | `ratio` | A percentage must approve |
-| Any Reject | `PassAnyReject` | `any_reject` | Any rejection fails the node |
 
 Custom pass-rule implementations use `PassRuleStrategy`, `PassRuleContext`,
 and return a `PassRuleResult` (`PassRulePending`, `PassRulePassed`,

@@ -85,6 +85,7 @@ VEF **不会** 从一个 RPC 资源自动生成 REST 路由。如果你需要两
 - [安装](./getting-started/installation)：环境和依赖准备
 - [快速开始](./getting-started/quick-start)：真正跑起一个最小应用
 - [配置](./getting-started/configuration)：`application.toml` 控制了什么
+- [升级到 v0.35 注意事项](./getting-started/upgrade-notes-v0.35)：从多数据源之前的基线升级时需要审查的变化
 - [模块与依赖注入](./modules/overview)：你的代码如何接入运行时
 - [路由](./guide/routing)：操作是如何变成 HTTP 端点的
 - [模型](./guide/models)：Bun 模型、审计字段和标签如何配合

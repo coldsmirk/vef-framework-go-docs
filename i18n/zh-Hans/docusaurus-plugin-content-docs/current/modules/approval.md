@@ -342,7 +342,6 @@ principal 解析全局变量。该快照会持久化到 `Instance.Globals`；客
 | 全部 | `PassAll` | `all` | 所有审批人必须同意 |
 | 任意 | `PassAny` | `any` | 至少一人同意即通过 |
 | 比例 | `PassRatio` | `ratio` | 达到一定比例即通过 |
-| 一票否决 | `PassAnyReject` | `any_reject` | 任何一人拒绝即失败 |
 
 自定义通过规则实现使用 `PassRuleStrategy`、`PassRuleContext`，并返回
 `PassRuleResult`（`PassRulePending`、`PassRulePassed`、`PassRuleRejected`）。

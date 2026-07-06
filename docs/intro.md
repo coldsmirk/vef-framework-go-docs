@@ -85,6 +85,7 @@ The docs are organized around the order in which most users encounter the framew
 - [Installation](./getting-started/installation): environment and package setup
 - [Quick Start](./getting-started/quick-start): a minimal app that actually boots and serves an endpoint
 - [Configuration](./getting-started/configuration): what `application.toml` controls
+- [Upgrade Notes to v0.35](./getting-started/upgrade-notes-v0.35): changes to review when upgrading from the pre-multi-data-source baseline
 - [Modules & Dependency Injection](./modules/overview): how your code joins the runtime
 - [Routing](./guide/routing): how operations become HTTP endpoints
 - [Models](./guide/models): how Bun models, audit fields, and tags work together
