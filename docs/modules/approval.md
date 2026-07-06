@@ -104,10 +104,10 @@ distribution.
 
 | Action | Request fields |
 | --- | --- |
-| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessTitleField`, `params.businessStatusField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
+| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessStatusField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
 | `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formDefinition`, `params.storageMode` |
 | `publish_version` | `params.versionId` required |
-| `update_flow` | `params.flowId` required, `params.name` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
+| `update_flow` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessStatusField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
 | `toggle_active` | `params.flowId` required, `params.isActive` |
 | `get_graph` | `params.flowId` required, `params.tenantId` |
 | `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.page`, `params.pageSize` |
@@ -115,9 +115,9 @@ distribution.
 | `find_versions` | `params.flowId` required, `params.tenantId` |
 
 `params.initiators` entries use `kind` (`user`, `role`, or `department`) and
-`ids`. For business binding, `businessTable`, `businessPkField`,
-`businessTitleField`, and `businessStatusField` are SQL identifiers validated
-by `ValidateBusinessIdentifier`.
+`ids`. For business binding, `businessTable`, `businessPkField`, and
+`businessStatusField` are SQL identifiers validated by
+`ValidateBusinessIdentifier`.
 
 ### `approval/instance`
 
@@ -135,8 +135,8 @@ by `ValidateBusinessIdentifier`.
 
 | Action | Request fields |
 | --- | --- |
-| `start` | `params.tenantId` required, `params.flowCode` required, `params.businessRef`, `params.formData` |
-| `process_task` | `params.taskId` required, `params.action` required (`approve`, `reject`, `transfer`, `rollback`, or `handle`), `params.opinion` max 2000 chars, `params.formData`, `params.attachments`, `params.transferToId`, `params.targetNodeId` |
+| `start` | `params.tenantId` required, `params.flowCode` required, `params.businessRef` max 512 chars, `params.formData` |
+| `process_task` | `params.taskId` required, `params.action` required (`approve`, `reject`, `transfer`, `rollback`, or `handle`), `params.opinion` max 2000 chars, `params.formData`, `params.attachments` max 20 entries, each max 512 chars, `params.transferToId`, `params.targetNodeId` |
 | `withdraw` | `params.instanceId` required, `params.reason` max 2000 chars |
 | `resubmit` | `params.instanceId` required, `params.formData` |
 | `add_cc` | `params.instanceId` required, `params.ccUserIds` required, 1-50 IDs |
@@ -288,7 +288,7 @@ See [Configuration Reference](../reference/configuration-reference) for details.
 | Standalone | `BindingStandalone` | `standalone` | Form data stored in the approval module's own tables |
 | Business | `BindingBusiness` | `business` | Links to an existing business data table |
 
-Business binding connects the approval flow to your domain tables via `BusinessTable`, `BusinessPkField`, `BusinessTitleField`, and `BusinessStatusField`.
+Business binding connects the approval flow to your domain tables via `BusinessTable`, `BusinessPkField`, and `BusinessStatusField`.
 
 ## Node Types
 
@@ -701,7 +701,7 @@ The approval engine owns the status write-back (`UPDATE businessTable SET busine
 
 ## Business Identifier Validation
 
-`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessTable`, `BusinessPkField`, `BusinessTitleField`, `BusinessStatusField`) that the engine-owned write-back interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
+`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessTable`, `BusinessPkField`, `BusinessStatusField`) that the engine-owned write-back interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
 
 ```go
 if err := approval.ValidateBusinessIdentifier(table); err != nil {
