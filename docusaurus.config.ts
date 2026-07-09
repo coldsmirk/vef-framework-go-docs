@@ -114,7 +114,7 @@ const config: Config = {
             },
             {
               label: "Guide",
-              to: "/docs/guide/models",
+              to: "/docs/data-access/models",
             },
           ],
         },

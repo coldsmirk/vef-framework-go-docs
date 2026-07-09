@@ -167,7 +167,7 @@ const pathList: PathItem[] = [
       id: 'homepage.paths.routing.description',
       message: 'Learn how RPC requests, REST routes, params, meta, auth, and handlers fit together.',
     }),
-    to: '/docs/guide/routing',
+    to: '/docs/building-apis/routing',
   },
   {
     title: translate({id: 'homepage.paths.crud.title', message: 'Scale with CRUD builders'}),
@@ -175,7 +175,7 @@ const pathList: PathItem[] = [
       id: 'homepage.paths.crud.description',
       message: 'Move from hand-written handlers to generic operations, hooks, search, and pagination.',
     }),
-    to: '/docs/guide/crud',
+    to: '/docs/data-access/crud',
   },
 ];
 
@@ -256,7 +256,7 @@ function Home() {
                 <Link className="button button--primary button--lg" to="/docs/getting-started/quick-start">
                   <Translate id="homepage.hero.primary">Read quick start</Translate>
                 </Link>
-                <Link className="button button--secondary button--lg" to="/docs/guide/routing">
+                <Link className="button button--secondary button--lg" to="/docs/building-apis/routing">
                   <Translate id="homepage.hero.secondary">Explore routing</Translate>
                 </Link>
               </div>
