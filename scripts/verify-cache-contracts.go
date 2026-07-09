@@ -25,8 +25,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English cache docs", filepath.Join(docsRoot, "docs/features/cache.md"))
-	chineseDocs := readCorpus("Chinese cache docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/cache.md"))
+	englishDocs := readCorpus("English cache docs", filepath.Join(docsRoot, "docs/infrastructure/cache.md"))
+	chineseDocs := readCorpus("Chinese cache docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/cache.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -205,8 +205,8 @@ func main() {
 			terms: []string{
 				"type KeyedLoaderFunc[T any] func(ctx context.Context, key string) (T, error)",
 				"type Invalidating[T any] struct",
-				"func NewInvalidating[T any](loader KeyedLoaderFunc[T], logger logx.Logger) *Invalidating[T]",
-				"cache:  NewMemory[T]()", "loader: loader", "logger: logger",
+				"func NewInvalidating[T any](loader KeyedLoaderFunc[T], logger logx.Logger, opts ...MemoryOption) *Invalidating[T]",
+				"cache:  NewMemory[T](opts...)", "loader: loader", "logger: logger",
 				"return i.loader(ctx, key)", "if len(keys) == 0",
 				"i.cache.Clear(ctx)", "i.cache.Delete(ctx, key)",
 				"i.logger.Info(\"Cleared all cache entries\")",
@@ -293,7 +293,7 @@ func publicDocSurfaceTerms() []string {
 		"`cache.GetFunc[T]`", "`func(context.Context, string) (T, bool)`",
 		"`cache.SetFunc[T]`", "`func(context.Context, string, T, ...time.Duration) error`",
 		"`cache.SingleflightMixin[T]`", "`cache.Invalidating[T]`",
-		"`cache.NewInvalidating[T](loader cache.KeyedLoaderFunc[T], logger logx.Logger) *cache.Invalidating[T]`",
+		"`cache.NewInvalidating[T](loader cache.KeyedLoaderFunc[T], logger logx.Logger, opts ...cache.MemoryOption) *cache.Invalidating[T]`",
 		"`cache.ErrMemoryLimitExceeded`", "`cache.ErrCacheClosed`",
 		"`cache.ErrLoaderRequired`", "`cache.ErrTypeAssertionFailed`",
 		"`Get` | `Get(ctx context.Context, key string) (T, bool)`",
@@ -345,7 +345,7 @@ func publicIndexTerms() []string {
 		"TYPE KeyedLoaderFunc : github.com/coldsmirk/vef-framework-go/cache.KeyedLoaderFunc[T any]",
 		"TYPE LoaderFunc : github.com/coldsmirk/vef-framework-go/cache.LoaderFunc[T any]",
 		"TYPE MemoryOption : github.com/coldsmirk/vef-framework-go/cache.MemoryOption",
-		"FUNC NewInvalidating : func[T any](loader github.com/coldsmirk/vef-framework-go/cache.KeyedLoaderFunc[T], logger github.com/coldsmirk/vef-framework-go/logx.Logger) *github.com/coldsmirk/vef-framework-go/cache.Invalidating[T]",
+		"FUNC NewInvalidating : func[T any](loader github.com/coldsmirk/vef-framework-go/cache.KeyedLoaderFunc[T], logger github.com/coldsmirk/vef-framework-go/logx.Logger, opts ...github.com/coldsmirk/vef-framework-go/cache.MemoryOption) *github.com/coldsmirk/vef-framework-go/cache.Invalidating[T]",
 		"FUNC NewMemory : func[T any](opts ...github.com/coldsmirk/vef-framework-go/cache.MemoryOption) github.com/coldsmirk/vef-framework-go/cache.Cache[T]",
 		"FUNC NewPrefixKeyBuilder : func(prefix string) *github.com/coldsmirk/vef-framework-go/cache.PrefixKeyBuilder",
 		"FUNC NewPrefixKeyBuilderWithSeparator : func(prefix string, separator string) *github.com/coldsmirk/vef-framework-go/cache.PrefixKeyBuilder",

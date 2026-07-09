@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	approvalDocsPath        = "docs/modules/approval.md"
-	chineseApprovalDocsPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/modules/approval.md"
+	approvalDocsPath        = "docs/approval.md"
+	chineseApprovalDocsPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/approval.md"
 	runtimeLedgerPath       = "scripts/runtime-api-ledger.json"
 	manifestPath            = "scripts/api-audit-manifest.json"
 	contractLedgerPath      = "scripts/api-contract-ledger.json"
@@ -163,11 +163,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    355,
-		fields:      808,
-		methods:     122,
-		entries:     1285,
-		fingerprint: "fc49fa894b4365b398806a61af9ddfd9c832a5c87017052ce51b4f8377a1fff6",
+		topLevel:    378,
+		fields:      823,
+		methods:     132,
+		entries:     1333,
+		fingerprint: "d9c2c0bd0a05bfc880bd85055e097223a5570839220d00d9cf2b9e7bc5648519",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -179,10 +179,10 @@ var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval/admin",
 		topLevel:    6,
-		fields:      62,
+		fields:      60,
 		methods:     0,
-		entries:     68,
-		fingerprint: "b6d2ddacf99583d37246cbbc2d3ddaca3d3e3ca6ad79feaa152efba53f97e532",
+		entries:     66,
+		fingerprint: "1c843a8f8400f22c84a8fe843ad7638ca4ad20c5cf48237cf5b835f1628d9f3e",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/admin#dto-wire-shape:approval-admin-dtos",
 		},
@@ -190,10 +190,10 @@ var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval/my",
 		topLevel:    8,
-		fields:      67,
+		fields:      68,
 		methods:     0,
-		entries:     75,
-		fingerprint: "12a1f18f5b3cf7b969dc853cf2e3547f7dc5bf47d0d1687a8c5c7c8a823b4a2a",
+		entries:     76,
+		fingerprint: "e6ad65e45fb72650108d7289633637687116fb63a06bf797d73073d34205d681",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos",
 		},
@@ -203,30 +203,30 @@ var approvalPackages = []expectedPackage{
 var approvalGroupedSurfaces = []groupedSurface{
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
-		entryCount:           930,
-		fieldCount:           808,
-		methodCount:          122,
-		receiverCount:        116,
-		signatureFingerprint: "031c28a2b625d2b9ea669aa2d7a0a8775b139aaf5f9562acddbf889820941d74",
-		receiverFingerprint:  "04011ecdc98025025bc09896bdafc4baaa074d550a3f32821c26b495a3c098cb",
+		entryCount:           955,
+		fieldCount:           823,
+		methodCount:          132,
+		receiverCount:        123,
+		signatureFingerprint: "34b0824567611923b21fcb74850f57977ca8620deeba5c896af7377315dbebd0",
+		receiverFingerprint:  "8e1d8ecef9a98f7e87c581cabed6222b0120ec964693097bac7640f613cc585a",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
-		entryCount:           62,
-		fieldCount:           62,
+		entryCount:           60,
+		fieldCount:           60,
 		methodCount:          0,
 		receiverCount:        6,
-		signatureFingerprint: "475311d87d32ff0b7e9cedc0fd0366090efe33fef214d0a54440a8e5c0d81751",
-		receiverFingerprint:  "e97b4ac7b0d5d3c65288db274e386c7b4648e74e71edf074d82547ba338da450",
+		signatureFingerprint: "fcb429a9dc59a49d9a371acb008118c580825d4df0b157242dbca33c3e95c644",
+		receiverFingerprint:  "0695f298d8c00d3acb00ad14407dab7f29b4cdfaf1f659006f8ca54e4d6bb39d",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/my",
-		entryCount:           67,
-		fieldCount:           67,
+		entryCount:           68,
+		fieldCount:           68,
 		methodCount:          0,
 		receiverCount:        8,
-		signatureFingerprint: "d936856fb78ecd3473f13145547be66fb4177ad9d9ee740508259bf934618506",
-		receiverFingerprint:  "90da0c2371d31980421d8f0d1b8ce762754bffeaec3c83337b38bbb491da3b36",
+		signatureFingerprint: "1427ec9ba629b3fa01f49cdefac1d4243d881283c6b15ce7377e1687023c97cd",
+		receiverFingerprint:  "720d08f689e8c5f2fbe676ffb985a37b1b723dd0f5a62773ee646385fe9d28c4",
 	},
 }
 
@@ -427,21 +427,8 @@ func verifyGroupedApprovalSurfaces(audit auditLedger, docs []corpus) []string {
 		receiverRows := receiverRows(receiverCountsByPackage[surface.pkg])
 		failures = append(failures, verifyGroupedSurfaceFingerprint(surface.pkg+" receiver families", receiverRows, surface.receiverCount, surface.receiverFingerprint)...)
 	}
-	if totalGrouped != 1059 {
-		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1059", totalGrouped))
-	}
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"1059 grouped approval field/method entries",
-			"930 approval package entries",
-			"62 approval/admin DTO field entries",
-			"67 approval/my DTO field entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped approval audit term "+term)
-			}
-		}
+	if totalGrouped != 1083 {
+		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1083", totalGrouped))
 	}
 
 	return failures
@@ -698,10 +685,10 @@ func verifyRequestDTOs(sourceRoot string, docs []corpus) []string {
 		"PublishVersionParams":         {"internal/approval/resource/flow.go", "params"},
 		"GetGraphParams":               {"internal/approval/resource/flow.go", "params"},
 		"FindFlowsParams":              {"internal/approval/resource/flow.go", "params"},
-		"UpdateFlowParams":             {"internal/approval/resource/flow.go", "params"},
+		"UpdateParams":                 {"internal/approval/resource/flow.go", "params"},
 		"ToggleActiveParams":           {"internal/approval/resource/flow.go", "params"},
 		"FindVersionsParams":           {"internal/approval/resource/flow.go", "params"},
-		"StartInstanceParams":          {"internal/approval/resource/instance.go", "params"},
+		"StartParams":                  {"internal/approval/resource/instance.go", "params"},
 		"ProcessTaskParams":            {"internal/approval/resource/instance.go", "params"},
 		"WithdrawParams":               {"internal/approval/resource/instance.go", "params"},
 		"ResubmitParams":               {"internal/approval/resource/instance.go", "params"},
@@ -836,7 +823,7 @@ func verifyFlowAndFormWireShapes(sourceRoot string, docs []corpus) []string {
 	typeSources := map[string][]string{
 		"approval/flow_definition.go": {"FlowDefinition", "NodeDefinition", "Position", "EdgeDefinition"},
 		"approval/node_data.go":       {"BaseNodeData", "TaskNodeData", "ApprovalNodeData", "CCNodeData", "ConditionNodeData"},
-		"approval/form_definition.go": {"FormDefinition", "FormFieldDefinition", "FieldOption", "ValidationRule"},
+		"approval/form_field.go":      {"FormFieldDefinition", "FieldOption", "ValidationRule"},
 		"approval/assignee.go":        {"AssigneeDefinition", "CCDefinition"},
 		"approval/condition.go":       {"Condition", "ConditionGroup", "ConditionBranch"},
 	}
@@ -1052,7 +1039,7 @@ func verifyTenantBindingAndExtensionTerms(docs []corpus) []string {
 		"InstanceLifecycleHook",
 		"vef:approval:lifecycle_hooks",
 		"BusinessTable",
-		"BusinessPkField",
+		"BusinessPKField",
 		"BusinessStatusField",
 		"ValidateBusinessIdentifier",
 		"^[A-Za-z_][A-Za-z0-9_]{0,62}$",

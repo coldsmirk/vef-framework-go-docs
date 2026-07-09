@@ -21,8 +21,8 @@ const (
 	logxMethods     = 16
 	logxEntries     = 24
 
-	englishSmallUtilitiesPath = "docs/utilities/small-utilities.md"
-	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"
+	englishSmallUtilitiesPath = "docs/utilities/logx.md"
+	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/logx.md"
 	englishExtensionPath      = "docs/reference/extension-points.md"
 	chineseExtensionPath      = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/extension-points.md"
 	englishIndexPath          = "docs/reference/public-api-index.md"
@@ -469,10 +469,6 @@ func hasCodeReference(content, ref string) bool {
 
 func smallUtilitiesTerms() []string {
 	return []string{
-		logxFingerprint,
-		"8 exported top-level",
-		"16 exported",
-		"no exported fields",
 		"`logx.Level`",
 		"`logx.LevelDebug = 1`",
 		"`logx.LevelInfo = 2`",

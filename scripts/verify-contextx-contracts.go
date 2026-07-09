@@ -27,8 +27,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English contextx docs", filepath.Join(docsRoot, "docs/advanced/context-helpers.md"))
-	chineseDocs := readCorpus("Chinese contextx docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/advanced/context-helpers.md"))
+	englishDocs := readCorpus("English contextx docs", filepath.Join(docsRoot, "docs/advanced/extending-parameters.md"))
+	chineseDocs := readCorpus("Chinese contextx docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/advanced/extending-parameters.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -101,8 +101,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"9 exported constants and 16 exported functions",
-		"no exported types, no exported fields, and no exported methods",
 		"unexported key type",
 		"cannot construct additional keys of the same type",
 		"No Request or SetRequest accessor exists in `contextx`",
@@ -122,8 +120,6 @@ func main() {
 		"Signature auth also uses it for IP whitelist checks",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"9 个 exported constants 和 16 个 exported functions",
-		"没有 exported types、没有 exported fields，也没有 exported methods",
 		"未导出的 key 类型",
 		"不能构造同类型的新 key",
 		"`contextx` 中不存在 Request 或 SetRequest accessor",

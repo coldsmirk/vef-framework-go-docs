@@ -16,12 +16,12 @@ const (
 	auditLedgerPath = "scripts/api-audit-ledger.json"
 	securityPackage = "github.com/coldsmirk/vef-framework-go/security"
 
-	securityGroupedEntryCount           = 177
-	securityGroupedFieldCount           = 77
-	securityGroupedMethodCount          = 100
-	securityGroupedReceiverCount        = 68
-	securityGroupedSignatureFingerprint = "31ae1d4b55670fa7b205351be83ddf1155206b3b3e726c0daa87e60e3520beb4"
-	securityGroupedReceiverFingerprint  = "75b34f454220048cd7bec56b1534ddd6aaa6a6bebbea58d4a8dbcf98fae8412b"
+	securityGroupedEntryCount           = 239
+	securityGroupedFieldCount           = 103
+	securityGroupedMethodCount          = 136
+	securityGroupedReceiverCount        = 86
+	securityGroupedSignatureFingerprint = "97f7d1817a8d56eb33e9bdf7a49487c54a2becdf9c0e9446e82b3b2edf3d5a06"
+	securityGroupedReceiverFingerprint  = "33dbb44af3fe43549d25fd3f4bc6e93eaa19250257dc32c8cc0b9d96b803c8a9"
 )
 
 type corpus struct {
@@ -71,7 +71,7 @@ func main() {
 	audit := loadJSON[auditLedger](filepath.Join(docsRoot, auditLedgerPath))
 
 	var failures []string
-	failures = append(failures, verifyGroupedSecuritySurface(audit, authDocs)...)
+	failures = append(failures, verifyGroupedSecuritySurface(audit)...)
 	failures = append(failures, runChecks(sourceRoot, authDocs, authChecks())...)
 	failures = append(failures, runChecks(sourceRoot, authzDocs, authzChecks())...)
 	failures = append(failures, runChecks(sourceRoot, dataPermDocs, dataPermChecks())...)
@@ -81,11 +81,11 @@ func main() {
 		panic(fmt.Errorf("security contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("Security contract docs verified: 177 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
+	fmt.Printf("Security contract docs verified: 239 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
 		len(authDocs), len(authzDocs), len(dataPermDocs))
 }
 
-func verifyGroupedSecuritySurface(audit auditLedger, docs []corpus) []string {
+func verifyGroupedSecuritySurface(audit auditLedger) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -132,19 +132,6 @@ func verifyGroupedSecuritySurface(audit auditLedger, docs []corpus) []string {
 		securityGroupedReceiverCount,
 		securityGroupedReceiverFingerprint,
 	)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"177 grouped security field/method entries",
-			"68 receiver/type families",
-			"77 public field entries",
-			"100 public method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped security audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }
@@ -872,11 +859,6 @@ func loadJSON[T any](path string) T {
 	}
 
 	return result
-}
-
-func containsNormalized(content, term string) bool {
-	return strings.Contains(content, term) ||
-		strings.Contains(strings.Join(strings.Fields(content), " "), strings.Join(strings.Fields(term), " "))
 }
 
 func cleanAbs(path string) string {

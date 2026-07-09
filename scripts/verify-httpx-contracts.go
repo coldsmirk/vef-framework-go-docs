@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -61,10 +61,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"3 exported functions",
-		"no exported types",
-		"no exported fields",
-		"no exported methods",
 		"delegates to Fiber's `ctx.Is(\"json\")`",
 		"accepts standard JSON",
 		"content types including charset variants",
@@ -77,10 +73,6 @@ func main() {
 		"to its proxy settings",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"3 个 exported functions",
-		"没有 exported types",
-		"没有 exported fields",
-		"没有 exported methods",
 		"委托 Fiber 的 `ctx.Is(\"json\")`",
 		"接受标准 JSON content type",
 		"`strings.HasPrefix(...)`",

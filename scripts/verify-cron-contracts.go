@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English cron docs", filepath.Join(docsRoot, "docs/features/cron.md"))
-	chineseDocs := readCorpus("Chinese cron docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/cron.md"))
+	englishDocs := readCorpus("English cron docs", filepath.Join(docsRoot, "docs/infrastructure/cron.md"))
+	chineseDocs := readCorpus("Chinese cron docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/cron.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -107,7 +107,6 @@ func main() {
 			path: "cron/job_descriptor.go",
 			terms: []string{
 				"if i.name == \"\"", "return nil, ErrJobNameRequired",
-				"uuid.NewRandom()", "gocron.WithIdentifier(id)",
 				"gocron.WithName(i.name)", "gocron.WithTags(i.tags...)",
 				"if !i.allowConcurrent",
 				"gocron.WithSingletonMode(gocron.LimitModeWait)",

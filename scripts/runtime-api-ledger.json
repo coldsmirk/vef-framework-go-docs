@@ -29708,7 +29708,7 @@
       "name": "approval/admin/find_action_logs",
       "value": "find_action_logs",
       "details": [
-        "permission: approval.log.query",
+        "permission: approval.action_log.query",
         "resource kind: rpc"
       ],
       "source_evidence": [
@@ -29716,7 +29716,7 @@
       ],
       "terms": [
         "action",
-        "approval.log.query",
+        "approval.action_log.query",
         "approval/admin/find_action_logs",
         "built-in",
         "find_action_logs",
@@ -30299,20 +30299,20 @@
     {
       "id": "76f126084a6f01def35330e2",
       "category": "built-in resource action",
-      "name": "approval/flow/update_flow",
-      "value": "update_flow",
+      "name": "approval/flow/update",
+      "value": "update",
       "details": [
         "audit enabled",
         "permission: approval.flow.update",
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:38"
+        "internal/approval/resource/flow.go:40"
       ],
       "terms": [
         "action",
         "approval.flow.update",
-        "approval/flow/update_flow",
+        "approval/flow/update",
         "audit",
         "built-in",
         "enabled",
@@ -30320,7 +30320,7 @@
         "permission:",
         "resource",
         "rpc",
-        "update_flow"
+        "update"
       ]
     },
     {

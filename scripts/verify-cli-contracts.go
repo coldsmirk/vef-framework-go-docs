@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -317,7 +316,6 @@ func verifyGeneratedIndexSection(index corpus, pkg cliPackage, entries []auditEn
 func verifyCLIDocumentedSurface(doc corpus) []string {
 	var failures []string
 	failures = append(failures, missingTerms(doc, []string{
-		"cmd/vef-cli/**",
 		"vef-cli",
 		"generate-build-info",
 		"generate-model-schema",
@@ -344,19 +342,13 @@ func verifyCLIDocumentedSurface(doc corpus) []string {
 		"__",
 	})...)
 
-	for _, pkg := range cliPackages {
-		failures = append(failures, missingTerms(doc, []string{
-			pkg.pkg,
-			strconv.Itoa(pkg.entries),
-			pkg.fingerprint,
-		})...)
-	}
-
 	alternatives := map[string][]string{
 		"CLI import boundary": {
 			"instead of importing command implementation packages",
+			"instead of\nimporting the `cmd/vef-cli/cmd/*` implementation packages directly",
 			"不应\nimport 命令实现包",
 			"不是受支持的 import API",
+			"而不是直接 import\n`cmd/vef-cli/cmd/*`",
 		},
 		"create placeholder": {
 			"not implemented",

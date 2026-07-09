@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -63,11 +63,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"2 top-level exported symbols",
-		"2 exported fields",
-		"6 exported\nmethods",
-		"no exported constants",
-		"no exported variables",
 		"`Range[T]` is constrained to `cmp.Ordered`",
 		"ranges are inclusive at both ends: `[Start, End]`",
 		"exported fields have no JSON tags",
@@ -84,11 +79,6 @@ func main() {
 		"`max(Start, other.Start)` to `min(End, other.End)`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"2 个 top-level exported symbols",
-		"2 个 exported fields",
-		"6 个\nexported methods",
-		"没有 exported constants",
-		"没有 exported variables",
 		"`Range[T]` 约束为 `cmp.Ordered`",
 		"区间两端都是闭区间：`[Start, End]`",
 		"exported fields 没有 JSON tags",

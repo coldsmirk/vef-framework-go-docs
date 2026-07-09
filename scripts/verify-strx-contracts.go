@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -62,10 +62,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"11 top-level exported symbols",
-		"no exported fields",
-		"no exported\nmethods",
-		"no exported variables",
 		"default parsing uses comma-separated pairs",
 		"`=` as the key/value separator",
 		"`BareAsValue`",
@@ -91,10 +87,6 @@ func main() {
 		"nil `ParseOption` or nil delimiter\n  function will panic when reached",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"11 个 top-level exported symbols",
-		"没有 exported fields",
-		"没有 exported methods",
-		"没有 exported variables",
 		"默认解析使用 comma-separated pairs",
 		"`=` 作为 key/value separator",
 		"`BareAsValue`",

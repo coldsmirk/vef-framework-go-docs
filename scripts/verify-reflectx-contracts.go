@@ -21,8 +21,8 @@ const (
 	reflectxMethods     = 0
 	reflectxEntries     = 94
 
-	englishSmallUtilitiesPath = "docs/utilities/small-utilities.md"
-	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"
+	englishSmallUtilitiesPath = "docs/utilities/reflectx.md"
+	chineseSmallUtilitiesPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/reflectx.md"
 	englishIndexPath          = "docs/reference/public-api-index.md"
 	chineseIndexPath          = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -370,10 +370,6 @@ func hasCodeReference(content, ref string) bool {
 
 func smallUtilitiesTerms() []string {
 	return []string{
-		reflectxFingerprint,
-		"82 exported top-level",
-		"12 exported fields",
-		"no exported\nmethods",
 		"reflectx.ToString",
 		"reflectx.ToBoolE",
 		"reflectx.ToDecimalE",

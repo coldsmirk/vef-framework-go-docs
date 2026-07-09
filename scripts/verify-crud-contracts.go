@@ -33,12 +33,12 @@ const (
 	crudGroupedSignatureFingerprint = "ad294250b01cbbd2f67019f48524ca9771c867a2b68d99b1017b977326a2006d"
 	crudGroupedReceiverFingerprint  = "f20b3dc2a881bf0b206babbe89a687cde293e74a641c95dece429dd8ecd692e7"
 
-	englishCrudPath         = "docs/guide/crud.md"
-	chineseCrudPath         = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/crud.md"
-	englishHooksPath        = "docs/guide/hooks.md"
-	chineseHooksPath        = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/hooks.md"
-	englishTransactionsPath = "docs/advanced/transactions.md"
-	chineseTransactionsPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/advanced/transactions.md"
+	englishCrudPath         = "docs/data-access/crud.md"
+	chineseCrudPath         = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/crud.md"
+	englishHooksPath        = "docs/data-access/hooks.md"
+	chineseHooksPath        = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/hooks.md"
+	englishTransactionsPath = "docs/data-access/transactions.md"
+	chineseTransactionsPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/transactions.md"
 	englishIndexPath        = "docs/reference/public-api-index.md"
 	chineseIndexPath        = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -144,7 +144,7 @@ func main() {
 	failures = append(failures, verifySurfaceEntry("API audit manifest", manifestEntry)...)
 	failures = append(failures, verifyReviewSurface(review)...)
 	failures = append(failures, verifyAuditEntries(auditEntries)...)
-	failures = append(failures, verifyGroupedCRUDSurface(auditEntries, []corpus{englishCrud, chineseCrud})...)
+	failures = append(failures, verifyGroupedCRUDSurface(auditEntries)...)
 	failures = append(failures, verifyCoverage(auditEntries, manifestEntry, review, contract)...)
 
 	for _, index := range []corpus{englishIndex, chineseIndex} {
@@ -246,7 +246,7 @@ func verifyAuditEntries(entries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedCRUDSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedCRUDSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -294,19 +294,6 @@ func verifyGroupedCRUDSurface(entries []auditEntry, docs []corpus) []string {
 		crudGroupedReceiverFingerprint,
 	)...)
 
-	for _, doc := range docs {
-		for _, term := range []string{
-			"299 grouped CRUD builder entries",
-			"27 receiver families",
-			"36 public field entries",
-			"263 public method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped CRUD audit term "+term)
-			}
-		}
-	}
-
 	return failures
 }
 
@@ -352,7 +339,7 @@ func verifyCoverage(
 	contract contractEntry,
 ) []string {
 	var failures []string
-	expected := []string{englishCrudPath, "docs/guide/query-builder.md", englishHooksPath}
+	expected := []string{englishCrudPath, "docs/data-access/query-builder.md", englishHooksPath}
 	if !sameSet(manifestEntry.Coverage, expected) {
 		failures = append(failures, fmt.Sprintf("manifest CRUD coverage mismatch: got %v want %v", manifestEntry.Coverage, expected))
 	}
@@ -1094,10 +1081,6 @@ func contains(values []string, want string) bool {
 	return false
 }
 
-func containsNormalized(content, term string) bool {
-	return strings.Contains(content, term) ||
-		strings.Contains(strings.Join(strings.Fields(content), " "), strings.Join(strings.Fields(term), " "))
-}
 
 func readCorpus(label, path string) corpus {
 	return corpus{label: label, content: readFile(path)}

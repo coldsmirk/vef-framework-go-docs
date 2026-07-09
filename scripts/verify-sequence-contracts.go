@@ -25,14 +25,14 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English sequence docs", filepath.Join(docsRoot, "docs/features/sequence.md"))
-	chineseDocs := readCorpus("Chinese sequence docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/sequence.md"))
+	englishDocs := readCorpus("English sequence docs", filepath.Join(docsRoot, "docs/infrastructure/sequence.md"))
+	chineseDocs := readCorpus("Chinese sequence docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/sequence.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
 	publicSymbols := exportedTopLevelNames(filepath.Join(sourceRoot, "sequence"))
 	expectedSymbols := []string{
-		"DBStore", "DBStoreTableName", "ErrInvalidCount",
+		"DBStore", "DBStoreTableName", "ErrInvalidCount", "ErrInvalidStep",
 		"ErrRuleNotFound", "ErrSequenceOverflow",
 		"FormatDate", "Generator", "MemoryStore", "NewMemoryStore",
 		"NewDBStore", "NewRedisStore", "OverflowError", "OverflowExtend",

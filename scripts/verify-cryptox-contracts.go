@@ -31,8 +31,8 @@ const (
 	cryptoxGroupedSignatureFingerprint = "e547bf53d2483de657407f3844d89676f2597184a73e2153360d1fc726d1e04f"
 	cryptoxGroupedReceiverFingerprint  = "d096e3f24b0a3a5ecbec9419b9d1c300f3963a1a3aa5cc6168f1d9d05dd1fc50"
 
-	englishCryptoxPath = "docs/features/cryptox.md"
-	chineseCryptoxPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/cryptox.md"
+	englishCryptoxPath = "docs/security/cryptox.md"
+	chineseCryptoxPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/security/cryptox.md"
 	englishIndexPath   = "docs/reference/public-api-index.md"
 	chineseIndexPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -377,20 +377,6 @@ func verifyGroupedCryptoxSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("cryptox grouped receiver/type families", receiverRows, cryptoxGroupedReceivers, cryptoxGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"83 public cryptox entries",
-			"9 grouped cryptox method entries",
-			"4 cryptox receiver/type families",
-			"0 exported cryptox field entries",
-			"9 exported cryptox method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped cryptox audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

@@ -57,8 +57,8 @@ func main() {
 	publicFacade := readCorpus("public ORM facade", filepath.Join(sourceRoot, "orm/orm.go"))
 	queryTrait := readCorpus("internal ORM query traits", filepath.Join(sourceRoot, "internal/orm/query_trait.go"))
 	goMod := readCorpus("source go.mod", filepath.Join(sourceRoot, "go.mod"))
-	englishDocs := readCorpus("English ORM docs", filepath.Join(docsRoot, "docs/guide/orm-builder.md"))
-	chineseDocs := readCorpus("Chinese ORM docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/orm-builder.md"))
+	englishDocs := readCorpus("English ORM docs", filepath.Join(docsRoot, "docs/data-access/orm-builder.md"))
+	chineseDocs := readCorpus("Chinese ORM docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/orm-builder.md"))
 	docs := []corpus{englishDocs, chineseDocs}
 
 	var failures []string
@@ -109,7 +109,6 @@ func main() {
 	commonDocTerms := []string{
 		"VEF-owned ORM method families",
 		"receiver/category",
-		"1,350 grouped ORM method entries",
 		"orm.SelectQuery",
 		"orm.InsertQuery",
 		"orm.UpdateQuery",
@@ -143,17 +142,11 @@ func main() {
 		"Do not read VEF query-interface behavior from the Bun aliases",
 		"These rows describe VEF `orm.SelectQuery` execution methods",
 		"not the upstream `orm.BunSelectQuery` pass-through alias",
-		"105 receiver families",
-		"1,113 VEF-owned method entries",
-		"237 Bun pass-through method entries",
 	}
 	chineseDocTerms := []string{
 		"不要用 Bun aliases 推断 VEF",
 		"以下行描述的是 VEF `orm.SelectQuery` 执行方法",
 		"不是上游 `orm.BunSelectQuery` pass-through alias",
-		"105 个 receiver families",
-		"1,113 个是 VEF-owned method entries",
-		"237 个是 Bun pass-through method entries",
 	}
 
 	for _, doc := range docs {

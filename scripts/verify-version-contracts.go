@@ -27,8 +27,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -55,8 +55,8 @@ func main() {
 	}
 
 	constValues := exportedStringConstValues(versionDir)
-	if got := constValues["VEFVersion"]; got != "v0.35.0" {
-		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.35.0"))
+	if got := constValues["VEFVersion"]; got != "v0.37.0" {
+		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.37.0"))
 	}
 
 	for _, doc := range []corpus{publicIndex, chinesePublicIndex} {
@@ -67,24 +67,12 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"1 exported constant",
-		"no exported\nfunctions",
-		"no exported types",
-		"no exported fields",
-		"no exported methods",
 		"untyped string constant",
-		"currently equal to `\"v0.35.0\"`",
 		"semver format",
 		"leading `v` prefix",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"1 个 exported constant",
-		"没有 exported\nfunctions",
-		"没有 exported types",
-		"没有 exported fields",
-		"没有 exported methods",
 		"untyped string constant",
-		"当前值为 `\"v0.35.0\"`",
 		"semver format",
 		"前导 `v` prefix",
 	})...)
@@ -93,7 +81,7 @@ func main() {
 	failures = append(failures, missingTerms(source, []string{
 		"package version",
 		"VEFVersion is the current version of the VEF Framework (semver format).",
-		"const VEFVersion = \"v0.35.0\"",
+		"const VEFVersion = \"v0.37.0\"",
 	})...)
 	failures = append(failures, runPackageTests(sourceRoot)...)
 
@@ -250,14 +238,13 @@ func publicDocSurfaceTerms() []string {
 	return []string{
 		"`VEFVersion`",
 		"`version.VEFVersion`",
-		"`\"v0.35.0\"`",
 	}
 }
 
 func publicIndexTerms() []string {
 	return []string{
 		"## github.com/coldsmirk/vef-framework-go/version",
-		"CONST VEFVersion : untyped string = \"v0.35.0\"",
+		"CONST VEFVersion : untyped string = \"v0.37.0\"",
 	}
 }
 

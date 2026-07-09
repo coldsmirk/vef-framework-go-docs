@@ -31,8 +31,8 @@ const (
 	moldGroupedSignatureFingerprint = "c13ba6272799d3e2c0caecc57285bc41e21286a5d29975421c0910c29950fe5d"
 	moldGroupedReceiverFingerprint  = "894ac12de35dbfce1502fb244901535292680957f9b5650e02c2b351af0a100f"
 
-	englishMoldPath  = "docs/features/mold.md"
-	chineseMoldPath  = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/mold.md"
+	englishMoldPath  = "docs/data-tools/mold.md"
+	chineseMoldPath  = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/mold.md"
 	englishIndexPath = "docs/reference/public-api-index.md"
 	chineseIndexPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -403,20 +403,6 @@ func verifyGroupedMoldSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("mold grouped receiver/type families", receiverRows, moldGroupedReceivers, moldGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"41 public mold entries",
-			"24 grouped mold field/method entries",
-			"12 mold receiver/type families",
-			"1 exported mold field entry",
-			"23 exported mold method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped mold audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

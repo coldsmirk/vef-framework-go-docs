@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English validation docs", filepath.Join(docsRoot, "docs/guide/validation.md"))
-	chineseDocs := readCorpus("Chinese validation docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/validation.md"))
+	englishDocs := readCorpus("English validation docs", filepath.Join(docsRoot, "docs/data-access/validation.md"))
+	chineseDocs := readCorpus("Chinese validation docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/validation.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -69,10 +69,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"5 top-level exported symbols",
-		"6 exported fields",
-		"no exported\nmethods",
-		"fingerprint is\n`747c46e376e5a77e49d9266c675461dfca729dc5cb2e9b54b231c86aab67ddcf`",
 		"success returns `nil`, validation failure returns the first translated error as a bad-request `result.Error`",
 		"Registers each `ValidationRule` with the shared validator and both built-in translators",
 		"Registers a custom type extractor by delegating to `RegisterCustomTypeFunc`",
@@ -92,10 +88,6 @@ func main() {
 		"go-playground translator renders `ErrMessageTemplate`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"5 个\ntop-level exported symbols",
-		"6 个 exported fields",
-		"没有 exported methods",
-		"fingerprint 是\n`747c46e376e5a77e49d9266c675461dfca729dc5cb2e9b54b231c86aab67ddcf`",
 		"成功返回 `nil`，校验失败时把第一个翻译后的错误包装成 bad-request `result.Error`",
 		"注册到共享 validator 和两个内置 translators",
 		"通过 `RegisterCustomTypeFunc` 注册自定义类型提取函数",

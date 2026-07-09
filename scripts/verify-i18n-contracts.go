@@ -28,7 +28,7 @@ const (
 	localesFieldCount    = 0
 	localesMethodCount   = 0
 	localesEntryCount    = 1
-	localeMessageCount   = 171
+	localeMessageCount   = 195
 )
 
 type corpus struct {
@@ -53,8 +53,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English i18n docs", filepath.Join(docsRoot, "docs/features/i18n.md"))
-	chineseDocs := readCorpus("Chinese i18n docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/i18n.md"))
+	englishDocs := readCorpus("English i18n docs", filepath.Join(docsRoot, "docs/data-tools/i18n.md"))
+	chineseDocs := readCorpus("Chinese i18n docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/i18n.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -166,12 +166,7 @@ func publicIndexTerms() []string {
 
 func englishDocTerms() []string {
 	return []string{
-		"12 top-level exported symbols, 1 exported field, and 2 exported methods",
-		"public surface fingerprint is `" + i18nFingerprint + "`",
-		"1 top-level exported symbol, 0 exported fields, and 0 exported methods",
-		"public surface fingerprint is `" + localesFingerprint + "`",
 		"`i18n.GetSupportedLanguages()` returns a copy",
-		"`en.json` and `zh-CN.json` catalogs contain the same 171 message IDs",
 		"`i18n.DefaultLanguage` | default language constant (`zh-CN`)",
 		"`i18n.GetSupportedLanguages()` | return a copy of the supported language codes (`zh-CN`, `en`)",
 		"`i18n.IsLanguageSupported(code)` | report whether a language code is supported",
@@ -209,12 +204,7 @@ func englishDocTerms() []string {
 
 func chineseDocTerms() []string {
 	return []string{
-		"12 个 top-level exported symbols、1 个 exported field、2 个 exported methods",
-		"public surface fingerprint 是 `" + i18nFingerprint + "`",
-		"1 个 top-level exported symbol、0 个 exported fields、0 个 exported methods",
-		"public surface fingerprint 是 `" + localesFingerprint + "`",
 		"`i18n.GetSupportedLanguages()` 返回 supported-language slice 的副本",
-		"`en.json` 和 `zh-CN.json` catalogs 各包含同一组 171 个 message IDs",
 		"`i18n.DefaultLanguage` | 默认语言常量（`zh-CN`）",
 		"`i18n.GetSupportedLanguages()` | 返回支持的语言代码副本（`zh-CN`、`en`）",
 		"`i18n.IsLanguageSupported(code)` | 判断语言代码是否受支持",
@@ -494,8 +484,8 @@ func verifyManifest(path string) []string {
 			entry.Methods != want.methods || entry.Fingerprint != want.fingerprint {
 			failures = append(failures, fmt.Sprintf("manifest surface mismatch for %s", entry.Package))
 		}
-		if !contains(entry.Coverage, "docs/features/i18n.md") {
-			failures = append(failures, fmt.Sprintf("manifest coverage for %s does not include docs/features/i18n.md", entry.Package))
+		if !contains(entry.Coverage, "docs/data-tools/i18n.md") {
+			failures = append(failures, fmt.Sprintf("manifest coverage for %s does not include docs/data-tools/i18n.md", entry.Package))
 		}
 	}
 	for pkg := range expected {
@@ -549,8 +539,8 @@ func verifyContractLedger(path string) []string {
 				review.ReviewedSurface.Fingerprint != i18nFingerprint {
 				failures = append(failures, "contract ledger reviewed surface mismatch for "+i18nPackage)
 			}
-			if !contains(review.Coverage, "docs/features/i18n.md") {
-				failures = append(failures, "contract ledger coverage missing docs/features/i18n.md for "+i18nPackage)
+			if !contains(review.Coverage, "docs/data-tools/i18n.md") {
+				failures = append(failures, "contract ledger coverage missing docs/data-tools/i18n.md for "+i18nPackage)
 			}
 			if !contains(review.ContractIDs, i18nPackage+"#runtime-contract:language-selection-and-fallback") {
 				failures = append(failures, "contract ledger missing i18n language-selection contract id")
@@ -564,8 +554,8 @@ func verifyContractLedger(path string) []string {
 				review.ReviewedSurface.Fingerprint != localesFingerprint {
 				failures = append(failures, "contract ledger reviewed surface mismatch for "+localesPackage)
 			}
-			if !contains(review.Coverage, "docs/features/i18n.md") {
-				failures = append(failures, "contract ledger coverage missing docs/features/i18n.md for "+localesPackage)
+			if !contains(review.Coverage, "docs/data-tools/i18n.md") {
+				failures = append(failures, "contract ledger coverage missing docs/data-tools/i18n.md for "+localesPackage)
 			}
 			if !contains(review.ContractIDs, localesPackage+"#runtime-contract:embedded-locale-files") {
 				failures = append(failures, "contract ledger missing locales embedded-file contract id")
@@ -593,8 +583,8 @@ func verifyContractLedger(path string) []string {
 			continue
 		}
 		seenEntries[entry.ID] = true
-		if !contains(entry.Coverage, "docs/features/i18n.md") {
-			failures = append(failures, "contract ledger entry coverage missing docs/features/i18n.md for "+entry.ID)
+		if !contains(entry.Coverage, "docs/data-tools/i18n.md") {
+			failures = append(failures, "contract ledger entry coverage missing docs/data-tools/i18n.md for "+entry.ID)
 		}
 		for _, term := range terms {
 			if !contains(entry.Terms, term) {

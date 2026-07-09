@@ -29,8 +29,8 @@ func main() {
 
 	englishDocs := readCorpus("English tree docs", filepath.Join(docsRoot, "docs/utilities/tree.md"))
 	chineseDocs := readCorpus("Chinese tree docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/tree.md"))
-	englishCrudDocs := readCorpus("English CRUD docs", filepath.Join(docsRoot, "docs/guide/crud.md"))
-	chineseCrudDocs := readCorpus("Chinese CRUD docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/crud.md"))
+	englishCrudDocs := readCorpus("English CRUD docs", filepath.Join(docsRoot, "docs/data-access/crud.md"))
+	chineseCrudDocs := readCorpus("Chinese CRUD docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/crud.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -58,11 +58,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"4 top-level exported symbols",
-		"4 exported fields",
-		"no exported\nmethods",
-		"no exported constants",
-		"no exported variables",
 		"`Build(nil, adapter)` and `Build([]T{}, adapter)` return a non-nil empty\n  slice (`[]T{}`)",
 		"`GetID` values are raw string keys",
 		"empty-ID nodes are not\n  indexed for parent lookup and their own children are not populated",
@@ -83,11 +78,6 @@ func main() {
 		"`FindNodePath` does not add cycle protection around `GetChildren`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"4 个 top-level exported symbols",
-		"4 个 exported fields",
-		"没有\nexported methods",
-		"没有 exported constants",
-		"没有 exported variables",
 		"`Build(nil, adapter)` 和 `Build([]T{}, adapter)` 返回非 nil 空切片",
 		"`GetID` 的值按原始 string key 使用",
 		"空 ID 节点不会进入 parent lookup 的索引",

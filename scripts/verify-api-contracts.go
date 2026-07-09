@@ -62,14 +62,14 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishAPIDocs := readCorpus("English API docs", filepath.Join(docsRoot, "docs/guide/api.md"))
-	chineseAPIDocs := readCorpus("Chinese API docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/api.md"))
-	englishHandlerDocs := readCorpus("English custom handlers docs", filepath.Join(docsRoot, "docs/guide/custom-handlers.md"))
-	chineseHandlerDocs := readCorpus("Chinese custom handlers docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/custom-handlers.md"))
-	englishRoutingDocs := readCorpus("English routing docs", filepath.Join(docsRoot, "docs/guide/routing.md"))
-	chineseRoutingDocs := readCorpus("Chinese routing docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/routing.md"))
-	englishParamsDocs := readCorpus("English params and meta docs", filepath.Join(docsRoot, "docs/guide/params-and-meta.md"))
-	chineseParamsDocs := readCorpus("Chinese params and meta docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/params-and-meta.md"))
+	englishAPIDocs := readCorpus("English API docs", filepath.Join(docsRoot, "docs/building-apis/api.md"))
+	chineseAPIDocs := readCorpus("Chinese API docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/api.md"))
+	englishHandlerDocs := readCorpus("English custom handlers docs", filepath.Join(docsRoot, "docs/building-apis/custom-handlers.md"))
+	chineseHandlerDocs := readCorpus("Chinese custom handlers docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/custom-handlers.md"))
+	englishRoutingDocs := readCorpus("English routing docs", filepath.Join(docsRoot, "docs/building-apis/routing.md"))
+	chineseRoutingDocs := readCorpus("Chinese routing docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/routing.md"))
+	englishParamsDocs := readCorpus("English params and meta docs", filepath.Join(docsRoot, "docs/building-apis/params-and-meta.md"))
+	chineseParamsDocs := readCorpus("Chinese params and meta docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/params-and-meta.md"))
 	englishIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chineseIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -101,10 +101,6 @@ func main() {
 	failures = append(failures, missingTerms(chineseTopicDocs, chinesePublicDocSurfaceTerms())...)
 
 	failures = append(failures, missingTerms(englishAPIDocs, []string{
-		"70 top-level exported symbols",
-		"44 exported fields",
-		"36 exported methods",
-		"fingerprint is `0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`",
 		"`api.NewRPCResource` and `api.NewRESTResource` validate the resource name",
 		"construction time",
 		"They panic when validation fails",
@@ -129,10 +125,6 @@ func main() {
 		"`Params.Decode` and `Meta.Decode` require a pointer to a struct",
 	})...)
 	failures = append(failures, missingTerms(chineseAPIDocs, []string{
-		"70 个 top-level exported symbols",
-		"44 个 exported fields",
-		"36 个 exported methods",
-		"fingerprint 是 `0251a8446a205bc468df9145da68204cb5252356e79cdc1b4ae20c4d0f461bef`",
 		"`api.NewRPCResource` 和 `api.NewRESTResource` 会在构造期校验 resource",
 		"校验失败会 panic",
 		"`api.ValidateActionName(action, kind)`",

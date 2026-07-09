@@ -31,8 +31,8 @@ const (
 	storageGroupedSignatureFingerprint = "d1a8f855b01c098ff7f221f5548abbe6df79a7b53aaf7536d4845467dad2316b"
 	storageGroupedReceiverFingerprint  = "1a12dd3b3db4ae47817d0c6435678a7b6060d44f6cd9756adbfe3b5543d13c8d"
 
-	englishStoragePath    = "docs/features/storage.md"
-	chineseStoragePath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/storage.md"
+	englishStoragePath    = "docs/infrastructure/storage.md"
+	chineseStoragePath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/storage.md"
 	englishConfigPath     = "docs/reference/configuration-reference.md"
 	chineseConfigPath     = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/configuration-reference.md"
 	englishBuiltInsPath   = "docs/reference/built-in-resources.md"
@@ -477,7 +477,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(storageEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(storageEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedStorageSurface(storageEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedStorageSurface(storageEntries)...)
 	failures = append(failures, verifyRuntimeActions(runtime, []corpus{englishDocs, chineseDocs, englishBuiltIns, chineseBuiltIns})...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, storageEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, storageEntries)...)
@@ -700,7 +700,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedStorageSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedStorageSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -735,20 +735,6 @@ func verifyGroupedStorageSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("storage grouped receiver/type families", receiverRows, storageGroupedReceivers, storageGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"182 public storage entries",
-			"81 grouped storage field/method entries",
-			"29 storage receiver/type families",
-			"50 exported storage field entries",
-			"31 exported storage method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped storage audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

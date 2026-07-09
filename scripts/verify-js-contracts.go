@@ -30,8 +30,8 @@ func main() {
 		label:   "js setup source",
 		content: jsSource.content + "\n" + libsSource.content,
 	}
-	englishDocs := readCorpus("English JS docs", filepath.Join(docsRoot, "docs/features/js-engine.md"))
-	chineseDocs := readCorpus("Chinese JS docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/js-engine.md"))
+	englishDocs := readCorpus("English JS docs", filepath.Join(docsRoot, "docs/data-tools/js-engine.md"))
+	chineseDocs := readCorpus("Chinese JS docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/js-engine.md"))
 	docs := []corpus{englishDocs, chineseDocs}
 
 	checks := []struct {

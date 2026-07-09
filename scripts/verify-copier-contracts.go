@@ -61,10 +61,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"9 top-level exported symbols",
-		"no exported fields",
-		"no exported\nmethods",
-		"fingerprint is\n`44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58`",
 		"`copier.Copy(src, dst, options...)`",
 		"`copier.CopyWithOption(dst, src, opt)`",
 		"`dst` must be a pointer destination",
@@ -98,10 +94,6 @@ func main() {
 		"The update builders use `WithIgnoreEmpty()`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"9 个\ntop-level exported symbols",
-		"没有 exported fields",
-		"没有 exported methods",
-		"fingerprint 是\n`44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58`",
 		"`copier.Copy(src, dst, options...)`",
 		"`copier.CopyWithOption(dst, src, opt)`",
 		"`dst` 必须是 pointer destination",

@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	eventDocsPath         = "docs/features/event-bus.md"
-	chineseEventDocsPath  = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/event-bus.md"
+	eventDocsPath         = "docs/infrastructure/event-bus.md"
+	chineseEventDocsPath  = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/event-bus.md"
 	englishIndexPath      = "docs/reference/public-api-index.md"
 	chineseIndexPath      = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 	eventContractCoverage = eventDocsPath
@@ -38,11 +38,11 @@ type eventPackage struct {
 var eventPackages = []eventPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/event",
-		topLevel:    41,
-		fields:      20,
-		methods:     9,
-		entries:     70,
-		fingerprint: "1ed0983c15d2250edba8b970a25fce4f8684e1fa5c8fba518cd1223d4f72459d",
+		topLevel:    44,
+		fields:      28,
+		methods:     10,
+		entries:     82,
+		fingerprint: "490bc23b8a2ca2918b6114a3ea4ba3263c33e3ae1258fb4e784474853ceb0a58",
 		contractID:  "github.com/coldsmirk/vef-framework-go/event#runtime-contract:event-routing-publish-subscribe",
 	},
 	{
@@ -93,10 +93,10 @@ var eventPackages = []eventPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/event/transport/redisstream",
 		topLevel:    2,
-		fields:      11,
-		methods:     9,
-		entries:     22,
-		fingerprint: "fe204fb135c5018a1850bd0edb2572f0c8708ab9c3dd1f7f5171e7f0dbca8a58",
+		fields:      13,
+		methods:     10,
+		entries:     25,
+		fingerprint: "af99f02ce92f12b046e9fe3438f3f87878aebf2fda33d5a37043089761f1a20f",
 		contractID:  "github.com/coldsmirk/vef-framework-go/event/transport/redisstream#runtime-contract:redis-stream-transport-config",
 	},
 }

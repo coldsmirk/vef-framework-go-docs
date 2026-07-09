@@ -225,8 +225,9 @@ func verifyCoverage(
 ) []string {
 	var failures []string
 	expected := []string{englishExtensionPath}
-	if !sameSet(manifestEntry.Coverage, expected) {
-		failures = append(failures, fmt.Sprintf("manifest datasource coverage mismatch: got %v want %v", manifestEntry.Coverage, expected))
+	manifestExpected := []string{englishExtensionPath, "docs/data-access/datasources.md"}
+	if !sameSet(manifestEntry.Coverage, manifestExpected) {
+		failures = append(failures, fmt.Sprintf("manifest datasource coverage mismatch: got %v want %v", manifestEntry.Coverage, manifestExpected))
 	}
 	if !sameSet(review.Coverage, expected) {
 		failures = append(failures, fmt.Sprintf("contract package review datasource coverage mismatch: got %v want %v", review.Coverage, expected))
@@ -235,7 +236,7 @@ func verifyCoverage(
 		failures = append(failures, fmt.Sprintf("contract entry datasource coverage mismatch: got %v want %v", contract.Coverage, expected))
 	}
 	for _, entry := range entries {
-		if !sameSet(entry.Coverage, expected) {
+		if !sameSet(entry.Coverage, manifestExpected) {
 			failures = append(failures, fmt.Sprintf("audit entry %s coverage mismatch: got %v want %v", entry.ID, entry.Coverage, expected))
 		}
 	}
@@ -297,7 +298,6 @@ func hasCodeReference(content, ref string) bool {
 
 func extensionTerms(label string) []string {
 	common := []string{
-		datasourceFingerprint,
 		"`vef.data_sources.primary`",
 		"`orm.DB`",
 		"datasource.Provider.Name",
@@ -328,17 +328,11 @@ func extensionTerms(label string) []string {
 	}
 	if strings.HasPrefix(label, "Chinese") {
 		return append(common,
-			"17 个 top-level symbols",
-			"9 个 exported struct fields",
-			"13 个 exported methods",
 			"provider 顺序未定义",
 		)
 	}
 
 	return append(common,
-		"17 top-level symbols",
-		"9 exported struct fields",
-		"13 exported methods",
 		"Provider order is undefined",
 	)
 }

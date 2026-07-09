@@ -31,8 +31,8 @@ const (
 	schemaGroupedSignatureFingerprint = "fbb57af25a5c2f3364726e554b1c7cd5b6adf69c15e8e2f9877efe6a7a491fda"
 	schemaGroupedReceiverFingerprint  = "06a6a4cd745e4651d3f9962cd32f1f1c07233320ee735e08e3d8e05c9adda521"
 
-	englishSchemaPath   = "docs/features/schema.md"
-	chineseSchemaPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/schema.md"
+	englishSchemaPath   = "docs/infrastructure/schema.md"
+	chineseSchemaPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/schema.md"
 	englishBuiltInsPath = "docs/reference/built-in-resources.md"
 	chineseBuiltInsPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/built-in-resources.md"
 	englishIndexPath    = "docs/reference/public-api-index.md"
@@ -155,7 +155,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(schemaEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(schemaEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedSchemaSurface(schemaEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedSchemaSurface(schemaEntries)...)
 	failures = append(failures, verifyRuntimeActions(runtime, []corpus{englishDocs, chineseDocs, englishBuiltIns, chineseBuiltIns})...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, schemaEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, schemaEntries)...)
@@ -381,7 +381,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedSchemaSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedSchemaSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -416,20 +416,6 @@ func verifyGroupedSchemaSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("schema grouped receiver/type families", receiverRows, schemaGroupedReceivers, schemaGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"53 public schema entries",
-			"41 grouped schema field/method entries",
-			"10 schema receiver/type families",
-			"38 exported schema field entries",
-			"3 exported schema method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped schema audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

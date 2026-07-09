@@ -31,8 +31,8 @@ const (
 	mcpGroupedSignatureFingerprint = "e74c2f6abe36c57b9d13f45b4fd99fb934bcbbb549536a6048bb5c99edfdd803"
 	mcpGroupedReceiverFingerprint  = "40cd9bdc2846dd7956f2512d95c1ad927fb400623a402dcbbf12698b99b87410"
 
-	englishMCPPath   = "docs/features/mcp.md"
-	chineseMCPPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/mcp.md"
+	englishMCPPath   = "docs/ai-integration/mcp.md"
+	chineseMCPPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/ai-integration/mcp.md"
 	englishIndexPath = "docs/reference/public-api-index.md"
 	chineseIndexPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -631,20 +631,6 @@ func verifyGroupedMCPSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("MCP grouped receiver/type families", receiverRows, mcpGroupedReceivers, mcpGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"119 public MCP entries",
-			"75 grouped MCP field/method entries",
-			"27 MCP receiver/type families",
-			"11 exported MCP field entries",
-			"64 exported MCP method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped MCP audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

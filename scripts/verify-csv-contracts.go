@@ -21,12 +21,10 @@ const (
 	csvMethods     = 0
 	csvEntries     = 18
 
-	englishCsvPath      = "docs/features/csv.md"
-	chineseCsvPath      = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/csv.md"
-	englishCsvExcelPath = "docs/features/csv-excel.md"
-	chineseCsvExcelPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/csv-excel.md"
-	englishIndexPath    = "docs/reference/public-api-index.md"
-	chineseIndexPath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
+	englishCsvPath   = "docs/data-tools/tabular.md"
+	chineseCsvPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/tabular.md"
+	englishIndexPath = "docs/reference/public-api-index.md"
+	chineseIndexPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
 
 type corpus struct {
@@ -106,8 +104,6 @@ func main() {
 
 	englishCsv := readCorpus("English CSV docs", docsRoot, englishCsvPath)
 	chineseCsv := readCorpus("Chinese CSV docs", docsRoot, chineseCsvPath)
-	englishCsvExcel := readCorpus("English CSV/Excel docs", docsRoot, englishCsvExcelPath)
-	chineseCsvExcel := readCorpus("Chinese CSV/Excel docs", docsRoot, chineseCsvExcelPath)
 	englishIndex := readCorpus("English public API index", docsRoot, englishIndexPath)
 	chineseIndex := readCorpus("Chinese public API index", docsRoot, chineseIndexPath)
 
@@ -126,12 +122,12 @@ func main() {
 	for _, index := range []corpus{englishIndex, chineseIndex} {
 		failures = append(failures, verifyGeneratedIndexSection(index, entries)...)
 	}
-	for _, doc := range []corpus{englishCsv, chineseCsv, englishCsvExcel, chineseCsvExcel} {
+	for _, doc := range []corpus{englishCsv, chineseCsv} {
 		failures = append(failures, verifyDocumentedSurface(doc, entries)...)
 		failures = append(failures, verifyNoPhantomCsvRefs(doc, entries)...)
 		failures = append(failures, verifyNoCsvOwnedSharedErrors(doc)...)
 		failures = append(failures, verifyNoMapOptsOnExporter(doc)...)
-		failures = append(failures, missingTerms(doc, csvDocTerms(doc.label))...)
+		failures = append(failures, missingTerms(doc, csvDocTerms())...)
 	}
 
 	failures = append(failures, verifyContractLedger(review, contract, sourceRoot)...)
@@ -231,7 +227,7 @@ func verifyCoverage(
 	contract contractEntry,
 ) []string {
 	var failures []string
-	expected := []string{englishCsvPath, englishCsvExcelPath}
+	expected := []string{englishCsvPath}
 	if !sameSet(manifestEntry.Coverage, expected) {
 		failures = append(failures, fmt.Sprintf("manifest csv coverage mismatch: got %v want %v", manifestEntry.Coverage, expected))
 	}
@@ -326,39 +322,18 @@ func hasCodeReference(content, ref string) bool {
 		codePartsContainReference(content, ref)
 }
 
-func csvDocTerms(label string) []string {
-	if strings.Contains(label, "CSV/Excel") {
-		return []string{
-			"csv.NewMapImporter(specs, mapOpts, opts...)",
-			"csv.NewMapExporter(specs, opts...)",
-			"csv.NewImporter",
-			"csv.NewExporter",
-			"csv.NewImporterFor",
-			"csv.NewExporterFor",
-			"csv.NewTypedImporterFor",
-			"csv.NewTypedExporterFor",
-			"csv.ExportOption",
-			"csv.ImportOption",
-			"csv.WithImportDelimiter",
-			"csv.WithExportDelimiter",
-			"csv.WithSkipRows",
-			"csv.WithComment",
-			"csv.WithCRLF",
-			"csv.WithoutHeader",
-			"csv.WithoutTrimSpace",
-			"csv.WithoutWriteHeader",
-		}
-	}
-
+func csvDocTerms() []string {
 	return []string{
-		csvFingerprint,
-		"tabular.Importer",
-		"tabular.Exporter",
-		"[]tabular.ColumnSpec",
-		"[]tabular.MapOption",
-		"tabular.NewMapAdapterFromSpecs",
 		"csv.NewMapImporter(specs, mapOpts, opts...)",
-		"csv.NewMapExporter",
+		"csv.NewMapExporter(specs, opts...)",
+		"csv.NewImporter",
+		"csv.NewExporter",
+		"csv.NewImporterFor",
+		"csv.NewExporterFor",
+		"csv.NewTypedImporterFor",
+		"csv.NewTypedExporterFor",
+		"csv.ExportOption",
+		"csv.ImportOption",
 		"csv.WithImportDelimiter",
 		"csv.WithExportDelimiter",
 		"csv.WithSkipRows",
@@ -367,6 +342,11 @@ func csvDocTerms(label string) []string {
 		"csv.WithoutHeader",
 		"csv.WithoutTrimSpace",
 		"csv.WithoutWriteHeader",
+		"tabular.Importer",
+		"tabular.Exporter",
+		"[]tabular.ColumnSpec",
+		"[]tabular.MapOption",
+		"tabular.NewMapAdapterFromSpecs",
 		"ReadAll",
 		"FieldsPerRecord = -1",
 		"TrimLeadingSpace",
@@ -380,7 +360,7 @@ func csvDocTerms(label string) []string {
 
 func verifyContractLedger(review contractPackageReview, contract contractEntry, sourceRoot string) []string {
 	var failures []string
-	expectedCoverage := []string{englishCsvPath, englishCsvExcelPath}
+	expectedCoverage := []string{englishCsvPath}
 	if contract.ID != csvContractID() {
 		failures = append(failures, fmt.Sprintf("csv contract id mismatch: got %q", contract.ID))
 	}

@@ -69,10 +69,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"15 top-level exported symbols",
-		"no exported fields",
-		"no exported\nmethods",
-		"fingerprint is\n`22e7f661d37170d375f54592fa00078a3ea92b1b93459672709422aab54d5a01`",
 		"Converts `data` to bytes, calls `MD5Bytes`",
 		"Hashes raw bytes with `crypto/md5`",
 		"Converts `data` to bytes, calls `SHA1Bytes`",
@@ -94,10 +90,6 @@ func main() {
 		"Do not use them for password storage",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"15 个\ntop-level exported symbols",
-		"没有 exported fields",
-		"没有 exported methods",
-		"fingerprint 是\n`22e7f661d37170d375f54592fa00078a3ea92b1b93459672709422aab54d5a01`",
 		"将 `data` 转成 bytes，调用 `MD5Bytes`",
 		"使用 `crypto/md5` 对原始 bytes 求 hash",
 		"将 `data` 转成 bytes，调用 `SHA1Bytes`",

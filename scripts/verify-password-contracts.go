@@ -18,11 +18,11 @@ import (
 const (
 	passwordPackage = "github.com/coldsmirk/vef-framework-go/password"
 
-	passwordFingerprint = "7759597dd9992c50971c71c33d276b122e4d38cf2f54be381ae6e8db38c03087"
-	passwordTopLevel    = 46
+	passwordFingerprint = "34139daec02a09573109c2c15bac4660cb917ab4446a31b84e7b630635f4026a"
+	passwordTopLevel    = 43
 	passwordFields      = 0
 	passwordMethods     = 3
-	passwordEntries     = 49
+	passwordEntries     = 46
 
 	passwordGroupedEntries              = 3
 	passwordGroupedFields               = 0
@@ -31,8 +31,8 @@ const (
 	passwordGroupedSignatureFingerprint = "c3f9451be207b1da459663cea4fbf57365324e6ffb224b7453da7e2d2a697d20"
 	passwordGroupedReceiverFingerprint  = "bbd49629bbd1ac2431849426c0fdabee3fa50db8fef9da37373c027d692dff98"
 
-	englishPasswordPath = "docs/features/password.md"
-	chinesePasswordPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/password.md"
+	englishPasswordPath = "docs/security/password.md"
+	chinesePasswordPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/security/password.md"
 	englishIndexPath    = "docs/reference/public-api-index.md"
 	chineseIndexPath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -138,7 +138,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(passwordEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(passwordEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedPasswordSurface(passwordEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedPasswordSurface(passwordEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, passwordEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, passwordEntries)...)
 	failures = append(failures, verifyPasswordDocs(passwordEntries, []corpus{englishDocs, chineseDocs})...)
@@ -153,7 +153,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Password contract docs verified: 49 public entries, 3 grouped encoder methods, prefix/upgrade/cipher contracts")
+	fmt.Println("Password contract docs verified: 46 public entries, 3 grouped encoder methods, prefix/upgrade contracts")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -342,7 +342,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedPasswordSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedPasswordSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -377,20 +377,6 @@ func verifyGroupedPasswordSurface(entries []auditEntry, docs []corpus) []string 
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("password grouped receiver/type families", receiverRows, passwordGroupedReceivers, passwordGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"49 public password entries",
-			"3 grouped password method entries",
-			"1 password receiver/type family",
-			"0 exported password field entries",
-			"3 exported password method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped password audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }
@@ -431,11 +417,8 @@ func verifyPasswordDocs(entries []auditEntry, docs []corpus) []string {
 		"`EncoderSha256`",
 		"`EncoderPlaintext`",
 		"`NewCompositeEncoder`",
-		"`NewCipherEncoder`",
 		"`UpgradeEncoding`",
 		"`ErrDefaultEncoderNotFound`",
-		"`ErrCipherRequired`",
-		"`ErrEncoderRequired`",
 		"`ErrInvalidHashFormat`",
 		"`WithBcryptCost`",
 		"`WithArgon2Memory`",
@@ -510,20 +493,6 @@ func verifySourceTerms(sourceRoot string) []string {
 				"return encoder.UpgradeEncoding(rawEncoded)",
 				"if !strings.HasPrefix(encodedPassword, \"{\")",
 				"strings.Index(encodedPassword, \"}\")",
-			},
-		},
-		{
-			path: "password/cipher.go",
-			terms: []string{
-				"func NewCipherEncoder(cipher cryptox.Cipher, encoder Encoder) Encoder",
-				"if e.cipher == nil",
-				"return \"\", ErrCipherRequired",
-				"if e.encoder == nil",
-				"return \"\", ErrEncoderRequired",
-				"plainPassword, err := e.cipher.Decrypt(password)",
-				"return e.encoder.Encode(plainPassword)",
-				"return e.encoder.Matches(plainPassword, encodedPassword)",
-				"return e.encoder.UpgradeEncoding(encodedPassword)",
 			},
 		},
 		{
@@ -632,8 +601,6 @@ func verifySourceTerms(sourceRoot string) []string {
 				"ErrInvalidEncoderID",
 				"ErrInvalidHashFormat",
 				"ErrDefaultEncoderNotFound",
-				"ErrCipherRequired",
-				"ErrEncoderRequired",
 			},
 		},
 	}

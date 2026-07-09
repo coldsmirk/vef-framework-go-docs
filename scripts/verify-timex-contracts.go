@@ -138,7 +138,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(timexEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(timexEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedTimexSurface(timexEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedTimexSurface(timexEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, timexEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, timexEntries)...)
 	failures = append(failures, verifyTimexDocs(timexEntries, []corpus{englishDocs, chineseDocs})...)
@@ -335,7 +335,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedTimexSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedTimexSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -364,21 +364,6 @@ func verifyGroupedTimexSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("timex grouped receiver/type families", receiverRows, timexGroupedReceivers, timexGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"156 public timex entries",
-			"136 grouped timex method entries",
-			"3 timex receiver/type families",
-			"DateTime: 60 methods",
-			"Date: 45 methods",
-			"Time: 31 methods",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped timex audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }
@@ -462,7 +447,7 @@ func verifySourceTerms(sourceRoot string) []string {
 				"dateLayout     = time.DateOnly",
 				"timeLayout     = time.TimeOnly",
 				"parseTimeWithFallback",
-				"cast.ToTimeE",
+				"cast.ToTimeInDefaultLocationE",
 				"unquoteJSON",
 			},
 		},

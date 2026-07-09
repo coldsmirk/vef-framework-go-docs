@@ -5,21 +5,21 @@
       "package": "github.com/coldsmirk/vef-framework-go",
       "tier": "entrypoint",
       "coverage": [
-        "docs/modules/overview.md",
+        "docs/core-concepts/overview.md",
         "docs/reference/extension-points.md",
-        "docs/modules/lifecycle.md"
+        "docs/core-concepts/lifecycle.md"
       ],
       "notes": "Application boot/module/DI helpers reviewed as the top-level framework entrypoint.",
-      "top_level": 50,
+      "top_level": 52,
       "fields": 0,
       "methods": 1,
-      "fingerprint": "ee38b2126e3bf4a95565978a73665d9353af48b505d20195effcd3dd2685a2ae"
+      "fingerprint": "3cd98d737c753d12039cbd4c52fe9395d3a1eea43f344f0de43a7c073b2f713b"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/ai",
       "tier": "feature",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "notes": "AI provider, agent, tool, message, and option APIs.",
       "top_level": 56,
@@ -31,7 +31,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/ai/stream",
       "tier": "feature",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "notes": "Streaming chunk/writer/builder APIs.",
       "top_level": 64,
@@ -43,10 +43,10 @@
       "package": "github.com/coldsmirk/vef-framework-go/api",
       "tier": "core",
       "coverage": [
-        "docs/guide/api.md",
-        "docs/guide/custom-handlers.md",
-        "docs/guide/params-and-meta.md",
-        "docs/guide/routing.md"
+        "docs/building-apis/api.md",
+        "docs/building-apis/custom-handlers.md",
+        "docs/building-apis/params-and-meta.md",
+        "docs/building-apis/routing.md"
       ],
       "notes": "Resource, operation, request, auth, router, and handler-extension APIs.",
       "top_level": 70,
@@ -58,51 +58,51 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "tier": "module",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "notes": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces.",
-      "top_level": 355,
-      "fields": 808,
-      "methods": 122,
-      "fingerprint": "fc49fa894b4365b398806a61af9ddfd9c832a5c87017052ce51b4f8377a1fff6"
+      "top_level": 378,
+      "fields": 823,
+      "methods": 132,
+      "fingerprint": "d9c2c0bd0a05bfc880bd85055e097223a5570839220d00d9cf2b9e7bc5648519"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
       "tier": "dto",
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "notes": "Admin response DTOs for the built-in approval resource.",
       "top_level": 6,
-      "fields": 62,
+      "fields": 60,
       "methods": 0,
-      "fingerprint": "b6d2ddacf99583d37246cbbc2d3ddaca3d3e3ca6ad79feaa152efba53f97e532"
+      "fingerprint": "1c843a8f8400f22c84a8fe843ad7638ca4ad20c5cf48237cf5b835f1628d9f3e"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/my",
       "tier": "dto",
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "notes": "Current-user approval response DTOs for the built-in approval resource.",
       "top_level": 8,
-      "fields": 67,
+      "fields": 68,
       "methods": 0,
-      "fingerprint": "12a1f18f5b3cf7b969dc853cf2e3547f7dc5bf47d0d1687a8c5c7c8a823b4a2a"
+      "fingerprint": "e6ad65e45fb72650108d7289633637687116fb63a06bf797d73073d34205d681"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/cache",
       "tier": "feature",
       "coverage": [
-        "docs/features/cache.md"
+        "docs/infrastructure/cache.md"
       ],
       "notes": "Cache interfaces, memory/Redis constructors, serializers, eviction, invalidation, and singleflight helpers.",
       "top_level": 31,
       "fields": 0,
       "methods": 15,
-      "fingerprint": "aade55fb60e21d29900dd70eddf7decb32ae6cb35e39d6046250913ade5ff7b5"
+      "fingerprint": "e20a7079309a98194dc544df9414410ff117f2293c37f491f86791d7a4f60280"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd",
@@ -160,16 +160,16 @@
         "docs/getting-started/configuration.md"
       ],
       "notes": "All config structs, config keys, Effective methods, validation, and runtime defaults.",
-      "top_level": 53,
-      "fields": 112,
-      "methods": 23,
-      "fingerprint": "f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65"
+      "top_level": 79,
+      "fields": 142,
+      "methods": 38,
+      "fingerprint": "efa0ae6f533c23c21fa966dde4891e2125d3c431f604b4cf183f85ffb44b1859"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/contextx",
       "tier": "utility",
       "coverage": [
-        "docs/advanced/context-helpers.md"
+        "docs/advanced/extending-parameters.md"
       ],
       "notes": "Request context key/get/set helpers.",
       "top_level": 25,
@@ -205,7 +205,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/cron",
       "tier": "feature",
       "coverage": [
-        "docs/features/cron.md"
+        "docs/infrastructure/cron.md"
       ],
       "notes": "Scheduler, job descriptor, options, and monitor APIs.",
       "top_level": 25,
@@ -217,9 +217,9 @@
       "package": "github.com/coldsmirk/vef-framework-go/crud",
       "tier": "builder",
       "coverage": [
-        "docs/guide/crud.md",
-        "docs/guide/query-builder.md",
-        "docs/guide/hooks.md"
+        "docs/data-access/crud.md",
+        "docs/data-access/query-builder.md",
+        "docs/data-access/hooks.md"
       ],
       "notes": "CRUD builders, options, hooks, processors, import/export, tree, and query-extension APIs.",
       "top_level": 129,
@@ -231,7 +231,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/cryptox",
       "tier": "feature",
       "coverage": [
-        "docs/features/cryptox.md"
+        "docs/security/cryptox.md"
       ],
       "notes": "Symmetric/asymmetric cipher interfaces, constructors, options, and errors.",
       "top_level": 74,
@@ -243,8 +243,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/csv",
       "tier": "feature",
       "coverage": [
-        "docs/features/csv.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "notes": "CSV import/export helpers and options.",
       "top_level": 18,
@@ -256,7 +255,8 @@
       "package": "github.com/coldsmirk/vef-framework-go/datasource",
       "tier": "extension",
       "coverage": [
-        "docs/reference/extension-points.md"
+        "docs/reference/extension-points.md",
+        "docs/data-access/datasources.md"
       ],
       "notes": "Dynamic datasource provider, registry, reconcile, and registration option APIs.",
       "top_level": 17,
@@ -268,7 +268,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/dbx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Database-adjacent duplicate/foreign-key helpers and column alias helper.",
       "top_level": 3,
@@ -292,19 +292,19 @@
       "package": "github.com/coldsmirk/vef-framework-go/event",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Event bus, typed publish/subscribe, route inspector, metrics, and publish/subscribe options.",
-      "top_level": 41,
-      "fields": 20,
-      "methods": 9,
-      "fingerprint": "1ed0983c15d2250edba8b970a25fce4f8684e1fa5c8fba518cd1223d4f72459d"
+      "top_level": 44,
+      "fields": 28,
+      "methods": 10,
+      "fingerprint": "490bc23b8a2ca2918b6114a3ea4ba3263c33e3ae1258fb4e784474853ceb0a58"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/event/inbox",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Inbox repository and idempotency record APIs.",
       "top_level": 13,
@@ -316,7 +316,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/event/middleware",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Publish/consume middleware, tracing, logging, metrics, recover, and inbox middleware APIs.",
       "top_level": 15,
@@ -328,7 +328,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/event/transport",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Transport, delivery, transactional transport, and subscription contracts.",
       "top_level": 10,
@@ -340,7 +340,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/event/transport/memory",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "In-process transport constructors and options.",
       "top_level": 6,
@@ -352,7 +352,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/event/transport/outbox",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Persistent outbox transport, relay/repository contracts, rows, and options.",
       "top_level": 10,
@@ -364,20 +364,19 @@
       "package": "github.com/coldsmirk/vef-framework-go/event/transport/redisstream",
       "tier": "feature",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "notes": "Redis Stream transport constructors and options.",
       "top_level": 2,
-      "fields": 11,
-      "methods": 9,
-      "fingerprint": "fe204fb135c5018a1850bd0edb2572f0c8708ab9c3dd1f7f5171e7f0dbca8a58"
+      "fields": 13,
+      "methods": 10,
+      "fingerprint": "af99f02ce92f12b046e9fe3438f3f87878aebf2fda33d5a37043089761f1a20f"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/excel",
       "tier": "feature",
       "coverage": [
-        "docs/features/excel.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "notes": "Excel import/export helpers and options.",
       "top_level": 17,
@@ -389,7 +388,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/expression",
       "tier": "feature",
       "coverage": [
-        "docs/features/expression.md"
+        "docs/data-tools/expression.md"
       ],
       "notes": "Expression engine API, options, values, and HTTP error codes.",
       "top_level": 13,
@@ -413,7 +412,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/httpx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Fiber content-type and IP helpers.",
       "top_level": 3,
@@ -425,7 +424,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/i18n",
       "tier": "feature",
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "notes": "Translator, dictionary, setup, and error APIs.",
       "top_level": 12,
@@ -437,7 +436,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/i18n/locales",
       "tier": "feature",
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "notes": "Built-in locale constants/catalog entrypoint.",
       "top_level": 1,
@@ -452,16 +451,16 @@
         "docs/utilities/id-generation.md"
       ],
       "notes": "UUID/XID/random/snowflake ID helpers.",
-      "top_level": 15,
+      "top_level": 13,
       "fields": 0,
       "methods": 1,
-      "fingerprint": "e9c002ee81d48b44c4f3a4dce5ebaf83f0a5c8d9f9dc2aa7885e94e1d325f79f"
+      "fingerprint": "7611b545a060184afd55a7a090c5d1e0a92979db5c0668d56bcb7ac47cd16474"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/js",
       "tier": "feature",
       "coverage": [
-        "docs/features/js-engine.md"
+        "docs/data-tools/js-engine.md"
       ],
       "notes": "JS VM engine, require/module registry, and value conversion APIs.",
       "top_level": 16,
@@ -473,7 +472,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/logx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md",
+        "docs/utilities/logx.md",
         "docs/reference/extension-points.md"
       ],
       "notes": "Logging interface, logger-configurable interface, levels, and top-level NamedLogger integration.",
@@ -498,7 +497,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "tier": "feature",
       "coverage": [
-        "docs/features/mcp.md"
+        "docs/ai-integration/mcp.md"
       ],
       "notes": "MCP provider, definition, schema, and server-info extension APIs.",
       "top_level": 44,
@@ -510,7 +509,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/middleware",
       "tier": "advanced",
       "coverage": [
-        "docs/advanced/spa-integration.md"
+        "docs/building-apis/spa-integration.md"
       ],
       "notes": "SPA middleware configuration supplied through top-level helpers.",
       "top_level": 1,
@@ -522,7 +521,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/mold",
       "tier": "feature",
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "notes": "Mold transformer/translator/dictionary resolver APIs.",
       "top_level": 17,
@@ -534,7 +533,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/monad",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Inclusive range helper.",
       "top_level": 2,
@@ -546,22 +545,22 @@
       "package": "github.com/coldsmirk/vef-framework-go/monitor",
       "tier": "feature",
       "coverage": [
-        "docs/features/monitor.md",
+        "docs/infrastructure/monitor.md",
         "docs/reference/built-in-resources.md"
       ],
       "notes": "Monitor service API, system DTOs, resource actions, and error codes.",
-      "top_level": 26,
-      "fields": 179,
+      "top_level": 27,
+      "fields": 181,
       "methods": 9,
-      "fingerprint": "aeaeed66e2af73c118a295df05cb2061e7a83ecdde00a9871aa53d2436a73663"
+      "fingerprint": "2dcd6b85f44ba51532759515b9641c9584332b083cddbcf310ad045b7e1ea15c"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "tier": "builder",
       "coverage": [
-        "docs/guide/orm-builder.md",
-        "docs/guide/models.md",
-        "docs/advanced/transactions.md"
+        "docs/data-access/orm-builder.md",
+        "docs/data-access/models.md",
+        "docs/data-access/transactions.md"
       ],
       "notes": "ORM model, DB/Tx, query/DDL/expression/condition builders, hooks, aliases, and enum families.",
       "top_level": 202,
@@ -573,7 +572,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/page",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Pagination request and response helper.",
       "top_level": 6,
@@ -585,31 +584,19 @@
       "package": "github.com/coldsmirk/vef-framework-go/password",
       "tier": "feature",
       "coverage": [
-        "docs/features/password.md"
+        "docs/security/password.md"
       ],
-      "notes": "Password cipher/hash implementations, composite encoder, options, and errors.",
-      "top_level": 46,
+      "notes": "Password hash implementations, composite encoder, options, and errors.",
+      "top_level": 43,
       "fields": 0,
       "methods": 3,
-      "fingerprint": "7759597dd9992c50971c71c33d276b122e4d38cf2f54be381ae6e8db38c03087"
-    },
-    {
-      "package": "github.com/coldsmirk/vef-framework-go/ptr",
-      "tier": "utility",
-      "coverage": [
-        "docs/utilities/small-utilities.md"
-      ],
-      "notes": "Pointer helper functions.",
-      "top_level": 6,
-      "fields": 0,
-      "methods": 0,
-      "fingerprint": "d899ea33b3aa8c6fbfb5bc7d92b08f06fda5a0d75e85dc9cbb1682486429b22b"
+      "fingerprint": "34139daec02a09573109c2c15bac4660cb917ab4446a31b84e7b630635f4026a"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/reflectx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "notes": "Reflection, conversion, visitor, and cast helper APIs.",
       "top_level": 82,
@@ -621,8 +608,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/result",
       "tier": "core",
       "coverage": [
-        "docs/guide/result.md",
-        "docs/guide/error-handling.md"
+        "docs/building-apis/results-and-errors.md"
       ],
       "notes": "Result envelope, errors, constructors/options, and status constants.",
       "top_level": 48,
@@ -634,7 +620,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/schema",
       "tier": "feature",
       "coverage": [
-        "docs/features/schema.md",
+        "docs/infrastructure/schema.md",
         "docs/reference/built-in-resources.md"
       ],
       "notes": "Schema service, DTOs, resource actions, and error codes.",
@@ -647,7 +633,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/search",
       "tier": "builder",
       "coverage": [
-        "docs/guide/query-builder.md"
+        "docs/data-access/query-builder.md"
       ],
       "notes": "Search tag parser, range parser, applier, operator constants, and errors.",
       "top_level": 43,
@@ -661,32 +647,34 @@
       "coverage": [
         "docs/security/authentication.md",
         "docs/security/authorization.md",
-        "docs/security/data-permissions.md"
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md"
       ],
       "notes": "Authentication, JWT, signature, challenge, RBAC, data-scope, principal, event, and error APIs.",
-      "top_level": 231,
-      "fields": 77,
-      "methods": 100,
-      "fingerprint": "539e7014f04ef164d863446f07887acf4034269233ab128a2c0f0f2bf01f04bc"
+      "top_level": 294,
+      "fields": 103,
+      "methods": 136,
+      "fingerprint": "b54f4d4aa9d84521fec7a7db2c96dfb140f8df74e53b0d5073610be4fa387e6c"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/sequence",
       "tier": "feature",
       "coverage": [
-        "docs/features/sequence.md"
+        "docs/infrastructure/sequence.md"
       ],
       "notes": "Sequence policy/rule/store/engine APIs.",
-      "top_level": 26,
+      "top_level": 27,
       "fields": 31,
       "methods": 10,
-      "fingerprint": "350cf3d412b4c06ee3b4c07d4f06821434836b3c20e2dddd3bf8855d767a884f"
+      "fingerprint": "b78e203cca1202724a42a4c3a9bedde213dd5dbf5f9d0c529025a194c2a1f6ae"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/sortx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md",
-        "docs/guide/query-builder.md"
+        "docs/utilities/small-helpers.md",
+        "docs/data-access/query-builder.md"
       ],
       "notes": "Sort direction/nulls/order-spec primitives.",
       "top_level": 9,
@@ -698,7 +686,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/storage",
       "tier": "feature",
       "coverage": [
-        "docs/features/storage.md",
+        "docs/infrastructure/storage.md",
         "docs/reference/built-in-resources.md",
         "docs/reference/extension-points.md"
       ],
@@ -712,7 +700,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/strx",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Struct tag and compact key/value parser APIs.",
       "top_level": 11,
@@ -724,7 +712,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/tabular",
       "tier": "feature",
       "coverage": [
-        "docs/features/tabular.md"
+        "docs/data-tools/tabular.md"
       ],
       "notes": "Tabular schema, adapter, parser, formatter, resolver, and I/O APIs.",
       "top_level": 70,
@@ -760,7 +748,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/validator",
       "tier": "core",
       "coverage": [
-        "docs/guide/validation.md"
+        "docs/data-access/validation.md"
       ],
       "notes": "Validation entrypoints, custom rule/type registration, and built-in rules.",
       "top_level": 5,
@@ -772,13 +760,13 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "tier": "utility",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "notes": "Framework version constant.",
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "8f204b7a22f73570f82fcd7abd247b1eaf8d6814d103e3addb3963ce1d3d71f5"
+      "fingerprint": "cf56941f119bb83dad0a27d15253b8e44d1280c03ebed85b16ee0fcbbf8584ab"
     }
   ]
 }

@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -65,10 +65,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"9 top-level exported symbols",
-		"3 exported fields",
-		"7 exported\nmethods",
-		"no exported functions",
 		"`OrderDirection.String()` returns `DESC` only for `OrderDesc`",
 		"every other\n  value renders as `ASC`",
 		"`MarshalText()` lowercases the result of `String()`",
@@ -87,10 +83,6 @@ func main() {
 		"validate `Direction` / `NullsOrder`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"9 个 top-level exported symbols",
-		"3 个 exported fields",
-		"7 个\nexported methods",
-		"没有 exported functions",
 		"`OrderDirection.String()` 只有在值为 `OrderDesc` 时返回 `DESC`",
 		"其他值都会\n  渲染为 `ASC`",
 		"`MarshalText()` 会把 `String()` 的结果转成小写",

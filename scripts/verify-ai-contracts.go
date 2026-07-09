@@ -344,8 +344,8 @@ func main() {
 
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
-	englishDocs := readCorpus("English AI docs", filepath.Join(docsRoot, "docs/features/ai.md"))
-	chineseDocs := readCorpus("Chinese AI docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/ai.md"))
+	englishDocs := readCorpus("English AI docs", filepath.Join(docsRoot, "docs/ai-integration/ai.md"))
+	chineseDocs := readCorpus("Chinese AI docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/ai-integration/ai.md"))
 	docs := []corpus{englishDocs, chineseDocs}
 
 	var failures []string

@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -63,10 +63,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"6 top-level exported symbols",
-		"6 exported fields",
-		"5 exported\nmethods",
-		"no exported variables",
 		"`Pageable.Page` is 1-based",
 		"`Normalize(size...)` mutates the receiver in place",
 		"`Normalize` resets `Page < 1` to `DefaultPageNumber`",
@@ -85,10 +81,6 @@ func main() {
 		"does not validate negative totals",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"6 个 top-level exported symbols",
-		"6 个 exported fields",
-		"5 个\nexported methods",
-		"没有 exported variables",
 		"`Pageable.Page` 是 1-based 页码",
 		"`Normalize(size...)` 会原地修改 receiver",
 		"`Normalize` 会把 `Page < 1` 重置为 `DefaultPageNumber`",

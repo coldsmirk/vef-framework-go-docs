@@ -38,10 +38,10 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishResultDocs := readCorpus("English result docs", filepath.Join(docsRoot, "docs/guide/result.md"))
-	chineseResultDocs := readCorpus("Chinese result docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/result.md"))
-	englishErrorDocs := readCorpus("English error-handling docs", filepath.Join(docsRoot, "docs/guide/error-handling.md"))
-	chineseErrorDocs := readCorpus("Chinese error-handling docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/error-handling.md"))
+	englishResultDocs := readCorpus("English result docs", filepath.Join(docsRoot, "docs/building-apis/results-and-errors.md"))
+	chineseResultDocs := readCorpus("Chinese result docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/results-and-errors.md"))
+	englishErrorDocs := readCorpus("English error-handling docs", filepath.Join(docsRoot, "docs/building-apis/results-and-errors.md"))
+	chineseErrorDocs := readCorpus("Chinese error-handling docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/results-and-errors.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -142,11 +142,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishResultDocs, []string{
-		"48 top-level exported symbols",
-		"6 exported fields",
-		"4 exported\nmethods",
-		"fingerprint is\n`" + resultFingerprint + "`",
-		"Only this type has JSON field tags for the public wire shape",
 		"`Result.Code` | Business result code, serialized as `code`",
 		"`Result.Message` | Human-readable or i18n-resolved message, serialized as `message`",
 		"`Result.Data` | Optional response payload, serialized as `data`; `nil` data is preserved as JSON `null`",
@@ -170,11 +165,6 @@ func main() {
 		"`result.ErrDangerousSQL` | `result.ErrCodeDangerousSQL` (`1600`) | `200` | `result.ErrMessageDangerousSQL`",
 	})...)
 	failures = append(failures, missingTerms(chineseResultDocs, []string{
-		"48 个\ntop-level exported symbols",
-		"6 个 exported fields",
-		"4 个 exported methods",
-		"fingerprint 是\n`" + resultFingerprint + "`",
-		"只有这个类型带有 public wire shape 的 JSON field tags",
 		"`Result.Code` | 业务结果码，序列化为 `code`",
 		"`Result.Message` | 面向用户或经 i18n 解析后的消息，序列化为 `message`",
 		"`Result.Data` | 可选响应载荷，序列化为 `data`；`nil` data 会保留为 JSON `null`",

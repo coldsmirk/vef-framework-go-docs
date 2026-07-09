@@ -7,11 +7,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Application boot/module/DI helpers reviewed as the top-level framework entrypoint. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 50,
+        "top_level": 52,
         "fields": 0,
         "methods": 1,
-        "entry_count": 51,
-        "fingerprint": "ee38b2126e3bf4a95565978a73665d9353af48b505d20195effcd3dd2685a2ae",
+        "entry_count": 53,
+        "fingerprint": "3cd98d737c753d12039cbd4c52fe9395d3a1eea43f344f0de43a7c073b2f713b",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -20,9 +20,9 @@
         ]
       },
       "coverage": [
-        "docs/modules/overview.md",
+        "docs/core-concepts/overview.md",
         "docs/reference/extension-points.md",
-        "docs/modules/lifecycle.md"
+        "docs/core-concepts/lifecycle.md"
       ],
       "source_evidence": [
         "bootstrap.go:16",
@@ -69,7 +69,7 @@
         ]
       },
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/message.go:3",
@@ -99,7 +99,7 @@
         ]
       },
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/stream/chunk.go:8",
@@ -128,10 +128,10 @@
         ]
       },
       "coverage": [
-        "docs/guide/api.md",
-        "docs/guide/custom-handlers.md",
-        "docs/guide/params-and-meta.md",
-        "docs/guide/routing.md"
+        "docs/building-apis/api.md",
+        "docs/building-apis/custom-handlers.md",
+        "docs/building-apis/params-and-meta.md",
+        "docs/building-apis/routing.md"
       ],
       "source_evidence": [
         "api/resource.go:20",
@@ -147,11 +147,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 355,
-        "fields": 808,
-        "methods": 122,
-        "entry_count": 1285,
-        "fingerprint": "fc49fa894b4365b398806a61af9ddfd9c832a5c87017052ce51b4f8377a1fff6",
+        "top_level": 378,
+        "fields": 823,
+        "methods": 132,
+        "entry_count": 1333,
+        "fingerprint": "d9c2c0bd0a05bfc880bd85055e097223a5570839220d00d9cf2b9e7bc5648519",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -160,7 +160,7 @@
         ]
       },
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "approval/enums.go:13",
@@ -182,10 +182,10 @@
       "summary": "Admin response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
         "top_level": 6,
-        "fields": 62,
+        "fields": 60,
         "methods": 0,
-        "entry_count": 68,
-        "fingerprint": "b6d2ddacf99583d37246cbbc2d3ddaca3d3e3ca6ad79feaa152efba53f97e532",
+        "entry_count": 66,
+        "fingerprint": "1c843a8f8400f22c84a8fe843ad7638ca4ad20c5cf48237cf5b835f1628d9f3e",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -194,7 +194,7 @@
         ]
       },
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -213,10 +213,10 @@
       "summary": "Current-user approval response DTOs for the built-in approval resource. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
         "top_level": 8,
-        "fields": 67,
+        "fields": 68,
         "methods": 0,
-        "entry_count": 75,
-        "fingerprint": "12a1f18f5b3cf7b969dc853cf2e3547f7dc5bf47d0d1687a8c5c7c8a823b4a2a",
+        "entry_count": 76,
+        "fingerprint": "e6ad65e45fb72650108d7289633637687116fb63a06bf797d73073d34205d681",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -225,7 +225,7 @@
         ]
       },
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -250,7 +250,7 @@
         "fields": 0,
         "methods": 15,
         "entry_count": 46,
-        "fingerprint": "aade55fb60e21d29900dd70eddf7decb32ae6cb35e39d6046250913ade5ff7b5",
+        "fingerprint": "e20a7079309a98194dc544df9414410ff117f2293c37f491f86791d7a4f60280",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -259,7 +259,7 @@
         ]
       },
       "coverage": [
-        "docs/features/cache.md"
+        "docs/infrastructure/cache.md"
       ],
       "source_evidence": [
         "cache/cache.go:8",
@@ -393,11 +393,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "All config structs, config keys, Effective methods, validation, and runtime defaults. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 53,
-        "fields": 112,
-        "methods": 23,
-        "entry_count": 188,
-        "fingerprint": "f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65",
+        "top_level": 79,
+        "fields": 142,
+        "methods": 38,
+        "entry_count": 259,
+        "fingerprint": "efa0ae6f533c23c21fa966dde4891e2125d3c431f604b4cf183f85ffb44b1859",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -444,7 +444,7 @@
         ]
       },
       "coverage": [
-        "docs/advanced/context-helpers.md"
+        "docs/advanced/extending-parameters.md"
       ],
       "source_evidence": [
         "contextx/contextx.go:11"
@@ -532,7 +532,7 @@
         ]
       },
       "coverage": [
-        "docs/features/cron.md"
+        "docs/infrastructure/cron.md"
       ],
       "source_evidence": [
         "cron/scheduler.go:11",
@@ -561,9 +561,9 @@
         ]
       },
       "coverage": [
-        "docs/guide/crud.md",
-        "docs/guide/query-builder.md",
-        "docs/guide/hooks.md"
+        "docs/data-access/crud.md",
+        "docs/data-access/query-builder.md",
+        "docs/data-access/hooks.md"
       ],
       "source_evidence": [
         "crud/constants.go:3",
@@ -593,7 +593,7 @@
         ]
       },
       "coverage": [
-        "docs/features/cryptox.md"
+        "docs/security/cryptox.md"
       ],
       "source_evidence": [
         "cryptox/cipher.go:3",
@@ -622,8 +622,7 @@
         ]
       },
       "coverage": [
-        "docs/features/csv.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "csv/importer.go:25",
@@ -684,7 +683,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "dbx/common.go:8",
@@ -730,11 +729,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Event bus, typed publish/subscribe, route inspector, metrics, and publish/subscribe options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 41,
-        "fields": 20,
-        "methods": 9,
-        "entry_count": 70,
-        "fingerprint": "1ed0983c15d2250edba8b970a25fce4f8684e1fa5c8fba518cd1223d4f72459d",
+        "top_level": 44,
+        "fields": 28,
+        "methods": 10,
+        "entry_count": 82,
+        "fingerprint": "490bc23b8a2ca2918b6114a3ea4ba3263c33e3ae1258fb4e784474853ceb0a58",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -743,7 +742,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/event.go:7",
@@ -772,7 +771,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/inbox/inbox.go:13",
@@ -800,7 +799,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/middleware/middleware.go:15",
@@ -828,7 +827,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/transport.go:10"
@@ -855,7 +854,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/memory/memory.go:12",
@@ -883,7 +882,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/outbox/outbox.go:12",
@@ -899,10 +898,10 @@
       "summary": "Redis Stream transport constructors and options. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
         "top_level": 2,
-        "fields": 11,
-        "methods": 9,
-        "entry_count": 22,
-        "fingerprint": "fe204fb135c5018a1850bd0edb2572f0c8708ab9c3dd1f7f5171e7f0dbca8a58",
+        "fields": 13,
+        "methods": 10,
+        "entry_count": 25,
+        "fingerprint": "af99f02ce92f12b046e9fe3438f3f87878aebf2fda33d5a37043089761f1a20f",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -911,7 +910,7 @@
         ]
       },
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/redisstream/redis_stream.go:6",
@@ -939,8 +938,7 @@
         ]
       },
       "coverage": [
-        "docs/features/excel.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "excel/importer.go:66",
@@ -969,7 +967,7 @@
         ]
       },
       "coverage": [
-        "docs/features/expression.md"
+        "docs/data-tools/expression.md"
       ],
       "source_evidence": [
         "expression/engine.go:8",
@@ -1025,7 +1023,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "httpx/content_type.go:6",
@@ -1053,7 +1051,7 @@
         ]
       },
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "source_evidence": [
         "i18n/i18n.go:8",
@@ -1081,7 +1079,7 @@
         ]
       },
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "source_evidence": [
         "i18n/locales/locales.go:1"
@@ -1095,11 +1093,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "UUID v7, XID, random, and Snowflake ID generators expose stable output formats, default singletons, random alphabet/length defaults, Snowflake epoch/node/step configuration, and VEF_NODE_ID behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 15,
+        "top_level": 13,
         "fields": 0,
         "methods": 1,
-        "entry_count": 16,
-        "fingerprint": "e9c002ee81d48b44c4f3a4dce5ebaf83f0a5c8d9f9dc2aa7885e94e1d325f79f",
+        "entry_count": 14,
+        "fingerprint": "7611b545a060184afd55a7a090c5d1e0a92979db5c0668d56bcb7ac47cd16474",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1112,8 +1110,7 @@
       ],
       "source_evidence": [
         "id/id.go:6",
-        "id/uuid.go:6",
-        "id/snowflake.go:8"
+        "id/uuid.go:6"
       ],
       "contract_ids": [
         "github.com/coldsmirk/vef-framework-go/id#runtime-contract:id-formats-and-default-generators"
@@ -1137,7 +1134,7 @@
         ]
       },
       "coverage": [
-        "docs/features/js-engine.md"
+        "docs/data-tools/js-engine.md"
       ],
       "source_evidence": [
         "js/js.go:10",
@@ -1165,7 +1162,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md",
+        "docs/utilities/logx.md",
         "docs/reference/extension-points.md"
       ],
       "source_evidence": [
@@ -1223,7 +1220,7 @@
         ]
       },
       "coverage": [
-        "docs/features/mcp.md"
+        "docs/ai-integration/mcp.md"
       ],
       "source_evidence": [
         "mcp/mcp.go:10",
@@ -1252,7 +1249,7 @@
         ]
       },
       "coverage": [
-        "docs/advanced/spa-integration.md"
+        "docs/building-apis/spa-integration.md"
       ],
       "source_evidence": [
         "middleware/spa.go:8",
@@ -1287,7 +1284,7 @@
         ]
       },
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "source_evidence": [
         "mold/cached_dictionary_resolver.go:18",
@@ -1319,7 +1316,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "monad/range.go:3"
@@ -1333,11 +1330,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Monitor service API, system DTOs, resource actions, and error codes. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 26,
-        "fields": 179,
+        "top_level": 27,
+        "fields": 181,
         "methods": 9,
-        "entry_count": 214,
-        "fingerprint": "aeaeed66e2af73c118a295df05cb2061e7a83ecdde00a9871aa53d2436a73663",
+        "entry_count": 217,
+        "fingerprint": "2dcd6b85f44ba51532759515b9641c9584332b083cddbcf310ad045b7e1ea15c",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1346,7 +1343,7 @@
         ]
       },
       "coverage": [
-        "docs/features/monitor.md",
+        "docs/infrastructure/monitor.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -1376,9 +1373,9 @@
         ]
       },
       "coverage": [
-        "docs/guide/orm-builder.md",
-        "docs/guide/models.md",
-        "docs/advanced/transactions.md"
+        "docs/data-access/orm-builder.md",
+        "docs/data-access/models.md",
+        "docs/data-access/transactions.md"
       ],
       "source_evidence": [
         "orm/orm.go:6",
@@ -1408,7 +1405,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "page/page.go:5"
@@ -1420,13 +1417,13 @@
     {
       "package": "github.com/coldsmirk/vef-framework-go/password",
       "disposition": "has-semantic-contracts",
-      "summary": "Password cipher/hash implementations, composite encoder, options, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
+      "summary": "Password hash implementations, composite encoder, options, and errors. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 46,
+        "top_level": 43,
         "fields": 0,
         "methods": 3,
-        "entry_count": 49,
-        "fingerprint": "7759597dd9992c50971c71c33d276b122e4d38cf2f54be381ae6e8db38c03087",
+        "entry_count": 46,
+        "fingerprint": "34139daec02a09573109c2c15bac4660cb917ab4446a31b84e7b630635f4026a",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1435,7 +1432,7 @@
         ]
       },
       "coverage": [
-        "docs/features/password.md"
+        "docs/security/password.md"
       ],
       "source_evidence": [
         "password/composite.go:11",
@@ -1444,33 +1441,6 @@
       ],
       "contract_ids": [
         "github.com/coldsmirk/vef-framework-go/password#runtime-contract:password-encoding-prefix-and-upgrade"
-      ]
-    },
-    {
-      "package": "github.com/coldsmirk/vef-framework-go/ptr",
-      "disposition": "has-semantic-contracts",
-      "summary": "Pointer helper functions expose stable zero/nil, fallback, lazy fallback, equality, and coalescing behavior. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
-      "reviewed_surface": {
-        "top_level": 6,
-        "fields": 0,
-        "methods": 0,
-        "entry_count": 6,
-        "fingerprint": "d899ea33b3aa8c6fbfb5bc7d92b08f06fda5a0d75e85dc9cbb1682486429b22b",
-        "review_scope": [
-          "exported top-level symbols",
-          "exported struct fields",
-          "exported methods",
-          "runtime/user-facing contracts"
-        ]
-      },
-      "coverage": [
-        "docs/utilities/small-utilities.md"
-      ],
-      "source_evidence": [
-        "ptr/ptr.go:3"
-      ],
-      "contract_ids": [
-        "github.com/coldsmirk/vef-framework-go/ptr#runtime-contract:pointer-helper-behavior"
       ]
     },
     {
@@ -1491,7 +1461,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/visitor.go:9",
@@ -1528,8 +1498,7 @@
         ]
       },
       "coverage": [
-        "docs/guide/result.md",
-        "docs/guide/error-handling.md"
+        "docs/building-apis/results-and-errors.md"
       ],
       "source_evidence": [
         "result/result.go:8",
@@ -1558,7 +1527,7 @@
         ]
       },
       "coverage": [
-        "docs/features/schema.md",
+        "docs/infrastructure/schema.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -1590,7 +1559,7 @@
         ]
       },
       "coverage": [
-        "docs/guide/query-builder.md"
+        "docs/data-access/query-builder.md"
       ],
       "source_evidence": [
         "search/constants.go:3",
@@ -1610,11 +1579,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Authentication, JWT, signature, challenge, RBAC, data-scope, principal, event, and error APIs. Security contracts are split across auth/wire, authorization/events, and data-permission runtime entries; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 231,
-        "fields": 77,
-        "methods": 100,
-        "entry_count": 408,
-        "fingerprint": "539e7014f04ef164d863446f07887acf4034269233ab128a2c0f0f2bf01f04bc",
+        "top_level": 294,
+        "fields": 103,
+        "methods": 136,
+        "entry_count": 533,
+        "fingerprint": "b54f4d4aa9d84521fec7a7db2c96dfb140f8df74e53b0d5073610be4fa387e6c",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1647,11 +1616,11 @@
       "disposition": "has-semantic-contracts",
       "summary": "Sequence policy/rule/store/engine APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
       "reviewed_surface": {
-        "top_level": 26,
+        "top_level": 27,
         "fields": 31,
         "methods": 10,
-        "entry_count": 67,
-        "fingerprint": "350cf3d412b4c06ee3b4c07d4f06821434836b3c20e2dddd3bf8855d767a884f",
+        "entry_count": 68,
+        "fingerprint": "b78e203cca1202724a42a4c3a9bedde213dd5dbf5f9d0c529025a194c2a1f6ae",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1660,7 +1629,7 @@
         ]
       },
       "coverage": [
-        "docs/features/sequence.md"
+        "docs/infrastructure/sequence.md"
       ],
       "source_evidence": [
         "sequence/rule.go:7",
@@ -1689,8 +1658,8 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md",
-        "docs/guide/query-builder.md"
+        "docs/utilities/small-helpers.md",
+        "docs/data-access/query-builder.md"
       ],
       "source_evidence": [
         "sortx/order.go:8"
@@ -1717,7 +1686,7 @@
         ]
       },
       "coverage": [
-        "docs/features/storage.md",
+        "docs/infrastructure/storage.md",
         "docs/reference/built-in-resources.md",
         "docs/reference/extension-points.md"
       ],
@@ -1749,7 +1718,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "strx/parser.go:8"
@@ -1776,7 +1745,7 @@
         ]
       },
       "coverage": [
-        "docs/features/tabular.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "tabular/parser.go:35",
@@ -1863,7 +1832,7 @@
         ]
       },
       "coverage": [
-        "docs/guide/validation.md"
+        "docs/data-access/validation.md"
       ],
       "source_evidence": [
         "validator/validator.go:8",
@@ -1882,7 +1851,7 @@
         "fields": 0,
         "methods": 0,
         "entry_count": 1,
-        "fingerprint": "8f204b7a22f73570f82fcd7abd247b1eaf8d6814d103e3addb3963ce1d3d71f5",
+        "fingerprint": "cf56941f119bb83dad0a27d15253b8e44d1280c03ebed85b16ee0fcbbf8584ab",
         "review_scope": [
           "exported top-level symbols",
           "exported struct fields",
@@ -1891,7 +1860,7 @@
         ]
       },
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "version/version.go:3"
@@ -1910,7 +1879,7 @@
       "summary": "The stream package writes AI SDK UI Message Stream-compatible SSE frames, including data-{type} chunks, lifecycle chunks, SSE headers, and the terminal data: [DONE] frame.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/stream/chunk.go:8",
@@ -1952,7 +1921,7 @@
       "summary": "The stream builder exposes defaults, source handling, ID generation, EOF/error terminal behavior, callbacks, and JSON fallback behavior as user-visible runtime contracts.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/stream/options.go:12",
@@ -1989,7 +1958,7 @@
       "summary": "The AI package exposes stable chat roles, a provider registry keyed by provider name, and tool metadata/schema structures consumed by agents and tool-aware models.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/message.go:3",
@@ -2021,7 +1990,7 @@
       "summary": "The AI package exposes eight sentinel errors plus ToolError and ModelError structured values for provider and tool failures.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/ai.md"
+        "docs/ai-integration/ai.md"
       ],
       "source_evidence": [
         "ai/errors.go:5"
@@ -2052,10 +2021,10 @@
       "summary": "Resource names, RPC/REST action strings, request versioning, params/meta decoding, REST X-Meta headers, and Bearer token locations are public API contracts for all framework resources.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/api.md",
-        "docs/guide/routing.md",
-        "docs/guide/params-and-meta.md",
-        "docs/guide/custom-handlers.md"
+        "docs/building-apis/api.md",
+        "docs/building-apis/routing.md",
+        "docs/building-apis/params-and-meta.md",
+        "docs/building-apis/custom-handlers.md"
       ],
       "source_evidence": [
         "api/resource.go:20",
@@ -2113,7 +2082,7 @@
       "summary": "The approval/admin package defines the response DTOs used by approval/admin actions, including instance, task, detail, action-log, and metrics JSON field names.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -2140,7 +2109,7 @@
       "summary": "The approval/my package defines the current-user self-service response DTOs used by approval/my actions such as find_pending_tasks, find_completed_tasks, and get_instance_detail.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md",
+        "docs/approval.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -2169,7 +2138,7 @@
       "summary": "ApprovalModule registers approval/category, approval/delegation, approval/flow, approval/instance, approval/my, and approval/admin RPC resources with documented action names, permissions, tenancy constraints, and rate limits.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "internal/approval/resource/category.go:25",
@@ -2196,7 +2165,7 @@
       "summary": "Approval domain events use approval.* topics, publish through event.WithTx, and expose JSON payload fields such as tenantId and occurredTime for downstream subscribers.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "approval/events.go:4",
@@ -2220,7 +2189,7 @@
       "summary": "Approval authorization distinguishes approval:super_admin from tenant-scoped users; business-bound flows use BusinessRefProvider for opaque refs, BusinessRefResolver for write-back record ids, and engine-owned status write-back.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "approval/tenancy.go:12",
@@ -2246,7 +2215,7 @@
       "summary": "Approval exposes four importable plain Go sentinels from the approval package, while built-in approval resources return internal 40xxx result.Error codes and i18n message keys through the API envelope.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "approval/tenancy.go:28",
@@ -2274,11 +2243,10 @@
       "summary": "FlowDefinition and form definitions are JSON wire shapes for visual workflow editors, including React Flow-style nodes/edges, node kind data, binding modes, and form field definitions.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/approval.md"
+        "docs/approval.md"
       ],
       "source_evidence": [
         "approval/flow_definition.go:16",
-        "approval/form_definition.go:5",
         "approval/enums.go:30",
         "approval/binding.go:18"
       ],
@@ -2298,7 +2266,7 @@
       "summary": "Cache constructors expose memory and Redis implementations with TTL, eviction, serializer, invalidation, Close, and GetOrLoad/singleflight behavior documented as runtime contracts.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/cache.md"
+        "docs/infrastructure/cache.md"
       ],
       "source_evidence": [
         "cache/memory.go:18",
@@ -2502,7 +2470,7 @@
       "summary": "contextx stores and reads request-scoped values through Fiber Locals or context.WithValue, with documented defaults for request ID, principal, logger, DB, data-permission applier, method, path, and IP.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/advanced/context-helpers.md"
+        "docs/advanced/extending-parameters.md"
       ],
       "source_evidence": [
         "contextx/contextx.go:11"
@@ -2546,7 +2514,7 @@
       "summary": "dbx.ColumnWithAlias returns alias.column when alias is present and the raw column otherwise; duplicate and foreign-key helpers detect PostgreSQL and MySQL driver codes plus fallback message patterns for SQLite, SQL Server, and Oracle.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "dbx/common.go:5",
@@ -2583,8 +2551,6 @@
       "terms": [
         "shopspring/decimal v1.4.0",
         "type alias",
-        "top-level symbols",
-        "exported methods",
         "decimal.NewFromFormattedString",
         "*regexp.Regexp",
         "decimal.NewFromAny",
@@ -2634,7 +2600,7 @@
       "summary": "locales.EmbedLocales embeds the framework-shipped JSON locale catalogs used by i18n.New and the default translator, including the built-in zh-CN and en catalogs.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "source_evidence": [
         "i18n/locales/locales.go:5",
@@ -2660,16 +2626,12 @@
       "source_evidence": [
         "id/id.go:11",
         "id/random.go:5",
-        "id/snowflake.go:21",
-        "id/snowflake.go:45",
         "id/uuid.go:15",
         "id/xid.go:10"
       ],
       "terms": [
         "XID",
         "UUID v7",
-        "Base36",
-        "VEF_NODE_ID",
         "DefaultRandomIDGeneratorLength"
       ]
     },
@@ -2681,7 +2643,7 @@
       "summary": "logx defines the Logger and LoggerConfigurable interfaces expected by framework integrations and maps Level values to debug/info/warn/error/panic strings, with unknown for unrecognized values.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md",
+        "docs/utilities/logx.md",
         "docs/reference/extension-points.md"
       ],
       "source_evidence": [
@@ -2724,7 +2686,7 @@
       "summary": "monad.Range is inclusive at both ends, treats start <= end as valid/non-empty, checks containment and overlap with inclusive comparisons, and returns the max/min intersection only when ranges overlap.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "monad/range.go:5",
@@ -2739,31 +2701,6 @@
         "Overlaps",
         "Intersection",
         "IsEmpty"
-      ]
-    },
-    {
-      "id": "github.com/coldsmirk/vef-framework-go/ptr#runtime-contract:pointer-helper-behavior",
-      "package": "github.com/coldsmirk/vef-framework-go/ptr",
-      "kind": "runtime-contract",
-      "contract": "pointer helper nil, fallback, and equality behavior",
-      "summary": "ptr.Of returns nil for zero values, Value walks fallback pointers before returning zero, ValueOrElse calls a lazy fallback only for nil, Equal compares pointed values, and Coalesce returns the first non-nil pointer.",
-      "disposition": "documented:semantic-contract",
-      "coverage": [
-        "docs/utilities/small-utilities.md"
-      ],
-      "source_evidence": [
-        "ptr/ptr.go:3",
-        "ptr/ptr.go:20",
-        "ptr/ptr.go:39",
-        "ptr/ptr.go:48",
-        "ptr/ptr.go:61"
-      ],
-      "terms": [
-        "ptr.Of",
-        "ptr.Value",
-        "ptr.ValueOrElse",
-        "ptr.Equal",
-        "ptr.Coalesce"
       ]
     },
     {
@@ -2800,14 +2737,13 @@
       "summary": "version.VEFVersion exposes the framework version string used by consumers that need to report or compare framework version.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "version/version.go:3"
       ],
       "terms": [
-        "VEFVersion",
-        "v0.35.0"
+        "VEFVersion"
       ]
     },
     {
@@ -2849,7 +2785,7 @@
       "summary": "Cron job definitions wrap gocron schedules with stable one-time, duration, random-duration, and cron-expression constructors plus name/task/tag/concurrency/start/stop options.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/cron.md"
+        "docs/infrastructure/cron.md"
       ],
       "source_evidence": [
         "cron/job_definitions.go:16",
@@ -2872,9 +2808,9 @@
       "summary": "CRUD builders expose fixed RPC/REST action constants, REST override caveats, import/export params and format behavior, validation failure response shape, and hook execution points.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/crud.md",
-        "docs/guide/query-builder.md",
-        "docs/guide/hooks.md"
+        "docs/data-access/crud.md",
+        "docs/data-access/query-builder.md",
+        "docs/data-access/hooks.md"
       ],
       "source_evidence": [
         "crud/constants.go:3",
@@ -2899,7 +2835,7 @@
       "summary": "cryptox constructors expose stable cipher/signer interfaces, algorithm-specific key encodings, AES/RSA modes, SM4 CBC interop IV behavior, ECIES curve identifiers, and error sentinels.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/cryptox.md"
+        "docs/security/cryptox.md"
       ],
       "source_evidence": [
         "cryptox/cipher.go:3",
@@ -2924,8 +2860,7 @@
       "summary": "CSV import/export defaults to comma delimiters, header rows, framework-level trimming on import, comment handling disabled, header output, LF line endings on export, FieldsPerRecord=-1, and full-input ReadAll before parsing; WithSkipRows clamps negative values to zero, WithoutHeader uses positional mapping, NewMapImporter accepts mapOpts while NewMapExporter does not, and final writer flush errors are wrapped.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/csv.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "csv/csv.go:31",
@@ -3014,7 +2949,7 @@
       "summary": "The inbox package defines durable idempotency records keyed by event ID and consumer group, with processing/completed statuses, acquire results, lock ownership, and lock-loss errors.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/inbox/inbox.go:13",
@@ -3036,7 +2971,7 @@
       "summary": "Event middleware exposes publish/consume chain helpers, built-in order constants, recover/logging/tracing/metrics/inbox toggles, and context helpers for trace IDs.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/middleware/middleware.go:15",
@@ -3058,7 +2993,7 @@
       "summary": "The memory transport registers as memory and exposes queue size, publish timeout, and full-policy options error, block, and drop_oldest.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/memory/memory.go:12",
@@ -3080,7 +3015,7 @@
       "summary": "The outbox transport registers as outbox, persists publish-only records in the caller transaction, tracks pending/processing/completed/failed/dead statuses, and relays to a sink transport.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/outbox/outbox.go:12",
@@ -3103,7 +3038,7 @@
       "summary": "The Redis Stream transport registers as redis_stream and exposes stream prefix, group/consumer, claim, start-id, max-len, and blocking read settings.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/redisstream/redis_stream.go:6",
@@ -3125,7 +3060,7 @@
       "summary": "Event transports exchange Frame values, advertise delivery capabilities, and distinguish at-least-once, publish-only, group, and transactional behavior through Capabilities and TxTransport.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/transport/transport.go:10"
@@ -3146,7 +3081,7 @@
       "summary": "Event publishing validates EventTypePattern, builds Envelope metadata, applies routing and async/transactional options, and enforces SubscribeTyped/group semantics for durable transports.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/event-bus.md"
+        "docs/infrastructure/event-bus.md"
       ],
       "source_evidence": [
         "event/event.go:7",
@@ -3171,8 +3106,7 @@
       "summary": "Excel import reads by sheet name or index with name taking precedence, clamps negative skip rows, trims by default, supports positional mapping without headers, and reports ErrSheetIndexOutOfRange for invalid index; map import passes mapOpts into NewMapAdapterFromSpecs; export writes native typed cells only for default formatter columns without explicit Format, Formatter, or FormatterFn.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/excel.md",
-        "docs/features/csv-excel.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "excel/excel.go:32",
@@ -3210,7 +3144,7 @@
       "summary": "The expression package exposes a pure-Go expr-lang-backed engine whose Compile validates eagerly, whose Value helpers decode JSON-like numbers, and whose expr mold transformer uses escaped comma parameters.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/expression.md"
+        "docs/data-tools/expression.md"
       ],
       "source_evidence": [
         "expression/engine.go:8",
@@ -3234,7 +3168,7 @@
       "summary": "httpx exposes request helpers that resolve content type and client IP using Fiber behavior and vef.app.trusted_proxies.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "httpx/content_type.go:6",
@@ -3255,7 +3189,7 @@
       "summary": "The i18n package selects language from VEF_I18N_LANGUAGE or runtime SetLanguage, supports zh-CN and en, and falls back to the message ID when no translation is found.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/i18n.md"
+        "docs/data-tools/i18n.md"
       ],
       "source_evidence": [
         "i18n/i18n.go:8",
@@ -3277,7 +3211,7 @@
       "summary": "The js package embeds Goja with preloaded libraries, CommonJS-style module support, JSON tag mapping for structs, value conversion helpers, and explicit non-thread-safe runtime guidance.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/js-engine.md"
+        "docs/data-tools/js-engine.md"
       ],
       "source_evidence": [
         "js/js.go:10",
@@ -3322,7 +3256,7 @@
       "summary": "The MCP package exposes the /mcp Streamable HTTP endpoint, secure-by-default auth config, provider groups for tools/resources/prompts, ServerInfo defaults, SchemaFor/SchemaOf JSON schema generation, principal-aware DBWithOperator, the built-in database_query tool, and the built-in naming-master prompt.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/mcp.md"
+        "docs/ai-integration/mcp.md"
       ],
       "source_evidence": [
         "mcp/mcp.go:10",
@@ -3369,7 +3303,7 @@
       "summary": "The middleware package exposes SPAConfig values supplied through vef:spa helpers for static roots, route prefixes, index fallback, and segment-boundary ExcludePaths prefixes.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/advanced/spa-integration.md"
+        "docs/building-apis/spa-integration.md"
       ],
       "source_evidence": [
         "middleware/spa.go:8",
@@ -3409,7 +3343,7 @@
       "summary": "CachedDictionaryResolver wraps a DictionaryLoader and invalidates cached dictionaries through DictionaryChangedEvent; empty Keys clears all cached dictionaries.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "source_evidence": [
         "mold/cached_dictionary_resolver.go:18",
@@ -3436,7 +3370,7 @@
       "summary": "Struct requires a non-nil pointer to a non-time struct; Field requires a non-nil pointer unless the tag string is empty or '-'. Struct traversal recurses into nested structs automatically, but slice/map element recursion requires dive.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "source_evidence": [
         "internal/mold/mold.go:113",
@@ -3463,7 +3397,7 @@
       "summary": "The mold tag uses comma-separated transformer tags, function=param parameters, '-' ignore tags, 'dive' collection recursion, and 'keys'/'endkeys' map-key recursion; commas inside params are escaped as 0x2C.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "source_evidence": [
         "internal/mold/restricted.go:4",
@@ -3490,7 +3424,7 @@
       "summary": "The built-in translate field transformer writes to a sibling <Field>Name field; the built-in dictionary translator supports only dict: kinds, and '?' only skips when no translator supports the full kind string.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/mold.md"
+        "docs/data-tools/mold.md"
       ],
       "source_evidence": [
         "internal/mold/translate.go:183",
@@ -3517,7 +3451,7 @@
       "summary": "The monitor module registers sys/monitor actions with max 60 rate limits and exposes JSON DTO shapes plus ErrNotReady and ErrCollectionFailed API errors.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/monitor.md",
+        "docs/infrastructure/monitor.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -3542,9 +3476,9 @@
       "summary": "The orm package re-exports the framework query builders, model helpers, operator placeholders, bun tag model conventions, and RunInTx/transaction behavior used by CRUD and application services.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/orm-builder.md",
-        "docs/guide/models.md",
-        "docs/advanced/transactions.md"
+        "docs/data-access/orm-builder.md",
+        "docs/data-access/models.md",
+        "docs/data-access/transactions.md"
       ],
       "source_evidence": [
         "orm/orm.go:6",
@@ -3569,7 +3503,7 @@
       "summary": "The page package defines Pageable request metadata, Page[T] response shape, normalization, offset, and items/total JSON fields.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "page/page.go:5"
@@ -3590,7 +3524,7 @@
       "summary": "Password encoders use the {algorithm}encoded_value family of formats such as {bcrypt}..., dispatch through EncoderID, support composite verification/upgrade, and expose bcrypt cost limits.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/password.md"
+        "docs/security/password.md"
       ],
       "source_evidence": [
         "password/composite.go:11",
@@ -3613,7 +3547,7 @@
       "summary": "reflectx exposes spf13/cast conversion aliases where E-suffixed helpers return errors and non-E helpers return zero values on conversion failure.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/convert.go:13"
@@ -3633,7 +3567,7 @@
       "summary": "reflectx decimal conversion maps nil and nil pointer/interface inputs to decimal.Zero, delegates non-nil values to decimal.NewFromAny, and ToDecimal discards conversion errors.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/convert.go:50",
@@ -3659,7 +3593,7 @@
       "summary": "reflectx type helpers define one-level type indirection, pointer-to-struct checks, generic base-name similarity, pointer/value compatibility, and ErrCannotConvertType wrapping on unsupported conversions.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/reflectx.go:10",
@@ -3692,7 +3626,7 @@
       "summary": "reflectx method helpers find methods on values or addressable pointer copies and collect promoted pointer/value methods from struct pointer method sets.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/reflectx.go:59",
@@ -3717,7 +3651,7 @@
       "summary": "reflectx string helpers identify string, string slice, and string map fields, return false for incompatible or nil values, no-op on incompatible setters, and replace *string pointers with fresh pointers.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/string_field.go:6",
@@ -3752,7 +3686,7 @@
       "summary": "reflectx value helpers define emptiness across nil/zero/collection/struct values, numeric equality within categories only, and containment for strings, slices, arrays, and maps with convertible keys.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/value.go:12",
@@ -3781,7 +3715,7 @@
       "summary": "reflectx visitors expose depth-first and breadth-first traversal modes, traversal actions, dive tag selection, recursive disabling, maximum depth, absolute field index paths, cycle protection, and typed struct/field/method visitor callbacks.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/reflectx.md"
       ],
       "source_evidence": [
         "reflectx/visitor.go:9",
@@ -3830,8 +3764,7 @@
       "summary": "The result package serializes API responses as code/message/data, uses stable default codes, exposes status/options behavior, and compares result.Error values by code.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/result.md",
-        "docs/guide/error-handling.md"
+        "docs/building-apis/results-and-errors.md"
       ],
       "source_evidence": [
         "result/result.go:8",
@@ -3856,7 +3789,7 @@
       "summary": "The schema module registers sys/schema with list_tables, get_table_schema, and list_views actions; each action has a custom Max 60 rate limit and uses the standard RPC result envelope.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/schema.md",
+        "docs/infrastructure/schema.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -3885,7 +3818,7 @@
       "summary": "Public schema DTO JSON tags define the response contract, including omitempty behavior for optional schema, comment, constraint, default, action, and view columns fields.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/schema.md",
+        "docs/infrastructure/schema.md",
         "docs/reference/built-in-resources.md"
       ],
       "source_evidence": [
@@ -3913,7 +3846,7 @@
       "summary": "Default schema inspection uses the primary data source only and supports PostgreSQL, MySQL, and SQLite with dialect-specific schema and view inspection behavior.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/schema.md"
+        "docs/infrastructure/schema.md"
       ],
       "source_evidence": [
         "internal/schema/service.go:18",
@@ -3941,7 +3874,7 @@
       "summary": "The search package parses search tags with operator, column, params, delimiter/type options, dive recursion, ignore markers, and documented operator names such as notBetween and iContains.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/query-builder.md"
+        "docs/data-access/query-builder.md"
       ],
       "source_evidence": [
         "search/constants.go:3",
@@ -4258,7 +4191,7 @@
       "summary": "The sequence package defines rule fields, reset cycles, overflow strategies, Generate/GenerateN behavior, the in-memory store, registration, and rule/overflow/count errors.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/sequence.md"
+        "docs/infrastructure/sequence.md"
       ],
       "source_evidence": [
         "sequence/rule.go:7",
@@ -4282,8 +4215,8 @@
       "summary": "sortx defines asc/desc direction constants, null-ordering values, text/JSON marshaling, and OrderSpec fields used by search and CRUD sorting.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md",
-        "docs/guide/query-builder.md"
+        "docs/utilities/small-helpers.md",
+        "docs/data-access/query-builder.md"
       ],
       "source_evidence": [
         "sortx/order.go:8"
@@ -4303,7 +4236,7 @@
       "summary": "The storage module exposes sys/storage multipart upload actions, /storage/files/<key> proxy semantics, pub/priv key visibility, meta-tagged file reference extraction, transactional claim/delete lifecycle, and storage events.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/storage.md",
+        "docs/infrastructure/storage.md",
         "docs/reference/built-in-resources.md",
         "docs/reference/extension-points.md"
       ],
@@ -4332,7 +4265,7 @@
       "summary": "strx parses comma-separated key/value tag strings, supports custom pair/value delimiters, default keys, bare-as-key/value behavior, and space-delimited pairs.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/utilities/small-utilities.md"
+        "docs/utilities/small-helpers.md"
       ],
       "source_evidence": [
         "strx/parser.go:8"
@@ -4353,7 +4286,7 @@
       "summary": "NewSchemaFromSpecs requires unique non-empty Key values, non-nil Type values, and unique resolved names; map import validates Required, Validators, and optional RowValidator errors with errors.Join.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/tabular.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "tabular/spec.go:43",
@@ -4381,7 +4314,7 @@
       "summary": "BuildHeaderMapping trims headers when configured, skips empty and unknown headers, rejects duplicate non-empty headers, and WithoutHeader uses DefaultPositionalMapping; ParseRow reports deterministic row-level ImportError values without committing partial rows.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/tabular.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "tabular/mapping.go:14",
@@ -4410,7 +4343,7 @@
       "summary": "The tabular tag uses comma-separated key=value pairs with a bare default column name, '-' to ignore a field, and 'dive' to flatten nested struct fields; semicolons are not separators.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/features/tabular.md"
+        "docs/data-tools/tabular.md"
       ],
       "source_evidence": [
         "tabular/constants.go:3",
@@ -4459,7 +4392,7 @@
       "summary": "The validator package registers framework-specific validation tags for phone, decimal, alphanumeric, label, and i18n label rules, plus public APIs for custom validation rules.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/guide/validation.md"
+        "docs/data-access/validation.md"
       ],
       "source_evidence": [
         "validator/validator.go:8",
@@ -4484,7 +4417,7 @@
       "summary": "Top-level Provide/Supply helpers contribute to stable FX groups for API resources, middleware, event transports, MCP providers, and approval lifecycle hooks.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/overview.md",
+        "docs/core-concepts/overview.md",
         "docs/reference/extension-points.md"
       ],
       "source_evidence": [
@@ -4549,8 +4482,8 @@
       "summary": "vef.Run appends user options to the framework boot graph, uses default 30s start and 60s stop timeouts, and keeps ApprovalModule opt-in rather than part of the default graph.",
       "disposition": "documented:semantic-contract",
       "coverage": [
-        "docs/modules/overview.md",
-        "docs/modules/lifecycle.md"
+        "docs/core-concepts/overview.md",
+        "docs/core-concepts/lifecycle.md"
       ],
       "source_evidence": [
         "bootstrap.go:16",

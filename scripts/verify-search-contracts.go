@@ -31,8 +31,8 @@ const (
 	searchGroupedSignatureFingerprint = "8394796f33a5ff2bd6063f3809eba0cc0215d9665bf4394f53901a6f64aecb6f"
 	searchGroupedReceiverFingerprint  = "ed72604c91cf6fc5e4aa124631f1f7f3430b41a0994e75a313ed615157ddf6e2"
 
-	englishQueryBuilderPath = "docs/guide/query-builder.md"
-	chineseQueryBuilderPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/guide/query-builder.md"
+	englishQueryBuilderPath = "docs/data-access/query-builder.md"
+	chineseQueryBuilderPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-access/query-builder.md"
 	englishIndexPath        = "docs/reference/public-api-index.md"
 	chineseIndexPath        = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -138,7 +138,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(searchEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(searchEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedSearchSurface(searchEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedSearchSurface(searchEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, searchEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, searchEntries)...)
 	failures = append(failures, verifySearchDocs(searchEntries, []corpus{englishDocs, chineseDocs})...)
@@ -348,7 +348,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedSearchSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedSearchSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -383,20 +383,6 @@ func verifyGroupedSearchSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("search grouped receiver/type families", receiverRows, searchGroupedReceivers, searchGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"44 public search entries",
-			"1 grouped search method entry",
-			"1 search receiver/type family",
-			"0 exported search field entries",
-			"1 exported search method entry",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped search audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

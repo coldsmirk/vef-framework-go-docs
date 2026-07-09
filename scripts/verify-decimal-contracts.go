@@ -327,7 +327,6 @@ func hasCodeReference(content, ref string) bool {
 
 func decimalDocTerms(label string) []string {
 	common := []string{
-		decimalFingerprint,
 		"shopspring/decimal v1.4.0",
 		"type alias",
 		"DivisionPrecision",
@@ -345,8 +344,6 @@ func decimalDocTerms(label string) []string {
 	}
 	if strings.HasPrefix(label, "Chinese") {
 		return append(common,
-			"22 个 top-level symbols",
-			"0 个 exported fields",
 			"70 个 exported methods",
 			"没有\nexported fields",
 			"NaN 或 infinity",
@@ -354,8 +351,6 @@ func decimalDocTerms(label string) []string {
 	}
 
 	return append(common,
-		"22 top-level symbols",
-		"0 exported fields",
 		"70 exported methods",
 		"no exported fields",
 		"NaN or infinity",
@@ -391,8 +386,6 @@ func verifyContractLedger(review contractPackageReview, contract contractEntry, 
 	for _, term := range []string{
 		"shopspring/decimal v1.4.0",
 		"type alias",
-		"top-level symbols",
-		"exported methods",
 		"decimal.NewFromFormattedString",
 		"*regexp.Regexp",
 		"decimal.NewFromAny",

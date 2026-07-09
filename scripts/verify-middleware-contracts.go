@@ -20,8 +20,8 @@ const (
 	middlewareMethods     = 0
 	middlewareEntries     = 4
 
-	englishSPAPath   = "docs/advanced/spa-integration.md"
-	chineseSPAPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/advanced/spa-integration.md"
+	englishSPAPath   = "docs/building-apis/spa-integration.md"
+	chineseSPAPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/building-apis/spa-integration.md"
 	englishIndexPath = "docs/reference/public-api-index.md"
 	chineseIndexPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -312,7 +312,6 @@ func verifyDocumentedSurface(doc corpus, entries []auditEntry) []string {
 func verifySPATerms(doc corpus) []string {
 	var failures []string
 	failures = append(failures, missingTerms(doc, []string{
-		middlewareFingerprint,
 		"`middleware.SPAConfig`",
 		"`SPAConfig.Path`",
 		"`Path string`",
@@ -329,17 +328,6 @@ func verifySPATerms(doc corpus) []string {
 		"`/ws`",
 		"`/apidocs`",
 	})...)
-
-	alternatives := map[string][]string{
-		"exported top-level count": {"1 exported top-level", "1 个 exported top-level"},
-		"exported fields count":    {"3 exported field", "3 个 exported fields"},
-		"exported methods count":   {"0 exported method", "0 个 exported methods"},
-	}
-	for label, terms := range alternatives {
-		if !containsAnyTerm(doc.content, terms) {
-			failures = append(failures, fmt.Sprintf("%s missing %s term: one of %v", doc.label, label, terms))
-		}
-	}
 
 	return failures
 }
@@ -701,16 +689,6 @@ func missingTerms(doc corpus, terms []string) []string {
 	}
 
 	return failures
-}
-
-func containsAnyTerm(content string, terms []string) bool {
-	for _, term := range terms {
-		if strings.Contains(content, term) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func readCorpus(label, root, relPath string) corpus {

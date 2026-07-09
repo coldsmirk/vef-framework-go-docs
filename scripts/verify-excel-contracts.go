@@ -21,12 +21,10 @@ const (
 	excelMethods     = 0
 	excelEntries     = 17
 
-	englishExcelPath    = "docs/features/excel.md"
-	chineseExcelPath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/excel.md"
-	englishCsvExcelPath = "docs/features/csv-excel.md"
-	chineseCsvExcelPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/csv-excel.md"
-	englishIndexPath    = "docs/reference/public-api-index.md"
-	chineseIndexPath    = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
+	englishExcelPath = "docs/data-tools/tabular.md"
+	chineseExcelPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/tabular.md"
+	englishIndexPath = "docs/reference/public-api-index.md"
+	chineseIndexPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
 
 type corpus struct {
@@ -106,8 +104,6 @@ func main() {
 
 	englishExcel := readCorpus("English Excel docs", docsRoot, englishExcelPath)
 	chineseExcel := readCorpus("Chinese Excel docs", docsRoot, chineseExcelPath)
-	englishCsvExcel := readCorpus("English CSV/Excel docs", docsRoot, englishCsvExcelPath)
-	chineseCsvExcel := readCorpus("Chinese CSV/Excel docs", docsRoot, chineseCsvExcelPath)
 	englishIndex := readCorpus("English public API index", docsRoot, englishIndexPath)
 	chineseIndex := readCorpus("Chinese public API index", docsRoot, chineseIndexPath)
 
@@ -126,10 +122,10 @@ func main() {
 	for _, index := range []corpus{englishIndex, chineseIndex} {
 		failures = append(failures, verifyGeneratedIndexSection(index, entries)...)
 	}
-	for _, doc := range []corpus{englishExcel, chineseExcel, englishCsvExcel, chineseCsvExcel} {
+	for _, doc := range []corpus{englishExcel, chineseExcel} {
 		failures = append(failures, verifyDocumentedSurface(doc, entries)...)
 		failures = append(failures, verifyNoPhantomExcelRefs(doc, entries)...)
-		failures = append(failures, missingTerms(doc, excelDocTerms(doc.label))...)
+		failures = append(failures, missingTerms(doc, excelDocTerms())...)
 	}
 
 	failures = append(failures, verifyContractLedger(review, contract, sourceRoot)...)
@@ -229,7 +225,7 @@ func verifyCoverage(
 	contract contractEntry,
 ) []string {
 	var failures []string
-	expected := []string{englishExcelPath, englishCsvExcelPath}
+	expected := []string{englishExcelPath}
 	if !sameSet(manifestEntry.Coverage, expected) {
 		failures = append(failures, fmt.Sprintf("manifest excel coverage mismatch: got %v want %v", manifestEntry.Coverage, expected))
 	}
@@ -302,15 +298,16 @@ func hasCodeReference(content, ref string) bool {
 		codePartsContainReference(content, ref)
 }
 
-func excelDocTerms(label string) []string {
-	common := []string{
-		excelFingerprint,
+func excelDocTerms() []string {
+	return []string{
 		"tabular.Importer",
 		"tabular.Exporter",
 		"[]tabular.ColumnSpec",
 		"[]tabular.MapOption",
 		"tabular.NewMapAdapterFromSpecs",
 		"excel.NewMapImporter(specs, mapOpts, opts...)",
+		"excel.ExportOption",
+		"excel.ImportOption",
 		"excel.WithImportSheetName",
 		"excel.WithImportSheetIndex",
 		"excel.WithSkipRows",
@@ -323,30 +320,11 @@ func excelDocTerms(label string) []string {
 		"timex.Time",
 		"FormatterFn",
 	}
-
-	if strings.Contains(label, "CSV/Excel") {
-		return []string{
-			"excel.NewMapImporter(specs, mapOpts, opts...)",
-			"excel.ExportOption",
-			"excel.ImportOption",
-			"excel.WithImportSheetName",
-			"excel.WithImportSheetIndex",
-			"excel.WithSkipRows",
-			"excel.WithoutHeader",
-			"excel.WithoutTrimSpace",
-			"excel.ErrSheetIndexOutOfRange",
-			"native typed cell",
-			"timex.Time",
-			"FormatterFn",
-		}
-	}
-
-	return common
 }
 
 func verifyContractLedger(review contractPackageReview, contract contractEntry, sourceRoot string) []string {
 	var failures []string
-	expectedCoverage := []string{englishExcelPath, englishCsvExcelPath}
+	expectedCoverage := []string{englishExcelPath}
 	if contract.ID != excelContractID() {
 		failures = append(failures, fmt.Sprintf("excel contract id mismatch: got %q", contract.ID))
 	}

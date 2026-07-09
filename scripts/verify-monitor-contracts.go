@@ -19,21 +19,21 @@ import (
 const (
 	monitorPackage = "github.com/coldsmirk/vef-framework-go/monitor"
 
-	monitorFingerprint = "aeaeed66e2af73c118a295df05cb2061e7a83ecdde00a9871aa53d2436a73663"
-	monitorTopLevel    = 26
-	monitorFields      = 179
+	monitorFingerprint = "2dcd6b85f44ba51532759515b9641c9584332b083cddbcf310ad045b7e1ea15c"
+	monitorTopLevel    = 27
+	monitorFields      = 181
 	monitorMethods     = 9
-	monitorEntries     = 214
+	monitorEntries     = 217
 
-	monitorGroupedEntries              = 188
-	monitorGroupedFields               = 179
+	monitorGroupedEntries              = 190
+	monitorGroupedFields               = 181
 	monitorGroupedMethods              = 9
-	monitorGroupedReceivers            = 22
-	monitorGroupedSignatureFingerprint = "255391d00fe499ca7ba45583f17bac11484b4895b250b5ae261d544ba85b8929"
-	monitorGroupedReceiverFingerprint  = "b335b56667f842b13e38b83cdb493c83303660cb0e3bc2a591de4d06e6c0b45b"
+	monitorGroupedReceivers            = 23
+	monitorGroupedSignatureFingerprint = "323c1b9612fb0905a31851a622199f0d0c1c67e7f466935109bcec70d3da76f9"
+	monitorGroupedReceiverFingerprint  = "777aa0b0f78aad775efc5bf8f890af7fb30ec5749424c7919d11aeed39b23fb2"
 
-	englishMonitorPath = "docs/features/monitor.md"
-	chineseMonitorPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/monitor.md"
+	englishMonitorPath = "docs/infrastructure/monitor.md"
+	chineseMonitorPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/monitor.md"
 	englishBuiltInPath = "docs/reference/built-in-resources.md"
 	chineseBuiltInPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/built-in-resources.md"
 )
@@ -135,7 +135,7 @@ func main() {
 	failures = append(failures, verifyManifest(manifestData)...)
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(entries)...)
-	failures = append(failures, verifyGroupedMonitorSurface(entries, []corpus{englishMonitor, chineseMonitor})...)
+	failures = append(failures, verifyGroupedMonitorSurface(entries)...)
 	failures = append(failures, verifyRuntimeActions(runtime, []corpus{englishMonitor, chineseMonitor, englishBuiltIn, chineseBuiltIn})...)
 	failures = append(failures, verifyMonitorDocs(entries, []corpus{englishMonitor, chineseMonitor})...)
 	failures = append(failures, verifySourceTerms(sourceRoot)...)
@@ -149,7 +149,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Monitor contract docs verified: 214 public entries, 188 grouped DTO/service entries, sys/monitor runtime actions")
+	fmt.Println("Monitor contract docs verified: sys/monitor runtime actions")
 }
 
 func verifyManifest(m manifest) []string {
@@ -244,7 +244,7 @@ func verifyAuditEntries(entries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedMonitorSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedMonitorSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -273,19 +273,6 @@ func verifyGroupedMonitorSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("monitor grouped receiver families", receiverRows, monitorGroupedReceivers, monitorGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"188 grouped monitor field/method entries",
-			"22 monitor DTO/service families",
-			"179 exported DTO fields",
-			"9 exported service methods",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped monitor audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }

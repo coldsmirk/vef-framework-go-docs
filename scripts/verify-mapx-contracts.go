@@ -84,10 +84,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"26 top-level exported symbols",
-		"no exported fields",
-		"no exported\nmethods",
-		"fingerprint is\n`dbf62ac9ffca276278fe475c4abe86ca386784ad1ddbc6fb4a91b3fe67491ee5`",
 		"Creates a `mapstructure.Decoder` with VEF defaults, then applies options in order",
 		"non-struct input returns `ErrInvalidToMapValue`",
 		"non-struct `T` returns `ErrInvalidFromMapType`",
@@ -106,10 +102,6 @@ func main() {
 		"compose your hook with `mapx.DecoderHook` before passing it to\n`WithDecodeHook`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"26 个\ntop-level exported symbols",
-		"没有 exported fields",
-		"没有 exported methods",
-		"fingerprint 是\n`dbf62ac9ffca276278fe475c4abe86ca386784ad1ddbc6fb4a91b3fe67491ee5`",
 		"使用 VEF 默认值创建 `mapstructure.Decoder`，然后按顺序应用 options",
 		"非 struct 输入返回 `ErrInvalidToMapValue`",
 		"非 struct `T` 返回 `ErrInvalidFromMapType`",

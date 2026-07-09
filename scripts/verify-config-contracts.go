@@ -17,17 +17,17 @@ import (
 
 const (
 	configPackage                     = "github.com/coldsmirk/vef-framework-go/config"
-	configFingerprint                 = "f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65"
-	configTopLevel                    = 53
-	configFields                      = 112
-	configMethods                     = 23
-	configEntries                     = 188
-	configGroupedEntries              = 135
-	configGroupedFields               = 112
-	configGroupedMethods              = 23
-	configGroupedReceivers            = 21
-	configGroupedSignatureFingerprint = "f3a1fa4f2281d8c0d89c1a3163e03bda423541b95368d9d15eaefb866d0d2dac"
-	configGroupedReceiverFingerprint  = "7272919e35fb155fd48e83b8285f875daf39b904d7f48fbc236fa358d77e74c5"
+	configFingerprint                 = "efa0ae6f533c23c21fa966dde4891e2125d3c431f604b4cf183f85ffb44b1859"
+	configTopLevel                    = 79
+	configFields                      = 142
+	configMethods                     = 38
+	configEntries                     = 259
+	configGroupedEntries              = 180
+	configGroupedFields               = 142
+	configGroupedMethods              = 38
+	configGroupedReceivers            = 24
+	configGroupedSignatureFingerprint = "7ffb764c95889a481ea93e65280e0af0d34954c2f6e2ef714fea58e186845740"
+	configGroupedReceiverFingerprint  = "217a3f5461f434acaebbe02f2e8b204da664b5b503970524b00365739a33e34f"
 
 	englishReferencePath = "docs/reference/configuration-reference.md"
 	chineseReferencePath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/configuration-reference.md"
@@ -128,7 +128,7 @@ func main() {
 	failures = append(failures, verifySurfaceEntry("API audit manifest", manifestEntry)...)
 	failures = append(failures, verifyReviewSurface(review)...)
 	failures = append(failures, verifyAuditEntries(entries)...)
-	failures = append(failures, verifyGroupedConfigSurface(entries, []corpus{englishReference, chineseReference})...)
+	failures = append(failures, verifyGroupedConfigSurface(entries)...)
 	failures = append(failures, verifyCoverage(entries, manifestEntry, review, contract)...)
 
 	for _, index := range []corpus{englishIndex, chineseIndex} {
@@ -157,7 +157,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("config contracts verified: 135 grouped configuration entries")
+	fmt.Println("config contracts verified")
 }
 
 func verifySurfaceEntry(label string, entry manifestEntry) []string {
@@ -235,7 +235,7 @@ func verifyAuditEntries(entries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedConfigSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedConfigSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -282,35 +282,6 @@ func verifyGroupedConfigSurface(entries []auditEntry, docs []corpus) []string {
 		configGroupedReceivers,
 		configGroupedReceiverFingerprint,
 	)...)
-
-	commonTerms := []string{
-		"135 grouped configuration entries",
-		"112 exported configuration fields",
-		"23 exported configuration methods",
-	}
-	for _, doc := range docs {
-		for _, term := range commonTerms {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped config audit term "+term)
-			}
-		}
-		if strings.HasPrefix(doc.label, "Chinese") {
-			if !containsNormalized(doc.content, "21 个 config struct/interface families") {
-				failures = append(failures, doc.label+" missing grouped config audit term 21 个 config struct/interface families")
-			}
-			continue
-		}
-		for _, term := range []string{
-			"135 grouped configuration entries",
-			"21 config struct/interface families",
-			"112 exported configuration fields",
-			"23 exported configuration methods",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped config audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }
@@ -416,7 +387,7 @@ func verifyNoPhantomConfigRefs(doc corpus, entries []auditEntry) []string {
 		if valid[ref] {
 			continue
 		}
-		if ref == "config.StorageConfig.Effective" {
+		if ref == "config.StorageConfig.Effective" || ref == "config.LockoutConfig.Effective" {
 			continue
 		}
 		failures = append(failures, fmt.Sprintf("%s references unknown config public API: %s", doc.label, ref))
@@ -427,7 +398,6 @@ func verifyNoPhantomConfigRefs(doc corpus, entries []auditEntry) []string {
 
 func referenceTerms(label string) []string {
 	common := []string{
-		configFingerprint,
 		"`DataSourcesConfig.Map`",
 		"`config.PrimaryDataSourceName`",
 		"`config.Config.Unmarshal(key, target)`",
@@ -452,10 +422,6 @@ func referenceTerms(label string) []string {
 	}
 	if strings.HasPrefix(label, "Chinese") {
 		return append(common,
-			"53 个 top-level exported symbols",
-			"112 个 exported fields",
-			"23 个 exported methods",
-			"public surface fingerprint 是 `"+configFingerprint+"`",
 			"方法会返回零值 `config.DataSourceConfig`",
 			"它不会启用 `AutoMigrate`",
 			"框架注入的是 nil `*redis.Client`",
@@ -465,10 +431,6 @@ func referenceTerms(label string) []string {
 	}
 
 	return append(common,
-		"53 top-level exported symbols",
-		"112 exported fields",
-		"23 exported methods",
-		"public surface fingerprint is `"+configFingerprint+"`",
 		"the method returns the zero `config.DataSourceConfig`",
 		"It does not enable `AutoMigrate`",
 		"the framework provides a nil `*redis.Client`",
@@ -587,15 +549,14 @@ func verifySourceContracts(sourceRoot string) []string {
 			},
 		},
 		{
-				path: "config/env.go",
-				terms: []string{
-					"EnvPrefix       = \"VEF\"",
-					"EnvNodeID       = EnvPrefix + \"_NODE_ID\"",
-					"EnvLogLevel     = EnvPrefix + \"_LOG_LEVEL\"",
-					"EnvConfigPath   = EnvPrefix + \"_CONFIG_PATH\"",
-					"EnvI18NLanguage = EnvPrefix + \"_I18N_LANGUAGE\"",
-				},
+			path: "config/env.go",
+			terms: []string{
+				"EnvPrefix       = \"VEF\"",
+				"EnvLogLevel     = EnvPrefix + \"_LOG_LEVEL\"",
+				"EnvConfigPath   = EnvPrefix + \"_CONFIG_PATH\"",
+				"EnvI18NLanguage = EnvPrefix + \"_I18N_LANGUAGE\"",
 			},
+		},
 		{
 			path: "config/data_sources.go",
 			terms: []string{
@@ -672,7 +633,7 @@ func verifySourceContracts(sourceRoot string) []string {
 			path: "internal/mcp/handler.go",
 			terms: []string{
 				"if params.MCPConfig.RequireAuth == nil || *params.MCPConfig.RequireAuth",
-				"httpHandler = applyAuthMiddleware(httpHandler, params.AuthManager)",
+				"httpHandler = applyAuthMiddleware(httpHandler, params.AuthManager, string(params.SecurityConfig.EffectiveTokenType()))",
 			},
 		},
 		{

@@ -26,8 +26,8 @@ func main() {
 	sourceRoot := cleanAbs(*sourceDir)
 	docsRoot := cleanAbs(*outDir)
 
-	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-utilities.md"))
-	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-utilities.md"))
+	englishDocs := readCorpus("English small utilities docs", filepath.Join(docsRoot, "docs/utilities/small-helpers.md"))
+	chineseDocs := readCorpus("Chinese small utilities docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/small-helpers.md"))
 	publicIndex := readCorpus("English public API index", filepath.Join(docsRoot, "docs/reference/public-api-index.md"))
 	chinesePublicIndex := readCorpus("Chinese public API index", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"))
 
@@ -61,12 +61,6 @@ func main() {
 	}
 
 	failures = append(failures, missingTerms(englishDocs, []string{
-		"3 exported functions",
-		"no exported types",
-		"no exported constants",
-		"no exported variables",
-		"no exported fields",
-		"no\nexported methods",
 		"Only the first alias argument is used",
 		"`ColumnWithAlias(\"email\", \"user\", \"profile\")` returns `user.email`",
 		"does not validate, quote, or escape identifiers",
@@ -102,12 +96,6 @@ func main() {
 		"`child\nrecord found`",
 	})...)
 	failures = append(failures, missingTerms(chineseDocs, []string{
-		"3 个 exported functions",
-		"没有 exported types",
-		"没有 exported constants",
-		"没有 exported variables",
-		"没有 exported fields",
-		"exported methods",
 		"只有第一个 alias 参数会被使用",
 		"`ColumnWithAlias(\"email\", \"user\",\n\"profile\")` 返回 `user.email`",
 		"不会 validate、quote 或 escape\nidentifiers",

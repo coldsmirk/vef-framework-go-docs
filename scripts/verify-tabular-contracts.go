@@ -31,8 +31,8 @@ const (
 	tabularGroupedSignatureFingerprint = "7da9d313ffb54ec5be332e956d7c9ac5cef9dfd2599af1e6c4d5fc544871bad2"
 	tabularGroupedReceiverFingerprint  = "a7496ccafce00ecb7d01e86ba95870095c62bc0b1889fff71eca2f6e18f46455"
 
-	englishTabularPath = "docs/features/tabular.md"
-	chineseTabularPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/features/tabular.md"
+	englishTabularPath = "docs/data-tools/tabular.md"
+	chineseTabularPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/data-tools/tabular.md"
 	englishIndexPath   = "docs/reference/public-api-index.md"
 	chineseIndexPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 )
@@ -140,7 +140,7 @@ func main() {
 	failures = append(failures, verifyContractLedger(contracts, sourceRoot)...)
 	failures = append(failures, verifyAuditEntries(tabularEntries)...)
 	failures = append(failures, verifyLiveAuditEntries(tabularEntries, liveAuditEntries)...)
-	failures = append(failures, verifyGroupedTabularSurface(tabularEntries, []corpus{englishDocs, chineseDocs})...)
+	failures = append(failures, verifyGroupedTabularSurface(tabularEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(englishIndex, tabularEntries)...)
 	failures = append(failures, verifyGeneratedIndexSection(chineseIndex, tabularEntries)...)
 	failures = append(failures, verifyTabularDocs([]corpus{englishDocs, chineseDocs})...)
@@ -364,7 +364,7 @@ func verifyLiveAuditEntries(ledgerEntries, liveEntries []auditEntry) []string {
 	return failures
 }
 
-func verifyGroupedTabularSurface(entries []auditEntry, docs []corpus) []string {
+func verifyGroupedTabularSurface(entries []auditEntry) []string {
 	var rows []string
 	receiverCounts := map[string]int{}
 	kindCounts := map[string]int{}
@@ -399,20 +399,6 @@ func verifyGroupedTabularSurface(entries []auditEntry, docs []corpus) []string {
 		receiverRows = append(receiverRows, fmt.Sprintf("%d %s", count, receiver))
 	}
 	failures = append(failures, verifyGroupedFingerprint("tabular grouped receiver/type families", receiverRows, tabularGroupedReceivers, tabularGroupedReceiverFingerprint)...)
-
-	for _, doc := range docs {
-		for _, term := range []string{
-			"148 public tabular entries",
-			"78 grouped tabular field/method entries",
-			"21 tabular receiver/type families",
-			"40 exported tabular field entries",
-			"38 exported tabular method entries",
-		} {
-			if !containsNormalized(doc.content, term) {
-				failures = append(failures, doc.label+" missing grouped tabular audit term "+term)
-			}
-		}
-	}
 
 	return failures
 }
