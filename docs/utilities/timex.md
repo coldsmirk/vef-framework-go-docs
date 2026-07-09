@@ -21,24 +21,12 @@ All three types implement:
 - `sql.Scanner` / `driver.Valuer` — database compatibility
 - `encoding.TextMarshaler` / `encoding.TextUnmarshaler`
 
-The timex package audit currently locks **156 public timex entries** in the
-generated API ledger. The grouped member surface covers **136 grouped timex
-method entries** across **3 timex receiver/type families**: `DateTime: 60
-methods`, `Date: 45 methods`, and `Time: 31 methods`. The generated public API
-index remains the complete method signature list.
-
-Top-level public symbols are the three types (`DateTime`, `Date`, `Time`), the
-constructors/converters (`Now`, `NowDate`, `NowTime`, `Of`, `DateOf`, `TimeOf`,
-`FromUnix`, `FromUnixMilli`, `FromUnixMicro`), the parsers (`Parse`,
-`ParseDate`, `ParseTime`), and the error sentinels (`ErrInvalidDateTimeFormat`,
-`ErrInvalidDateFormat`, `ErrInvalidTimeFormat`, `ErrFailedScan`,
-`ErrUnsupportedDestType`).
-
-The shared method families include conversion (`Unwrap`, `Format`, `String`),
+All three types share the same conversion (`Unwrap`, `Format`, `String`),
 wire/database integration (`MarshalJSON`, `UnmarshalJSON`, `MarshalText`,
-`UnmarshalText`, `Scan`, `Value`), comparison (`Between`, an open interval),
-and timestamp helpers (`UnixMilli`, `UnixMicro`, `UnixNano` on `DateTime`;
-`ToDuration` on `Time`). JSON uses plain layouts with no `T` separator.
+`UnmarshalText`, `Scan`, `Value`), and comparison (`Between`, an open interval)
+method families, plus type-specific timestamp helpers (`UnixMilli`,
+`UnixMicro`, `UnixNano` on `DateTime`; `ToDuration` on `Time`). JSON uses
+plain layouts with no `T` separator.
 
 ## DateTime
 
@@ -62,6 +50,9 @@ dt := timex.FromUnix(1710510600, 0)
 dt := timex.FromUnixMilli(1710510600000)
 dt := timex.FromUnixMicro(1710510600000000)
 ```
+
+The `DateTime` constructors are `Now`, `Of`, `Parse`, `FromUnix`, `FromUnixMilli`,
+and `FromUnixMicro`.
 
 ### Accessing Components
 
@@ -157,6 +148,8 @@ d := timex.DateOf(time.Now())  // Strips time components
 d, err := timex.ParseDate("2024-03-15")
 ```
 
+The `Date` constructors are `NowDate`, `DateOf`, and `ParseDate`.
+
 ### Methods
 
 `Date` offers the same boundary and comparison methods as `DateTime`, but operates on date-level granularity:
@@ -169,6 +162,7 @@ d.BeginOfWeek()
 d.EndOfMonth()
 d.Monday() // ... through Sunday()
 d.Between(start, end)
+d.Location()
 ```
 
 ## Time
@@ -180,6 +174,8 @@ now := timex.NowTime()
 t := timex.TimeOf(time.Now())  // Strips date components
 t, err := timex.ParseTime("14:30:00")
 ```
+
+The `Time` constructors are `NowTime`, `TimeOf`, and `ParseTime`.
 
 ### Methods
 

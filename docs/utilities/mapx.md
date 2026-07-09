@@ -1,19 +1,12 @@
 ---
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # Mapx
 
 The `mapx` package provides bidirectional conversion between Go structs and `map[string]any`, built on top of `github.com/go-viper/mapstructure/v2`. VEF overrides the upstream default tag — the framework uses `json` tags by default.
 
-## Reviewed Public Surface
-
-The current source audit for `github.com/coldsmirk/vef-framework-go/mapx`
-covers 26 top-level exported symbols, no exported fields, and no exported
-methods. The reviewed public-surface fingerprint is
-`dbf62ac9ffca276278fe475c4abe86ca386784ad1ddbc6fb4a91b3fe67491ee5`.
-
-Reviewed APIs:
+## API Reference
 
 | API | Contract |
 | --- | --- |

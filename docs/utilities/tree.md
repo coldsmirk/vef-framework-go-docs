@@ -56,9 +56,6 @@ Public surface:
 | `FindNode` | `tree.FindNode[T any](roots []T, targetID string, adapter tree.Adapter[T]) (T, bool)` |
 | `FindNodePath` | `tree.FindNodePath[T any](roots []T, targetID string, adapter tree.Adapter[T]) ([]T, bool)` |
 
-Surface count: 4 top-level exported symbols, 4 exported fields, no exported
-methods, no exported constants, and no exported variables.
-
 ## Build Contract
 
 `Build` converts a flat slice into nested roots.

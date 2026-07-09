@@ -1,12 +1,10 @@
 ---
-sidebar_position: 5
+sidebar_position: 1
 ---
 
 # CQRS
 
 VEF 内置了一套轻量级 CQRS bus，用来承载 command、query 和统一行为（behavior）中间件。
-
-审查说明：本页覆盖 26 public CQRS entries，其中包括 8 grouped CQRS method entries，分布在 8 CQRS receiver/type families；成组 CQRS surface 包含 0 exported CQRS field entries 和 8 exported CQRS method entries。
 
 ## 面向用户的公共接口
 
@@ -57,6 +55,8 @@ type GetUser struct {
 
 ## 注册 handler
 
+handler 按 action 类型注册，`Send` 也是类型安全的：
+
 ```go
 package useractions
 
@@ -94,15 +94,15 @@ result。handler 自身返回的 error 会原样向外传播。
 
 `HandlerFunc` 是 `Handler` 的函数适配器；它的 `Handle` 方法只是调用被包装的函数。
 
-## Behavior
+## Behavior pipeline
 
-Behavior 会像 middleware 一样包裹所有 command/query。注册方式是：
+CQRS bus 支持在 command/query 执行前后包裹 middleware 风格的 behavior。
+
+使用 `vef.ProvideCQRSBehavior(...)` 把 behavior 注册进运行时：
 
 ```go
 vef.ProvideCQRSBehavior(NewLoggingBehavior)
 ```
-
-内部 bus 会倒序包裹 behavior，因此最先注册的 behavior 会成为最外层。
 
 比较适合用 behavior 做的事情：
 
@@ -140,10 +140,18 @@ bus 创建时会对 behavior 排序一次。`Ordered.Order()` 控制包裹顺序
 | `200..299` | event publish / outbox side effects |
 | `1000+` | custom host behaviors |
 
+## 什么时候用它
+
+CQRS 是可选的。当你需要以下能力时会比较合适：
+
+- 明确的 command/query 边界
+- 类型安全的分发
+- 在 HTTP resource 层之外，围绕应用层 action 建立一条 pipeline
+
 ## 它不会帮你做什么
 
 CQRS bus 不会自动扫描 handler。你仍然需要在自己的模块图里明确把 handler 注册进共享 bus。
 
 ## 下一步
 
-如果你的 behavior 需要把命令执行包进数据库边界，继续阅读 [事务](./transactions)。
+如果你的 behavior 需要把命令执行包进数据库边界，继续阅读 [事务](../data-access/transactions)。

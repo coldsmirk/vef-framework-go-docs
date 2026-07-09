@@ -21,23 +21,12 @@ sidebar_position: 2
 - `sql.Scanner` / `driver.Valuer` — 数据库兼容
 - `encoding.TextMarshaler` / `encoding.TextUnmarshaler`
 
-当前 timex 包审计在生成的 API ledger 中锁定 **156 public timex entries**。
-分组 member surface 覆盖 **136 grouped timex method entries**，分布在 **3
-timex receiver/type families** 中：`DateTime: 60 methods`、`Date: 45
-methods` 和 `Time: 31 methods`。生成的公开 API 索引仍是完整 method 签名清单。
-
-top-level 公开符号包括三个类型（`DateTime`、`Date`、`Time`）、构造/转换入口
-（`Now`、`NowDate`、`NowTime`、`Of`、`DateOf`、`TimeOf`、`FromUnix`、
-`FromUnixMilli`、`FromUnixMicro`）、解析入口（`Parse`、`ParseDate`、
-`ParseTime`）以及错误 sentinel（`ErrInvalidDateTimeFormat`、
-`ErrInvalidDateFormat`、`ErrInvalidTimeFormat`、`ErrFailedScan`、
-`ErrUnsupportedDestType`）。
-
-共享 method family 包括转换（`Unwrap`、`Format`、`String`）、wire / database
-集成（`MarshalJSON`、`UnmarshalJSON`、`MarshalText`、`UnmarshalText`、`Scan`、
-`Value`）、比较（`Between`，open interval）以及 timestamp helper（`DateTime`
-上的 `UnixMilli`、`UnixMicro`、`UnixNano`；`Time` 上的 `ToDuration`）。JSON
-使用普通 layout，没有时区后缀，并满足 no `T` separator 这一公开契约。
+三种类型共享相同的转换方法族（`Unwrap`、`Format`、`String`）、wire / database
+集成方法族（`MarshalJSON`、`UnmarshalJSON`、`MarshalText`、`UnmarshalText`、
+`Scan`、`Value`）以及比较方法族（`Between`，open interval），此外还有各自的
+timestamp helper（`DateTime` 上的 `UnixMilli`、`UnixMicro`、`UnixNano`；
+`Time` 上的 `ToDuration`）。JSON 使用普通 layout，没有时区后缀，也没有
+`T` separator。
 
 ## DateTime
 
@@ -52,6 +41,9 @@ dt := timex.FromUnix(1710510600, 0)                   // 从 Unix 时间戳
 dt := timex.FromUnixMilli(1710510600000)               // 从毫秒时间戳
 dt := timex.FromUnixMicro(1710510600000000)            // 从微秒时间戳
 ```
+
+`DateTime` 的构造函数是 `Now`、`Of`、`Parse`、`FromUnix`、`FromUnixMilli`
+和 `FromUnixMicro`。
 
 ### 访问组件
 
@@ -147,6 +139,8 @@ d := timex.DateOf(time.Now())  // 去除时间部分
 d, err := timex.ParseDate("2024-03-15")
 ```
 
+`Date` 的构造函数是 `NowDate`、`DateOf` 和 `ParseDate`。
+
 ### 方法
 
 `Date` 提供与 `DateTime` 相同的边界和比较方法，但在日期级别操作：
@@ -171,6 +165,8 @@ now := timex.NowTime()
 t := timex.TimeOf(time.Now())  // 去除日期部分
 t, err := timex.ParseTime("14:30:00")
 ```
+
+`Time` 的构造函数是 `NowTime`、`TimeOf` 和 `ParseTime`。
 
 ### 方法
 
@@ -203,7 +199,7 @@ t.Between(start, end)
 }
 ```
 
-没有时区后缀，没有 `T` 分隔符——干净、人类可读的格式。
+没有时区后缀，没有 `T` 分隔符（no `T` separator）——干净、人类可读的格式。
 
 具体方法是 `MarshalJSON`、`UnmarshalJSON`、`MarshalText`、`UnmarshalText`；
 数据库集成使用 `Scan` 和 `Value`。

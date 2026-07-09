@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # Project Structure
@@ -164,4 +164,4 @@ That structure scales poorly because VEF applications are usually extended by fe
 
 ## Next step
 
-Continue to [Modules & Dependency Injection](../modules/overview) to see how those modules are composed at runtime.
+Continue to [Modules & Dependency Injection](../core-concepts/overview) to see how those modules are composed at runtime.

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # Configuration
@@ -19,7 +19,7 @@ If the file cannot be read, startup fails immediately.
 
 ## Core sections
 
-These sections map directly to the public config package and internal module constructors. For the complete audited `config` public surface, including exported structs, fields, methods, and fingerprints, see [Configuration Reference](../reference/configuration-reference).
+These sections map directly to the public config package and internal module constructors. For the complete `config` public surface, including exported structs, fields, and methods, see [Configuration Reference](../reference/configuration-reference).
 
 ### `vef.app`
 
@@ -183,7 +183,7 @@ Key fields:
 
 `config.ApprovalConfig.ApplyDefaults()` fills the timing and retention defaults above but does not enable `AutoMigrate`; migrations run only when `auto_migrate = true`.
 
-> The outbox-related fields previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`). They have moved to `[vef.event.transports.outbox]` so the framework-wide outbox transport can serve any module — see [Event Bus](../features/event-bus).
+> The outbox-related fields previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`). They have moved to `[vef.event.transports.outbox]` so the framework-wide outbox transport can serve any module — see [Event Bus](../infrastructure/event-bus).
 
 ## Environment overrides
 

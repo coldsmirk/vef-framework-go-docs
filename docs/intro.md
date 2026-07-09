@@ -18,9 +18,7 @@ That means VEF is not primarily a “router helper” or a “CRUD library”. I
 
 ## What VEF gives you by default
 
-The default framework boot pipeline is:
-
-`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
+`vef.Run(...)` boots a fixed, ordered module pipeline; see [Application Lifecycle](./core-concepts/lifecycle) for the full boot sequence and what each stage guarantees.
 
 Once the app starts, VEF already has opinions about:
 
@@ -78,18 +76,26 @@ The framework also ships with several built-in resources and modules:
 
 You do not need to implement these from scratch unless your application requirements differ.
 
-## How to read this documentation
+## Where to start
 
-The docs are organized around the order in which most users encounter the framework:
+Most applications touch the framework in this order:
 
-- [Installation](./getting-started/installation): environment and package setup
-- [Quick Start](./getting-started/quick-start): a minimal app that actually boots and serves an endpoint
-- [Configuration](./getting-started/configuration): what `application.toml` controls
-- [Upgrade Notes to v0.35](./getting-started/upgrade-notes-v0.35): changes to review when upgrading from the pre-multi-data-source baseline
-- [Modules & Dependency Injection](./modules/overview): how your code joins the runtime
-- [Routing](./guide/routing): how operations become HTTP endpoints
-- [Models](./guide/models): how Bun models, audit fields, and tags work together
-- [Generic CRUD](./guide/crud): how to expose typed CRUD operations with minimal glue code
-- [Authentication](./security/authentication): how Bearer, Signature, and public endpoints work
+1. [Installation](./getting-started/installation) — environment and package setup
+2. [Quick Start](./getting-started/quick-start) — a minimal app that actually boots and serves an endpoint
+3. [Core Concepts](./core-concepts/overview) — how modules, dependency injection, and the application lifecycle fit together
+4. [Building APIs](./building-apis/api) — resources, operations, routing, and parameter binding
+5. [Data Access](./data-access/models) — models, the query builder, CRUD, and transactions
+6. [Security](./security/authentication) — authentication, authorization, and login hardening
 
-If you are new to the framework, go to [Quick Start](./getting-started/quick-start) next.
+From there, branch out by task:
+
+- [Data Tools](./data-tools/expression) — expression engine, mold data cleansing, i18n, tabular import/export
+- [Infrastructure](./infrastructure/cache) — cache, cron, sequence, event bus, storage, schema, monitor
+- [AI Integration](./ai-integration/ai) — AI helpers and MCP
+- [Approval](./approval) — the workflow/approval engine
+- [Advanced](./advanced/cqrs) — CQRS, custom parameter resolvers, CLI tooling
+- [Utilities](./utilities/small-helpers) — small, focused helper packages
+- [Conventions](./conventions/application-project-conventions) — project layout and database conventions
+- [Reference](./reference/configuration-reference) — configuration keys, built-in resources, and API indexes
+
+If you are new to the framework, go to [Installation](./getting-started/installation) next.

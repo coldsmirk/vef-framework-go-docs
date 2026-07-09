@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Built-in Resources
@@ -91,7 +91,7 @@ Notes:
 
 ## `sys/storage`
 
-Storage resource provided by the storage module. The single-PUT `upload` action was retired in v0.21; every upload now goes through the multipart session lifecycle below. See [File Storage](../features/storage) for the surrounding lifecycle (claim, pending-delete, ACL).
+Storage resource provided by the storage module. The single-PUT `upload` action was retired in v0.21; every upload now goes through the multipart session lifecycle below. See [File Storage](../infrastructure/storage) for the surrounding lifecycle (claim, pending-delete, ACL).
 
 ### Operations
 
@@ -246,11 +246,13 @@ Monitoring resource provided by the monitor module.
 | `get_process` | Bearer auth required | Custom operation max `60` | Returns information about the current application process | None |
 | `get_load` | Bearer auth required | Custom operation max `60` | Returns system load averages | None |
 | `get_build_info` | Bearer auth required | Custom operation max `60` | Returns application build metadata | None |
+| `get_event_streams` | Bearer auth required | Custom operation max `60` | Reports every redis_stream stream and consumer group (consumers / pending / lag / last-delivered) via the optional `event.StreamInspector`, so operators can spot orphaned groups | None |
 
 Notes:
 
 - these actions do not accept framework-defined input parameters
 - some actions may return a monitor-not-ready error when the underlying data source is unavailable
+- `get_event_streams` returns an empty, disabled report when no `event.StreamInspector` is available (for example when the redis_stream transport is off)
 
 Minimal request example:
 
@@ -268,11 +270,11 @@ If you explicitly include the approval module, the framework also registers addi
 
 The registered resources are `approval/category`, `approval/delegation`, `approval/flow`, `approval/instance`, `approval/my`, and `approval/admin`.
 
-They are expanded in [Approval Module](../modules/approval), including each action name, required permission, params type, tenancy rule, audit setting, and rate limit. This page keeps them as an index because they are domain-level workflow resources rather than the framework's core general-purpose built-ins.
+They are expanded in [Approval Module](../approval), including each action name, required permission, params type, tenancy rule, audit setting, and rate limit. This page keeps them as an index because they are domain-level workflow resources rather than the framework's core general-purpose built-ins.
 
 ## See also
 
 - [Authentication](../security/authentication) for the behavior of `security/auth`
-- [File Storage](../features/storage) for `sys/storage`
-- [Schema](../features/schema) for `sys/schema`
-- [Monitor](../features/monitor) for `sys/monitor`
+- [File Storage](../infrastructure/storage) for `sys/storage`
+- [Schema](../infrastructure/schema) for `sys/schema`
+- [Monitor](../infrastructure/monitor) for `sys/monitor`

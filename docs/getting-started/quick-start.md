@@ -134,5 +134,5 @@ Those are handled by the framework runtime.
 ## Where to go next
 
 - [Project Structure](./project-structure): how to organize a real app
-- [Modules & Dependency Injection](../modules/overview): how your own modules join the boot pipeline
-- [Routing](../guide/routing): how RPC and REST resources differ
+- [Modules & Dependency Injection](../core-concepts/overview): how your own modules join the boot pipeline
+- [Routing](../building-apis/routing): how RPC and REST resources differ

@@ -1,19 +1,12 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # Hashx
 
 `hashx` 包提供一行调用的哈希和 HMAC 函数，覆盖常见算法。
 
-## 已审查公开 Surface
-
-当前源码审计覆盖 `github.com/coldsmirk/vef-framework-go/hashx` 的 15 个
-top-level exported symbols，没有 exported fields，也没有 exported methods。
-已审查 public-surface fingerprint 是
-`22e7f661d37170d375f54592fa00078a3ea92b1b93459672709422aab54d5a01`。
-
-已审查 API：
+## API 参考
 
 | API | Contract |
 | --- | --- |

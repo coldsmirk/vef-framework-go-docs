@@ -6,13 +6,6 @@ sidebar_position: 1
 
 VEF authentication happens at the API operation layer. Every operation has an auth configuration, and the API middleware chain resolves a principal before the handler runs.
 
-The security grouped-family audit pins 177 grouped security field/method
-entries across 68 receiver/type families: 77 public field entries and 100 public
-method entries. These entries cover auth DTO wire fields, principal/token
-helpers, signature and challenge providers, data-scope methods,
-permission/resolver interfaces, and event fields; the verifier locks their
-sorted signatures and receiver/type distribution.
-
 ## Default Behavior
 
 If you do not configure anything special:
@@ -24,11 +17,12 @@ That default comes from the API engine, not from your application config.
 
 ## Built-In Strategies
 
-The public `api` package exposes three strategy helpers:
+The public `api` package exposes strategy helpers:
 
 - `api.Public()`
 - `api.BearerAuth()`
 - `api.SignatureAuth()`
+- `api.IPAuth(...)` (see [Signature helpers](#signature-helpers) below for how it resolves whitelists)
 
 In practice, you normally control this through operation settings:
 
@@ -100,6 +94,12 @@ runtime contract:
 | `logout` | no | default API rate limit | none |
 | `resolve_challenge` | yes | `vef.security.login_rate_limit` | `challengeToken`, `type`, `response`; all are `validate:"required"` |
 | `get_user_info` | no | default API rate limit | arbitrary `params`, forwarded to `UserInfoLoader.LoadUserInfo(...)` |
+
+This resource, every registered `Authenticator`, and the `AuthManager`
+aggregator are wired by the framework's security module — the same module that layers in
+brute-force lockout, password strength/history/expiry (see
+[Login Hardening](./login-hardening)) and opaque-token session control (see
+[Session Management](./session-management)).
 
 The built-in authenticator type strings are `password`, `token`, `refresh`,
 and `signature`. In normal client calls, `security/auth.login` uses

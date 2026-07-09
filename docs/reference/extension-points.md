@@ -6,7 +6,7 @@ sidebar_position: 3
 
 Most VEF extension points are explicit FX groups.
 
-Audit note: this page is part of the root `vef` package audit. It covers the DI extension helpers that register into FX groups, replace defaults through `fx.Decorate`, or supply singleton values through `fx.Supply`.
+This page covers the DI extension helpers that register into FX groups, replace defaults through `fx.Decorate`, or supply singleton values through `fx.Supply`.
 
 ## Helper mechanisms
 
@@ -14,9 +14,9 @@ The helper name prefix is not enough to tell how the value is wired. Use the mec
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider` |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
-| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
+| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
 
 Replacement helpers are single-service overrides, not append-only extension
@@ -108,13 +108,6 @@ A `datasource.Provider` loads additional data source specs during startup, after
 the primary and static TOML sources are already registered. Every returned
 `datasource.Spec` is registered into the `datasource.Registry`; a name collision
 with TOML or another provider fails boot.
-
-Reviewed public surface for `github.com/coldsmirk/vef-framework-go/datasource`:
-
-- 17 top-level symbols
-- 9 exported struct fields
-- 13 exported methods
-- fingerprint `a8d1f60b94e7300151d3df0025eec3b3e387d732829ecfff0ecaf7a660ba3cc3`
 
 The primary source is reserved under `datasource.PrimaryName` (`"primary"`).
 It comes from `vef.data_sources.primary`, is exposed as the framework-wide
@@ -222,6 +215,28 @@ approval engine transaction for lifecycle moments such as instance creation and
 completion. Returning an error rolls back the surrounding approval command. Use
 event subscriptions for asynchronous integrations that should run after commit.
 
+## Approval aggregators and form schema
+
+- `vef:approval:aggregators`
+
+Helpers:
+
+- `vef.ProvideApprovalAggregator(...)`
+- `vef.ProvideApprovalFormSchemaParser(...)`
+
+`ProvideApprovalAggregator` registers a custom detail-table aggregator for
+approval field conditions alongside the built-in sum / count / avg. The
+constructor must return an `approval.Aggregator`; the condition evaluator picks
+it up by its `AggregateKind`. Boot fails if a built-in aggregate kind is left
+unregistered.
+
+`ProvideApprovalFormSchemaParser` replaces the framework's default
+`approval.FormSchemaParser` (the built-in vef-framework-react form-editor
+parser). The replacement is wholesale, not additive: every deployed form
+schema goes through it, so it must understand every designer document the host
+submits. Parsing runs once at flow deploy; versions deployed earlier keep the
+`form_fields` they were persisted with.
+
 ## Approval business binding
 
 Helpers:
@@ -237,7 +252,7 @@ business row, returning the opaque `Instance.BusinessRef`.
 `SupplyBusinessRefResolver` replaces the default identity
 `approval.BusinessRefResolver`. Register one when `Instance.BusinessRef` is not
 the bare primary key and the engine-owned write-back needs to extract the value
-matched against `Flow.BusinessPkField`.
+matched against `Flow.BusinessPKField`.
 
 Approval status write-back itself is owned by the engine. Hosts extend around it
 with `approval.InstanceLifecycleHook` or event subscriptions; they no longer
@@ -256,7 +271,18 @@ framework `logx.Logger` outside dependency injection. It returns
 `LoggerConfigurable[T]` for immutable components that return a
 logger-configured copy from `WithLogger`.
 
+## A simple decision rule
+
+When deciding how to extend VEF, ask:
+
+- has the framework already reserved a group for this concept?
+- should the extension participate in startup and lifecycle management?
+- do you want dependencies between modules to stay explicit and testable?
+
+If the answer is yes, route through an FX group instead of implicit global
+state or a hand-rolled singleton.
+
 ## See also
 
-- [Modules & Dependency Injection](../modules/overview) for how these groups fit into app composition
-- [Custom Param Resolvers](../advanced/custom-param-resolvers) for handler injection extension
+- [Modules & Dependency Injection](../core-concepts/overview) for how these groups fit into app composition
+- [Extending Handler Parameters](../advanced/extending-parameters) for handler injection extension

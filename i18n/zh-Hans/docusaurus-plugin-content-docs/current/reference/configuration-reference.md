@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # 配置参考
@@ -32,18 +32,9 @@ type = "sqlite"
 
 - `VEF_CONFIG_PATH`
 - `VEF_LOG_LEVEL`
-- `VEF_NODE_ID`
 - `VEF_I18N_LANGUAGE`
 
-## 已审公共表面
-
-本页已经对照 live Go source 和生成的 public API index 审查。`github.com/coldsmirk/vef-framework-go/config` 当前公开 53 个 top-level exported symbols、112 个 exported fields、23 个 exported methods。public surface fingerprint 是 `f0c4b5df8283faa4a53bbeb3c0a86f03df34c384b81253792d827db1fdd61a65`。
-
-Grouped-family audit 固定了 135 grouped configuration entries，覆盖 21 个
-config struct/interface families：其中 112 exported configuration fields、23
-exported configuration methods。这些 entries 覆盖 config tags、field order、
-effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
-会锁定排序后的签名和 receiver/type 分布。
+## config 包 API 参考
 
 ### Top-Level Public Symbols
 
@@ -62,16 +53,26 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.DefaultDeleteLeaseWindow` | `CONST` | `time.Duration = 300000000000` |
 | `config.DefaultDeleteMaxAttempts` | `CONST` | `int = 12` |
 | `config.DefaultDeleteWorkerInterval` | `CONST` | `time.Duration = 300000000000` |
+| `config.DefaultLockoutBackoffBase` | `CONST` | `time.Duration = 1000000000` |
+| `config.DefaultLockoutBackoffMax` | `CONST` | `time.Duration = 900000000000` |
+| `config.DefaultLockoutLockDuration` | `CONST` | `time.Duration = 900000000000` |
+| `config.DefaultLockoutMaxFailures` | `CONST` | `int = 10` |
+| `config.DefaultLockoutWindow` | `CONST` | `time.Duration = 900000000000` |
 | `config.DefaultMaxPendingClaims` | `CONST` | `int = 100` |
 | `config.DefaultMaxUploadSize` | `CONST` | `int64 = 1073741824` |
+| `config.DefaultSessionIdleTTL` | `CONST` | `time.Duration = 1800000000000` |
+| `config.DefaultSessionMaxLifetime` | `CONST` | `time.Duration = 604800000000000` |
 | `config.DefaultSweepBatchSize` | `CONST` | `int = 200` |
 | `config.DefaultSweepInterval` | `CONST` | `time.Duration = 300000000000` |
 | `config.EnvConfigPath` | `CONST` | `untyped string = "VEF_CONFIG_PATH"` |
 | `config.EnvI18NLanguage` | `CONST` | `untyped string = "VEF_I18N_LANGUAGE"` |
 | `config.EnvPrefix` | `CONST` | `untyped string = "VEF"` |
 | `config.EnvLogLevel` | `CONST` | `untyped string = "VEF_LOG_LEVEL"` |
-| `config.EnvNodeID` | `CONST` | `untyped string = "VEF_NODE_ID"` |
 | `config.ErrInboxRetentionTooShort` | `VAR` | `error` |
+| `config.ErrInvalidLockoutKey` | `VAR` | `error` |
+| `config.ErrInvalidLockoutStrategy` | `VAR` | `error` |
+| `config.ErrInvalidSessionOnExceed` | `VAR` | `error` |
+| `config.ErrInvalidTokenType` | `VAR` | `error` |
 | `config.EventConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventConfig` |
 | `config.EventInboxConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventInboxConfig` |
 | `config.EventMemoryTransportConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig` |
@@ -81,11 +82,20 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.EventRoutingRule` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventRoutingRule` |
 | `config.EventTransportsConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventTransportsConfig` |
 | `config.FilesystemConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.FilesystemConfig` |
+| `config.LockoutConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig` |
+| `config.LockoutKey` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.LockoutKey` |
+| `config.LockoutKeyIP` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.LockoutKey = "ip"` |
+| `config.LockoutKeyUser` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.LockoutKey = "user"` |
+| `config.LockoutKeyUserIP` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.LockoutKey = "user_ip"` |
+| `config.LockoutStrategy` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.LockoutStrategy` |
+| `config.LockoutStrategyBackoff` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.LockoutStrategy = "backoff"` |
+| `config.LockoutStrategyLock` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.LockoutStrategy = "lock"` |
 | `config.MCPConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.MCPConfig` |
 | `config.MinIOConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig` |
 | `config.MonitorConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.MonitorConfig` |
 | `config.MySQL` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "mysql"` |
 | `config.Oracle` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "oracle"` |
+| `config.PasswordPolicyConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig` |
 | `config.Postgres` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.DBKind = "postgres"` |
 | `config.PrimaryDataSourceName` | `CONST` | `untyped string = "primary"` |
 | `config.RedisConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.RedisConfig` |
@@ -97,11 +107,18 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.SSLRequire` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "require"` |
 | `config.SSLVerifyCA` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-ca"` |
 | `config.SSLVerifyFull` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SSLMode = "verify-full"` |
+| `config.SessionConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig` |
+| `config.SessionExceedEvictOldest` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy = "evict_oldest"` |
+| `config.SessionExceedPolicy` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy` |
+| `config.SessionExceedReject` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy = "reject"` |
 | `config.StorageConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.StorageConfig` |
 | `config.StorageFilesystem` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "filesystem"` |
 | `config.StorageMemory` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "memory"` |
 | `config.StorageMinIO` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider = "minio"` |
 | `config.StorageProvider` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider` |
+| `config.TokenType` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TokenType` |
+| `config.TokenTypeJWT` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "jwt_token"` |
+| `config.TokenTypeOpaque` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "opaque_token"` |
 
 ### Exported Fields
 
@@ -174,12 +191,22 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.EventRedisStreamTransportConfig.SetupTimeout` | `time.Duration [field_order=10 tag="config:\"setup_timeout\""]` |
 | `config.EventRedisStreamTransportConfig.ConsumerID` | `string [field_order=11 tag="config:\"consumer_id\""]` |
 | `config.EventRedisStreamTransportConfig.StartID` | `string [field_order=12 tag="config:\"start_id\""]` |
+| `config.EventRedisStreamTransportConfig.IdleGroupRetention` | `time.Duration [field_order=13 tag="config:\"idle_group_retention\""]` |
+| `config.EventRedisStreamTransportConfig.IdleGroupSweepInterval` | `time.Duration [field_order=14 tag="config:\"idle_group_sweep_interval\""]` |
 | `config.EventRoutingRule.Pattern` | `string [field_order=1 tag="config:\"pattern\""]` |
 | `config.EventRoutingRule.Transports` | `[]string [field_order=2 tag="config:\"transports\""]` |
 | `config.EventTransportsConfig.Memory` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig [field_order=1 tag="config:\"memory\""]` |
 | `config.EventTransportsConfig.Outbox` | `github.com/coldsmirk/vef-framework-go/config.EventOutboxTransportConfig [field_order=2 tag="config:\"outbox\""]` |
 | `config.EventTransportsConfig.RedisStream` | `github.com/coldsmirk/vef-framework-go/config.EventRedisStreamTransportConfig [field_order=3 tag="config:\"redis_stream\""]` |
 | `config.FilesystemConfig.Root` | `string [field_order=1 tag="config:\"root\""]` |
+| `config.LockoutConfig.Enabled` | `*bool [field_order=1 tag="config:\"enabled\""]` |
+| `config.LockoutConfig.MaxFailures` | `int [field_order=2 tag="config:\"max_failures\""]` |
+| `config.LockoutConfig.Window` | `time.Duration [field_order=3 tag="config:\"window\""]` |
+| `config.LockoutConfig.LockDuration` | `time.Duration [field_order=4 tag="config:\"lock_duration\""]` |
+| `config.LockoutConfig.Strategy` | `github.com/coldsmirk/vef-framework-go/config.LockoutStrategy [field_order=5 tag="config:\"strategy\""]` |
+| `config.LockoutConfig.BackoffBase` | `time.Duration [field_order=6 tag="config:\"backoff_base\""]` |
+| `config.LockoutConfig.BackoffMax` | `time.Duration [field_order=7 tag="config:\"backoff_max\""]` |
+| `config.LockoutConfig.Key` | `github.com/coldsmirk/vef-framework-go/config.LockoutKey [field_order=8 tag="config:\"key\""]` |
 | `config.MCPConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
 | `config.MCPConfig.RequireAuth` | `*bool [field_order=2 tag="config:\"require_auth\""]` |
 | `config.MinIOConfig.Endpoint` | `string [field_order=1 tag="config:\"endpoint\""]` |
@@ -191,6 +218,17 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.MonitorConfig.SampleInterval` | `time.Duration [field_order=1 tag="config:\"sample_interval\""]` |
 | `config.MonitorConfig.SampleDuration` | `time.Duration [field_order=2 tag="config:\"sample_duration\""]` |
 | `config.MonitorConfig.ExcludedMounts` | `[]string [field_order=3 tag="config:\"excluded_mounts\""]` |
+| `config.PasswordPolicyConfig.MinLength` | `int [field_order=1 tag="config:\"min_length\""]` |
+| `config.PasswordPolicyConfig.MaxLength` | `int [field_order=2 tag="config:\"max_length\""]` |
+| `config.PasswordPolicyConfig.RequireUpper` | `bool [field_order=3 tag="config:\"require_upper\""]` |
+| `config.PasswordPolicyConfig.RequireLower` | `bool [field_order=4 tag="config:\"require_lower\""]` |
+| `config.PasswordPolicyConfig.RequireDigit` | `bool [field_order=5 tag="config:\"require_digit\""]` |
+| `config.PasswordPolicyConfig.RequireSymbol` | `bool [field_order=6 tag="config:\"require_symbol\""]` |
+| `config.PasswordPolicyConfig.MinCharClasses` | `int [field_order=7 tag="config:\"min_char_classes\""]` |
+| `config.PasswordPolicyConfig.DisallowUsername` | `bool [field_order=8 tag="config:\"disallow_username\""]` |
+| `config.PasswordPolicyConfig.Blocklist` | `[]string [field_order=9 tag="config:\"blocklist\""]` |
+| `config.PasswordPolicyConfig.HistoryDepth` | `int [field_order=10 tag="config:\"history_depth\""]` |
+| `config.PasswordPolicyConfig.MaxAge` | `time.Duration [field_order=11 tag="config:\"max_age\""]` |
 | `config.RedisConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
 | `config.RedisConfig.Host` | `string [field_order=2 tag="config:\"host\""]` |
 | `config.RedisConfig.Port` | `uint16 [field_order=3 tag="config:\"port\""]` |
@@ -204,6 +242,15 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.SecurityConfig.LoginRateLimit` | `int [field_order=4 tag="config:\"login_rate_limit\""]` |
 | `config.SecurityConfig.RefreshRateLimit` | `int [field_order=5 tag="config:\"refresh_rate_limit\""]` |
 | `config.SecurityConfig.IPWhitelists` | `map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]` |
+| `config.SecurityConfig.Lockout` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig [field_order=7 tag="config:\"lockout\""]` |
+| `config.SecurityConfig.PasswordPolicy` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig [field_order=8 tag="config:\"password_policy\""]` |
+| `config.SecurityConfig.TokenType` | `github.com/coldsmirk/vef-framework-go/config.TokenType [field_order=9 tag="config:\"token_type\""]` |
+| `config.SecurityConfig.Session` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig [field_order=10 tag="config:\"session\""]` |
+| `config.SessionConfig.MaxConcurrent` | `int [field_order=1 tag="config:\"max_concurrent\""]` |
+| `config.SessionConfig.OnExceed` | `github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy [field_order=2 tag="config:\"on_exceed\""]` |
+| `config.SessionConfig.IdleTTL` | `time.Duration [field_order=3 tag="config:\"idle_ttl\""]` |
+| `config.SessionConfig.MaxLifetime` | `time.Duration [field_order=4 tag="config:\"max_lifetime\""]` |
+| `config.SessionConfig.Sliding` | `*bool [field_order=5 tag="config:\"sliding\""]` |
 | `config.StorageConfig.Provider` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]` |
 | `config.StorageConfig.AutoMigrate` | `bool [field_order=2 tag="config:\"auto_migrate\""]` |
 | `config.StorageConfig.MinIO` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig [field_order=3 tag="config:\"minio\""]` |
@@ -237,6 +284,21 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.EventInboxConfig.EffectiveRetention` | `func() time.Duration` |
 | `config.EventOutboxTransportConfig.EffectiveCleanupInterval` | `func() time.Duration` |
 | `config.EventOutboxTransportConfig.EffectiveCompletedTTL` | `func() time.Duration` |
+| `config.LockoutConfig.IsEnabled` | `func() bool` |
+| `config.LockoutConfig.EffectiveMaxFailures` | `func() int` |
+| `config.LockoutConfig.EffectiveWindow` | `func() time.Duration` |
+| `config.LockoutConfig.EffectiveLockDuration` | `func() time.Duration` |
+| `config.LockoutConfig.EffectiveStrategy` | `func() github.com/coldsmirk/vef-framework-go/config.LockoutStrategy` |
+| `config.LockoutConfig.EffectiveBackoffBase` | `func() time.Duration` |
+| `config.LockoutConfig.EffectiveBackoffMax` | `func() time.Duration` |
+| `config.LockoutConfig.EffectiveKey` | `func() github.com/coldsmirk/vef-framework-go/config.LockoutKey` |
+| `config.LockoutConfig.Validate` | `func() error` |
+| `config.SecurityConfig.EffectiveTokenType` | `func() github.com/coldsmirk/vef-framework-go/config.TokenType` |
+| `config.SecurityConfig.Validate` | `func() error` |
+| `config.SessionConfig.EffectiveOnExceed` | `func() github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy` |
+| `config.SessionConfig.EffectiveIdleTTL` | `func() time.Duration` |
+| `config.SessionConfig.EffectiveMaxLifetime` | `func() time.Duration` |
+| `config.SessionConfig.IsSliding` | `func() bool` |
 | `config.StorageConfig.EffectiveClaimTTL` | `func() time.Duration` |
 | `config.StorageConfig.EffectiveDeleteBatchSize` | `func() int` |
 | `config.StorageConfig.EffectiveDeleteConcurrency` | `func() int` |
@@ -266,6 +328,15 @@ effective default methods、validation helpers 和 `Config.Unmarshal`；verifier
 | `config.EventInboxConfig.EffectiveProcessingLease()` | `ProcessingLease` 为正时返回配置值，否则返回 `10m`。 |
 | `config.EventInboxConfig.EffectiveCleanupInterval()` | `CleanupInterval` 为正时返回配置值，否则返回 `1h`。 |
 | `config.EventConfig.Validate()` | 只在 `EventConfig.Middleware.Inbox` 为 true 且 `EventConfig.Transports.Outbox.Enabled` 为 true 时运行。它把 `max_retries <= 0` 当作 `10`，按 `sum(2^k seconds)` 计算最坏 exponential backoff horizon，溢出时饱和并 fail-closed；当 `inbox.retention <= horizon` 时返回包装 `config.ErrInboxRetentionTooShort` 的错误。 |
+| `config.SecurityConfig.EffectiveTokenType()` | 返回 `TokenType`；未配置时返回 `config.TokenTypeJWT`（`"jwt_token"`）。 |
+| `config.SecurityConfig.Validate()` | 拒绝超出枚举范围的 `TokenType`（包装 `config.ErrInvalidTokenType`）或 `SessionConfig.OnExceed`（包装 `config.ErrInvalidSessionOnExceed`），让配置笔误在启动时立即失败。 |
+| `config.LockoutConfig.IsEnabled()` | `Enabled` 为 nil（锁定默认开启）或指向 `true` 时返回 `true`。 |
+| `config.LockoutConfig.Effective...()` | 每个 accessor 只有在配置值严格为正时才返回配置值，否则重新选择对应的默认常量：`MaxFailures` -> `config.DefaultLockoutMaxFailures`（`10`）、`Window` -> `config.DefaultLockoutWindow`（`15m`）、`LockDuration` -> `config.DefaultLockoutLockDuration`（`15m`）、`Strategy` 未配置时 -> `config.LockoutStrategyLock`（`"lock"`）、`BackoffBase` -> `config.DefaultLockoutBackoffBase`（`1s`）、`BackoffMax` -> `config.DefaultLockoutBackoffMax`（`15m`）、`Key` 未配置时 -> `config.LockoutKeyUserIP`（`"user_ip"`）。 |
+| `config.LockoutConfig.Validate()` | 拒绝超出枚举范围的 `Strategy`（包装 `config.ErrInvalidLockoutStrategy`）或 `Key`（包装 `config.ErrInvalidLockoutKey`）。 |
+| `config.SessionConfig.EffectiveOnExceed()` | 返回 `OnExceed`；未配置时返回 `config.SessionExceedEvictOldest`（`"evict_oldest"`）。 |
+| `config.SessionConfig.EffectiveIdleTTL()` | `IdleTTL` 为正时返回配置值，否则返回 `config.DefaultSessionIdleTTL`（`30m`）。 |
+| `config.SessionConfig.EffectiveMaxLifetime()` | `MaxLifetime` 为正时返回配置值，否则返回 `config.DefaultSessionMaxLifetime`（`7 * 24h`）。 |
+| `config.SessionConfig.IsSliding()` | `Sliding` 为 nil（默认开启滑动续期）或指向 `true` 时返回 `true`。 |
 
 `DataSourcesConfig.Map` 有意不带 tag。内部配置模块会先把 `vef.data_sources` unmarshal 成 `map[string]config.DataSourceConfig`，再包装成 `DataSourcesConfig{Map: sources}`；这样既保留任意数据源名称，也用 `config.PrimaryDataSourceName`（`"primary"`）为全框架 `orm.DB` 保留主数据源。
 
@@ -327,10 +398,17 @@ path = "./analytics.db"
 | `refresh_not_before` | `duration` | refresh token 最早可使用时间；默认 `15m`，也就是固定 `30m` access token 生命周期的一半。 |
 | `login_rate_limit` | `int` | 登录接口限流；默认 `6`。 |
 | `refresh_rate_limit` | `int` | refresh 接口限流；默认 `1`。 |
+| `ip_whitelists` | `map[string][]string` | 内置 `ip` 认证策略使用的命名 IP 白名单（IP 或 CIDR 条目）；TOML key 会被转成小写，无参数的 `api.IPAuth()` 指向 `default`。 |
+| `lockout.*` | — | 登录接口的暴力破解防护：`enabled` 默认 `true`、`max_failures` 默认 `10`、`window` 默认 `15m`、`lock_duration` 默认 `15m`、`strategy`（`lock` \| `backoff`）默认 `lock`、`backoff_base` 默认 `1s`、`backoff_max` 默认 `15m`、`key`（`user` \| `ip` \| `user_ip`）默认 `user_ip`。 |
+| `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
+| `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
+| `session.*` | — | opaque token 的会话调优项，在 `jwt_token` 下不生效：`max_concurrent` 默认 `0`（不限制；并发登录场景下是 best-effort 强制）、`on_exceed`（`reject` \| `evict_oldest`）默认 `evict_oldest`、`idle_ttl` 默认 `30m`、`max_lifetime` 默认 `168h`（7 天）、`sliding` 默认 `true`。 |
 
 说明：
 
 - 内置 JWT token generator 签发的 access token 固定 `30m` 过期；`vef.security.token_expires` 控制的是 refresh token，不是 access token。
+- 锁定功能默认开启（`max_failures = 10`）；触发后返回 `security.ErrAccountLocked`（HTTP 429），guard 存储出错时按 fail open 处理。
+- 只有注册了 `security.PasswordHistoryStore` 时，`history_depth > 0` 才会把历史密码校验组合进密码策略；只有应用同时接入 `security.PasswordMetadataLoader` 和 `security.NewExpiryPasswordChangeChecker` 时，`max_age` 才会生效。
 
 ## `vef.redis`
 
@@ -411,7 +489,7 @@ path = "./analytics.db"
 | `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
 | `cc_record_retention` | `duration` | 已读 apv_cc_record 记录保留期，默认 90 天。 |
 
-> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../features/event-bus)。
+> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
 
 ## `vef.event`
 
@@ -423,7 +501,7 @@ path = "./analytics.db"
 | `publish_timeout` | `duration` | 单次 transport Publish 调用上限，默认 `5s`。 |
 | `transports.memory.*` | — | 内存 transport 配置：`queue_size` 默认 `1024`，`full_policy` 默认 `error`，`publish_timeout` 默认不设上限，且只在 `full_policy = "block"` 时生效。 |
 | `transports.outbox.*` | — | outbox transport 配置：`enabled`、`relay_interval` 默认 `10s`、`max_retries` 默认 `10`、`batch_size` 默认 `100`、`lease_multiplier` 默认 `4`、`min_lease` 默认 `15s`、`sink` 默认 `memory`、`cleanup_interval` 默认 `1h`、`completed_ttl` 默认 `168h`；cleanup 字段属于框架配置，不是 `event/transport/outbox.Config` 字段。 |
-| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`reaper_concurrency` 默认 `4`、`handler_timeout` 默认 `30s`、`setup_timeout` 默认 `5s`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）。 |
+| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`reaper_concurrency` 默认 `4`、`handler_timeout` 默认 `30s`、`setup_timeout` 默认 `5s`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）、`idle_group_retention` 默认 `0`（关闭孤儿消费组回收）、`idle_group_sweep_interval` 默认 `10m`。 |
 | `middleware.*` | `bool` | 中间件开关：`logging`、`tracing`、`tracing_strict`、`metrics`、`recover`、`inbox`。 |
 | `inbox.*` | — | Inbox 去重表配置：`retention` 默认 `168h`、`processing_lease` 默认 `10m`、`cleanup_interval` 默认 `1h`。 |
 | `routing` | `[]{pattern, transports}` | 路由规则列表，按 `path.Match` 语义自顶向下匹配。 |

@@ -111,4 +111,4 @@ priority 常量分别是 `PrioritySelf` (`10`)、`PriorityDepartment` (`20`)、
 
 ## 下一步
 
-接下来可以进入 [功能特性](../features/cache) 或 [进阶](../advanced/transactions)，看平台能力和更深层的扩展面。
+接下来可以进入 [基础设施](../infrastructure/cache) 或 [事务](../data-access/transactions)，看平台能力和更深层的扩展面。

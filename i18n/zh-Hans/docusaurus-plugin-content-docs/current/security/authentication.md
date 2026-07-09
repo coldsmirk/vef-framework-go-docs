@@ -6,13 +6,6 @@ sidebar_position: 1
 
 VEF 的认证发生在 API 操作层。每个操作都有自己的 auth 配置，API 中间件会在 handler 执行前先解析出当前 principal。
 
-Security grouped-family audit 固定了 177 grouped security field/method
-entries，覆盖 68 receiver/type families：其中 77 public field entries、100
-public method entries。这些 entries 覆盖 auth DTO wire fields、principal/token
-helpers、signature 和 challenge providers、data-scope methods、
-permission/resolver interfaces 以及 event fields；verifier 会锁定排序后的签名和
-receiver/type 分布。
-
 ## 默认行为
 
 如果你不做额外配置：
@@ -24,11 +17,12 @@ receiver/type 分布。
 
 ## 内置认证策略
 
-公开的 `api` 包暴露了三种策略 helper：
+公开的 `api` 包暴露了这些策略 helper：
 
 - `api.Public()`
 - `api.BearerAuth()`
 - `api.SignatureAuth()`
+- `api.IPAuth(...)`（白名单解析方式见下文的 [Signature helpers](#signature-helpers)）
 
 实际使用中，你通常通过操作配置来控制：
 
@@ -98,6 +92,11 @@ security/auth
 | `logout` | 否 | 默认 API rate limit | 无 |
 | `resolve_challenge` | 是 | `vef.security.login_rate_limit` | `challengeToken`、`type`、`response`；全部是 `validate:"required"` |
 | `get_user_info` | 否 | 默认 API rate limit | 任意 `params`，会转发给 `UserInfoLoader.LoadUserInfo(...)` |
+
+这个资源、所有已注册的 `Authenticator`，以及 `AuthManager` 聚合器，都由
+框架的安全模块完成装配——同一个模块还装配了暴力破解锁定、密码强度/历
+史/过期（参见[登录加固](./login-hardening)）以及 opaque token 会话控制
+（参见[会话管理](./session-management)）。
 
 内置 authenticator type 字符串是 `password`、`token`、`refresh` 和
 `signature`。普通客户端调用里，`security/auth.login` 使用

@@ -1,37 +1,24 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # CLI 工具
 
-VEF 在 `cmd/vef-cli` 下提供了一个 CLI 入口，但当前可用能力是有限的。这一页只记录**源码里真实已经实现**的部分。
+VEF 提供了一个 CLI，但目前的范围比完整的项目脚手架工具要窄。
 
 ## 当前有哪些命令
 
 根命令是 `vef-cli`。`vef-cli --version` 会打印 CLI banner 和
-`Version: ...`；如果构建时间元数据存在，还会打印 `Built: ...`，dirty VCS
+`Version: ...`；当构建时间元数据可用时还会打印 `Built: ...`，dirty VCS
 构建会在版本号后追加 `-dirty`。
 
-当前 CLI 根命令注册了三个子命令：
+CLI 当前注册了这些子命令：
 
 - `create`
 - `generate-build-info`
 - `generate-model-schema`
 
-`cmd/vef-cli/**` 会出现在 [公开 API 索引](../reference/public-api-index)
-里，这是为了导出审计完整性；应用代码应通过这些 CLI 命令来消费能力，不应
-import 命令实现包。
-
-已审查的 CLI implementation packages：
-
-| Package | Public entries | Fingerprint | 用户可见 contract |
-| --- | ---: | --- | --- |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd` | 10 | `6a01b8fdcb43f6842164be353432a6dbc7849601835c454228aab6cb5ef046ef` | 根命令、已注册子命令、`--version` 输出 |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo` | 2 | `a9f40a22aaf4f4e6313cea5a7fcd439a5dcde2d0b13f977e954753c1317ab33e` | `generate-build-info` |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create` | 2 | `26171a8454bd55208efc47d3ba16ce5744a971956d17bfac4972c1468619cd3b` | `create` placeholder 和 not-implemented error |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema` | 21 | `19164973da27a846f72a4df3b55d320998b55e57ee2b3dc40dd7abc4868e8735` | `generate-model-schema` |
-
-最小示例：
+## 最小命令示例
 
 ```bash
 vef-cli --version
@@ -39,37 +26,38 @@ vef-cli generate-build-info -o internal/vef/build_info.go -p vef
 vef-cli generate-model-schema -i models -o schemas -p schemas
 ```
 
-## 重要限制：`create` 还没有实现
+应用代码应该通过这些命令来使用 CLI，而不是直接 import
+`cmd/vef-cli/cmd/*` 下的实现包。
 
-`create` 命令当前会直接返回一个明确错误：
+## 重要现状说明
+
+`vef-cli create` 作为命令存在，但目前**尚未实现**。
+
+不要把它当作一个可用的项目生成器来使用。
+
+该命令会返回这个错误：
 
 ```text
 vef-cli create is not implemented yet, please generate the project manually
 ```
 
-所以不要把它当成一个可用的项目脚手架来文档化或依赖。
-
-这个命令仍然定义了以下 flags，因为计划中的命令形状已经存在：
+因为计划中的命令形态已经存在，命令仍然定义了这些 flags：
 
 | Flag | 默认值 | 用途 |
 | --- | --- | --- |
 | `--name`, `-n` | 必填 | 项目名称 |
-| `--path`, `-p` | `.` | 项目将要创建到的目录 |
+| `--path`, `-p` | `.` | 项目将要创建到的目录路径 |
 | `--module`, `-m` | 空 | Go module 路径 |
 
 ## `generate-build-info`
 
-这个命令用于生成一个包含构建信息的 Go 文件，信息包括：
+这个命令会生成一个包含构建元数据的 Go 源文件，例如：
 
 - 应用版本
 - 构建时间
-- Git commit
+- git commit
 
-常见用法：
-
-```bash
-vef-cli generate-build-info -o internal/vef/build_info.go -p vef
-```
+它适合放在 `go:generate` 或构建流水线里使用。
 
 Flags:
 
@@ -94,17 +82,16 @@ var BuildInfo = &monitor.BuildInfo{
 }
 ```
 
-如果你想让 `sys/monitor.get_build_info` 返回应用自己的构建元数据，这个命令是当前最实用的一项 CLI 能力。
-
 ## `generate-model-schema`
 
-这个命令会读取符合 VEF ORM 模型约定的 Go model，并生成 schema 辅助代码，避免在 ORM 查询中到处硬编码列名。
+这个命令会检查 model 文件，并为 ORM 使用生成类型安全的 schema 辅助代码。
 
-常见用法：
+它支持：
 
-```bash
-vef-cli generate-model-schema -i models -o schemas -p schemas
-```
+- 文件到文件的生成
+- 目录到目录的生成
+
+目标是减少查询代码里硬编码的列名字符串。
 
 Flags:
 
@@ -114,71 +101,71 @@ Flags:
 | `--output`, `-o` | 必填 | 输出 schema 文件或目录 |
 | `--package`, `-p` | `schemas` | 生成 schema 文件的 package 名称 |
 
-目录输入会按输入文件一一生成 schema 文件。目录模式只处理输入目录直属的
-`*.go` 文件，不递归子目录。目录输入可以指向一个已存在的输出目录，也可以
-指向一个尚不存在的目录路径；如果输出路径已经存在并且是文件，目录到单文件
+目录输入会按输入文件逐一生成 schema 文件。目录模式只处理输入目录直属的
+`*.go` 文件，不会递归子目录。目录输入可以指向一个已存在的输出目录，也可以
+指向一个尚不存在的目录路径。如果输出路径已经作为文件存在，目录到单文件的
 生成会被拒绝。
 
-生成器会读取目标文件中嵌入 `orm.BaseModel` 的 struct。表元数据来自嵌入
+生成器会读取目标文件中嵌入 `orm.BaseModel` 的 struct。表元数据来自嵌入的
 `orm.BaseModel` 字段上的 `bun` tag：`table:...` 设置表名，`alias:...` 设置
-默认 alias。缺少这些 tag 时，表名默认是 model 名称的 pluralized snake_case，
-alias 默认是 model 名称的 singular snake_case。
+默认 alias。缺少这些 tag 部分时，表名默认为 model 名称的复数 snake_case，
+alias 默认为 model 名称的单数 snake_case。
 
-字段处理规则如下：
+字段处理遵循这些规则：
 
-- 只有 exported fields 会生成 accessors
+- 只有 exported 字段会生成 accessor
 - `bun:"-"` 字段会被跳过
 - `bun:"rel:*"` 和 `bun:"m2m:*"` 关系字段会被跳过
-- `bun:"user_name"` 这类第一个 `bun` tag 片段会设置列名
-- 没有列名 tag 的字段使用字段名的 snake_case
-- embedded structs 会被展开
-- `bun:"embed:prefix_"` 会用 prefix 展开嵌套字段
+- 类似 `bun:"user_name"` 这样的第一个 `bun` tag 片段会设置列名
+- 没有列名 tag 的字段使用字段名的 snake_case 形式
+- embedded struct 会被展开
+- `bun:"embed:prefix_"` 会用给定的前缀展开嵌套字段
 - `label:"..."` 会变成生成代码里的方法注释
-- `bun:",scanonly"` 字段仍然有 accessor，但会从 `Columns()` 中排除
+- `bun:",scanonly"` 字段仍然会有 accessor，但会被排除在 `Columns()` 之外
 
-生成代码的公开 API 是一个以 model 名命名的 exported schema 变量，例如
-`User`，背后对应 unexported schema 类型，例如 `userSchema`。每个 schema
-都有字段 accessor，以及 `Table()`、`Alias()`、`As(alias)`、`Columns()`。
+生成的公开 API 会暴露一个以 model 命名的 exported schema 变量，例如 `User`，
+其背后是一个 unexported schema 类型，例如 `userSchema`。每个 schema 都有
+字段 accessor，以及 `Table()`、`Alias()`、`As(alias)`、`Columns()`。
 
-字段 accessor 默认通过 `dbx.ColumnWithAlias` 返回带 alias 的列名。传入
-`raw=true` 会返回 raw column name：
+字段 accessor 默认通过 `dbx.ColumnWithAlias` 返回带 alias 限定的列名。传入
+`raw=true` 会返回原始列名：
 
 ```go
 schemas.User.Name()     // 例如 "u.name"
 schemas.User.Name(true) // "name"
 ```
 
-如果 model 字段名会和 `Table`、`Alias`、`As` 或 `Columns` 冲突，生成的
-accessor 会加 `Col` 前缀，例如 `ColTable`。生成的 struct-field identifier
-如果会和 Go keyword 冲突，会加 `__` 前缀。
+如果 model 字段会和 `Table`、`Alias`、`As` 或 `Columns` 冲突，生成的
+accessor 会加上 `Col` 前缀，例如 `ColTable`。生成的 struct 字段标识符如果
+会撞上 Go 关键字，会加上 `__` 前缀。
 
 ## 常见的 `go:generate` 用法
 
-在真实 VEF 项目里，这两个命令通常直接写在 `module.go` 顶部：
+在真实的 VEF 应用里，这些命令通常直接写在 `module.go` 上方：
 
 ```go
 //go:generate vef-cli generate-model-schema -i ./models -o ./schemas -p schemas
 package sys
 ```
 
-以及：
+以及面向框架的构建元数据：
 
 ```go
 //go:generate vef-cli generate-build-info -o ./build_info.go -p vef
 package vef
 ```
 
-这样 schema helper 和 build info 会和真正使用它们的模块放在一起。
+这样可以让 schema 辅助代码和构建元数据在物理位置上贴近使用它们的模块。
 
-## 当前真实工作流
+## 现阶段的合理预期
 
-在现阶段，比较现实的做法是：
+目前，这个 CLI 最好被当作：
 
-1. 手动创建项目结构
-2. 手动编写模块与资源
-3. 需要时使用 `generate-build-info`
-4. 需要时使用 `generate-model-schema`
+- 生成构建元数据的辅助工具
+- 生成 model schema 的辅助工具
+
+它**还不**适合作为「一条命令搭好整个项目」这类 onboarding 文档的基础。
 
 ## 下一步
 
-如果你想让生成的构建信息最终出现在运行时接口里，继续阅读 [监控](../features/monitor)。
+如果你希望生成的构建信息通过 `sys/monitor` 展示出来，继续阅读 [监控](../infrastructure/monitor)。

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # CLI Tools
@@ -26,18 +26,8 @@ vef-cli generate-build-info -o internal/vef/build_info.go -p vef
 vef-cli generate-model-schema -i models -o schemas -p schemas
 ```
 
-`cmd/vef-cli/**` appears in the [Public API Index](../reference/public-api-index)
-for export-audit completeness, but application code should consume the CLI
-through these commands instead of importing command implementation packages.
-
-Audited CLI implementation packages:
-
-| Package | Public entries | Fingerprint | User-facing contract |
-| --- | ---: | --- | --- |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd` | 10 | `6a01b8fdcb43f6842164be353432a6dbc7849601835c454228aab6cb5ef046ef` | root command, registered subcommands, `--version` output |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/buildinfo` | 2 | `a9f40a22aaf4f4e6313cea5a7fcd439a5dcde2d0b13f977e954753c1317ab33e` | `generate-build-info` |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/create` | 2 | `26171a8454bd55208efc47d3ba16ce5744a971956d17bfac4972c1468619cd3b` | `create` placeholder and not-implemented error |
-| `github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/modelschema` | 21 | `19164973da27a846f72a4df3b55d320998b55e57ee2b3dc40dd7abc4868e8735` | `generate-model-schema` |
+Application code should consume the CLI through these commands instead of
+importing the `cmd/vef-cli/cmd/*` implementation packages directly.
 
 ## Important reality check
 
@@ -182,4 +172,4 @@ It is **not** yet the right foundation for onboarding docs that promise one-comm
 
 ## Next step
 
-Read [Monitor](../features/monitor) if you want the generated build info to show up through `sys/monitor`.
+Read [Monitor](../infrastructure/monitor) if you want the generated build info to show up through `sys/monitor`.

@@ -1,19 +1,12 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # Hashx
 
 The `hashx` package provides one-line hash and HMAC functions for common algorithms.
 
-## Reviewed Public Surface
-
-The current source audit for `github.com/coldsmirk/vef-framework-go/hashx`
-covers 15 top-level exported symbols, no exported fields, and no exported
-methods. The reviewed public-surface fingerprint is
-`22e7f661d37170d375f54592fa00078a3ea92b1b93459672709422aab54d5a01`.
-
-Reviewed APIs:
+## API Reference
 
 | API | Contract |
 | --- | --- |

@@ -1,19 +1,12 @@
 ---
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # Mapx
 
 `mapx` 包提供 Go 结构体与 `map[string]any` 之间的双向转换，底层基于 `github.com/go-viper/mapstructure/v2`。VEF 覆盖了上游的默认 tag —— 框架默认使用 `json` tag。
 
-## 已审查公开 Surface
-
-当前源码审计覆盖 `github.com/coldsmirk/vef-framework-go/mapx` 的 26 个
-top-level exported symbols，没有 exported fields，也没有 exported methods。
-已审查 public-surface fingerprint 是
-`dbf62ac9ffca276278fe475c4abe86ca386784ad1ddbc6fb4a91b3fe67491ee5`。
-
-已审查 API：
+## API 参考
 
 | API | Contract |
 | --- | --- |

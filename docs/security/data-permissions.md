@@ -113,4 +113,4 @@ highest numeric priority when multiple role scopes match the same permission.
 
 ## Next Step
 
-Move to [Features](../features/cache) or [Advanced](../advanced/transactions) depending on whether you want platform capabilities or deeper runtime extension points next.
+Move to [Infrastructure](../infrastructure/cache) or [Transactions](../data-access/transactions) depending on whether you want platform capabilities or deeper runtime extension points next.

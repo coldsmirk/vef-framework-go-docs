@@ -1,12 +1,10 @@
 ---
-sidebar_position: 5
+sidebar_position: 1
 ---
 
 # CQRS
 
 VEF includes a lightweight CQRS bus with typed handlers and behavior middleware.
-
-Audit note: this page covers 26 public CQRS entries, including 8 grouped CQRS method entries across 8 CQRS receiver/type families. The grouped CQRS surface contains 0 exported CQRS field entries and 8 exported CQRS method entries.
 
 ## Public API
 
@@ -39,7 +37,23 @@ Supporting public APIs:
 `Action.Kind()` returns the action discriminator. `BaseCommand.Kind()` returns
 `Command` (`0`), and `BaseQuery.Kind()` returns `Query` (`1`).
 
-## The bus model
+## Defining actions
+
+Commands embed `cqrs.BaseCommand`; queries embed `cqrs.BaseQuery`:
+
+```go
+type CreateUser struct {
+  cqrs.BaseCommand
+  Name string
+}
+
+type GetUser struct {
+  cqrs.BaseQuery
+  ID string
+}
+```
+
+## Registering handlers
 
 Handlers are registered by action type, and sends are type-safe:
 
@@ -86,14 +100,19 @@ calls the wrapped function.
 
 The CQRS bus supports middleware-like behaviors around command/query execution.
 
-Use `vef.ProvideCQRSBehavior(...)` to register them into the runtime.
+Use `vef.ProvideCQRSBehavior(...)` to register them into the runtime:
+
+```go
+vef.ProvideCQRSBehavior(NewLoggingBehavior)
+```
 
 This is the right place for:
 
-- tracing
 - logging
+- tracing
 - metrics
 - cross-cutting validation
+- transaction wrapping
 
 Minimal behavior example:
 
@@ -133,6 +152,10 @@ CQRS is optional. It is most useful when you want:
 - type-safe dispatch
 - a pipeline around application actions outside the HTTP resource layer
 
+## What it doesn't do
+
+The CQRS bus does not scan for handlers automatically. You still need to register each handler into the shared bus explicitly in your module wiring.
+
 ## Next step
 
-Read [Transactions](./transactions) if your behaviors need to wrap command execution in database boundaries.
+Read [Transactions](../data-access/transactions) if your behaviors need to wrap command execution in database boundaries.

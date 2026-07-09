@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # 项目结构
@@ -164,4 +164,4 @@ var Module = vef.Module(
 
 ## 下一步
 
-接下来建议看 [模块与依赖注入](../modules/overview)，理解这些模块如何真正进入运行时。
+接下来建议看 [模块与依赖注入](../core-concepts/overview)，理解这些模块如何真正进入运行时。

@@ -6,14 +6,7 @@ sidebar_position: 4
 
 `copier` 包提供结构体之间的字段复制，内置了 VEF 常用类型的类型转换器。
 
-## 已审查公开 Surface
-
-当前源码审计覆盖 `github.com/coldsmirk/vef-framework-go/copier` 的 9 个
-top-level exported symbols，没有 exported fields，也没有 exported methods。
-已审查 public-surface fingerprint 是
-`44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58`。
-
-已审查 API：
+## API 参考
 
 | API | Contract |
 | --- | --- |

@@ -6,14 +6,7 @@ sidebar_position: 4
 
 The `copier` package provides struct-to-struct field copying with built-in type converters for common VEF types.
 
-## Reviewed Public Surface
-
-The current source audit for `github.com/coldsmirk/vef-framework-go/copier`
-covers 9 top-level exported symbols, no exported fields, and no exported
-methods. The reviewed public-surface fingerprint is
-`44b6cf428fb9c642afca0cd25257c8ade57c9ac855b3ecc67cf575c1323fdf58`.
-
-Reviewed APIs:
+## API Reference
 
 | API | Contract |
 | --- | --- |

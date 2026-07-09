@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # 内置资源
@@ -91,7 +91,7 @@ sidebar_position: 2
 
 ## `sys/storage`
 
-由 storage 模块提供的存储资源。v0.21 起单次 PUT 形式的 `upload` 动作已废弃，所有上传都走下面的多片 session 协议。围绕的生命周期（claim、pending-delete、ACL）见 [文件存储](../features/storage)。
+由 storage 模块提供的存储资源。v0.21 起单次 PUT 形式的 `upload` 动作已废弃，所有上传都走下面的多片 session 协议。围绕的生命周期（claim、pending-delete、ACL）见 [文件存储](../infrastructure/storage)。
 
 ### 操作列表
 
@@ -245,11 +245,13 @@ sidebar_position: 2
 | `get_process` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回当前应用进程信息 | 无 |
 | `get_load` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回系统负载信息 | 无 |
 | `get_build_info` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回应用构建信息 | 无 |
+| `get_event_streams` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `event.StreamInspector` 报告每个 redis_stream 流及其消费组状态（consumer、pending、lag、last-delivered），便于运维发现孤儿消费组 | 无 |
 
 补充说明：
 
 - 这些 action 都没有框架定义的输入参数
 - 某些监控项在底层数据源不可用时，可能返回 monitor not ready 类错误
+- 当没有可用的 `event.StreamInspector`（例如 redis_stream 传输未启用）时，`get_event_streams` 返回一个空的、`enabled = false` 的报告
 
 最小请求示例：
 
@@ -267,11 +269,11 @@ sidebar_position: 2
 
 实际注册的资源包括 `approval/category`、`approval/delegation`、`approval/flow`、`approval/instance`、`approval/my` 和 `approval/admin`。
 
-这些资源已经在 [审批模块](../modules/approval) 中按 action 展开，包括每个 action 名称、权限点、参数类型、租户规则、审计设置和限流。本页只保留索引，因为它们更偏工作流业务域，而不是框架核心通用内置资源。
+这些资源已经在 [审批模块](../approval) 中按 action 展开，包括每个 action 名称、权限点、参数类型、租户规则、审计设置和限流。本页只保留索引，因为它们更偏工作流业务域，而不是框架核心通用内置资源。
 
 ## 延伸阅读
 
 - [认证](../security/authentication)：`security/auth` 的行为与使用方式
-- [文件存储](../features/storage)：`sys/storage`
-- [Schema 结构检查](../features/schema)：`sys/schema`
-- [监控](../features/monitor)：`sys/monitor`
+- [文件存储](../infrastructure/storage)：`sys/storage`
+- [Schema 结构检查](../infrastructure/schema)：`sys/schema`
+- [监控](../infrastructure/monitor)：`sys/monitor`

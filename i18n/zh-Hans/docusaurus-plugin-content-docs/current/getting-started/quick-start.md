@@ -134,5 +134,5 @@ curl http://localhost:8080/api \
 ## 下一步
 
 - [项目结构](./project-structure)：如何组织真实应用
-- [模块与依赖注入](../modules/overview)：你的模块如何接到启动链里
-- [路由](../guide/routing)：RPC 和 REST 的真实差异
+- [模块与依赖注入](../core-concepts/overview)：你的模块如何接到启动链里
+- [路由](../building-apis/routing)：RPC 和 REST 的真实差异

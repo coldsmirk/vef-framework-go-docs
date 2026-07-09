@@ -56,9 +56,6 @@ type Adapter[T any] struct {
 | `FindNode` | `tree.FindNode[T any](roots []T, targetID string, adapter tree.Adapter[T]) (T, bool)` |
 | `FindNodePath` | `tree.FindNodePath[T any](roots []T, targetID string, adapter tree.Adapter[T]) ([]T, bool)` |
 
-Surface count：4 个 top-level exported symbols、4 个 exported fields，没有
-exported methods、没有 exported constants，也没有 exported variables。
-
 ## Build 契约
 
 `Build` 将扁平切片转换成嵌套根节点列表。

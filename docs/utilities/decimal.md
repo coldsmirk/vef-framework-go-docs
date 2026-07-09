@@ -8,13 +8,6 @@ The `decimal` package re-exports `shopspring/decimal v1.4.0` for
 arbitrary-precision decimal arithmetic and adds the `NewFromAny` /
 `MustFromAny` conversion helpers.
 
-Reviewed public surface for `github.com/coldsmirk/vef-framework-go/decimal`:
-
-- 22 top-level symbols
-- 0 exported fields
-- 70 exported methods
-- fingerprint `ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401`
-
 ## Alias Contract
 
 ```go
@@ -117,8 +110,8 @@ panics on any conversion error.
 ## Method Families
 
 Since `decimal.Decimal` is a type alias, the method set is inherited from
-`shopspring/decimal.Decimal`. The public API index lists exact signatures; this
-table is the reviewed completeness checklist for all 70 methods.
+`shopspring/decimal.Decimal`. The table below groups all 70 exported methods
+by purpose.
 
 | Family | Methods |
 | --- | --- |
