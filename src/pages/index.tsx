@@ -183,12 +183,8 @@ function HeroCodeBlock() {
   return (
     <div className="home-panel hero-code-panel">
       <div className="home-panel-header">
-        <span className="home-panel-dot" />
-        <span className="home-panel-dot" />
-        <span className="home-panel-dot" />
-        <span className="home-panel-title">
-          <Translate id="homepage.hero.panel.title">Bootstrap shape</Translate>
-        </span>
+        <span className="home-panel-file">main.go</span>
+        <span className="home-panel-tag">GO</span>
       </div>
       <pre className="home-code-block" aria-hidden="true">
         <code>
