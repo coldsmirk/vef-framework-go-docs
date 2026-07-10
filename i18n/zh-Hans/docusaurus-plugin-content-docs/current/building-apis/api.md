@@ -408,23 +408,13 @@ func (r *UserResource) Create(ctx fiber.Ctx, params UserParams, db orm.DB) error
 `Params.Decode` 和 `Meta.Decode` 都要求传入 struct 指针。其他目标会返回
 `ErrInvalidParamsType` 或 `ErrInvalidMetaType`。
 
-其他公开 API surface：
-
-| API 组 | 公开 surface |
-| --- | --- |
-| 版本 | `api.VersionV1`, `api.VersionV2`, `api.VersionV3`, `api.VersionV4`, `api.VersionV5`, `api.VersionV6`, `api.VersionV7`, `api.VersionV8`, `api.VersionV9` |
-| 请求 header | `api.HeaderXAppID`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXMetaPrefix` |
-| 审计 | `api.AuditEvent`, `api.SubscribeAuditEvent` |
-| 认证 registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.AuthStrategyNone`, `api.AuthStrategyBearer`, `api.AuthStrategySignature`, `api.AuthStrategyIP`, `api.AuthOptionWhitelist`, `api.DefaultIPWhitelist`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.ResourceOption` |
-| operation 收集 | `api.Operation`, `api.OperationSpec`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| 请求 helper | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, 提升而来的 `Operation.String()`, 提升而来的 `Request.String()`, `Params.Decode(...)`, `Meta.Decode(...)` |
-| marker struct | `api.P` 表示 params，`api.M` 表示 meta |
-| handler/router 扩展 | `api.Middleware`, `api.RouterStrategy`, `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver`, `api.ValidateActionName(action, kind) error` |
-| sentinel 错误 | 还包括 `api.ErrInvalidRequestParams`、`api.ErrInvalidRequestMeta`、`api.ErrInvalidParamsType`、`api.ErrInvalidMetaType` 和 `ErrInvalidVersionFormat`，用于解码后请求/运行时校验 |
-
 `ErrInvalidRequestParams` 和 `ErrInvalidRequestMeta` 使用
 `result.ErrCodeBadRequest`（`1400`）和 HTTP status `400`。RPC form 的
 `params`/`meta` JSON 或 REST JSON body 解析失败时会返回它们。
+
+`api` 包的其余公开接口面——版本常量、请求 header、审计事件、认证策略
+registry、operation 收集类型、请求 helper 与 handler/router 扩展接口——在
+[公开 API 索引](../reference/public-api-index)中逐符号收录。
 
 ## 下一步
 

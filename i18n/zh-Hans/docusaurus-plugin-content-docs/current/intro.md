@@ -82,10 +82,11 @@ VEF **不会** 从一个 RPC 资源自动生成 REST 路由。如果你需要两
 
 1. [安装](./getting-started/installation) —— 环境和依赖准备
 2. [快速开始](./getting-started/quick-start) —— 真正跑起一个最小应用
-3. [核心概念](./core-concepts/overview) —— 模块、依赖注入和应用生命周期如何配合
-4. [构建 API](./building-apis/api) —— 资源、操作、路由与参数绑定
-5. [数据访问](./data-access/models) —— 模型、查询构建器、CRUD 与事务
-6. [安全](./security/authentication) —— 认证、授权与登录加固
+3. [你的第一个 CRUD API](./getting-started/first-crud-api) —— 从模型、建表、资源到 curl 验证的完整闭环
+4. [核心概念](./core-concepts/overview) —— 模块、依赖注入和应用生命周期如何配合
+5. [构建 API](./building-apis/api) —— 资源、操作、路由与参数绑定
+6. [数据访问](./data-access/models) —— 模型、搜索过滤、CRUD、SQL 构造器与事务
+7. [安全](./security/authentication) —— 认证、授权与登录加固
 
 之后可以按需求分支阅读：
 

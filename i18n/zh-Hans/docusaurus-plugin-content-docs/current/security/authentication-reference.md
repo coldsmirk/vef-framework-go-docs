@@ -1,0 +1,260 @@
+---
+sidebar_position: 2
+---
+
+# 认证参考
+
+`security` 包中认证相关的公开接口面：principal、JWT、认证管理器、挑战提供者与令牌存储、签名认证与登录事件。叙述性指南——认证策略、内置认证资源与登录流程——见[认证](./authentication)。
+
+| API 组 | 公开 surface |
+| --- | --- |
+| principal | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType` |
+| JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
+| auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
+| challenge token | `ChallengeProvider`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| OTP/challenge | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
+| TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
+| signature auth | `Signature`, `SignatureCredentials`, `SignatureResult`, `SignatureAlgorithm`, `NewSignature`, `WithAlgorithm`, `WithTimestampTolerance`, `WithNonceStore`, `NonceStore`, `NewMemoryNonceStore`, `NewRedisNonceStore` |
+| login event | `LoginEvent`, `LoginEventParams`, `NewLoginEvent`, `SubscribeLoginEvent` |
+
+Bearer 相关常量是 `AuthSchemeBearer` 和 `QueryKeyAccessToken`。token type
+常量是 `TokenTypeAccess`、`TokenTypeRefresh`、`TokenTypeChallenge`。
+
+## JWT 与 principal
+
+`NewJWT` 要求 `JWTConfig.Secret` 是十六进制 key，并会在 audience 为空时使用
+`DefaultJWTAudience`。低层 `NewJWT` 在 secret 为空时仍会回退到公开的
+`DefaultJWTSecret`；框架 security 模块在启动图里包了一层更安全的行为：生成进程内临时
+key 并输出警告。生产环境应使用 `GenerateSecret()` 生成私有 key，再写入
+`vef.security.secret`。
+
+框架内置 token generator 签发的 access token 固定 `30m` 过期。
+`vef.security.token_expires` 配置的是 refresh token 生命周期（默认 `168h`），
+`vef.security.refresh_not_before` 默认是 `15m`。
+同一次生成的 access token 和 refresh token 会共享同一个 `jti`。
+
+JWT 解析只接受 `HS256`，要求 issuer 为 `JWTIssuer`（`vef`），会校验
+audience，要求 `iat` 和 `exp`，并使用 10 秒 leeway。紧凑 claim key 如下：
+
+| Claim | Key |
+| --- | --- |
+| JWT ID | `jti` |
+| subject | `sub` |
+| issuer | `iss` |
+| audience | `aud` |
+| issued at | `iat` |
+| not before | `nbf` |
+| expires at | `exp` |
+| token type | `typ` |
+| roles | `rls` |
+| details | `det` |
+
+内置 access token 和 refresh token generator 会把 subject 写成 `id@name`。
+`JWTTokenAuthenticator` 会直接从这个 subject 重建用户 principal，不查数据库。
+`JWTRefreshAuthenticator` 也要求 `id@name`，但会取其中的 `id` 调用
+`UserLoader.LoadByID(...)` 重新加载用户。
+
+`JWTClaimsBuilder` 用 `WithID`、`WithSubject`、`WithRoles`、`WithDetails`、
+`WithType`、`WithClaim` 写入紧凑 token claims。`JWTClaimsAccessor` 用
+`ID`、`Subject`、`Roles`、`Details`、`Type`、`Claim` 读取同一份 payload。
+可以用 `NewJWTClaimsBuilder()` 和 `NewJWTClaimsAccessor(...)` 直接创建这两个 helper。
+
+`PrincipalTypeUser`、`PrincipalTypeExternalApp`、`PrincipalTypeSystem` 描述
+支持的 principal 类型。`SetUserDetailsType[T]()` 和
+`SetExternalAppDetailsType[T]()` 会配置进程级 details 反序列化目标，应在启动阶段调用，
+不要等服务开始处理请求后再修改。
+
+`Principal` 的 JSON 字段是 `type`、`id`、`name`、`roles` 和 `details`。
+`SetUserDetailsType[T]()` 与 `SetExternalAppDetailsType[T]()` 要求 `T` 是 struct
+或 struct pointer；否则会分别以 `ErrUserDetailsNotStruct` 或
+`ErrExternalAppDetailsNotStruct` panic。它们会修改 package-level 状态，应视为启动期配置。
+未知 principal type 会把 `details` 保留为 `map[string]any`；system principal
+反序列化后 `details` 为 `nil`。内置特殊 principal 是 `PrincipalSystem`
+（`type: "system"`，id `system`，name `系统`）和 `PrincipalAnonymous`
+（`type: "user"`，id `anonymous`，name `匿名`）。
+
+## Challenge providers
+
+内置 challenge type 常量包括：
+
+- `ChallengeTypeTOTP`
+- `ChallengeTypeSMS`
+- `ChallengeTypeEmail`
+- `ChallengeTypePasswordChange`
+- `ChallengeTypeDepartmentSelection`
+
+它们的 wire value 和默认顺序是：
+
+| Constant | Wire value | Default order |
+| --- | --- | --- |
+| `ChallengeTypeTOTP` | `totp` | `100` |
+| `ChallengeTypeSMS` | `sms_otp` | `200` |
+| `ChallengeTypeEmail` | `email_otp` | `300` |
+| `ChallengeTypePasswordChange` | `password_change` | `400` |
+| `ChallengeTypeDepartmentSelection` | `department_selection` | `500` |
+
+`ChallengeTokenStore.Generate(ctx, principal, pending, resolved)` 和
+`Parse(ctx, token)` 负责在 `login` 与 `resolve_challenge` 之间携带状态。
+内置登录资源把这个状态字段暴露为 `challengeToken`。
+`JWTChallengeTokenStore` 是无状态实现；`MemoryChallengeTokenStore` 适合测试或单实例；
+`RedisChallengeTokenStore` 适合分布式部署。challenge token 的有效期是
+`ChallengeTokenExpires`。JWT-backed store 使用 `ClaimChallengePrincipalType`、
+`ClaimChallengePrincipalName`、`ClaimChallengeUsername`、`ClaimChallengePending`、`ClaimChallengeResolved`
+作为紧凑 claim key。
+
+challenge token store 的 wire/storage 形状不同：
+
+| Store | Token/state contract |
+| --- | --- |
+| `JWTChallengeTokenStore` | JWT token，`typ: "challenge"`，5 分钟 `ChallengeTokenExpires`，subject 只保存 principal ID |
+| `MemoryChallengeTokenStore` | UUID token，按 `ChallengeTokenExpires` 存在进程内存里 |
+| `RedisChallengeTokenStore` | UUID token，按 `ChallengeTokenExpires` 存在 `vef:security:challenge:<token>` |
+
+JWT challenge claim key 是 `ptp`（`ClaimChallengePrincipalType`）、`pnm`
+（`ClaimChallengePrincipalName`）、`unm`（`ClaimChallengeUsername`）、`pnd`
+（`ClaimChallengePending`）和 `rsd`（`ClaimChallengeResolved`）。challenge
+解析会把空 principal type 作为向后兼容的 user principal，也接受 `user`、
+`external_app`、`system`，未知 principal type 会被拒绝。
+
+challenge provider 会按 `Order()` 升序排序。内置 convenience provider 的顺序是：
+TOTP 为 `100`，SMS 为 `200`，email 为 `300`，password change 为 `400`，
+department selection 为 `500`。未注册的 provider，或者 `Evaluate(...)`
+返回 `nil` 的 provider，会被跳过。执行 `resolve_challenge` 时，提交的
+`type` 必须等于第一个 pending challenge type，否则框架返回
+`ErrChallengeTypeInvalid`。
+
+`NewOTPChallengeProvider` 是通用构造器。`OTPChallengeProviderConfig` 要求
+`ChallengeType`、`Evaluator`、`Verifier`；`ChallengeOrder` 控制评估顺序，
+`Sender` 可选，用于 delivered-code 流程。
+`OTPChallengeProvider` 在需要 challenge 时会把 `OTPChallengeData` 返回给客户端。
+delivered-code helper 会把 `OTPCodeStore` 和 `OTPCodeDelivery` 组合起来：
+`DeliveredCodeSender`、`DeliveredCodeVerifier`、`NewDeliveredCodeSender`、
+`NewDeliveredCodeVerifier`、`NewDeliveredChallengeProvider`、
+`NewSMSChallengeProvider`、`NewEmailChallengeProvider`。
+
+`NewTOTPChallengeProvider` 只需要 `TOTPSecretLoader`；如果 `LoadSecret(...)`
+返回空字符串，就跳过 challenge。`TOTPEvaluator`、`TOTPVerifier`、`TOTPOption`
+是 convenience provider 背后的低层组件。TOTP 默认显示 `TOTPDefaultDestination`，
+也就是 `Authenticator App`；也可以用 `WithTOTPDestination(...)` 覆盖。
+
+`NewPasswordChangeChallengeProvider` 使用 `PasswordChangeChecker` 和
+`PasswordChanger`；需要强制改密时会返回 `PasswordChangeChallengeData`。常见 reason
+常量是 `PasswordChangeReasonFirstLogin`（`first_login`）和
+`PasswordChangeReasonExpired`（`expired`）。具体 provider
+类型是 `PasswordChangeChallengeProvider`。`NewDepartmentSelectionChallengeProvider` 使用
+`DepartmentLoader` 与 `DepartmentSelector`；空部门列表会跳过 challenge，resolve 时要求
+传入 department ID 字符串。`DepartmentSelectionChallengeData` 会序列化为
+`departments` 和可选 `meta`；每个 `DepartmentOption` 会序列化为 `id` 和 `name`。
+
+这些 challenge 构造器属于 wiring-time API。`NewOTPChallengeProvider` 在缺少
+`ChallengeType`、`Evaluator` 或 `Verifier` 时会 panic。
+`NewPasswordChangeChallengeProvider` 在缺少 `PasswordChangeChecker` 或
+`PasswordChanger` 时会 panic。`NewDepartmentSelectionChallengeProvider` 在缺少
+`DepartmentLoader` 或 `DepartmentSelector` 时会 panic。
+
+## Signature helpers
+
+`NewSignature(secret, ...)` 要求非空十六进制 secret，默认使用
+`SignatureAlgHmacSHA256` 和 5 分钟 timestamp tolerance。option 类型是
+`SignatureOption`。其他 algorithm 常量是 `SignatureAlgHmacSHA512` 与
+`SignatureAlgHmacSM3`。`WithTimestampTolerance` 会调整接受的时间窗口，
+`WithNonceStore` 控制 replay protection。低层 `NewSignature(...)` 默认会创建
+`MemoryNonceStore`；只有在你明确想关闭这个 helper 的 nonce 存储时，才传入
+`WithNonceStore(nil)`。内置 `SignatureAuthenticator` 会在应用提供
+`NonceStore` 时注入该 store；否则每次校验使用低层 helper 的进程本地 memory
+store。`MemoryNonceStore` 只适合单进程；`RedisNonceStore` 是分布式选项。
+nonce 存储 TTL 是 2 倍 timestamp tolerance 再加 1 分钟 buffer。
+
+签名 payload 精确为：
+
+```text
+app_id=<appID>&method=<method>&nonce=<nonce>&path=<path>&timestamp=<timestamp>
+```
+
+字段按这个顺序绑定。`request body is not part of the signature payload`。
+其中 `method` 字段是服务端看到的 HTTP method。
+
+`NewIPWhitelistValidator` 会从逗号分隔的 IP 和 CIDR 列表创建
+`IPWhitelistValidator`。空 whitelist 表示允许全部 IP；非法 whitelist 会 fail-closed，
+拒绝全部请求。当 `ExternalAppConfig.IPWhitelist` 非空但请求 IP 无法解析时，
+`SignatureAuthenticator` 也会 fail closed，并返回 `ErrIPNotAllowed`。
+
+`security.NewIPWhitelistValidatorFromEntries(entries)` 是基于 slice 的构造器，
+内置 `api.IPAuth(...)` strategy 使用它。该 strategy 会通过
+`security.IPWhitelistLoader` 解析命名的 `security.IPWhitelist`；默认 loader 读取
+`vef.security.ip_whitelists`，应用也可以提供自己的 loader，从数据库或配置中心加载
+名单。
+
+Signature 相关存储 key 和默认值：
+
+| Contract | Value |
+| --- | --- |
+| request headers | `X-App-ID`, `X-Timestamp`, `X-Nonce`, `X-Signature` |
+| algorithms | `HMAC-SHA256`, `HMAC-SHA512`, `HMAC-SM3` |
+| default algorithm | `HMAC-SHA256` |
+| default tolerance | `5m` |
+| nonce TTL | `2*tolerance + 1m` |
+| Redis nonce prefix | `vef:security:nonce:` |
+| disable replay checking | `WithNonceStore(nil)` |
+
+security-domain API 错误暴露 `1000-1039` 范围内的 `ErrCode*` 常量：
+
+| Code | Constant | Error | HTTP status |
+| --- | --- | --- | --- |
+| `1000` | `ErrCodeUnauthenticated` | `ErrUnauthenticated` | `401` |
+| `1001` | `ErrCodeUnsupportedAuthenticationType` | unsupported authentication type | `400` |
+| `1002` | `ErrCodeTokenExpired` | `ErrTokenExpired` | `401` |
+| `1003` | `ErrCodeTokenInvalid` | `ErrTokenInvalid` | `401` |
+| `1004` | `ErrCodeTokenNotValidYet` | `ErrTokenNotValidYet` | `401` |
+| `1005` | `ErrCodeTokenInvalidIssuer` | `ErrTokenInvalidIssuer` | `401` |
+| `1006` | `ErrCodeTokenInvalidAudience` | `ErrTokenInvalidAudience` | `401` |
+| `1007` | `ErrCodePrincipalInvalid` | `ErrPrincipalInvalid(message)` | `401` |
+| `1008` | `ErrCodeCredentialsInvalid` | `ErrCredentialsInvalid(message)` | `401` |
+| `1009` | `ErrCodeAppIDRequired` | `ErrAppIDRequired` | `401` |
+| `1010` | `ErrCodeTimestampRequired` | `ErrTimestampRequired` | `401` |
+| `1011` | `ErrCodeSignatureRequired` | `ErrSignatureRequired` | `401` |
+| `1012` | `ErrCodeTimestampInvalid` | `ErrTimestampInvalid` | `401` |
+| `1013` | `ErrCodeSignatureExpired` | `ErrSignatureExpired` | `401` |
+| `1014` | `ErrCodeExternalAppNotFound` | `ErrExternalAppNotFound` | `401` |
+| `1015` | `ErrCodeExternalAppDisabled` | `ErrExternalAppDisabled` | `401` |
+| `1016` | `ErrCodeIPNotAllowed` | `ErrIPNotAllowed` | `401` |
+| `1017` | `ErrCodeSignatureInvalid` | `ErrSignatureInvalid` | `401` |
+| `1018` | `ErrCodeNonceRequired` | `ErrNonceRequired` | `401` |
+| `1019` | `ErrCodeNonceInvalid` | `ErrNonceInvalid` | `401` |
+| `1020` | `ErrCodeNonceAlreadyUsed` | `ErrNonceAlreadyUsed` | `401` |
+| `1021` | `ErrCodeAuthHeaderMissing` | `ErrAuthHeaderMissing` | `401` |
+| `1022` | `ErrCodeAuthHeaderInvalid` | `ErrAuthHeaderInvalid` | `401` |
+| `1031` | `ErrCodeChallengeTokenInvalid` | `ErrChallengeTokenInvalid` | `401` |
+| `1033` | `ErrCodeChallengeTypeInvalid` | `ErrChallengeTypeInvalid` | `400` |
+| `1034` | `ErrCodeChallengeResolveFailed` | challenge resolve failure message ID | reserved |
+| `1035` | `ErrCodeOTPCodeRequired` | `ErrOTPCodeRequired` | `400` |
+| `1036` | `ErrCodeOTPCodeInvalid` | `ErrOTPCodeInvalid` | `401` |
+| `1037` | `ErrCodeNewPasswordRequired` | `ErrNewPasswordRequired` | `400` |
+| `1038` | `ErrCodeDepartmentRequired` | `ErrDepartmentRequired` | `400` |
+
+认证相关 sentinel 包括 `ErrUnauthenticated`、`ErrTokenExpired`、
+`ErrTokenInvalid`、`ErrTokenNotValidYet`、`ErrTokenInvalidIssuer`、
+`ErrTokenInvalidAudience`、`ErrAppIDRequired`、`ErrTimestampRequired`、
+`ErrSignatureRequired`、`ErrTimestampInvalid`、`ErrSignatureExpired`、
+`ErrSignatureInvalid`、`ErrExternalAppNotFound`、`ErrExternalAppDisabled`、
+`ErrIPNotAllowed`、`ErrNonceRequired`、`ErrNonceInvalid`、
+`ErrNonceAlreadyUsed`、`ErrAuthHeaderMissing`、`ErrAuthHeaderInvalid`、
+`ErrChallengeTokenInvalid`、`ErrChallengeTypeInvalid`、
+`ErrOTPCodeRequired`、`ErrOTPCodeInvalid`、`ErrNewPasswordRequired`、
+`ErrDepartmentRequired`，以及 factory helper `ErrCredentialsInvalid(message)`
+和 `ErrPrincipalInvalid(message)`。`ErrCodeChallengeResolveFailed` 与
+`ErrChallengeResolveFailed` 保留给 challenge resolve 失败场景。
+
+低层 secret 解析错误使用 `ErrDecodeJWTSecretFailed`、
+`ErrGenerateJWTSecretFailed`、`ErrDecodeSignatureSecretFailed` 和
+`ErrSignatureSecretRequired`。details 类型注册错误使用 `ErrUserDetailsNotStruct`
+与 `ErrExternalAppDetailsNotStruct`。
+公开的 i18n message ID 常量包括 `ErrMessageChallengeResolveFailed`、
+`ErrMessageCredentialsFormatInvalid`、`ErrMessageExternalAppLoaderNotImplemented`、
+`ErrMessageUnauthenticated`、`ErrMessageUnsupportedAuthenticationType`、
+`ErrMessageUserInfoLoaderNotImplemented` 和 `ErrMessageUserLoaderNotImplemented`。
+
+## 下一步
+
+- [认证](./authentication) — 这些 API 背后的叙述性指南
+- [会话管理](./session-management) — 令牌有效期、刷新与吊销

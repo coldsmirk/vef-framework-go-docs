@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Custom Handlers
@@ -142,6 +142,8 @@ Important decoding rules:
 - `page.Pageable` is treated as a built-in meta helper
 - `api.Params` and `api.Meta` bypass typed decoding and validation
 
+The resolution order behind this table — and how to register your own resolvers — is covered in [Extending Parameters](../advanced/extending-parameters).
+
 ## Field And Resource Injection
 
 If a handler parameter type is not covered by built-in resolvers, VEF tries to resolve it from the resource struct itself.
@@ -241,4 +243,4 @@ This keeps one resource aligned with one business area while still allowing extr
 
 ## Next Step
 
-Read [Routing](./routing) and [Parameters And Metadata](./params-and-meta) for exact request shapes and decoding rules.
+Read [Results and Errors](./results-and-errors) for the response envelope your handlers return, or [Extending Parameters](../advanced/extending-parameters) to add custom parameter resolvers.

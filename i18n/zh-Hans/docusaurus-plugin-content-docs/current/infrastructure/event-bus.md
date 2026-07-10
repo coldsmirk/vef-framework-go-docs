@@ -388,7 +388,8 @@ type StreamGroupInfo struct {
 `redis_stream` transport 在启用时提供该实现；这个依赖在 DI 中是可选的
 （`optional:"true"`），调用方必须容忍 nil inspector。
 `sys/monitor.get_event_streams` 把 `Streams` 暴露成一个 API 端点——列出
-每个 stream 及其 group（consumer 数 / pending / lag / last-delivered）。
+每个 stream 及其 group（consumer 数 / pending / lag / last-delivered）；
+响应字段表见 [监控](./monitor) 页。
 
 将 `idle_group_retention` 设为非零值即可开启回收。只有当一个 group
 没有 pending 条目、不是当前进程的活跃订阅、且它的每一条 consumer

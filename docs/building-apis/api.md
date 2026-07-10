@@ -414,23 +414,14 @@ registers each resolved operation in `Route`.
 `Params.Decode` and `Meta.Decode` require a pointer to a struct. Passing any
 other target returns `ErrInvalidParamsType` or `ErrInvalidMetaType`.
 
-Additional public API surface:
-
-| API group | Public surface |
-| --- | --- |
-| versions | `api.VersionV1`, `api.VersionV2`, `api.VersionV3`, `api.VersionV4`, `api.VersionV5`, `api.VersionV6`, `api.VersionV7`, `api.VersionV8`, `api.VersionV9` |
-| request headers | `api.HeaderXAppID`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXMetaPrefix` |
-| audit | `api.AuditEvent`, `api.SubscribeAuditEvent` |
-| auth registry | `api.AuthStrategyRegistry`, `api.AuthStrategy`, `api.AuthConfig`, `api.AuthStrategyNone`, `api.AuthStrategyBearer`, `api.AuthStrategySignature`, `api.AuthStrategyIP`, `api.AuthOptionWhitelist`, `api.DefaultIPWhitelist`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.ResourceOption` |
-| operation collection | `api.Operation`, `api.OperationSpec`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request helpers | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `Identifier.String()`, promoted `Operation.String()`, promoted `Request.String()`, `Params.Decode(...)`, `Meta.Decode(...)` |
-| marker structs | `api.P` for params and `api.M` for meta |
-| handler/router extension | `api.Middleware`, `api.RouterStrategy`, `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver`, `api.ValidateActionName(action, kind) error` |
-| sentinel errors | also includes `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, and `ErrInvalidVersionFormat` for decoded request/runtime validation |
-
 `ErrInvalidRequestParams` and `ErrInvalidRequestMeta` use
 `result.ErrCodeBadRequest` (`1400`) and HTTP status `400`. They are returned
 when RPC form `params`/`meta` JSON or REST JSON body parsing fails.
+
+The remaining public surface of the `api` package — version constants, request
+headers, the audit event, the auth strategy registry, operation collection
+types, request helpers, and handler/router extension interfaces — is ledgered
+symbol by symbol in the [Public API Index](../reference/public-api-index).
 
 ## Next Step
 

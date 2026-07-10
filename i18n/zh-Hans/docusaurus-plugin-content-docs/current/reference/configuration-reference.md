@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # 配置参考
@@ -33,6 +33,172 @@ type = "sqlite"
 - `VEF_CONFIG_PATH`
 - `VEF_LOG_LEVEL`
 - `VEF_I18N_LANGUAGE`
+
+## `vef.app`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `name` | `string` | 应用名称，会影响部分运行时行为，例如 JWT audience 默认值。 |
+| `port` | `uint16` | HTTP 服务端口。 |
+| `body_limit` | `string` | Fiber body limit，例如 `10mib`；未配置时默认 `32mib`。 |
+| `trusted_proxies` | `[]string` | 允许设置 `X-Forwarded-For` 的代理 IP 或 CIDR 列表；为空时只信任直接连接来源。 |
+
+## `vef.data_sources`
+
+`vef.data_sources` 是以数据源名称为 key 的 map。`primary` 条目必填，并为全框架注入的 `orm.DB` 提供来源；其他条目会用各自 map key 注册到数据源 registry。
+
+示例：
+
+```toml
+[vef.data_sources.primary]
+type = "sqlite"
+
+[vef.data_sources.analytics]
+type = "sqlite"
+path = "./analytics.db"
+```
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `type` | `postgres \| mysql \| sqlite` | 当前运行时支持的数据库类型。`oracle` / `sqlserver` 暂未实现。 |
+| `host` | `string` | 网络数据库主机。 |
+| `port` | `uint16` | 网络数据库端口。 |
+| `user` | `string` | 数据库用户名。 |
+| `password` | `string` | 数据库密码。 |
+| `database` | `string` | 数据库名。 |
+| `schema` | `string` | 支持 schema 的驱动下使用的 schema 名。 |
+| `path` | `string` | SQLite 文件路径。 |
+| `enable_sql_guard` | `bool` | 是否启用 SQL guard。 |
+| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | 网络数据库 dialect 的 TLS 模式；省略时等价于 `disable`。 |
+| `ssl_root_cert` | `string` | `verify-ca` 和 `verify-full` 使用的可选 PEM CA bundle 路径；为空时使用主机系统证书池。 |
+
+说明：
+
+- 当前运行时注册的 provider 支持 `postgres`、`mysql`、`sqlite`。`oracle` 和 `sqlserver` 是 `DBKind` 常量留作未来扩展，目前未实现，配置后会在启动时报 `database.ErrUnsupportedDBKind`。
+
+## `vef.cors`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `enabled` | `bool` | 是否启用 CORS middleware。 |
+| `allow_origins` | `[]string` | 允许的来源列表。 |
+
+## `vef.security`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `secret` | `string` | 十六进制 JWT signing key。为空时框架会生成进程内临时 key 并输出警告；token 无法跨重启或多节点继续使用。如果设置为公开的 `security.DefaultJWTSecret`，启动时也会警告生产环境必须替换。 |
+| `token_expires` | `duration` | refresh token 生命周期；默认 `168h`。 |
+| `refresh_not_before` | `duration` | refresh token 最早可使用时间；默认 `15m`，也就是固定 `30m` access token 生命周期的一半。 |
+| `login_rate_limit` | `int` | 登录接口限流；默认 `6`。 |
+| `refresh_rate_limit` | `int` | refresh 接口限流；默认 `1`。 |
+| `ip_whitelists` | `map[string][]string` | 内置 `ip` 认证策略使用的命名 IP 白名单（IP 或 CIDR 条目）；TOML key 会被转成小写，无参数的 `api.IPAuth()` 指向 `default`。 |
+| `lockout.*` | — | 登录接口的暴力破解防护：`enabled` 默认 `true`、`max_failures` 默认 `10`、`window` 默认 `15m`、`lock_duration` 默认 `15m`、`strategy`（`lock` \| `backoff`）默认 `lock`、`backoff_base` 默认 `1s`、`backoff_max` 默认 `15m`、`key`（`user` \| `ip` \| `user_ip`）默认 `user_ip`。 |
+| `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
+| `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
+| `session.*` | — | opaque token 的会话调优项，在 `jwt_token` 下不生效：`max_concurrent` 默认 `0`（不限制；并发登录场景下是 best-effort 强制）、`on_exceed`（`reject` \| `evict_oldest`）默认 `evict_oldest`、`idle_ttl` 默认 `30m`、`max_lifetime` 默认 `168h`（7 天）、`sliding` 默认 `true`。 |
+
+说明：
+
+- 内置 JWT token generator 签发的 access token 固定 `30m` 过期；`vef.security.token_expires` 控制的是 refresh token，不是 access token。
+- 锁定功能默认开启（`max_failures = 10`）；触发后返回 `security.ErrAccountLocked`（HTTP 429），guard 存储出错时按 fail open 处理。
+- 只有注册了 `security.PasswordHistoryStore` 时，`history_depth > 0` 才会把历史密码校验组合进密码策略；只有应用同时接入 `security.PasswordMetadataLoader` 和 `security.NewExpiryPasswordChangeChecker` 时，`max_age` 才会生效。
+
+## `vef.redis`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `enabled` | `bool` | 是否构造 Redis client；默认 `false`。 |
+| `host` | `string` | Redis host。 |
+| `port` | `uint16` | Redis port。 |
+| `user` | `string` | Redis 用户名。 |
+| `password` | `string` | Redis 密码。 |
+| `database` | `uint8` | Redis database 编号。 |
+| `network` | `string` | `tcp` 或 `unix`。 |
+
+说明：
+
+- 默认 `vef.Run(...)` 启动图包含 Redis 模块
+- 只有 `enabled = true` 时才会构造 Redis client；`enabled` 为 `false` 或未配置时，框架注入的是 nil `*redis.Client`，并跳过启动 `PING`
+- 启用后如果不写 host / port / network，会回退到 `127.0.0.1`、`6379`、`tcp`
+
+## `vef.storage`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `provider` | `memory \| minio \| filesystem` | 存储 provider 选择。 |
+| `auto_migrate` | `bool` | 是否在启动时执行 storage DDL 迁移。 |
+| `minio.endpoint` | `string` | MinIO endpoint。 |
+| `minio.access_key` | `string` | MinIO access key。 |
+| `minio.secret_key` | `string` | MinIO secret key。 |
+| `minio.bucket` | `string` | bucket 名。 |
+| `minio.region` | `string` | region。 |
+| `minio.use_ssl` | `bool` | 是否使用 HTTPS。 |
+| `filesystem.root` | `string` | filesystem provider 根目录。 |
+| `max_upload_size` | `int64` | 单个对象上传大小上限，默认 1 GiB。 |
+| `claim_ttl` | `duration` | upload claim 有效期，默认 24h。 |
+| `max_pending_claims` | `int` | 单个 principal 可持有的 pending claim 上限，默认 100。 |
+| `allow_public_uploads` | `bool` | 是否允许客户端请求 public upload；默认关闭。 |
+| `sweep_interval` | `duration` | 过期 claim 扫描间隔，默认 5m。 |
+| `sweep_batch_size` | `int` | 单次 claim sweep 处理上限，默认 200。 |
+| `delete_worker_interval` | `duration` | pending-delete worker 轮询间隔，默认 5m。 |
+| `delete_batch_size` | `int` | 单次 delete worker 租约批量，默认 100。 |
+| `delete_concurrency` | `int` | 单轮对象删除并发上限，默认 8。 |
+| `delete_max_attempts` | `int` | 删除重试预算，默认 12。 |
+| `delete_lease_window` | `duration` | 删除任务租约窗口，默认 5m。 |
+
+说明：
+
+- `provider` 为空时会选择内存存储并输出警告；对象会在进程重启后丢失。
+- `vef.storage.auto_migrate = true` 会执行幂等 storage 迁移，并检查 `sys_storage_upload_claim`、`sys_storage_upload_part` 和 `sys_storage_pending_delete`。
+- `filesystem.root` 默认是 `./storage`。
+- `minio.bucket` 默认依次取 `minio.bucket`、`vef.app.name`、`vef-app`。
+- 上传流程和删除 worker 的调优项在框架内有默认值；应用代码需要解析后的有效值时，应使用 `StorageConfig` 的 `Effective...` 方法，而不是直接读取原始字段。
+
+## `vef.monitor`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `sample_interval` | `duration` | 采样间隔；默认 `10s`。 |
+| `sample_duration` | `duration` | 采样窗口时长；默认 `2s`。 |
+| `excluded_mounts` | `[]string` | 额外排除的 mount-point 子串列表，用于过滤开发工具、虚拟化或厂商特定挂载。 |
+
+## `vef.mcp`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `enabled` | `bool` | 是否启用 MCP server。 |
+| `require_auth` | `bool` | 默认安全：未配置或为 `true` 时，`/mcp` 要求 Bearer token；只有显式设为 `false` 才允许匿名访问。Go 结构体中 `MCPConfig.RequireAuth` 是 `*bool`，用于区分未配置和 false。 |
+
+## `vef.approval`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `auto_migrate` | `bool` | 显式开启时才会在启动时执行 approval DDL 迁移；`ApprovalConfig.ApplyDefaults()` 不会自动打开它。 |
+| `timeout_scan_interval` | `duration` | 超时扫描器轮询节奏，默认 1m。 |
+| `pre_warning_scan_interval` | `duration` | 预警扫描器轮询节奏，默认 5m。 |
+| `cleanup_scan_interval` | `duration` | 保留期清理任务节奏，默认 24h。 |
+| `delegation_max_depth` | `int` | 委托链最大深度，默认 10。 |
+| `form_snapshot_retention` | `duration` | apv_form_snapshot 保留期，默认 90 天。 |
+| `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
+| `cc_record_retention` | `duration` | 已读 apv_cc_record 记录保留期，默认 90 天。 |
+
+> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
+
+## `vef.event`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `default_transport` | `string` | 路由回退使用的 transport 名（默认 `memory`）。 |
+| `async_queue_size` | `int` | `WithAsync` 异步队列容量，默认 `4096`。 |
+| `async_workers` | `int` | 异步队列 worker 数量，默认 `4`。 |
+| `publish_timeout` | `duration` | 单次 transport Publish 调用上限，默认 `5s`。 |
+| `transports.memory.*` | — | 内存 transport 配置：`queue_size` 默认 `1024`，`full_policy` 默认 `error`，`publish_timeout` 默认不设上限，且只在 `full_policy = "block"` 时生效。 |
+| `transports.outbox.*` | — | outbox transport 配置：`enabled`、`relay_interval` 默认 `10s`、`max_retries` 默认 `10`、`batch_size` 默认 `100`、`lease_multiplier` 默认 `4`、`min_lease` 默认 `15s`、`sink` 默认 `memory`、`cleanup_interval` 默认 `1h`、`completed_ttl` 默认 `168h`；cleanup 字段属于框架配置，不是 `event/transport/outbox.Config` 字段。 |
+| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`reaper_concurrency` 默认 `4`、`handler_timeout` 默认 `30s`、`setup_timeout` 默认 `5s`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）、`idle_group_retention` 默认 `0`（关闭孤儿消费组回收）、`idle_group_sweep_interval` 默认 `10m`。 |
+| `middleware.*` | `bool` | 中间件开关：`logging`、`tracing`、`tracing_strict`、`metrics`、`recover`、`inbox`。 |
+| `inbox.*` | — | Inbox 去重表配置：`retention` 默认 `168h`、`processing_lease` 默认 `10m`、`cleanup_interval` 默认 `1h`。 |
+| `routing` | `[]{pattern, transports}` | 路由规则列表，按 `path.Match` 语义自顶向下匹配。 |
 
 ## config 包 API 参考
 
@@ -339,172 +505,6 @@ type = "sqlite"
 | `config.SessionConfig.IsSliding()` | `Sliding` 为 nil（默认开启滑动续期）或指向 `true` 时返回 `true`。 |
 
 `DataSourcesConfig.Map` 有意不带 tag。内部配置模块会先把 `vef.data_sources` unmarshal 成 `map[string]config.DataSourceConfig`，再包装成 `DataSourcesConfig{Map: sources}`；这样既保留任意数据源名称，也用 `config.PrimaryDataSourceName`（`"primary"`）为全框架 `orm.DB` 保留主数据源。
-
-## `vef.app`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `name` | `string` | 应用名称，会影响部分运行时行为，例如 JWT audience 默认值。 |
-| `port` | `uint16` | HTTP 服务端口。 |
-| `body_limit` | `string` | Fiber body limit，例如 `10mib`；未配置时默认 `32mib`。 |
-| `trusted_proxies` | `[]string` | 允许设置 `X-Forwarded-For` 的代理 IP 或 CIDR 列表；为空时只信任直接连接来源。 |
-
-## `vef.data_sources`
-
-`vef.data_sources` 是以数据源名称为 key 的 map。`primary` 条目必填，并为全框架注入的 `orm.DB` 提供来源；其他条目会用各自 map key 注册到数据源 registry。
-
-示例：
-
-```toml
-[vef.data_sources.primary]
-type = "sqlite"
-
-[vef.data_sources.analytics]
-type = "sqlite"
-path = "./analytics.db"
-```
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite` | 当前运行时支持的数据库类型。`oracle` / `sqlserver` 暂未实现。 |
-| `host` | `string` | 网络数据库主机。 |
-| `port` | `uint16` | 网络数据库端口。 |
-| `user` | `string` | 数据库用户名。 |
-| `password` | `string` | 数据库密码。 |
-| `database` | `string` | 数据库名。 |
-| `schema` | `string` | 支持 schema 的驱动下使用的 schema 名。 |
-| `path` | `string` | SQLite 文件路径。 |
-| `enable_sql_guard` | `bool` | 是否启用 SQL guard。 |
-| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | 网络数据库 dialect 的 TLS 模式；省略时等价于 `disable`。 |
-| `ssl_root_cert` | `string` | `verify-ca` 和 `verify-full` 使用的可选 PEM CA bundle 路径；为空时使用主机系统证书池。 |
-
-说明：
-
-- 当前运行时注册的 provider 支持 `postgres`、`mysql`、`sqlite`。`oracle` 和 `sqlserver` 是 `DBKind` 常量留作未来扩展，目前未实现，配置后会在启动时报 `database.ErrUnsupportedDBKind`。
-
-## `vef.cors`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `enabled` | `bool` | 是否启用 CORS middleware。 |
-| `allow_origins` | `[]string` | 允许的来源列表。 |
-
-## `vef.security`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `secret` | `string` | 十六进制 JWT signing key。为空时框架会生成进程内临时 key 并输出警告；token 无法跨重启或多节点继续使用。如果设置为公开的 `security.DefaultJWTSecret`，启动时也会警告生产环境必须替换。 |
-| `token_expires` | `duration` | refresh token 生命周期；默认 `168h`。 |
-| `refresh_not_before` | `duration` | refresh token 最早可使用时间；默认 `15m`，也就是固定 `30m` access token 生命周期的一半。 |
-| `login_rate_limit` | `int` | 登录接口限流；默认 `6`。 |
-| `refresh_rate_limit` | `int` | refresh 接口限流；默认 `1`。 |
-| `ip_whitelists` | `map[string][]string` | 内置 `ip` 认证策略使用的命名 IP 白名单（IP 或 CIDR 条目）；TOML key 会被转成小写，无参数的 `api.IPAuth()` 指向 `default`。 |
-| `lockout.*` | — | 登录接口的暴力破解防护：`enabled` 默认 `true`、`max_failures` 默认 `10`、`window` 默认 `15m`、`lock_duration` 默认 `15m`、`strategy`（`lock` \| `backoff`）默认 `lock`、`backoff_base` 默认 `1s`、`backoff_max` 默认 `15m`、`key`（`user` \| `ip` \| `user_ip`）默认 `user_ip`。 |
-| `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
-| `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
-| `session.*` | — | opaque token 的会话调优项，在 `jwt_token` 下不生效：`max_concurrent` 默认 `0`（不限制；并发登录场景下是 best-effort 强制）、`on_exceed`（`reject` \| `evict_oldest`）默认 `evict_oldest`、`idle_ttl` 默认 `30m`、`max_lifetime` 默认 `168h`（7 天）、`sliding` 默认 `true`。 |
-
-说明：
-
-- 内置 JWT token generator 签发的 access token 固定 `30m` 过期；`vef.security.token_expires` 控制的是 refresh token，不是 access token。
-- 锁定功能默认开启（`max_failures = 10`）；触发后返回 `security.ErrAccountLocked`（HTTP 429），guard 存储出错时按 fail open 处理。
-- 只有注册了 `security.PasswordHistoryStore` 时，`history_depth > 0` 才会把历史密码校验组合进密码策略；只有应用同时接入 `security.PasswordMetadataLoader` 和 `security.NewExpiryPasswordChangeChecker` 时，`max_age` 才会生效。
-
-## `vef.redis`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `enabled` | `bool` | 是否构造 Redis client；默认 `false`。 |
-| `host` | `string` | Redis host。 |
-| `port` | `uint16` | Redis port。 |
-| `user` | `string` | Redis 用户名。 |
-| `password` | `string` | Redis 密码。 |
-| `database` | `uint8` | Redis database 编号。 |
-| `network` | `string` | `tcp` 或 `unix`。 |
-
-说明：
-
-- 默认 `vef.Run(...)` 启动图包含 Redis 模块
-- 只有 `enabled = true` 时才会构造 Redis client；`enabled` 为 `false` 或未配置时，框架注入的是 nil `*redis.Client`，并跳过启动 `PING`
-- 启用后如果不写 host / port / network，会回退到 `127.0.0.1`、`6379`、`tcp`
-
-## `vef.storage`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `provider` | `memory \| minio \| filesystem` | 存储 provider 选择。 |
-| `auto_migrate` | `bool` | 是否在启动时执行 storage DDL 迁移。 |
-| `minio.endpoint` | `string` | MinIO endpoint。 |
-| `minio.access_key` | `string` | MinIO access key。 |
-| `minio.secret_key` | `string` | MinIO secret key。 |
-| `minio.bucket` | `string` | bucket 名。 |
-| `minio.region` | `string` | region。 |
-| `minio.use_ssl` | `bool` | 是否使用 HTTPS。 |
-| `filesystem.root` | `string` | filesystem provider 根目录。 |
-| `max_upload_size` | `int64` | 单个对象上传大小上限，默认 1 GiB。 |
-| `claim_ttl` | `duration` | upload claim 有效期，默认 24h。 |
-| `max_pending_claims` | `int` | 单个 principal 可持有的 pending claim 上限，默认 100。 |
-| `allow_public_uploads` | `bool` | 是否允许客户端请求 public upload；默认关闭。 |
-| `sweep_interval` | `duration` | 过期 claim 扫描间隔，默认 5m。 |
-| `sweep_batch_size` | `int` | 单次 claim sweep 处理上限，默认 200。 |
-| `delete_worker_interval` | `duration` | pending-delete worker 轮询间隔，默认 5m。 |
-| `delete_batch_size` | `int` | 单次 delete worker 租约批量，默认 100。 |
-| `delete_concurrency` | `int` | 单轮对象删除并发上限，默认 8。 |
-| `delete_max_attempts` | `int` | 删除重试预算，默认 12。 |
-| `delete_lease_window` | `duration` | 删除任务租约窗口，默认 5m。 |
-
-说明：
-
-- `provider` 为空时会选择内存存储并输出警告；对象会在进程重启后丢失。
-- `vef.storage.auto_migrate = true` 会执行幂等 storage 迁移，并检查 `sys_storage_upload_claim`、`sys_storage_upload_part` 和 `sys_storage_pending_delete`。
-- `filesystem.root` 默认是 `./storage`。
-- `minio.bucket` 默认依次取 `minio.bucket`、`vef.app.name`、`vef-app`。
-- 上传流程和删除 worker 的调优项在框架内有默认值；应用代码需要解析后的有效值时，应使用 `StorageConfig` 的 `Effective...` 方法，而不是直接读取原始字段。
-
-## `vef.monitor`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `sample_interval` | `duration` | 采样间隔；默认 `10s`。 |
-| `sample_duration` | `duration` | 采样窗口时长；默认 `2s`。 |
-| `excluded_mounts` | `[]string` | 额外排除的 mount-point 子串列表，用于过滤开发工具、虚拟化或厂商特定挂载。 |
-
-## `vef.mcp`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `enabled` | `bool` | 是否启用 MCP server。 |
-| `require_auth` | `bool` | 默认安全：未配置或为 `true` 时，`/mcp` 要求 Bearer token；只有显式设为 `false` 才允许匿名访问。Go 结构体中 `MCPConfig.RequireAuth` 是 `*bool`，用于区分未配置和 false。 |
-
-## `vef.approval`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `auto_migrate` | `bool` | 显式开启时才会在启动时执行 approval DDL 迁移；`ApprovalConfig.ApplyDefaults()` 不会自动打开它。 |
-| `timeout_scan_interval` | `duration` | 超时扫描器轮询节奏，默认 1m。 |
-| `pre_warning_scan_interval` | `duration` | 预警扫描器轮询节奏，默认 5m。 |
-| `cleanup_scan_interval` | `duration` | 保留期清理任务节奏，默认 24h。 |
-| `delegation_max_depth` | `int` | 委托链最大深度，默认 10。 |
-| `form_snapshot_retention` | `duration` | apv_form_snapshot 保留期，默认 90 天。 |
-| `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
-| `cc_record_retention` | `duration` | 已读 apv_cc_record 记录保留期，默认 90 天。 |
-
-> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
-
-## `vef.event`
-
-| 字段 | 类型 | 含义 |
-| --- | --- | --- |
-| `default_transport` | `string` | 路由回退使用的 transport 名（默认 `memory`）。 |
-| `async_queue_size` | `int` | `WithAsync` 异步队列容量，默认 `4096`。 |
-| `async_workers` | `int` | 异步队列 worker 数量，默认 `4`。 |
-| `publish_timeout` | `duration` | 单次 transport Publish 调用上限，默认 `5s`。 |
-| `transports.memory.*` | — | 内存 transport 配置：`queue_size` 默认 `1024`，`full_policy` 默认 `error`，`publish_timeout` 默认不设上限，且只在 `full_policy = "block"` 时生效。 |
-| `transports.outbox.*` | — | outbox transport 配置：`enabled`、`relay_interval` 默认 `10s`、`max_retries` 默认 `10`、`batch_size` 默认 `100`、`lease_multiplier` 默认 `4`、`min_lease` 默认 `15s`、`sink` 默认 `memory`、`cleanup_interval` 默认 `1h`、`completed_ttl` 默认 `168h`；cleanup 字段属于框架配置，不是 `event/transport/outbox.Config` 字段。 |
-| `transports.redis_stream.*` | — | Redis Streams transport 配置：`enabled`、`stream_prefix` 默认 `vef:events:`、`max_len_approx` 默认 `0`（不裁剪）、`block_timeout` 默认 `5s`、`claim_idle` 默认 `60s`、`claim_interval` 默认 `30s`、`claim_batch_size` 默认 `64`、`reaper_concurrency` 默认 `4`、`handler_timeout` 默认 `30s`、`setup_timeout` 默认 `5s`、`consumer_id` 默认前缀 `vef`、`start_id` 默认 `0`（`"$"` 表示新建 group 跳过 backlog）、`idle_group_retention` 默认 `0`（关闭孤儿消费组回收）、`idle_group_sweep_interval` 默认 `10m`。 |
-| `middleware.*` | `bool` | 中间件开关：`logging`、`tracing`、`tracing_strict`、`metrics`、`recover`、`inbox`。 |
-| `inbox.*` | — | Inbox 去重表配置：`retention` 默认 `168h`、`processing_lease` 默认 `10m`、`cleanup_interval` 默认 `1h`。 |
-| `routing` | `[]{pattern, transports}` | 路由规则列表，按 `path.Match` 语义自顶向下匹配。 |
 
 ## 延伸阅读
 

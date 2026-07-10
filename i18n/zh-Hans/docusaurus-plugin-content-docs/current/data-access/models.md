@@ -302,4 +302,4 @@ type UserMeta struct {
 
 ## 下一步
 
-继续阅读 [泛型 CRUD](./crud) 了解这些模型如何接入类型化操作 builder，或阅读 [ORM SQL 构造器](./orm-builder) 获取 SQL 查询构造的完整参考。
+继续阅读 [泛型 CRUD](./crud) 了解这些模型如何接入类型化操作 builder，或阅读 [ORM SQL 构造器](./orm-querying) 获取 SQL 查询构造的完整参考。

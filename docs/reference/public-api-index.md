@@ -1,5 +1,5 @@
 ---
-sidebar_position: 90
+sidebar_position: 4
 ---
 
 # Public API Index

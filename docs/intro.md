@@ -82,10 +82,11 @@ Most applications touch the framework in this order:
 
 1. [Installation](./getting-started/installation) — environment and package setup
 2. [Quick Start](./getting-started/quick-start) — a minimal app that actually boots and serves an endpoint
-3. [Core Concepts](./core-concepts/overview) — how modules, dependency injection, and the application lifecycle fit together
-4. [Building APIs](./building-apis/api) — resources, operations, routing, and parameter binding
-5. [Data Access](./data-access/models) — models, the query builder, CRUD, and transactions
-6. [Security](./security/authentication) — authentication, authorization, and login hardening
+3. [Your First CRUD API](./getting-started/first-crud-api) — model, table, resource, and curl-verified CRUD endpoints end to end
+4. [Core Concepts](./core-concepts/overview) — how modules, dependency injection, and the application lifecycle fit together
+5. [Building APIs](./building-apis/api) — resources, operations, routing, and parameter binding
+6. [Data Access](./data-access/models) — models, search filters, CRUD, the SQL builder, and transactions
+7. [Security](./security/authentication) — authentication, authorization, and login hardening
 
 From there, branch out by task:
 

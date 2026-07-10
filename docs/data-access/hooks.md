@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # Hooks
@@ -35,35 +35,11 @@ CRUD builders expose these hook APIs:
 
 ## CRUD Hook Signatures
 
-### Single-record create/update/delete
-
-| Hook | Signature summary |
-| --- | --- |
-| `PreCreate` | `func(model *TModel, params *TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostCreate` | `func(model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error` |
-| `PreUpdate` | `func(oldModel, model *TModel, params *TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostUpdate` | `func(oldModel, model *TModel, params *TParams, ctx fiber.Ctx, tx orm.DB) error` |
-| `PreDelete` | `func(model *TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostDelete` | `func(model *TModel, ctx fiber.Ctx, tx orm.DB) error` |
-
-### Batch create/update/delete
-
-| Hook | Signature summary |
-| --- | --- |
-| `PreCreateMany` | `func(models []TModel, paramsList []TParams, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostCreateMany` | `func(models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error` |
-| `PreUpdateMany` | `func(oldModels, models []TModel, paramsList []TParams, query orm.UpdateQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostUpdateMany` | `func(oldModels, models []TModel, paramsList []TParams, ctx fiber.Ctx, tx orm.DB) error` |
-| `PreDeleteMany` | `func(models []TModel, query orm.DeleteQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostDeleteMany` | `func(models []TModel, ctx fiber.Ctx, tx orm.DB) error` |
-
-### Export and import
-
-| Hook | Signature summary |
-| --- | --- |
-| `PreExport` | `func(models []TModel, search TSearch, ctx fiber.Ctx, db orm.DB) error` |
-| `PreImport` | `func(models []TModel, query orm.InsertQuery, ctx fiber.Ctx, tx orm.DB) error` |
-| `PostImport` | `func(models []TModel, ctx fiber.Ctx, tx orm.DB) error` |
+The exact processor type declarations — single-record, batch, and
+export/import — are maintained in one place: the
+[Generic CRUD processor reference](./crud#processor-type-signatures).
+This page focuses on when to use which hook and what runs inside the
+transaction.
 
 ## CRUD Transaction Boundary
 
@@ -161,4 +137,4 @@ In those cases, a custom handler is usually clearer.
 
 ## Next Step
 
-Read [Validation](./validation) and [Error Handling](../building-apis/results-and-errors) to see how request failures and business errors are surfaced to clients.
+Read [Validation](../building-apis/validation) and [Error Handling](../building-apis/results-and-errors) to see how request failures and business errors are surfaced to clients.

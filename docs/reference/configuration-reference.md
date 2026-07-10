@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Configuration Reference
@@ -33,6 +33,174 @@ Common environment keys include:
 - `VEF_CONFIG_PATH`
 - `VEF_LOG_LEVEL`
 - `VEF_I18N_LANGUAGE`
+
+## `vef.app`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `name` | `string` | application name; also feeds defaults such as JWT audience generation |
+| `port` | `uint16` | HTTP server port |
+| `body_limit` | `string` | Fiber body limit, for example `10mib`; defaults to `32mib` when omitted |
+| `trusted_proxies` | `[]string` | proxy IPs or CIDR ranges trusted to set `X-Forwarded-For`; empty means forwarded headers from untrusted clients are ignored |
+
+## `vef.data_sources`
+
+`vef.data_sources` is a map keyed by data source name. The `primary` entry is
+required and powers the framework-wide `orm.DB` injection; other entries are
+registered into the data source registry under their map key.
+
+Example:
+
+```toml
+[vef.data_sources.primary]
+type = "sqlite"
+
+[vef.data_sources.analytics]
+type = "sqlite"
+path = "./analytics.db"
+```
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `type` | `postgres \| mysql \| sqlite` | runtime-supported database kind; `oracle` and `sqlserver` constants exist but are not implemented yet |
+| `host` | `string` | network database host |
+| `port` | `uint16` | network database port |
+| `user` | `string` | database username |
+| `password` | `string` | database password |
+| `database` | `string` | database name |
+| `schema` | `string` | schema name for drivers that support schemas |
+| `path` | `string` | SQLite file path |
+| `enable_sql_guard` | `bool` | enables the SQL guard for raw SQL surfaces |
+| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | TLS posture for network database dialects; omitted means `disable` |
+| `ssl_root_cert` | `string` | optional PEM CA bundle path for `verify-ca` and `verify-full`; empty uses the host system pool |
+
+Runtime note:
+
+- the current runtime provider registry supports `postgres`, `mysql`, and `sqlite`. `oracle` and `sqlserver` are declared as `DBKind` constants for future use but have no runtime provider yet, so configuring them fails at startup with `database.ErrUnsupportedDBKind`.
+
+## `vef.cors`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | `bool` | enables the CORS middleware |
+| `allow_origins` | `[]string` | allowed origin list |
+
+## `vef.security`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `secret` | `string` | hex-encoded JWT signing key. If unset, the framework generates an ephemeral per-process key and warns; tokens do not survive restart or work across nodes. If set to the public `security.DefaultJWTSecret`, startup warns to replace it in production. |
+| `token_expires` | `duration` | refresh-token lifetime; default `168h` |
+| `refresh_not_before` | `duration` | earliest time a refresh token may be used; default `15m`, half of the fixed `30m` access-token lifetime |
+| `login_rate_limit` | `int` | login endpoint rate limit; default `6` |
+| `refresh_rate_limit` | `int` | refresh endpoint rate limit; default `1` |
+| `ip_whitelists` | `map[string][]string` | named source-IP whitelists (IP or CIDR entries) consumed by the built-in `ip` auth strategy; TOML keys are lowercased, and the no-arg `api.IPAuth()` targets the `default` key |
+| `lockout.*` | — | brute-force lockout on the login endpoint: `enabled` default `true`, `max_failures` default `10`, `window` default `15m`, `lock_duration` default `15m`, `strategy` (`lock` \| `backoff`) default `lock`, `backoff_base` default `1s`, `backoff_max` default `15m`, `key` (`user` \| `ip` \| `user_ip`) default `user_ip` |
+| `password_policy.*` | — | password strength rules; every field is opt-in (a zero value disables the rule): `min_length`, `max_length`, `require_upper`, `require_lower`, `require_digit`, `require_symbol`, `min_char_classes`, `disallow_username`, `blocklist`, `history_depth` (reuse prevention; requires an app-provided `security.PasswordHistoryStore`), `max_age` (expiry; requires an app-provided `security.PasswordMetadataLoader`) |
+| `token_type` | `jwt_token \| opaque_token` | login token mechanism; default `jwt_token`. Session control (concurrency limits, force-offline, renewal) is only available with `opaque_token` |
+| `session.*` | — | opaque-token session tuning, no effect under `jwt_token`: `max_concurrent` default `0` (unlimited; enforcement is best-effort under concurrent logins), `on_exceed` (`reject` \| `evict_oldest`) default `evict_oldest`, `idle_ttl` default `30m`, `max_lifetime` default `168h` (7 days), `sliding` default `true` |
+
+Runtime note:
+
+- access tokens issued by the built-in JWT token generator expire after `30m`; `vef.security.token_expires` controls refresh tokens, not access tokens
+- lockout is on by default (`max_failures = 10`); a trip returns `security.ErrAccountLocked` (HTTP 429) and guard-store errors fail open
+- `history_depth > 0` composes a history validator into the password policy only when a `security.PasswordHistoryStore` is registered; `max_age` only takes effect when the app wires a `security.PasswordMetadataLoader` and `security.NewExpiryPasswordChangeChecker`
+
+## `vef.redis`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | `bool` | constructs the Redis client when true; default `false` |
+| `host` | `string` | Redis host |
+| `port` | `uint16` | Redis port |
+| `user` | `string` | Redis username |
+| `password` | `string` | Redis password |
+| `database` | `uint8` | Redis database number |
+| `network` | `string` | `tcp` or `unix` |
+
+Runtime note:
+
+- the default `vef.Run(...)` boot graph includes the Redis module
+- the Redis client is constructed only when `enabled = true`; when `enabled` is false or omitted, the framework provides a nil `*redis.Client` and skips startup `PING`
+- when enabled, omitted host/port/network fields default to `127.0.0.1`, `6379`, and `tcp`
+
+## `vef.storage`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `provider` | `memory \| minio \| filesystem` | storage provider selection |
+| `auto_migrate` | `bool` | runs storage DDL migration at startup |
+| `minio.endpoint` | `string` | MinIO endpoint |
+| `minio.access_key` | `string` | MinIO access key |
+| `minio.secret_key` | `string` | MinIO secret key |
+| `minio.bucket` | `string` | bucket name |
+| `minio.region` | `string` | region |
+| `minio.use_ssl` | `bool` | whether to use HTTPS |
+| `filesystem.root` | `string` | filesystem provider root directory |
+| `max_upload_size` | `int64` | maximum single-object upload size, default 1 GiB |
+| `claim_ttl` | `duration` | upload claim lifetime, default 24h |
+| `max_pending_claims` | `int` | maximum simultaneous pending claims per principal, default 100 |
+| `allow_public_uploads` | `bool` | allows clients to request public uploads; default false |
+| `sweep_interval` | `duration` | expired-claim sweep interval, default 5m |
+| `sweep_batch_size` | `int` | maximum expired claims processed per sweep, default 200 |
+| `delete_worker_interval` | `duration` | pending-delete worker polling interval, default 5m |
+| `delete_batch_size` | `int` | rows leased by one delete-worker tick, default 100 |
+| `delete_concurrency` | `int` | concurrent object deletions per worker tick, default 8 |
+| `delete_max_attempts` | `int` | retry budget before dead-lettering a delete row, default 12 |
+| `delete_lease_window` | `duration` | delete-row lease visibility window, default 5m |
+
+Runtime note:
+
+- omitting `provider` selects in-memory storage and logs a warning; objects are lost on restart
+- `vef.storage.auto_migrate = true` runs the idempotent storage migration and checks `sys_storage_upload_claim`, `sys_storage_upload_part`, and `sys_storage_pending_delete`
+- `filesystem.root` defaults to `./storage`
+- `minio.bucket` defaults to `minio.bucket`, then `vef.app.name`, then `vef-app`
+- upload-flow and delete-worker tunables have defaults in the framework; use the `StorageConfig` `Effective...` accessors when application code needs the resolved values
+
+## `vef.monitor`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `sample_interval` | `duration` | interval between samples; default `10s` |
+| `sample_duration` | `duration` | sampling window duration; default `2s` |
+| `excluded_mounts` | `[]string` | additional mount-point substrings to exclude from disk statistics |
+
+## `vef.mcp`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | `bool` | enables the MCP server and `/mcp` endpoint |
+| `require_auth` | `bool` | secure by default: unset or `true` requires Bearer auth; only explicit `false` allows anonymous access. In Go, `MCPConfig.RequireAuth` is `*bool` so the runtime can distinguish unset from false. |
+
+## `vef.approval`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `auto_migrate` | `bool` | runs approval DDL migration at startup when explicitly enabled; `ApprovalConfig.ApplyDefaults()` does not turn it on |
+| `timeout_scan_interval` | `duration` | timeout scanner cadence, default 1m |
+| `pre_warning_scan_interval` | `duration` | pre-warning scanner cadence, default 5m |
+| `cleanup_scan_interval` | `duration` | retention cleanup cadence, default 24h |
+| `delegation_max_depth` | `int` | maximum delegation-chain depth, default 10 |
+| `form_snapshot_retention` | `duration` | `apv_form_snapshot` retention, default 90 days |
+| `urge_record_retention` | `duration` | `apv_urge_record` retention, default 30 days |
+| `cc_record_retention` | `duration` | retention for read `apv_cc_record` rows, default 90 days |
+
+> Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../infrastructure/event-bus).
+
+## `vef.event`
+
+| Field | Type | Default / meaning |
+| --- | --- | --- |
+| `default_transport` | `string` | route fallback, default `memory` |
+| `async_queue_size` | `int` | `WithAsync` queue capacity, default `4096` |
+| `async_workers` | `int` | async worker count, default `4` |
+| `publish_timeout` | `duration` | per-transport publish timeout, default `5s` |
+| `transports.memory.*` | — | `queue_size` default `1024`, `full_policy` default `error`, `publish_timeout` default unset/no timeout and only applies when `full_policy = "block"` |
+| `transports.outbox.*` | — | `enabled`, `relay_interval` default `10s`, `max_retries` default `10`, `batch_size` default `100`, `lease_multiplier` default `4`, `min_lease` default `15s`, `sink` default `memory`, `cleanup_interval` default `1h`, `completed_ttl` default `168h`; cleanup fields belong to framework config, not `event/transport/outbox.Config` |
+| `transports.redis_stream.*` | — | `enabled`, `stream_prefix` default `vef:events:`, `max_len_approx` default `0` (no trimming), `block_timeout` default `5s`, `claim_idle` default `60s`, `claim_interval` default `30s`, `claim_batch_size` default `64`, `reaper_concurrency` default `4`, `handler_timeout` default `30s`, `setup_timeout` default `5s`, `consumer_id` default prefix `vef`, `start_id` default `0` (`"$"` skips backlog for newly created groups), `idle_group_retention` default `0` (disables orphaned consumer-group reclamation), `idle_group_sweep_interval` default `10m` |
+| `middleware.*` | `bool` | middleware toggles: `logging`, `tracing`, `tracing_strict`, `metrics`, `recover`, `inbox` |
+| `inbox.*` | — | `retention` default `168h`, `processing_lease` default `10m`, `cleanup_interval` default `1h` |
+| `routing` | `[]{pattern, transports}` | routing rules, matched top-to-bottom with `path.Match` |
 
 ## Config Package API Reference
 
@@ -339,174 +507,6 @@ Common environment keys include:
 | `config.SessionConfig.IsSliding()` | Returns `true` when `Sliding` is nil (idle-timeout renewal is on by default) or when it points to `true`. |
 
 `DataSourcesConfig.Map` is intentionally untagged. The internal config module unmarshals `vef.data_sources` into a `map[string]config.DataSourceConfig` first and then wraps it in `DataSourcesConfig{Map: sources}`; this preserves arbitrary data-source names while still reserving `config.PrimaryDataSourceName` (`"primary"`) for the framework-wide `orm.DB`.
-
-## `vef.app`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `name` | `string` | application name; also feeds defaults such as JWT audience generation |
-| `port` | `uint16` | HTTP server port |
-| `body_limit` | `string` | Fiber body limit, for example `10mib`; defaults to `32mib` when omitted |
-| `trusted_proxies` | `[]string` | proxy IPs or CIDR ranges trusted to set `X-Forwarded-For`; empty means forwarded headers from untrusted clients are ignored |
-
-## `vef.data_sources`
-
-`vef.data_sources` is a map keyed by data source name. The `primary` entry is
-required and powers the framework-wide `orm.DB` injection; other entries are
-registered into the data source registry under their map key.
-
-Example:
-
-```toml
-[vef.data_sources.primary]
-type = "sqlite"
-
-[vef.data_sources.analytics]
-type = "sqlite"
-path = "./analytics.db"
-```
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite` | runtime-supported database kind; `oracle` and `sqlserver` constants exist but are not implemented yet |
-| `host` | `string` | network database host |
-| `port` | `uint16` | network database port |
-| `user` | `string` | database username |
-| `password` | `string` | database password |
-| `database` | `string` | database name |
-| `schema` | `string` | schema name for drivers that support schemas |
-| `path` | `string` | SQLite file path |
-| `enable_sql_guard` | `bool` | enables the SQL guard for raw SQL surfaces |
-| `ssl_mode` | `disable \| require \| verify-ca \| verify-full` | TLS posture for network database dialects; omitted means `disable` |
-| `ssl_root_cert` | `string` | optional PEM CA bundle path for `verify-ca` and `verify-full`; empty uses the host system pool |
-
-Runtime note:
-
-- the current runtime provider registry supports `postgres`, `mysql`, and `sqlite`. `oracle` and `sqlserver` are declared as `DBKind` constants for future use but have no runtime provider yet, so configuring them fails at startup with `database.ErrUnsupportedDBKind`.
-
-## `vef.cors`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `enabled` | `bool` | enables the CORS middleware |
-| `allow_origins` | `[]string` | allowed origin list |
-
-## `vef.security`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `secret` | `string` | hex-encoded JWT signing key. If unset, the framework generates an ephemeral per-process key and warns; tokens do not survive restart or work across nodes. If set to the public `security.DefaultJWTSecret`, startup warns to replace it in production. |
-| `token_expires` | `duration` | refresh-token lifetime; default `168h` |
-| `refresh_not_before` | `duration` | earliest time a refresh token may be used; default `15m`, half of the fixed `30m` access-token lifetime |
-| `login_rate_limit` | `int` | login endpoint rate limit; default `6` |
-| `refresh_rate_limit` | `int` | refresh endpoint rate limit; default `1` |
-| `ip_whitelists` | `map[string][]string` | named source-IP whitelists (IP or CIDR entries) consumed by the built-in `ip` auth strategy; TOML keys are lowercased, and the no-arg `api.IPAuth()` targets the `default` key |
-| `lockout.*` | — | brute-force lockout on the login endpoint: `enabled` default `true`, `max_failures` default `10`, `window` default `15m`, `lock_duration` default `15m`, `strategy` (`lock` \| `backoff`) default `lock`, `backoff_base` default `1s`, `backoff_max` default `15m`, `key` (`user` \| `ip` \| `user_ip`) default `user_ip` |
-| `password_policy.*` | — | password strength rules; every field is opt-in (a zero value disables the rule): `min_length`, `max_length`, `require_upper`, `require_lower`, `require_digit`, `require_symbol`, `min_char_classes`, `disallow_username`, `blocklist`, `history_depth` (reuse prevention; requires an app-provided `security.PasswordHistoryStore`), `max_age` (expiry; requires an app-provided `security.PasswordMetadataLoader`) |
-| `token_type` | `jwt_token \| opaque_token` | login token mechanism; default `jwt_token`. Session control (concurrency limits, force-offline, renewal) is only available with `opaque_token` |
-| `session.*` | — | opaque-token session tuning, no effect under `jwt_token`: `max_concurrent` default `0` (unlimited; enforcement is best-effort under concurrent logins), `on_exceed` (`reject` \| `evict_oldest`) default `evict_oldest`, `idle_ttl` default `30m`, `max_lifetime` default `168h` (7 days), `sliding` default `true` |
-
-Runtime note:
-
-- access tokens issued by the built-in JWT token generator expire after `30m`; `vef.security.token_expires` controls refresh tokens, not access tokens
-- lockout is on by default (`max_failures = 10`); a trip returns `security.ErrAccountLocked` (HTTP 429) and guard-store errors fail open
-- `history_depth > 0` composes a history validator into the password policy only when a `security.PasswordHistoryStore` is registered; `max_age` only takes effect when the app wires a `security.PasswordMetadataLoader` and `security.NewExpiryPasswordChangeChecker`
-
-## `vef.redis`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `enabled` | `bool` | constructs the Redis client when true; default `false` |
-| `host` | `string` | Redis host |
-| `port` | `uint16` | Redis port |
-| `user` | `string` | Redis username |
-| `password` | `string` | Redis password |
-| `database` | `uint8` | Redis database number |
-| `network` | `string` | `tcp` or `unix` |
-
-Runtime note:
-
-- the default `vef.Run(...)` boot graph includes the Redis module
-- the Redis client is constructed only when `enabled = true`; when `enabled` is false or omitted, the framework provides a nil `*redis.Client` and skips startup `PING`
-- when enabled, omitted host/port/network fields default to `127.0.0.1`, `6379`, and `tcp`
-
-## `vef.storage`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `provider` | `memory \| minio \| filesystem` | storage provider selection |
-| `auto_migrate` | `bool` | runs storage DDL migration at startup |
-| `minio.endpoint` | `string` | MinIO endpoint |
-| `minio.access_key` | `string` | MinIO access key |
-| `minio.secret_key` | `string` | MinIO secret key |
-| `minio.bucket` | `string` | bucket name |
-| `minio.region` | `string` | region |
-| `minio.use_ssl` | `bool` | whether to use HTTPS |
-| `filesystem.root` | `string` | filesystem provider root directory |
-| `max_upload_size` | `int64` | maximum single-object upload size, default 1 GiB |
-| `claim_ttl` | `duration` | upload claim lifetime, default 24h |
-| `max_pending_claims` | `int` | maximum simultaneous pending claims per principal, default 100 |
-| `allow_public_uploads` | `bool` | allows clients to request public uploads; default false |
-| `sweep_interval` | `duration` | expired-claim sweep interval, default 5m |
-| `sweep_batch_size` | `int` | maximum expired claims processed per sweep, default 200 |
-| `delete_worker_interval` | `duration` | pending-delete worker polling interval, default 5m |
-| `delete_batch_size` | `int` | rows leased by one delete-worker tick, default 100 |
-| `delete_concurrency` | `int` | concurrent object deletions per worker tick, default 8 |
-| `delete_max_attempts` | `int` | retry budget before dead-lettering a delete row, default 12 |
-| `delete_lease_window` | `duration` | delete-row lease visibility window, default 5m |
-
-Runtime note:
-
-- omitting `provider` selects in-memory storage and logs a warning; objects are lost on restart
-- `vef.storage.auto_migrate = true` runs the idempotent storage migration and checks `sys_storage_upload_claim`, `sys_storage_upload_part`, and `sys_storage_pending_delete`
-- `filesystem.root` defaults to `./storage`
-- `minio.bucket` defaults to `minio.bucket`, then `vef.app.name`, then `vef-app`
-- upload-flow and delete-worker tunables have defaults in the framework; use the `StorageConfig` `Effective...` accessors when application code needs the resolved values
-
-## `vef.monitor`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `sample_interval` | `duration` | interval between samples; default `10s` |
-| `sample_duration` | `duration` | sampling window duration; default `2s` |
-| `excluded_mounts` | `[]string` | additional mount-point substrings to exclude from disk statistics |
-
-## `vef.mcp`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `enabled` | `bool` | enables the MCP server and `/mcp` endpoint |
-| `require_auth` | `bool` | secure by default: unset or `true` requires Bearer auth; only explicit `false` allows anonymous access. In Go, `MCPConfig.RequireAuth` is `*bool` so the runtime can distinguish unset from false. |
-
-## `vef.approval`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `auto_migrate` | `bool` | runs approval DDL migration at startup when explicitly enabled; `ApprovalConfig.ApplyDefaults()` does not turn it on |
-| `timeout_scan_interval` | `duration` | timeout scanner cadence, default 1m |
-| `pre_warning_scan_interval` | `duration` | pre-warning scanner cadence, default 5m |
-| `cleanup_scan_interval` | `duration` | retention cleanup cadence, default 24h |
-| `delegation_max_depth` | `int` | maximum delegation-chain depth, default 10 |
-| `form_snapshot_retention` | `duration` | `apv_form_snapshot` retention, default 90 days |
-| `urge_record_retention` | `duration` | `apv_urge_record` retention, default 30 days |
-| `cc_record_retention` | `duration` | retention for read `apv_cc_record` rows, default 90 days |
-
-> Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../infrastructure/event-bus).
-
-## `vef.event`
-
-| Field | Type | Default / meaning |
-| --- | --- | --- |
-| `default_transport` | `string` | route fallback, default `memory` |
-| `async_queue_size` | `int` | `WithAsync` queue capacity, default `4096` |
-| `async_workers` | `int` | async worker count, default `4` |
-| `publish_timeout` | `duration` | per-transport publish timeout, default `5s` |
-| `transports.memory.*` | — | `queue_size` default `1024`, `full_policy` default `error`, `publish_timeout` default unset/no timeout and only applies when `full_policy = "block"` |
-| `transports.outbox.*` | — | `enabled`, `relay_interval` default `10s`, `max_retries` default `10`, `batch_size` default `100`, `lease_multiplier` default `4`, `min_lease` default `15s`, `sink` default `memory`, `cleanup_interval` default `1h`, `completed_ttl` default `168h`; cleanup fields belong to framework config, not `event/transport/outbox.Config` |
-| `transports.redis_stream.*` | — | `enabled`, `stream_prefix` default `vef:events:`, `max_len_approx` default `0` (no trimming), `block_timeout` default `5s`, `claim_idle` default `60s`, `claim_interval` default `30s`, `claim_batch_size` default `64`, `reaper_concurrency` default `4`, `handler_timeout` default `30s`, `setup_timeout` default `5s`, `consumer_id` default prefix `vef`, `start_id` default `0` (`"$"` skips backlog for newly created groups), `idle_group_retention` default `0` (disables orphaned consumer-group reclamation), `idle_group_sweep_interval` default `10m` |
-| `middleware.*` | `bool` | middleware toggles: `logging`, `tracing`, `tracing_strict`, `metrics`, `recover`, `inbox` |
-| `inbox.*` | — | `retention` default `168h`, `processing_lease` default `10m`, `cleanup_interval` default `1h` |
-| `routing` | `[]{pattern, transports}` | routing rules, matched top-to-bottom with `path.Match` |
 
 ## See also
 

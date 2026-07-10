@@ -93,6 +93,158 @@ font, archive, and PDF types are accepted; unsafe same-origin types such as
 `text/html` and `application/javascript` are replaced by extension detection or
 `application/octet-stream`.
 
+## Client Walkthrough: Multipart Upload
+
+The exact wire sequence a client implements against `POST /api`, shown for a 40 MiB `report.pdf` on a MinIO-backed server (`partSize` 16 MiB, so 3 parts). All five actions require authentication (Bearer by default), and every follow-up call routes by the `claimId` returned from `init_upload` — the backend's multipart `UploadID` never leaves the server. Success responses use the standard envelope (`message` text is language-dependent); failures reuse it with a non-zero `code` from the storage range (2200–2299, see the error table below).
+
+### 1. `init_upload`
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "init_upload",
+    "version": "v1",
+    "params": {
+      "filename": "report.pdf",
+      "size": 41943040,
+      "contentType": "application/pdf",
+      "public": false
+    }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "key": "priv/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf",
+    "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789",
+    "originalFilename": "report.pdf",
+    "partSize": 16777216,
+    "partCount": 3,
+    "expiresAt": "2026-07-10T12:04:05Z"
+  }
+}
+```
+
+`size` must be the exact byte count: `complete_upload` deletes the assembled object and fails with a size mismatch when the uploaded total differs. `partSize` is the backend's authoritative slice size — every part except the last must be exactly `partSize` bytes; the last part carries the remainder.
+
+### 2. `upload_part` (× `partCount`)
+
+`upload_part` rejects JSON bodies. Send `multipart/form-data`: `resource`, `action`, and `version` as plain form fields, `params` as a JSON string, and the raw bytes in a form part named `file`:
+
+```bash
+split -b 16777216 report.pdf part-   # part-aa, part-ab, part-ac
+
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -F 'resource=sys/storage' \
+  -F 'action=upload_part' \
+  -F 'version=v1' \
+  -F 'params={"claimId":"b3a2c1d0-4e5f-47a9-8bcd-ef0123456789","partNumber":1}' \
+  -F 'file=@part-aa'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "partNumber": 1,
+    "size": 16777216
+  }
+}
+```
+
+Repeat with `partNumber` 2 and 3 (`part-ac` is the 8388608-byte remainder). Distinct part numbers may upload concurrently; re-sending a part number overwrites the earlier bytes (last-writer-wins). The backend ETag is recorded server-side and intentionally not returned — clients never round-trip ETags.
+
+### 3. `complete_upload`
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "complete_upload",
+    "version": "v1",
+    "params": { "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789" }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "bucket": "app-files",
+    "key": "priv/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf",
+    "eTag": "9b2cf535f27731c974343645a3985328-3",
+    "size": 41943040,
+    "contentType": "application/pdf",
+    "lastModified": "2026-07-09T12:08:15Z",
+    "originalFilename": "report.pdf"
+  }
+}
+```
+
+The server assembles the parts manifest from its own table; with fewer than `partCount` parts recorded, the call fails with `ErrCodeUploadPartsIncomplete`. Retries are idempotent — a retry arriving after the backend session closed re-stats the object and returns the same shape. The claim is now `uploaded` and waits for business adoption (see `Files` below).
+
+### Resume an interrupted upload: `list_parts`
+
+Accepted parts survive client restarts while the claim is still pending and unexpired (`expiresAt`). Ask the server which parts it holds, skip those, and upload only the rest:
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "list_parts",
+    "version": "v1",
+    "params": { "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789" }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "parts": [
+      { "partNumber": 1, "size": 16777216 },
+      { "partNumber": 2, "size": 16777216 }
+    ]
+  }
+}
+```
+
+Here part 3 is missing: upload it, then call `complete_upload`. The list is ordered by `partNumber` ascending, and every listed part is recorded with its ETag server-side and honored by `complete_upload` as-is.
+
+### `abort_upload`
+
+Same JSON envelope with `"action": "abort_upload"` and the `claimId` in `params`:
+
+```json
+{ "code": 0, "message": "Success", "data": null }
+```
+
+Abort is idempotent: an unknown or already-aborted `claimId` still returns `code: 0`. Only pending claims are aborted — calling it on an `uploaded` claim is a no-op and never deletes a finalized object.
+
+### Downloading through the proxy
+
+Downloads are plain HTTP `GET`s against the proxy route, not RPC actions:
+
+```bash
+curl -O http://localhost:8080/storage/files/pub/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf
+```
+
+`pub/*` keys are served anonymously. For any other key the proxy calls `FileACL.CanRead` with the request principal; the framework does not resolve a token on this route itself, so private downloads need a registered `FileACL` plus app-level middleware that sets the principal (see the proxy middleware section below).
+
 ## Visibility Prefixes
 
 Object keys carry their intended visibility as a prefix:

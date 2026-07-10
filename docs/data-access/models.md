@@ -303,4 +303,4 @@ type UserMeta struct {
 
 ## Next Step
 
-Read [Generic CRUD](./crud) to see how these models plug into typed operation builders, or read the [ORM SQL Builder](./orm-builder) for a comprehensive reference on constructing SQL queries.
+Read [Generic CRUD](./crud) to see how these models plug into typed operation builders, or read the [ORM SQL Builder](./orm-querying) for a comprehensive reference on constructing SQL queries.

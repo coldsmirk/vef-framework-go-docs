@@ -63,6 +63,13 @@ port = 8080
 
 [vef.data_sources.primary]
 type = "sqlite"
+
+[vef.event.transports.outbox]
+enabled = true
+
+[[vef.event.routing]]
+pattern = "vef.storage.*"
+transports = ["outbox"]
 ```
 
 这份配置之所以够用，是因为：
@@ -71,6 +78,8 @@ type = "sqlite"
 - storage 没配置时默认走内存实现
 - 当前资源是 `Public`，所以不需要先接认证加载器
 - 这个示例本身没有使用任何 Redis 相关能力
+
+即使这个示例完全不涉及存储，后两个 event 配置块也是必需的：storage 模块会在启动时校验 `vef.storage.*` 事件是否路由到了事务性传输，否则应用直接拒绝启动。启用 outbox 传输（它会自动创建自己的表）即可满足该校验。
 
 ## 3. 启动应用
 

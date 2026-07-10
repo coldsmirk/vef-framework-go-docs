@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 4
 ---
 
 # 验证
@@ -249,4 +249,4 @@ type UserParams struct {
 
 ## 下一步
 
-继续阅读 [参数与元信息](../building-apis/params-and-meta)，看验证是在请求解码链路中的哪个阶段触发的。
+继续阅读 [参数与元信息](./params-and-meta)，看验证是在请求解码链路中的哪个阶段触发的。

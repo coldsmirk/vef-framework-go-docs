@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 4
 ---
 
 # Validation
@@ -255,4 +255,4 @@ order, and a worked example.
 
 ## Next Step
 
-Read [Parameters And Metadata](../building-apis/params-and-meta) to see where validation is triggered in request decoding.
+Read [Parameters And Metadata](./params-and-meta) to see where validation is triggered in request decoding.

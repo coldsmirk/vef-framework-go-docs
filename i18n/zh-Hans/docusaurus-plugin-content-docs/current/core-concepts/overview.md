@@ -94,17 +94,7 @@ vef.Run(
 - `vef:approval:lifecycle_hooks`
 
 `di.go` 里的各种 helper，本质上就是帮你更安全地把值注册进这些 group。helper
-名称前缀不一定等于 FX 机制，所以要按实际行为理解：
-
-| 机制 | Helpers |
-| --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
-| 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
-| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
-| 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
-
-替换型 helper 不是 additive。例如 `ProvideEventMetricsRecorder` 和
-`ProvideEventErrorSink` 是 decorate 默认的单个服务，而不是向 group 追加新成员。
+名称前缀不一定等于 FX 机制——有的 `Provide*` 是向 group 追加，有的则是替换默认的单个服务。逐个 helper 的权威表格（机制、group、契约）见[扩展点](../reference/extension-points)，本页不再重复维护。
 
 ## API 资源注册
 

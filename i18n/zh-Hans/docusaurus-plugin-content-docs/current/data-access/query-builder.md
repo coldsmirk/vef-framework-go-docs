@@ -1,10 +1,10 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
-# 查询构建
+# 搜索过滤（`search` 标签）
 
-VEF 的查询构建主要围绕 typed search 结构体、`search` 标签和 CRUD 的 find 类扩展点展开。目标是把查询规则放在字段定义附近，而不是把一堆字符串条件散落在 handler 里。
+声明式查询过滤主要围绕 typed search 结构体、`search` 标签和 CRUD 的 find 类扩展点展开。手写 SQL 请改用 [ORM：查询](./orm-querying)。目标是把查询规则放在字段定义附近，而不是把一堆字符串条件散落在 handler 里。
 
 ## Search 结构体模型
 

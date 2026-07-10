@@ -1,10 +1,10 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
-# Query Builder
+# Search Filters (`search` Tags)
 
-VEF query building is centered around typed search structs, `search` tags, and CRUD find options. The goal is to keep query rules close to the fields they belong to instead of scattering stringly typed conditions across handlers.
+Declarative query filtering is centered around typed search structs, `search` tags, and CRUD find options. For hand-built SQL, see [ORM: Querying](./orm-querying) instead. The goal is to keep query rules close to the fields they belong to instead of scattering stringly typed conditions across handlers.
 
 ## Search Struct Model
 

@@ -90,6 +90,158 @@ action。`public` 标志默认按私有处理，只有 `vef.storage.allow_public
 字体、压缩包和 PDF 类型会被接受；`text/html`、`application/javascript`
 这类同源不安全类型会被扩展名探测结果或 `application/octet-stream` 替换。
 
+## 客户端演练：分片上传
+
+以下是客户端对 `POST /api` 实现的完整线上（wire）序列，示例为在 MinIO 后端上传一个 40 MiB 的 `report.pdf`（`partSize` 16 MiB，共 3 片）。五个 action 都要求认证（默认 Bearer），后续每个调用都通过 `init_upload` 返回的 `claimId` 路由 —— 后端的 multipart `UploadID` 永远不会离开服务端。成功响应使用标准信封（`message` 文案随语言变化）；失败复用同一信封，`code` 取存储错误码区间（2200–2299，见下方错误表）。
+
+### 1. `init_upload`
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "init_upload",
+    "version": "v1",
+    "params": {
+      "filename": "report.pdf",
+      "size": 41943040,
+      "contentType": "application/pdf",
+      "public": false
+    }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "key": "priv/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf",
+    "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789",
+    "originalFilename": "report.pdf",
+    "partSize": 16777216,
+    "partCount": 3,
+    "expiresAt": "2026-07-10T12:04:05Z"
+  }
+}
+```
+
+`size` 必须是精确的字节数：如果实际上传总量与声明不符，`complete_upload` 会删除已组装的对象并返回 size mismatch 错误。`partSize` 是后端权威的切片大小 —— 除最后一片外每片必须恰好是 `partSize` 字节，最后一片承载余量。
+
+### 2. `upload_part`（× `partCount`）
+
+`upload_part` 拒绝 JSON body。请发送 `multipart/form-data`：`resource`、`action`、`version` 是普通表单字段，`params` 是 JSON 字符串，文件字节放在名为 `file` 的表单分片里：
+
+```bash
+split -b 16777216 report.pdf part-   # part-aa, part-ab, part-ac
+
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -F 'resource=sys/storage' \
+  -F 'action=upload_part' \
+  -F 'version=v1' \
+  -F 'params={"claimId":"b3a2c1d0-4e5f-47a9-8bcd-ef0123456789","partNumber":1}' \
+  -F 'file=@part-aa'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "partNumber": 1,
+    "size": 16777216
+  }
+}
+```
+
+对 `partNumber` 2 和 3 重复此调用（`part-ac` 是 8388608 字节的余量）。不同 part number 可以并发上传；重发同一个 part number 会覆盖之前的字节（last-writer-wins）。后端 ETag 由服务端记录且刻意不返回 —— 客户端永远不需要回传 ETag。
+
+### 3. `complete_upload`
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "complete_upload",
+    "version": "v1",
+    "params": { "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789" }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "bucket": "app-files",
+    "key": "priv/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf",
+    "eTag": "9b2cf535f27731c974343645a3985328-3",
+    "size": 41943040,
+    "contentType": "application/pdf",
+    "lastModified": "2026-07-09T12:08:15Z",
+    "originalFilename": "report.pdf"
+  }
+}
+```
+
+服务端从自己的表组装 parts 清单；已记录的 parts 少于 `partCount` 时调用失败，返回 `ErrCodeUploadPartsIncomplete`。重试是幂等的 —— 后端 session 已关闭之后到达的重试会重新 stat 对象并返回相同形状的响应。此时 claim 处于 `uploaded` 状态，等待业务采纳（见下方 `Files`）。
+
+### 恢复中断的上传：`list_parts`
+
+只要 claim 仍处于 pending 且未过期（`expiresAt`），已被接受的 parts 在客户端重启后依然有效。先问服务端已经持有哪些 parts，跳过它们，只上传剩余部分：
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "sys/storage",
+    "action": "list_parts",
+    "version": "v1",
+    "params": { "claimId": "b3a2c1d0-4e5f-47a9-8bcd-ef0123456789" }
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "parts": [
+      { "partNumber": 1, "size": 16777216 },
+      { "partNumber": 2, "size": 16777216 }
+    ]
+  }
+}
+```
+
+这里缺第 3 片：把它传上去，然后调用 `complete_upload`。列表按 `partNumber` 升序排列，每个列出的 part 都已连同 ETag 记录在服务端，`complete_upload` 会原样采信。
+
+### `abort_upload`
+
+同样的 JSON 信封，`"action": "abort_upload"`，`params` 里带 `claimId`：
+
+```json
+{ "code": 0, "message": "Success", "data": null }
+```
+
+Abort 是幂等的：未知或已中止的 `claimId` 仍返回 `code: 0`。只有 pending 状态的 claim 会被中止 —— 对 `uploaded` claim 调用是 no-op，绝不会删除已完成的对象。
+
+### 通过代理下载
+
+下载是对代理路由的普通 HTTP `GET`，不是 RPC action：
+
+```bash
+curl -O http://localhost:8080/storage/files/pub/2026/07/09/6c9e6f0e-8d5a-4d5e-9a3b-2f4a1c7e9b21.pdf
+```
+
+`pub/*` key 匿名可读。其他 key 由代理带着请求 principal 调用 `FileACL.CanRead`；框架自身不会在这个路由上解析 token，所以私有下载既需要注册 `FileACL`，也需要在 app 层挂设置 principal 的中间件（见下方代理中间件小节）。
+
 ## 可见性前缀
 
 object key 通过前缀表达可见意图：

@@ -7,25 +7,49 @@
     "message": "快速入门",
     "description": "The label for category 'Getting Started' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.Guide": {
-    "message": "开发指南",
-    "description": "The label for category 'Guide' in sidebar 'docsSidebar'"
+  "sidebar.docsSidebar.category.Core Concepts": {
+    "message": "核心概念",
+    "description": "The label for category 'Core Concepts' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.Modules": {
-    "message": "模块系统",
-    "description": "The label for category 'Modules' in sidebar 'docsSidebar'"
+  "sidebar.docsSidebar.category.Building APIs": {
+    "message": "构建 API",
+    "description": "The label for category 'Building APIs' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Data Access": {
+    "message": "数据访问",
+    "description": "The label for category 'Data Access' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Security": {
     "message": "安全",
     "description": "The label for category 'Security' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.Features": {
-    "message": "内置功能",
-    "description": "The label for category 'Features' in sidebar 'docsSidebar'"
+  "sidebar.docsSidebar.category.Data Tools": {
+    "message": "数据工具",
+    "description": "The label for category 'Data Tools' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Infrastructure": {
+    "message": "基础设施",
+    "description": "The label for category 'Infrastructure' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.AI Integration": {
+    "message": "AI 集成",
+    "description": "The label for category 'AI Integration' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Approval Workflow": {
+    "message": "审批模块",
+    "description": "The label for category 'Approval Workflow' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Advanced": {
     "message": "进阶",
     "description": "The label for category 'Advanced' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Utilities": {
+    "message": "工具库",
+    "description": "The label for category 'Utilities' in sidebar 'docsSidebar'"
+  },
+  "sidebar.docsSidebar.category.Conventions": {
+    "message": "规范",
+    "description": "The label for category 'Conventions' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Reference": {
     "message": "参考",

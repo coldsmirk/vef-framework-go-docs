@@ -94,18 +94,7 @@ Several framework features are connected through FX groups. These are the most i
 - `vef:datasource:providers`
 - `vef:approval:lifecycle_hooks`
 
-The helper functions in `di.go` exist mainly to register values into those groups safely. The helper name prefix does not always describe the FX mechanism, so read them by behavior:
-
-| Mechanism | Helpers |
-| --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideDataSourceProvider` |
-| `fx.Supply` with group tags | `SupplySPAConfigs` |
-| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink` |
-| plain `fx.Supply` value | `SupplyMCPServerInfo` |
-
-The replacement helpers are not additive. For example,
-`ProvideEventMetricsRecorder` and `ProvideEventErrorSink` decorate the default
-single service instead of appending another group member.
+The helper functions in `di.go` exist mainly to register values into those groups safely. The helper name prefix does not always describe the FX mechanism — some `Provide*` helpers append to a group while others replace a default single service. The authoritative, per-helper table (mechanism, group, contract) lives in [Extension Points](../reference/extension-points); this page intentionally does not duplicate it.
 
 ## API resources
 

@@ -22,7 +22,7 @@ The public `api` package exposes strategy helpers:
 - `api.Public()`
 - `api.BearerAuth()`
 - `api.SignatureAuth()`
-- `api.IPAuth(...)` (see [Signature helpers](#signature-helpers) below for how it resolves whitelists)
+- `api.IPAuth(...)` (see [Signature helpers](./authentication-reference#signature-helpers) below for how it resolves whitelists)
 
 In practice, you normally control this through operation settings:
 
@@ -151,303 +151,236 @@ The exact application-owned pieces depend on which auth paths you use:
 
 The framework ships the auth flow and middleware, but application identity sources remain application-owned.
 
-## Public Security APIs For Authentication
+## Public API Surface
 
-| API group | Public surface |
-| --- | --- |
-| principals | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType` |
-| JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
-| auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
-| challenge tokens | `ChallengeProvider`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
-| OTP/challenges | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
-| TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
-| signature auth | `Signature`, `SignatureCredentials`, `SignatureResult`, `SignatureAlgorithm`, `NewSignature`, `WithAlgorithm`, `WithTimestampTolerance`, `WithNonceStore`, `NonceStore`, `NewMemoryNonceStore`, `NewRedisNonceStore` |
-| login events | `LoginEvent`, `LoginEventParams`, `NewLoginEvent`, `SubscribeLoginEvent` |
+The complete public authentication surface — principals, JWT, the auth manager, challenge providers and token stores, signature auth, and login events — is indexed with contract notes in the [Authentication Reference](./authentication-reference).
 
-Bearer constants are `AuthSchemeBearer` and `QueryKeyAccessToken`. The token
-type constants are `TokenTypeAccess`, `TokenTypeRefresh`, and
-`TokenTypeChallenge`.
+## A Working Login Module
 
-### JWT and principals
+In real VEF apps, the auth module is often very small: one users table, one package that implements the loader interfaces, and a module declaration that provides them. The framework already ships the `security/auth` resource, the password and refresh authenticators, and a default bcrypt `password.Encoder`; the application only supplies its identity source. The `auth` package below is complete enough to log in against a real table.
 
-`NewJWT` expects `JWTConfig.Secret` to be a hex-encoded key and defaults an
-empty audience to `DefaultJWTAudience`. Low-level `NewJWT` still falls back to
-the public `DefaultJWTSecret` when the secret is empty; the framework security
-module wraps this with a safer boot-time behavior that generates an ephemeral
-key and warns. Use `GenerateSecret()` to provision a private production key for
-`vef.security.secret`.
+### The user model
 
-The built-in framework token generator issues access tokens with a fixed `30m`
-TTL. `vef.security.token_expires` configures the refresh-token TTL instead
-(default `168h`), and `vef.security.refresh_not_before` defaults to `15m`.
-Access and refresh tokens generated together share the same `jti`.
+```go title="internal/auth/user.go"
+package auth
 
-JWT parsing accepts only `HS256`, requires issuer `JWTIssuer` (`vef`), validates
-audience, requires `iat` and `exp`, and applies a 10-second leeway. The compact
-claim keys are:
+import (
+	"github.com/uptrace/bun"
 
-| Claim | Key |
-| --- | --- |
-| JWT ID | `jti` |
-| subject | `sub` |
-| issuer | `iss` |
-| audience | `aud` |
-| issued at | `iat` |
-| not before | `nbf` |
-| expires at | `exp` |
-| token type | `typ` |
-| roles | `rls` |
-| details | `det` |
+	"github.com/coldsmirk/vef-framework-go/orm"
+)
 
-The built-in access and refresh token generator stores the subject as
-`id@name`. `JWTTokenAuthenticator` rebuilds a user principal from that subject
-without a database lookup. `JWTRefreshAuthenticator` also expects `id@name`,
-but then reloads the user with `UserLoader.LoadByID(...)` using the `id` part.
+type User struct {
+	bun.BaseModel `bun:"table:app_user,alias:au"`
+	orm.FullAuditedModel
 
-`JWTClaimsBuilder` writes compact token claims with `WithID`, `WithSubject`,
-`WithRoles`, `WithDetails`, `WithType`, and `WithClaim`. `JWTClaimsAccessor`
-reads the same payload back with `ID`, `Subject`, `Roles`, `Details`, `Type`,
-and `Claim`. Use `NewJWTClaimsBuilder()` and `NewJWTClaimsAccessor(...)` to
-create those helpers directly.
+	Username     string `json:"username" validate:"required,alphanum,max=32" label:"Username"`
+	Name         string `json:"name" validate:"required,max=32" label:"Name"`
+	PasswordHash string `json:"-" bun:"password_hash,notnull"`
+	Role         string `json:"role"`
+	IsActive     bool   `json:"isActive"`
+}
 
-`PrincipalTypeUser`, `PrincipalTypeExternalApp`, and `PrincipalTypeSystem`
-describe the supported principal kinds. `SetUserDetailsType[T]()` and
-`SetExternalAppDetailsType[T]()` configure process-global detail unmarshalling
-targets; call them during startup before serving requests.
-
-`Principal` serializes as JSON `type`, `id`, `name`, `roles`, and `details`.
-`SetUserDetailsType[T]()` and `SetExternalAppDetailsType[T]()` require `T` to
-be a struct or struct pointer and panic with `ErrUserDetailsNotStruct` or
-`ErrExternalAppDetailsNotStruct` otherwise. They mutate package-level state and
-should be treated as startup-only configuration. Unknown principal types keep
-`details` as `map[string]any`; system principals deserialize with `details`
-set to `nil`. The built-in special principals are `PrincipalSystem`
-(`type: "system"`, id `system`, name `系统`) and `PrincipalAnonymous`
-(`type: "user"`, id `anonymous`, name `匿名`).
-
-### Challenge providers
-
-Built-in challenge type constants include:
-
-- `ChallengeTypeTOTP`
-- `ChallengeTypeSMS`
-- `ChallengeTypeEmail`
-- `ChallengeTypePasswordChange`
-- `ChallengeTypeDepartmentSelection`
-
-Their wire values and default orders are:
-
-| Constant | Wire value | Default order |
-| --- | --- | --- |
-| `ChallengeTypeTOTP` | `totp` | `100` |
-| `ChallengeTypeSMS` | `sms_otp` | `200` |
-| `ChallengeTypeEmail` | `email_otp` | `300` |
-| `ChallengeTypePasswordChange` | `password_change` | `400` |
-| `ChallengeTypeDepartmentSelection` | `department_selection` | `500` |
-
-`ChallengeTokenStore.Generate(ctx, principal, pending, resolved)` and
-`Parse(ctx, token)` carry the state between `login` and `resolve_challenge`.
-The built-in login resources expose that state field as `challengeToken`.
-`JWTChallengeTokenStore` is stateless; `MemoryChallengeTokenStore` is suitable
-for tests or single-instance deployments; `RedisChallengeTokenStore` is for
-distributed deployments. Challenge tokens expire after `ChallengeTokenExpires`.
-The JWT-backed store uses `ClaimChallengePrincipalType`,
-`ClaimChallengePrincipalName`, `ClaimChallengeUsername`,
-`ClaimChallengePending`, and `ClaimChallengeResolved` as compact claim keys.
-
-Challenge token stores have different wire/storage shapes:
-
-| Store | Token/state contract |
-| --- | --- |
-| `JWTChallengeTokenStore` | JWT token, `typ: "challenge"`, 5-minute `ChallengeTokenExpires`, subject is principal ID only |
-| `MemoryChallengeTokenStore` | UUID token stored in process memory for `ChallengeTokenExpires` |
-| `RedisChallengeTokenStore` | UUID token stored under `vef:security:challenge:<token>` for `ChallengeTokenExpires` |
-
-The JWT challenge claim keys are `ptp` (`ClaimChallengePrincipalType`), `pnm`
-(`ClaimChallengePrincipalName`), `unm` (`ClaimChallengeUsername`), `pnd`
-(`ClaimChallengePending`), and `rsd` (`ClaimChallengeResolved`). Challenge
-parsing accepts empty principal type as a backwards-compatible user principal,
-accepts `user`, `external_app`, and `system`, and rejects unknown principal
-types.
-
-Challenge providers are sorted by `Order()` in ascending order. The built-in
-convenience providers use `100` for TOTP, `200` for SMS, `300` for email, `400`
-for password change, and `500` for department selection. Providers that are not
-registered, or whose `Evaluate(...)` returns `nil`, are skipped. During
-`resolve_challenge`, the submitted `type` must match the first pending
-challenge type or the framework returns `ErrChallengeTypeInvalid`.
-
-`NewOTPChallengeProvider` is the generic constructor. Its
-`OTPChallengeProviderConfig` requires `ChallengeType`, `Evaluator`, and
-`Verifier`; `ChallengeOrder` controls evaluation order, and `Sender` is
-optional and is used by delivered-code flows.
-`OTPChallengeProvider` returns `OTPChallengeData` to the client when a challenge
-is required. The
-delivered-code helpers combine `OTPCodeStore` and `OTPCodeDelivery`:
-`DeliveredCodeSender`, `DeliveredCodeVerifier`, `NewDeliveredCodeSender`,
-`NewDeliveredCodeVerifier`,
-`NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, and
-`NewEmailChallengeProvider`.
-
-`NewTOTPChallengeProvider` only needs a `TOTPSecretLoader`; if
-`LoadSecret(...)` returns an empty string, the challenge is skipped.
-`TOTPEvaluator`, `TOTPVerifier`, and `TOTPOption` are the lower-level pieces
-behind the convenience provider. TOTP uses `TOTPDefaultDestination`
-(`Authenticator App`) unless `WithTOTPDestination(...)` overrides it.
-
-`NewPasswordChangeChallengeProvider` uses `PasswordChangeChecker` and
-`PasswordChanger`; it returns `PasswordChangeChallengeData` when a password
-change is required. Common reason constants are `PasswordChangeReasonFirstLogin`
-(`first_login`) and `PasswordChangeReasonExpired` (`expired`). The concrete provider type is
-`PasswordChangeChallengeProvider`.
-`NewDepartmentSelectionChallengeProvider` uses `DepartmentLoader` and
-`DepartmentSelector`; an empty department list skips the challenge, while
-resolve expects a department ID string. `DepartmentSelectionChallengeData`
-serializes as `departments` plus optional `meta`; each `DepartmentOption`
-serializes as `id` and `name`.
-
-The challenge constructors are wiring-time APIs. `NewOTPChallengeProvider`
-panics when `ChallengeType`, `Evaluator`, or `Verifier` is missing.
-`NewPasswordChangeChallengeProvider` panics when `PasswordChangeChecker` or
-`PasswordChanger` is missing. `NewDepartmentSelectionChallengeProvider` panics
-when `DepartmentLoader` or `DepartmentSelector` is missing.
-
-### Signature helpers
-
-`NewSignature(secret, ...)` requires a non-empty hex-encoded secret and defaults
-to `SignatureAlgHmacSHA256` with a 5-minute timestamp tolerance. The option
-type is `SignatureOption`. Other algorithm constants are
-`SignatureAlgHmacSHA512` and `SignatureAlgHmacSM3`. `WithTimestampTolerance`
-changes the accepted timestamp window and
-`WithNonceStore` controls replay protection. Low-level `NewSignature(...)`
-creates a `MemoryNonceStore` by default; pass `WithNonceStore(nil)` only when
-you intentionally want to disable nonce storage for that helper. The built-in
-`SignatureAuthenticator` injects the application `NonceStore` when one is
-provided, otherwise each verification uses the low-level helper's process-local
-memory store. `MemoryNonceStore` is local to one process; `RedisNonceStore` is
-the distributed option. Stored nonces use twice the timestamp tolerance plus a
-1-minute buffer as TTL.
-
-The signed payload is exactly:
-
-```text
-app_id=<appID>&method=<method>&nonce=<nonce>&path=<path>&timestamp=<timestamp>
+// UserDetails becomes Principal.Details and travels inside issued access tokens.
+type UserDetails struct {
+	Username string `json:"username"`
+}
 ```
 
-The fields are bound in that order. The `request body is not part of the
-signature payload`. The `method` field is the HTTP method observed by the
-server.
+`PasswordHash` must hold output of the same `password.Encoder` the login flow uses — by default the security module provides bcrypt (`password.NewBcryptEncoder`). Wherever you create or seed users, inject `password.Encoder` and store `encoder.Encode(plaintext)`; the built-in password authenticator later verifies the login credential with `encoder.Matches(plaintext, storedHash)`.
 
-`NewIPWhitelistValidator` returns an `IPWhitelistValidator` from a
-comma-separated list of IPs and CIDR ranges. An empty whitelist allows all IPs;
-an invalid whitelist is fail-closed and denies all requests. When an
-`ExternalAppConfig.IPWhitelist` is non-empty but the request IP cannot be
-resolved, `SignatureAuthenticator` also fails closed with `ErrIPNotAllowed`.
+### UserLoader
 
-`security.NewIPWhitelistValidatorFromEntries(entries)` is the slice-based
-counterpart used by the built-in `api.IPAuth(...)` strategy. The strategy
-resolves a named `security.IPWhitelist` through `security.IPWhitelistLoader`;
-the default loader reads `vef.security.ip_whitelists`, while applications may
-provide their own loader for database or config-center backed lists.
+`security.UserLoader` has exactly two methods: `LoadByUsername` powers `type: "password"` login and returns the principal plus the stored hash; `LoadByID` powers token refresh.
 
-Signature storage keys and defaults:
+```go title="internal/auth/user_loader.go"
+package auth
 
-| Contract | Value |
-| --- | --- |
-| request headers | `X-App-ID`, `X-Timestamp`, `X-Nonce`, `X-Signature` |
-| algorithms | `HMAC-SHA256`, `HMAC-SHA512`, `HMAC-SM3` |
-| default algorithm | `HMAC-SHA256` |
-| default tolerance | `5m` |
-| nonce TTL | `2*tolerance + 1m` |
-| Redis nonce prefix | `vef:security:nonce:` |
-| disable replay checking | `WithNonceStore(nil)` |
+import (
+	"context"
 
-Security-domain API errors expose `ErrCode*` constants in the `1000-1039`
-range:
+	"github.com/coldsmirk/vef-framework-go/orm"
+	"github.com/coldsmirk/vef-framework-go/security"
+)
 
-| Code | Constant | Error | HTTP status |
-| --- | --- | --- | --- |
-| `1000` | `ErrCodeUnauthenticated` | `ErrUnauthenticated` | `401` |
-| `1001` | `ErrCodeUnsupportedAuthenticationType` | unsupported authentication type | `400` |
-| `1002` | `ErrCodeTokenExpired` | `ErrTokenExpired` | `401` |
-| `1003` | `ErrCodeTokenInvalid` | `ErrTokenInvalid` | `401` |
-| `1004` | `ErrCodeTokenNotValidYet` | `ErrTokenNotValidYet` | `401` |
-| `1005` | `ErrCodeTokenInvalidIssuer` | `ErrTokenInvalidIssuer` | `401` |
-| `1006` | `ErrCodeTokenInvalidAudience` | `ErrTokenInvalidAudience` | `401` |
-| `1007` | `ErrCodePrincipalInvalid` | `ErrPrincipalInvalid(message)` | `401` |
-| `1008` | `ErrCodeCredentialsInvalid` | `ErrCredentialsInvalid(message)` | `401` |
-| `1009` | `ErrCodeAppIDRequired` | `ErrAppIDRequired` | `401` |
-| `1010` | `ErrCodeTimestampRequired` | `ErrTimestampRequired` | `401` |
-| `1011` | `ErrCodeSignatureRequired` | `ErrSignatureRequired` | `401` |
-| `1012` | `ErrCodeTimestampInvalid` | `ErrTimestampInvalid` | `401` |
-| `1013` | `ErrCodeSignatureExpired` | `ErrSignatureExpired` | `401` |
-| `1014` | `ErrCodeExternalAppNotFound` | `ErrExternalAppNotFound` | `401` |
-| `1015` | `ErrCodeExternalAppDisabled` | `ErrExternalAppDisabled` | `401` |
-| `1016` | `ErrCodeIPNotAllowed` | `ErrIPNotAllowed` | `401` |
-| `1017` | `ErrCodeSignatureInvalid` | `ErrSignatureInvalid` | `401` |
-| `1018` | `ErrCodeNonceRequired` | `ErrNonceRequired` | `401` |
-| `1019` | `ErrCodeNonceInvalid` | `ErrNonceInvalid` | `401` |
-| `1020` | `ErrCodeNonceAlreadyUsed` | `ErrNonceAlreadyUsed` | `401` |
-| `1021` | `ErrCodeAuthHeaderMissing` | `ErrAuthHeaderMissing` | `401` |
-| `1022` | `ErrCodeAuthHeaderInvalid` | `ErrAuthHeaderInvalid` | `401` |
-| `1031` | `ErrCodeChallengeTokenInvalid` | `ErrChallengeTokenInvalid` | `401` |
-| `1033` | `ErrCodeChallengeTypeInvalid` | `ErrChallengeTypeInvalid` | `400` |
-| `1034` | `ErrCodeChallengeResolveFailed` | challenge resolve failure message ID | reserved |
-| `1035` | `ErrCodeOTPCodeRequired` | `ErrOTPCodeRequired` | `400` |
-| `1036` | `ErrCodeOTPCodeInvalid` | `ErrOTPCodeInvalid` | `401` |
-| `1037` | `ErrCodeNewPasswordRequired` | `ErrNewPasswordRequired` | `400` |
-| `1038` | `ErrCodeDepartmentRequired` | `ErrDepartmentRequired` | `400` |
+type userLoader struct {
+	db orm.DB
+}
 
-Authentication-related sentinels include `ErrUnauthenticated`,
-`ErrTokenExpired`, `ErrTokenInvalid`, `ErrTokenNotValidYet`,
-`ErrTokenInvalidIssuer`, `ErrTokenInvalidAudience`, `ErrAppIDRequired`,
-`ErrTimestampRequired`, `ErrSignatureRequired`, `ErrTimestampInvalid`,
-`ErrSignatureExpired`, `ErrSignatureInvalid`, `ErrExternalAppNotFound`,
-`ErrExternalAppDisabled`, `ErrIPNotAllowed`, `ErrNonceRequired`,
-`ErrNonceInvalid`, `ErrNonceAlreadyUsed`, `ErrAuthHeaderMissing`,
-`ErrAuthHeaderInvalid`, `ErrChallengeTokenInvalid`,
-`ErrChallengeTypeInvalid`, `ErrOTPCodeRequired`, `ErrOTPCodeInvalid`,
-`ErrNewPasswordRequired`, `ErrDepartmentRequired`, plus the factory helpers
-`ErrCredentialsInvalid(message)` and `ErrPrincipalInvalid(message)`.
-`ErrCodeChallengeResolveFailed` and `ErrChallengeResolveFailed` are reserved
-for challenge resolution failures.
+func NewUserLoader(db orm.DB) security.UserLoader {
+	return &userLoader{db: db}
+}
 
-Low-level secret parsing errors use `ErrDecodeJWTSecretFailed`,
-`ErrGenerateJWTSecretFailed`, `ErrDecodeSignatureSecretFailed`, and
-`ErrSignatureSecretRequired`. `ErrUserDetailsNotStruct` and
-`ErrExternalAppDetailsNotStruct` are raised when detail-type registration is not
-given a struct or struct pointer.
-Public i18n message ID constants include `ErrMessageChallengeResolveFailed`,
-`ErrMessageCredentialsFormatInvalid`, `ErrMessageExternalAppLoaderNotImplemented`,
-`ErrMessageUnauthenticated`, `ErrMessageUnsupportedAuthenticationType`,
-`ErrMessageUserInfoLoaderNotImplemented`, and
-`ErrMessageUserLoaderNotImplemented`.
+func (l *userLoader) LoadByUsername(ctx context.Context, username string) (*security.Principal, string, error) {
+	user, err := l.findActive(ctx, "username", username)
+	if err != nil {
+		return nil, "", err
+	}
 
-## A common application pattern
+	return toPrincipal(user), user.PasswordHash, nil
+}
 
-In real VEF apps, the auth module is often very small. A common setup is:
+func (l *userLoader) LoadByID(ctx context.Context, id string) (*security.Principal, error) {
+	user, err := l.findActive(ctx, "id", id)
+	if err != nil {
+		return nil, err
+	}
 
-- set the user details type during package init
-- provide `UserLoader`
-- provide `UserInfoLoader`
+	return toPrincipal(user), nil
+}
 
-For example, an auth module often looks conceptually like this:
+func (l *userLoader) findActive(ctx context.Context, column string, value any) (*User, error) {
+	var user User
 
-```go
+	err := l.db.NewSelect().Model(&user).
+		Where(func(cb orm.ConditionBuilder) {
+			cb.Equals(column, value).IsTrue("is_active")
+		}).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func toPrincipal(user *User) *security.Principal {
+	principal := security.NewUser(user.ID, user.Name, user.Role)
+	principal.Details = &UserDetails{Username: user.Username}
+
+	return principal
+}
+```
+
+The error semantics match what the built-in authenticators expect:
+
+- `Scan` already maps "no rows" to `result.ErrRecordNotFound`, so returning the error unchanged is correct. Filtering on `is_active` makes disabled users indistinguishable from missing ones.
+- During `login`, any `LoadByUsername` error — and equally a `nil` principal or an empty hash — collapses into the generic invalid-credentials error (code `1008`), so usernames cannot be enumerated. Record-not-found errors are logged at info level, everything else at warn level.
+- During `refresh`, a `LoadByID` error is returned to the caller as-is; the refresh authenticator reloads the user precisely so deactivated accounts stop refreshing.
+
+### Permissions and user info
+
+```go title="internal/auth/loaders.go"
+package auth
+
+import (
+	"context"
+
+	"github.com/coldsmirk/vef-framework-go/security"
+)
+
+type rolePermissionsLoader struct{}
+
+func NewRolePermissionsLoader() security.RolePermissionsLoader {
+	return &rolePermissionsLoader{}
+}
+
+func (*rolePermissionsLoader) LoadPermissions(_ context.Context, role string) (map[string]security.DataScope, error) {
+	if role == "admin" {
+		return map[string]security.DataScope{
+			"user:manage": security.NewAllDataScope(),
+			"order:read":  security.NewAllDataScope(),
+		}, nil
+	}
+
+	return map[string]security.DataScope{
+		"order:read": security.NewSelfDataScope(""),
+	}, nil
+}
+
+type userInfoLoader struct{}
+
+func NewUserInfoLoader() security.UserInfoLoader {
+	return &userInfoLoader{}
+}
+
+func (*userInfoLoader) LoadUserInfo(_ context.Context, principal *security.Principal, _ map[string]any) (*security.UserInfo, error) {
+	return &security.UserInfo{
+		ID:     principal.ID,
+		Name:   principal.Name,
+		Gender: security.GenderUnknown,
+	}, nil
+}
+```
+
+A production `RolePermissionsLoader` reads a role-permissions table instead of a switch; the security module automatically wraps whatever you provide in a cache invalidated by `RolePermissionsChangedEvent`. The permission tokens feed the RBAC checker described in [Authorization](./authorization).
+
+### Wiring
+
+Constructors must return the interface types — the framework consumes `security.UserLoader`, `security.UserInfoLoader`, and `security.RolePermissionsLoader` from the DI graph as optional dependencies of exactly those types.
+
+```go title="internal/auth/module.go"
+package auth
+
+import (
+	"github.com/coldsmirk/vef-framework-go"
+	"github.com/coldsmirk/vef-framework-go/security"
+)
+
 func init() {
-  security.SetUserDetailsType[*UserDetails]()
+	security.SetUserDetailsType[*UserDetails]()
 }
 
 var Module = vef.Module(
-  "app:auth",
-  vef.Provide(
-    NewUserLoader,
-    NewUserInfoLoader,
-  ),
+	"app:auth",
+	vef.Provide(
+		NewUserLoader,
+		NewUserInfoLoader,
+		NewRolePermissionsLoader,
+	),
 )
 ```
 
-This keeps authentication integration isolated from the rest of the application modules.
+Pass `auth.Module` to `vef.Run(...)` in `main` and the built-in `security/auth` resource picks the loaders up — no further registration is needed. This keeps authentication integration isolated from the rest of the application modules.
+
+### Logging in
+
+With a seeded user (`admin` / `ChangeMe_123`, hash produced by the bcrypt encoder), call the built-in resource:
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "security/auth",
+    "action": "login",
+    "version": "v1",
+    "params": {
+      "type": "password",
+      "principal": "admin",
+      "credentials": "ChangeMe_123"
+    }
+  }'
+```
+
+With no challenge providers registered, the response carries the token pair directly:
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+    }
+  }
+}
+```
+
+Access tokens expire after 30 minutes (a fixed framework constant); the refresh token lifetime comes from `vef.security.token_expires` (default 7 days). Exchange the refresh token for a new pair — note that `refresh` returns the token pair directly in `data`, without the `tokens` wrapper:
+
+```bash
+curl http://localhost:8080/api \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "resource": "security/auth",
+    "action": "refresh",
+    "version": "v1",
+    "params": { "refreshToken": "eyJhbGciOiJIUzI1NiIs..." }
+  }'
+```
+
+Request parameters for every `security/auth` action are tabulated in [Built-in Resources](../reference/built-in-resources).
 
 ## Practical Advice
 
@@ -457,4 +390,5 @@ This keeps authentication integration isolated from the rest of the application 
 
 ## Next Step
 
-Read [Authorization](./authorization) to see how authentication leads into permission checks.
+- [Authentication Reference](./authentication-reference) — the complete public API surface behind this guide
+- [Authorization](./authorization) — how authentication leads into permission checks

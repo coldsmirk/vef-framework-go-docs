@@ -394,7 +394,7 @@ The `redis_stream` transport provides the implementation when enabled; the
 dependency is optional in DI (`optional:"true"`), so consumers must tolerate
 a nil inspector. `sys/monitor.get_event_streams` exposes `Streams` as an API
 endpoint — every stream plus its groups (consumers / pending / lag /
-last-delivered).
+last-delivered); see the [Monitor](./monitor) page for the response datasheet.
 
 Set `idle_group_retention` to opt into reclamation. A group is destroyed only
 when it has no pending entries, is not an active subscription of the current
