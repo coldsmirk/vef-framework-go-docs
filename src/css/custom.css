@@ -319,15 +319,17 @@ a {
     color: var(--vef-text-muted);
 }
 
-/* Tables — datasheet */
+/* Tables — datasheet. display:block + max-width keeps wide tables
+ * scrolling inside the content column instead of bleeding under the TOC. */
 .markdown table {
-    display: table;
-    width: 100%;
+    display: block;
+    width: max-content;
+    max-width: 100%;
     border-collapse: collapse;
     border-spacing: 0;
     border: 1px solid var(--vef-line);
     border-radius: var(--vef-radius);
-    overflow: hidden;
+    overflow-x: auto;
 }
 
 .markdown table thead tr {
@@ -1002,8 +1004,9 @@ pre {
  * Responsive
  * =======================================================*/
 @media screen and (max-width: 996px) {
+    /* minmax(0) lets the code panel scroll instead of widening the column */
     .home-hero {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 2rem;
         padding: 2.75rem 0 2.5rem;
     }
@@ -1038,10 +1041,6 @@ pre {
     .feature-list {
         grid-template-columns: 1fr;
         column-gap: 0;
-    }
-
-    .feature-item:nth-child(2) {
-        border-top: 1px solid var(--vef-line);
     }
 }
 
