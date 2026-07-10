@@ -343,6 +343,9 @@ a {
     border-bottom: 1px solid var(--vef-line);
     vertical-align: top;
     padding: 0.72rem 0.95rem;
+    /* keep-all stops CJK label columns collapsing to one character per
+     * line when code-chip columns squeeze the table; overflow scrolls. */
+    word-break: keep-all;
 }
 
 .markdown table th {
