@@ -914,6 +914,7 @@ func (x *extractor) extractRESTVerbs() {
 func (x *extractor) extractConfigKeys() {
 	roots := map[string]string{
 		"AppConfig":      "vef.app",
+		"APIConfig":      "vef.api",
 		"CORSConfig":     "vef.cors",
 		"SecurityConfig": "vef.security",
 		"RedisConfig":    "vef.redis",
@@ -1026,6 +1027,7 @@ func (x *extractor) extractConfigDefaults() {
 
 	x.add("config default", "vef.event.transports.outbox.max_retries", "10", []string{"config/event.go:175"}, "EventConfig.Validate fallback when max_retries is unset")
 	x.add("config default", "vef.mcp.require_auth", "true when unset", []string{"internal/mcp/handler.go:34"})
+	x.add("environment variable", "SystemDrive", "SystemDrive", []string{"internal/monitor/service.go:189"}, "OS-defined Windows variable read to locate the root filesystem for the disk overview; not framework configuration")
 }
 
 func (x *extractor) extractDefaultConfigValues(sf sourceFile, fn *ast.FuncDecl, fieldToKey map[string]string) {
@@ -1525,6 +1527,7 @@ func (x *extractor) verifyJSONSchemaCoverage() []string {
 func (x *extractor) configFieldKeyIndex() map[string]string {
 	roots := map[string]string{
 		"AppConfig":        "vef.app",
+		"APIConfig":        "vef.api",
 		"CORSConfig":       "vef.cors",
 		"SecurityConfig":   "vef.security",
 		"RedisConfig":      "vef.redis",
@@ -1653,10 +1656,11 @@ func (x *extractor) configDefaultKey(path, typeName, field string, fieldToKey ma
 			"ClaimIdle":         "claim_idle",
 			"ClaimInterval":     "claim_interval",
 			"ClaimBatchSize":    "claim_batch_size",
-			"ReaperConcurrency": "reaper_concurrency",
-			"SetupTimeout":      "setup_timeout",
-			"ConsumerID":        "consumer_id",
-			"StartID":           "start_id",
+			"ReaperConcurrency":      "reaper_concurrency",
+			"SetupTimeout":           "setup_timeout",
+			"ConsumerID":             "consumer_id",
+			"StartID":                "start_id",
+			"IdleGroupSweepInterval": "idle_group_sweep_interval",
 		}, field)
 	}
 
@@ -2273,6 +2277,11 @@ func (x *extractor) addJSONFieldsForStruct(sf sourceFile, typeName string, st *a
 func isRuntimeDTOFile(path string) bool {
 	exactFiles := map[string]bool{
 		"internal/orm/model.go": true,
+		// The built-in form-editor parser's designer-document contract and the
+		// persisted business-projection record-key shape are runtime wire
+		// surfaces despite living under internal/.
+		"internal/approval/formeditor/schema.go":  true,
+		"internal/approval/binding/record_key.go": true,
 	}
 	if exactFiles[path] {
 		return true
