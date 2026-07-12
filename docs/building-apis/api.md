@@ -156,7 +156,7 @@ Operation defaulting rules:
 | `Timeout` | non-positive values use the engine default, which is `30s` unless overridden |
 | `Public` | `true` resolves auth to `api.Public()` before resource/default auth |
 | `RequiredPermission` | copied into auth options as the required permission token when non-empty |
-| `RateLimit` | nil uses the engine default `Max=100`, `Period=5m`; a custom `RateLimitConfig` replaces the default |
+| `RateLimit` | nil uses the engine default — `vef.api.rate_limit` when configured, else `Max=100`, `Period=5m` (v0.38); a custom `RateLimitConfig` replaces the default |
 | `Handler` | RPC may infer from action when omitted; REST requires an explicit handler |
 
 ### Using with CRUD Builders
@@ -347,10 +347,20 @@ Usage via CRUD builder:
 crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
-The built-in rate limiter uses a sliding window. A nil `Operation.RateLimit` or
-`RateLimit.Max <= 0` disables limiting for that operation. The framework's
-default key includes resource, version, action, resolved client IP, and the
-principal ID; anonymous requests use the anonymous principal.
+The built-in rate limiter uses a sliding window, counted per node. An
+operation that declares no `RateLimit` of its own receives the engine default,
+which is user-configurable since v0.38:
+
+```toml
+[vef.api.rate_limit]
+max    = 100   # default when omitted
+period = "5m"  # default when omitted
+```
+
+An explicit `RateLimitConfig` with `Max <= 0` disables limiting for that
+operation. The framework's default key includes resource, version, action,
+resolved client IP, and the principal ID; anonymous requests use the anonymous
+principal.
 
 Operation auth is carried by `Operation.Auth`; a public operation resolves to
 `api.AuthStrategyNone`, while protected operations carry the selected auth

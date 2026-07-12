@@ -38,6 +38,17 @@ body_limit = "32mib"
 - `port`：Fiber HTTP 服务监听端口
 - `body_limit`：请求体大小限制；未配置时默认是 `32mib`
 
+### `vef.api`
+
+操作级默认限流（v0.38），作用于所有未声明自己 `OperationSpec.RateLimit`
+的操作：
+
+```toml
+[vef.api.rate_limit]
+max    = 100   # 默认值
+period = "5m"  # 默认值
+```
+
 ### `vef.data_sources`
 
 数据库配置：

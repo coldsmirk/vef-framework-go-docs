@@ -110,6 +110,25 @@ typed 请求控制信息就是这样注入的。
 
 这意味着分页和排序并不会自动从 query string 塞进内置 meta helper 里。如果 handler 期望的是 `page.Pageable` 这类 meta 目标，调用方应该通过 `X-Meta-*` headers 或显式 typed meta 契约来提供。
 
+## 数值精度
+
+从 v0.38 起，`params` 与 `meta` 的 JSON 载荷按数字保真解析
+（`json.Decoder.UseNumber`），数值保留原始位数，不再在解析阶段折叠成
+`float64`：
+
+- **有类型的数值字段**（`int64`、`uint32`、`float64` 等）按精确位数解析。
+  小数或指数形式的数字落到整数字段会以 `mapx.ErrJSONNumberNotInteger`
+  失败；超出目标类型范围的值以 `mapx.ErrJSONNumberOverflow` 失败——对齐
+  `encoding/json` 的严格性，而不是静默截断。
+- **`json.RawMessage` 捕获**看到的是原始字面量，精度完整——大 ID 和高精度
+  小数经 `api.Params` 往返后原样保留。
+- **无类型目标**（`any` / `map[string]any` / `[]any`）仍然收到 `float64`，
+  动态 handler 的长期运行时契约不变——`json.Number` 永远不会泄漏到解码
+  结果里。
+
+handler 代码无需修改；差异只出现在过去会丢精度（超过 2^53 的 int64 ID、
+高精度金额）或静默接受越界数字的地方。
+
 ## Multipart 文件支持
 
 multipart 上传可以填充这些 params 形态：

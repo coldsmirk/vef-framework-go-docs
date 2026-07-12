@@ -156,8 +156,8 @@ vef.Run(
 ```
 
 `vef.ApprovalModule` 会开启审批/工作流功能，并注册它的 API resources、
-CQRS handlers、engine、binding listener 和 scanners。审批的
-`approval.*` 事件需要一个带可订阅 sink 的 transactional route；路由细节
+CQRS handlers、engine、业务投影 worker 和 scanners。审批的
+`approval.*` 事件需要 transactional route；路由细节
 见[审批模块](../approval)。
 
 ## 大型应用里的模块角色

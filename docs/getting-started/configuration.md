@@ -38,6 +38,17 @@ Key fields:
 - `port`: HTTP port for the Fiber app
 - `body_limit`: parsed by Fiber; defaults to `32mib` when omitted
 
+### `vef.api`
+
+Default per-operation rate limit (v0.38), applied to every operation that does
+not declare its own `OperationSpec.RateLimit`:
+
+```toml
+[vef.api.rate_limit]
+max    = 100   # default
+period = "5m"  # default
+```
+
 ### `vef.data_sources`
 
 Database connection settings:

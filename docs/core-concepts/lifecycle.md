@@ -14,7 +14,7 @@ This is the canonical statement of the VEF boot pipeline. It is assembled from
 `vef.Run` and the `internal/apptest` test harness, so the two graphs cannot
 drift):
 
-`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
+`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> lock -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
 
 `datasource` is a single step: it connects `*sql.DB` (via `internal/database`)
 and wraps it into `orm.DB` (via `internal/orm`) in one module — there is no

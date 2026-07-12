@@ -185,7 +185,7 @@ Helper：
 
 - `vef.ProvideApprovalLifecycleHook(...)`
 
-`approval.InstanceLifecycleHook` 的实现会在审批 engine 事务内同步运行，覆盖实例创建、完成等生命周期节点。返回 error 会回滚外层的审批命令。需要在提交后才运行的异步集成应使用事件订阅。
+`approval.InstanceLifecycleHook` 的实现会在审批 engine 事务内同步运行——`OnInstanceCreated` 在实例创建时、`OnInstanceTransition(from, to)` 在每一次实例状态迁移时（v0.38）。返回 error 会回滚外层的审批命令。多个 hook 之间的调用顺序未定义（FX value group 不携带顺序）。需要在提交后才运行的异步集成应使用事件订阅或 `approval.BindCommand`。
 
 ## 审批 aggregator 与表单 schema
 
@@ -209,9 +209,9 @@ Helpers：
 
 `SupplyBusinessRefProvider` 替换默认的 no-op `approval.BusinessRefProvider`。它在 `Flow.BindingMode == BindingBusiness` 的 `start_instance` 事务内运行，让宿主解析或创建业务行，并返回 opaque 的 `Instance.BusinessRef`。
 
-`SupplyBusinessRefResolver` 替换默认的 identity `approval.BusinessRefResolver`。当 `Instance.BusinessRef` 不是裸主键、而引擎写回需要提取出与 `Flow.BusinessPKField` 匹配的值时，注册一个自定义实现。
+`SupplyBusinessRefResolver` 替换默认的 `approval.BusinessRefResolver`——它把 `Instance.BusinessRef` 解析成与流程 `BusinessBindingConfig.KeyColumns` 匹配的 `approval.BusinessRecordKey`（单列 ref 按原文，复合 ref 按 JSON 对象）。当 ref 采用别的形状或解析需要宿主查询时，注册一个自定义实现。
 
-审批状态写回本身由 engine 拥有。宿主可以用 `approval.InstanceLifecycleHook` 或事件订阅在其周围扩展，但不再替换写回路径本身。
+业务状态投影本身由 engine 拥有。宿主可以用 `approval.InstanceLifecycleHook`、事件订阅或 `approval.BindCommand` 在其周围扩展，但不再替换投影路径本身。
 
 ## 日志
 

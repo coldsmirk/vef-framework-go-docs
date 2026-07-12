@@ -88,7 +88,7 @@ Subscribe options:
 | Option | Effect |
 | --- | --- |
 | `event.WithGroup(name)` | consumer group. **Required** when the subscribable route resolves to any at-least-once transport, such as Redis Streams or another durable sink — otherwise `event.ErrGroupRequired`. The group is the dedupe scope for the Inbox middleware and the XGROUP for Redis Streams; it must stay stable across restarts. |
-| `event.WithConcurrency(n)` | worker count per subscription. Defaults to 1; non-positive values are ignored. |
+| `event.WithConcurrency(n)` | worker count per subscription. Defaults to 1; non-positive values are ignored. Values above 1 trade ordering for throughput — the workers race on the subscription's single feed, so handler executions interleave even on `Ordered` transports; keep 1 for order-sensitive subscribers. |
 
 ### Typed subscriptions
 
@@ -142,7 +142,7 @@ A `transport.Transport` is the pluggable backend. Each declares `Capabilities`:
 | --- | --- |
 | `Durable` | messages survive process restart |
 | `Transactional` | implements `TxTransport` — `WithTx` routes through it |
-| `Ordered` | per-partition order preserved |
+| `Ordered` | messages are *handed* to a subscription in publish order. The guarantee holds only for serial consumption: with `WithConcurrency(n > 1)` multiple workers pull from the same ordered feed, so handler executions interleave and observable processing order is lost |
 | `AtLeastOnce` | delivery may be duplicated → Inbox middleware activates |
 | `SupportsGroups` | `WithGroup` affects load balancing |
 | `PublishOnly` | accepts publishes but cannot deliver (e.g. the transactional outbox itself) |
@@ -204,9 +204,9 @@ type RouteInspector interface {
 ```
 
 - `HasTransactionalRoute`: required by modules that publish with `WithTx` (transactional outbox pattern). Without it, the first `WithTx` publish fails with `ErrTxRequired`.
-- `HasSubscribableTransport`: required by modules whose framework-side code subscribes (binding listeners, projections, integration handlers). Without it, a route resolving only to publish-only transports lets the app start but every Subscribe fails with `ErrNoRouteMatched`. Added in v0.25.0.
+- `HasSubscribableTransport`: required by modules whose framework-side code subscribes (integration handlers, event-driven projections). Without it, a route resolving only to publish-only transports lets the app start but every Subscribe fails with `ErrNoRouteMatched`. Added in v0.25.0.
 
-The approval module's binding listener and outbox publisher rely on both — see [Approval module](../approval).
+The approval module asserts `HasTransactionalRoute` for its `approval.*` events at boot (its business projection converges from durable state and no longer subscribes) — see [Approval module](../approval).
 
 ## Middleware
 

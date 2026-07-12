@@ -59,6 +59,7 @@ Implementation details visible in source:
 | --- | --- |
 | `schema.ErrTableNotFound` | business error returned when a requested table does not exist |
 | `schema.ErrCodeTableNotFound` | numeric business error code for missing tables |
+| `schema.ErrTableMissing` | plain Go sentinel (v0.38) reported by `Service` when inspection cannot find the requested table — for Go callers using the service directly; the RPC surface still maps to `ErrTableNotFound` |
 
 ## Public Schema Types
 
@@ -126,6 +127,8 @@ tagged with `omitempty` are omitted when empty: for example, `schema`,
 | --- | --- | --- |
 | `name` | `string` | unique key name |
 | `columns` | `[]string` | unique columns |
+| `predicate` | `string` | partial-index predicate when the unique index is conditional (v0.38; omitted when empty) |
+| `hasExpressions` | `bool` | `true` when the unique index contains expression columns (v0.38; such keys do not guarantee plain column-tuple uniqueness) |
 
 ### `schema.ForeignKey`
 

@@ -29,7 +29,7 @@ Instance lifecycle:
 | `EventTypeInstanceRolledBack` | `approval.instance.rolled_back` | `InstanceRolledBackEvent`, `NewInstanceRolledBackEvent` | `fromNodeId`, `fromNodeName`, `toNodeId`, `toNodeName`, `operator` (`UserInfo`), `opinion` | instance was rolled back to a previous node |
 | `EventTypeInstanceReturned` | `approval.instance.returned` | `InstanceReturnedEvent`, `NewInstanceReturnedEvent` | `fromNodeId`, `fromNodeName`, `toNodeId`, `toNodeName`, `operator` (`UserInfo`), `opinion` | instance was returned to applicant |
 | `EventTypeInstanceResubmitted` | `approval.instance.resubmitted` | `InstanceResubmittedEvent`, `NewInstanceResubmittedEvent` | `operator` (`UserInfo`) | returned or withdrawn instance was resubmitted |
-| `EventTypeInstanceBindingFailed` | `approval.instance.binding_failed` | `InstanceBindingFailedEvent`, `NewInstanceBindingFailedEvent` | `trigger`, `status`, `businessTable`, `errorMessage` | the engine-owned write-back could not persist `status` to the business row after `trigger` |
+| `EventTypeInstanceBindingFailed` | `approval.instance.binding_failed` | `InstanceBindingFailedEvent`, `NewInstanceBindingFailedEvent` | `trigger`, `status`, `businessTable`, `errorMessage` | an **eventual** business projection attempt failed after the desired state committed; the durable worker keeps retrying — this event is an operator notification, not the retry mechanism. Synchronous failures roll back the approval transaction and never emit it |
 
 Node lifecycle:
 
@@ -81,21 +81,24 @@ Cross-tenant attempts return `approval.ErrCrossTenantAccess`. `IsSuperAdmin(p)` 
 
 | Extension point | Phase | Failure semantics |
 | --- | --- | --- |
-| `approval.InstanceLifecycleHook` (FX group `vef:approval:lifecycle_hooks`) | synchronous, inside the business transaction | returning an error rolls back the surrounding command |
+| `approval.InstanceLifecycleHook` (FX group `vef:approval:lifecycle_hooks`) | synchronous, inside the engine transaction — instance creation and every status transition | returning an error rolls back the surrounding command |
 | `approval.BusinessRefProvider` | synchronous, inside the start-instance transaction | returning an error rolls back instance creation |
-| `approval.BusinessRefResolver` | asynchronous write-back path (`completed` / `returned` / `withdrawn` / `resubmitted` triggers) | returning an error fails the engine-owned write-back, publishes `InstanceBindingFailedEvent`, and is retried by the outbox path |
+| `approval.BusinessRefResolver` | synchronous, at claim time inside the start-instance transaction | returning an error rolls back instance creation |
 | `approval.SubscribeInstance` (`event.SubscribeTyped` wrapper) | asynchronous, after the transaction commits | the bus retries via the outbox relay; consumers must be idempotent |
+| `approval.BindCommand` (instance event → CQRS command bridge) | asynchronous, after the transaction commits | redelivery re-dispatches the command; the command handler must be idempotent |
 
 ### `InstanceLifecycleHook`
 
 ```go
 type InstanceLifecycleHook interface {
     OnInstanceCreated(ctx context.Context, db orm.DB, instance *Instance) error
-    OnInstanceCompleted(ctx context.Context, db orm.DB, instance *Instance, finalStatus InstanceStatus) error
+    OnInstanceTransition(ctx context.Context, db orm.DB, instance *Instance, from, to InstanceStatus) error
 }
 ```
 
-Use lifecycle hooks for invariants that must hold inside the transaction (e.g. allocating a tightly-coupled business row). Use event subscriptions for everything else. Register hooks with `vef.ProvideApprovalLifecycleHook(constructor)` — the constructor must return `approval.InstanceLifecycleHook`, and multiple hooks compose via the `vef:approval:lifecycle_hooks` group. `approval.NewFilteredLifecycleHook(hook, filters...)` wraps a hook with the same `InstanceFilter` vocabulary used by `SubscribeInstance` (below), so a hook can be scoped to specific flow codes or tenants without hand-written predicates.
+v0.38 generalizes the hook: the former `OnInstanceCompleted(instance, finalStatus)` is replaced by `OnInstanceTransition(instance, from, to)`, which runs inside the same transaction as **every** instance status transition — completion (`to.IsFinal()`), return, withdrawal, resubmission, termination. It runs after the engine-owned business projection has recorded (and, in synchronous mode, applied) the new state, so the hook observes the business table as the transition leaves it; `instance.Status` already carries `to`. Returning an error rolls back the whole transition.
+
+Use lifecycle hooks for invariants that must hold inside the transaction (e.g. allocating a tightly-coupled business row). Use event subscriptions (or `BindCommand`, below) for everything else. Register hooks with `vef.ProvideApprovalLifecycleHook(constructor)` — the constructor must return `approval.InstanceLifecycleHook`, and multiple hooks compose via the `vef:approval:lifecycle_hooks` group. The invocation order across hooks is **unspecified** (FX value groups carry no ordering), so hooks must be mutually independent; any non-nil error stops the remaining hooks. `approval.NewFilteredLifecycleHook(hook, filters...)` wraps a hook with the same `InstanceFilter` vocabulary used by `SubscribeInstance` (below), so a hook can be scoped to specific flow codes or tenants without hand-written predicates.
 
 ### `BusinessRefProvider` and `BusinessRefResolver`
 
@@ -105,45 +108,57 @@ type BusinessRefProvider interface {
 }
 
 type BusinessRefResolver interface {
-    ResolveRecordID(ctx context.Context, flow *Flow, businessRef string) (string, error)
+    ResolveRecordKey(ctx context.Context, flow *Flow, businessRef string) (BusinessRecordKey, error)
 }
 ```
 
-`BusinessRefProvider` supplies or allocates the opaque `Instance.BusinessRef` when `Flow.BindingMode == BindingBusiness`; inject it with `vef.SupplyBusinessRefProvider`. The engine never parses `BusinessRef` directly. During write-back, it asks `BusinessRefResolver` (default: identity) to extract the record id matched against `Flow.BusinessPKField`; inject custom composite-ref handling with `vef.SupplyBusinessRefResolver`.
+`BusinessRefProvider` supplies or allocates the opaque `Instance.BusinessRef` when `Flow.BindingMode == BindingBusiness`; inject it with `vef.SupplyBusinessRefProvider`. At instance start the engine resolves the ref into an `approval.BusinessRecordKey` — a map from every configured `KeyColumns` entry to its value — through `BusinessRefResolver`. The default resolver treats a single-column ref verbatim and decodes a multi-column ref from a JSON object; register a replacement with `vef.SupplyBusinessRefResolver` when `BusinessRef` uses another shape (business number, encoded tuple, …) or resolving the key requires a host lookup. A ref that cannot be resolved fails instance creation with `ErrInvalidBusinessRef` (code `40109`); a business-bound flow started without a ref fails with `ErrBusinessRefRequired` (code `40107`).
 
-### Business Write-Back Linkage Matrix
+### Business-State Projection
 
-A business-bound flow configures `Flow.BusinessTable` / `BusinessPKField` / `BusinessStatusField` (required) plus three optional columns — `BusinessInstanceIDField`, `BusinessStartedAtField`, `BusinessFinishedAtField` (Go names; JSON keeps `businessPkField` etc.). `nil` means "never touch that column". The engine-owned write-back (`binding.Writer.WriteBack`) projects the instance's current state per `approval.BindingTrigger` (v0.37):
+v0.38 replaces the per-trigger write-back (and its binding listener) with a durable desired-state projection. A business-bound flow configures one `BusinessBinding` document — `approval.BusinessBindingConfig`, stored as jsonb on `apv_flow` and snapshotted immutably onto each deployed `apv_flow_version`; runtime instances only ever read the version snapshot:
 
-| `BindingTrigger` | status column | instance-id column | started-at column | finished-at column |
-| --- | --- | --- | --- | --- |
-| `BindingTriggerStarted` (`started`) | `running` | the instance's id | now | cleared (`NULL`) |
-| `BindingTriggerCompleted` (`completed`) | final status | — | — | `Instance.FinishedAt` |
-| `BindingTriggerReturned` (`returned`) | `returned` | — | — | — |
-| `BindingTriggerWithdrawn` (`withdrawn`) | `withdrawn` | — | — | — |
-| `BindingTriggerResubmitted` (`resubmitted`) | `running` | — | — | cleared (`NULL`) |
+| Field | JSON | Meaning |
+| --- | --- | --- |
+| `TableName` | `tableName` | business table receiving approval state |
+| `KeyColumns` | `keyColumns` | record key columns; must exactly match a non-null primary or unique key on the table (verified against the live schema at save time — `ErrBindingSchemaInvalid` / `ErrBindingKeyNotUnique`) |
+| `StatusColumn` | `statusColumn` | column receiving the (mapped) instance status |
+| `InstanceIDColumn` | `instanceIdColumn` | **mandatory** — the compare-and-set fence that stops a stale instance from overwriting state owned by a newer approval round |
+| `StartedAtColumn` | `startedAtColumn` | optional; receives the instance start time |
+| `FinishedAtColumn` | `finishedAtColumn` | optional; receives the finish time for final statuses, `NULL` otherwise |
+| `StatusMapping` | `statusMapping` | optional `InstanceStatus` → host status value map; missing entries fall back to the raw status string (`ErrBindingStatusMappingInvalid` rejects unknown statuses and blank values) |
 
-The `started` projection runs synchronously inside the `start_instance` transaction — a failure rolls back the whole initiation. The other four triggers run asynchronously through the binding listener; a failure publishes `InstanceBindingFailedEvent` (carrying `trigger` and `status`) and is retried via the outbox path.
+Convergence works in three steps:
 
-The approval engine owns the status write-back (`UPDATE businessTable SET businessStatusField = ? WHERE businessPkField = ?`, plus the optional columns above). Hosts can add lifecycle hooks or event subscribers around that behavior, but the write-back itself is configuration-driven and not replaced by an extension hook.
+1. **Claim at start.** Inside the `start_instance` transaction the engine resolves the record key and claims one durable projection row per physical target (`apv_business_projection`, unique per table + record key). A non-final instance already owning the target blocks the claim with `ErrBindingTargetBusy` (code `40108`); a final owner is superseded, and the previously applied owner is retained as the business-table CAS fence until the new desired state is actually written. The instance links to its claim via `Instance.BusinessProjectionID`.
+2. **Desired state per transition.** Every instance status transition bumps the projection's `DesiredRevision` and records the full desired state (status, started-at, finished-at). The projection converges on the *latest* desired state — intermediate statuses may be skipped, which is exactly why side effects tied to a specific lifecycle moment belong in `BindCommand` or `SubscribeInstance` instead.
+3. **Apply.** `vef.approval.business_binding.consistency` selects when the business row is written:
+   - `synchronous` (default) — inside the approval transaction; a write failure rolls the approval action back.
+   - `eventual` — the approval action commits immediately; a background worker (`scan_interval`, default `10s`; `batch_size`, default `100`) claims due projections with `FOR UPDATE SKIP LOCKED` plus a lease and applies the latest revision, retrying failures with exponential backoff (1s doubling, capped at 1 hour). Each failed attempt publishes `InstanceBindingFailedEvent` as an operator notification — the durable projection row, not the event, drives the retry.
+
+The applied `UPDATE` sets the configured columns `WHERE <key columns match> [AND <instanceIdColumn> = <applied owner>]`, translating the status through `StatusMapping`. Operators inspect and force convergence through the admin operations `find_business_projections` / `retry_business_projection` (see [RPC Resources](./resources.md#approvaladmin)), and `get_metrics` reports `businessProjectionCounts` and `pendingBusinessProjections`.
+
+The engine owns this projection; it is configuration-driven and not replaced by an extension hook. Hosts add behavior around it with lifecycle hooks, event subscriptions, and command bridges.
 
 ### Host Subscriptions: `SubscribeInstance`
 
 ```go
 func SubscribeInstance[T InstanceEvent](
     bus event.Bus,
-    handler func(ctx context.Context, evt T) error,
+    handler func(ctx context.Context, evt T, env event.Envelope) error,
     opts ...InstanceSubscribeOption,
 ) (event.Unsubscribe, error)
 ```
 
-`SubscribeInstance` (v0.37) is the declarative wrapper over `event.SubscribeTyped` for instance events (any event type embedding `InstanceEventBase`, e.g. `InstanceCompletedEvent`). Routing filters are data, not predicates: `InstanceSubscribeOption` accepts `approval.ForFlows(codes...)` / `approval.ForTenants(ids...)` (`InstanceFilter` values), each OR-ing within its own dimension and AND-ing across filters passed to the same call; events that fail a filter are acknowledged without invoking the handler. Business predicates (final status, form values) belong in the handler body, not in filters.
+`SubscribeInstance` is the declarative wrapper over `event.SubscribeTyped` for instance events (any event type embedding `InstanceEventBase`, e.g. `InstanceCompletedEvent`). Routing filters are data, not predicates: `InstanceSubscribeOption` accepts `approval.ForFlows(codes...)` / `approval.ForTenants(ids...)` (`InstanceFilter` values), each OR-ing within its own dimension and AND-ing across filters passed to the same call; events that fail a filter are acknowledged without invoking the handler. Business predicates (final status, form values) belong in the handler body, not in filters.
+
+Since v0.38 the handler also receives the delivery `event.Envelope`: `Envelope.ID` is the Inbox dedupe key, stable across redeliveries, and therefore the key to build manual idempotency on when the route is at-least-once.
 
 ```go
 vef.Invoke(func(bus event.Bus) error {
     _, err := approval.SubscribeInstance(bus,
-        func(ctx context.Context, evt *approval.InstanceCompletedEvent) error {
-            // idempotent side effect; the outbox relay redelivers on failure
+        func(ctx context.Context, evt *approval.InstanceCompletedEvent, env event.Envelope) error {
+            // idempotent side effect; env.ID is stable across redeliveries
             return nil
         },
         approval.ForFlows("leave_request"),
@@ -155,9 +170,41 @@ vef.Invoke(func(bus event.Bus) error {
 
 The consumer group defaults to one derived from the handler's method identity (`vef:sub:<module-relative pkg>.<Type>.<method>`, mirroring the `vef:default:<uuid>` shape used elsewhere). Anonymous handlers fail with `ErrAnonymousSubscriberGroup` unless `approval.WithGroup(name)` is given; a duplicate derived group registered twice in one process fails with `ErrDerivedGroupConflict`. **Renaming or moving a handler changes its derived group** (a new consumer group starts and the old one is orphaned) — pin the group with `WithGroup` before such refactors. `approval.WithConcurrency(n)` sets the per-subscription worker count.
 
+### Command Bridge: `BindCommand`
+
+```go
+func BindCommand[E InstanceEvent, C cqrs.Action](
+    bus event.Bus,
+    commands cqrs.Bus,
+    mapper func(evt E, env event.Envelope) (cmd C, ok bool),
+    opts ...InstanceSubscribeOption,
+) (event.Unsubscribe, error)
+```
+
+`BindCommand` (v0.38) subscribes to instance event `E` and dispatches the mapped command `C` through the host's CQRS bus — the declarative bridge from approval facts to host side effects. `mapper` is a pure translation: it shapes the command from the event plus its delivery envelope and reports relevance (`ok=false` acknowledges without dispatching). Business logic belongs in the command handler, which runs the host's full behavior pipeline (transaction, audit, validation); the handler's result is discarded — dispatch is fire-and-record.
+
+```go
+vef.Invoke(func(bus event.Bus, commands cqrs.Bus) error {
+    _, err := approval.BindCommand(bus, commands,
+        func(evt *approval.InstanceCompletedEvent, env event.Envelope) (app.SettleOrderCmd, bool) {
+            if evt.FinalStatus != approval.InstanceApproved {
+                return app.SettleOrderCmd{}, false
+            }
+            return app.SettleOrderCmd{InstanceID: evt.InstanceID, DedupeKey: env.ID}, true
+        },
+        approval.ForFlows("order_settlement"),
+    )
+    return err
+})
+```
+
+The consumer group defaults to the command type's identity (`vef:cmd:<module-relative pkg>.<Type>`) — renaming or moving the command deliberately re-keys the subscription, exactly like renaming a `SubscribeInstance` handler; pin with `approval.WithGroup` ahead of such refactors. Binding the same command type twice in one process fails with `ErrDerivedGroupConflict`. Two guards reject invalid bindings up front: `ErrNonCommandAction` (the bound action type is a query) and `ErrUnnamedCommandType` (anonymous struct or interface-typed `C`). Filters and `WithConcurrency` apply as in `SubscribeInstance`.
+
+Delivery inherits the event route's semantics: on an at-least-once transport the command handler must be idempotent — copy `Envelope.ID` into the command when it needs its own dedupe key. Unlike the eventual business projection — which converges on the latest desired state and may skip intermediate statuses — every instance transition dispatches its own command, making `BindCommand` the lane for side effects tied to a specific lifecycle moment.
+
 ## Business Identifier Validation
 
-`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessTable`, `BusinessPKField`, `BusinessStatusField`, and the three optional linkage columns above) that the engine-owned write-back interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
+`Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessBindingConfig.TableName`, every `KeyColumns` entry, `StatusColumn`, `InstanceIDColumn`, and the optional timestamp columns) that the engine-owned projection interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
 
 ```go
 if err := approval.ValidateBusinessIdentifier(table); err != nil {
@@ -188,15 +235,15 @@ type Delegation struct {
 | Area | Public API |
 | --- | --- |
 | caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
-| form data | `FormData`, `NewFormData`, `FormDefinition`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
+| form data | `FormData`, `NewFormData`, `FormSchemaParser`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
 | table storage | `FormTable`, `FormTableColumn` (`FormTable.SourceFieldKey` is `""` for the main table, or the owning table field's key for a detail-table child projection) |
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `OperatorInfo`, `UrgeRecord`, `DefaultTenantID` |
 | node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
 | conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `AggregateKind`, `AggregateSum`, `AggregateCount`, `AggregateAvg`, `Aggregator` |
 | initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
 | CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCRecord` (`CCRecord.VisitID` scopes the record to one node traversal, mirroring `Task.VisitID`) |
-| business write-back | `BindingTrigger`, `BindingTriggerStarted`, `BindingTriggerCompleted`, `BindingTriggerReturned`, `BindingTriggerWithdrawn`, `BindingTriggerResubmitted` |
-| instance subscriptions | `SubscribeInstance`, `InstanceEvent`, `InstanceFilter`, `InstanceSubscribeOption`, `ForFlows`, `ForTenants`, `WithGroup`, `WithConcurrency`, `NewFilteredLifecycleHook`, `ErrAnonymousSubscriberGroup`, `ErrDerivedGroupConflict` |
+| business binding & projection | `BusinessBindingConfig`, `BusinessRecordKey`, `BusinessProjection` (model, table `apv_business_projection`), `BindingProjectionStatus` (`BindingProjectionPending` / `Processing` / `Applied` / `Failed`), `BindingTrigger`, `BindingTriggerStarted`, `BindingTriggerCompleted`, `BindingTriggerReturned`, `BindingTriggerWithdrawn`, `BindingTriggerResubmitted` |
+| instance subscriptions | `SubscribeInstance`, `BindCommand`, `InstanceEvent`, `InstanceFilter`, `InstanceSubscribeOption`, `ForFlows`, `ForTenants`, `WithGroup`, `WithConcurrency`, `NewFilteredLifecycleHook`, `ErrAnonymousSubscriberGroup`, `ErrDerivedGroupConflict`, `ErrNonCommandAction`, `ErrUnnamedCommandType` |
 | node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
 | rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
 | action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
@@ -204,8 +251,8 @@ type Delegation struct {
 | progress views | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` |
 | events | all `New...Event` constructors, `DomainEvent`, `InstanceEventBase`, `TaskEventBase`, `FlowEventBase`, `NewInstanceEventBase`, `NewTaskEventBase`, `NewFlowEventBase`, `PayloadOccurredAt`, `AllEventTypes`, and the `EventType...` constants |
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
-| DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator` |
-| admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics` |
+| DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
+| admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
 | user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts` |
 
 ---

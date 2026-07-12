@@ -88,7 +88,7 @@ security/auth
 | Action | Public | Rate limit | 请求字段 |
 | --- | --- | --- | --- |
 | `login` | 是 | `vef.security.login_rate_limit` | `type`、`principal`、`credentials`；全部是 `validate:"required"` |
-| `refresh` | 是 | `vef.security.refresh_rate_limit` | `refreshToken`；`validate:"required"` |
+| `refresh` | 是 | `vef.security.refresh_rate_limit` | `refreshToken`；`validate:"required"`。仅在 `token_type = "jwt_token"` 下挂载——`opaque_token` 下该操作不存在（会话自行续期） |
 | `logout` | 否 | 默认 API rate limit | 无 |
 | `resolve_challenge` | 是 | `vef.security.login_rate_limit` | `challengeToken`、`type`、`response`；全部是 `validate:"required"` |
 | `get_user_info` | 否 | 默认 API rate limit | 任意 `params`，会转发给 `UserInfoLoader.LoadUserInfo(...)` |
@@ -98,14 +98,20 @@ security/auth
 史/过期（参见[登录加固](./login-hardening)）以及 opaque token 会话控制
 （参见[会话管理](./session-management)）。
 
-内置 authenticator type 字符串是 `password`、`token`、`refresh` 和
-`signature`。普通客户端调用里，`security/auth.login` 使用
-`type: "password"` 搭配用户名和密码凭证。Bearer 保护的操作会在内部使用
-`token` authenticator，`security/auth.refresh` 会在内部使用 `refresh`，
-`SignatureAuth` 会把签名 headers 映射到 `signature` authenticator。
+内置 authenticator type 字符串是 `password`、`jwt_token`、`opaque_token`、
+`refresh` 和 `signature`（原来的 `token` 字符串在 v0.38 更名为
+`jwt_token`）。普通客户端调用里，`security/auth.login` 使用
+`type: "password"` 搭配用户名和密码凭证。Bearer 保护的操作会在内部按
+`vef.security.token_type` 分派已配置的令牌机制（`jwt_token` 或
+`opaque_token`），`security/auth.refresh` 会在内部使用 `refresh`，
+`SignatureAuth` 会把签名 headers 映射到 `signature` authenticator。只有
+已配置机制的认证器会被注册，且 `login` 拒绝框架签发的令牌类型作为登录
+凭据（见[会话管理](./session-management)）。
 
-`logout` 会立即返回 ok 结果。它不会在服务端吊销或拉黑 token；客户端需要自行删除已保存的
-token，如果应用需要服务端吊销策略，需要自己扩展这部分逻辑。
+`logout` 总是返回 ok 结果。在 `jwt_token` 下它实际上是 no-op——服务端没有
+可吊销的会话，客户端需要自行删除已保存的 token。在 `opaque_token` 下它会
+吊销当前 bearer token 背后的会话，尽力而为（会话不存在或存储出错只记录
+日志）。
 
 ## 登录流程
 

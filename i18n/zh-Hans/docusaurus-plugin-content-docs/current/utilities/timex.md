@@ -45,6 +45,11 @@ dt := timex.FromUnixMicro(1710510600000000)            // 从微秒时间戳
 `DateTime` 的构造函数是 `Now`、`Of`、`Parse`、`FromUnix`、`FromUnixMilli`
 和 `FromUnixMicro`。
 
+宽松的 `Parse*` 入口先尝试给定 layout，再回退到常见格式（RFC3339、
+ISO-8601 等）。两条路径都在**本地**时区解释不带时区的输入（v0.38 修复——
+回退路径过去假定 UTC，日期字符串可能因此偏移最多一天）；带显式时区偏移的
+输入在两条路径上都保留原偏移。
+
 ### 访问组件
 
 ```go

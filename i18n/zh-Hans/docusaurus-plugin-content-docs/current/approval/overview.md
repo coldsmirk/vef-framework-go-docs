@@ -13,7 +13,7 @@ slug: /approval
 
 审批是一个可选功能模块。它有意不包含在默认 `vef.Run(...)` boot graph 中，
 所以不需要审批工作流的应用不会注册它的 API resources、CQRS handlers、
-engine、binding listener 或 timeout scanners。
+engine、业务投影 worker 或 timeout scanners。
 
 需要时显式启用：
 
@@ -26,9 +26,10 @@ vef.Run(
 
 ## 事件路由前置条件
 
-审批会通过 `event.WithTx` 发布 `approval.*` 事件，它的 binding listener
-也会订阅这些事件。宿主应用必须把 `approval.*` 路由到一个带有可订阅 sink
-的 transactional transport，例如 sink 为 Redis Streams 的 outbox 路由：
+审批会通过 `event.WithTx` 发布 `approval.*` 事件，因此除
+`approval.instance.binding_failed` 之外的每种事件类型都必须解析到
+**transactional** transport。模块会在启动时通过 `event.RouteInspector`
+断言这一点——路由配错时应用直接启动失败，而不是静默降级：
 
 ```toml
 [vef.event]
@@ -39,17 +40,18 @@ pattern    = "approval.*"
 transports = ["outbox", "redis_stream"]
 ```
 
-路由必须在 `outbox` 之外同时列出配置的 outbox `sink`（这里是
-`redis_stream`；进程内的 `memory` transport 同样合格）：outbox transport 是
-publish-only 的，订阅方——包括模块自己的 binding listener——都挂在 sink
-transport 上。审批模块的 binding listener 和 outbox 发布两侧都会在启动时通过
-`event.RouteInspector` 断言路由，路由配错时应用直接启动失败，而不是静默降级。
-transport、路由语义和 outbox relay 见 [事件总线](../infrastructure/event-bus.md)。
+从 v0.38 起，业务投影不再消费生命周期事件（它从持久化的
+`apv_business_projection` 表收敛——见
+[业务状态投影](./integration.md#业务状态投影)），所以模块自身不再要求路由带
+可订阅 sink：只写 `["outbox"]` 的路由就能通过启动检查。当**宿主**通过
+`approval.SubscribeInstance` 或 `approval.BindCommand` 订阅审批事件时，
+仍要像上例一样在 `outbox` 之外列出配置的 outbox `sink` transport
+（单节点 `memory`，跨节点 `redis_stream`）——outbox transport 是
+publish-only 的，订阅方挂在 sink 上。transport、路由语义和 outbox relay 见
+[事件总线](../infrastructure/event-bus.md)。
 
-`InstanceBindingFailedEvent` 是 transactional-route 启动检查的例外：它由异步
-binding listener 在审批事务已经提交后发出。`InstanceCompletedEvent` 的路由要求
-最严格，因为 binding listener 会订阅它；路由必须在 transactional outbox 之外
-同时包含可订阅 sink transport，例如 `memory` 或 `redis_stream`。
+`InstanceBindingFailedEvent` 是 transactional-route 启动检查的例外：它由
+最终一致投影 worker 在审批事务已经提交后发出。
 
 ## 架构概览
 
@@ -69,6 +71,7 @@ binding listener 在审批事务已经提交后发出。`InstanceCompletedEvent`
 | 实例 | `apv_instance` | 流程的运行实例 |
 | 任务 | `apv_task` | 分配给用户的审批/办理任务 |
 | 操作日志 | `apv_action_log` | 所有操作的审计追踪 |
+| 业务投影 | `apv_business_projection` | 业务绑定流程的持久化期望状态收敛（v0.38） |
 
 ## 配置
 
@@ -82,11 +85,24 @@ delegation_max_depth      = 10
 form_snapshot_retention   = "2160h"  # 90 天
 urge_record_retention     = "720h"   # 30 天
 cc_record_retention       = "2160h"  # 90 天
+
+[vef.approval.business_binding]
+consistency   = "synchronous"  # 或 "eventual"
+scan_interval = "10s"          # eventual worker 的扫描节奏
+batch_size    = 100            # 每次扫描处理的投影数
 ```
 
 `auto_migrate` 是普通 boolean 开关，不会由 `ApprovalConfig.ApplyDefaults()`
 自动设为 true；需要启动时执行 approval DDL 时必须显式开启。
 `cc_record_retention` 只清理已经读过的 CC 记录。
+
+`business_binding`（v0.38）控制审批状态如何投影到绑定的业务表：
+`synchronous`（默认）在审批事务内写业务行，`eventual` 先提交期望状态、由
+后台 worker 收敛业务行（见
+[业务状态投影](./integration.md#业务状态投影)）。`consistency` 超出枚举或
+worker 配置为负值会在启动时的配置校验直接失败
+（`config.ErrInvalidApprovalBindingConsistency` /
+`ErrInvalidApprovalBusinessBindingWorkerConfig`）。
 
 > 老版本里归属 `[vef.approval]` 的 `outbox_relay_interval` / `outbox_max_retries` / `outbox_batch_size` 已在 v0.21 迁移至 `[vef.event.transports.outbox]`，由全框架统一的 outbox transport 服务所有模块——参考 [事件总线](../infrastructure/event-bus.md)。
 
@@ -99,9 +115,12 @@ cc_record_retention       = "2160h"  # 90 天
 | 独立 | `BindingStandalone` | `standalone` | 表单数据存储在审批模块自有表中 |
 | 业务 | `BindingBusiness` | `business` | 关联到已有的业务数据表 |
 
-业务绑定通过 `BusinessTable`、`BusinessPKField` 和 `BusinessStatusField` 将审批流程与业务表关联，另外还有可选的
-`BusinessInstanceIDField`、`BusinessStartedAtField` 和 `BusinessFinishedAtField` 联动列（见
-[业务写回联动矩阵](./integration.md#业务写回联动矩阵)）。
+业务绑定通过单个 `Flow.BusinessBinding` 文档（`approval.BusinessBindingConfig`）
+将审批流程与业务表关联：`tableName`、复合 `keyColumns`、`statusColumn`、
+必填的 `instanceIdColumn` CAS 防护栏、可选的 `startedAtColumn` /
+`finishedAtColumn`，以及可选的 `statusMapping`（见
+[业务状态投影](./integration.md#业务状态投影)）。绑定会在每次部署时快照到
+流程版本上，其状态通过持久化的 `apv_business_projection` 表收敛。
 
 ---
 

@@ -90,7 +90,7 @@ runtime contract:
 | Action | Public | Rate limit | Request fields |
 | --- | --- | --- | --- |
 | `login` | yes | `vef.security.login_rate_limit` | `type`, `principal`, `credentials`; all are `validate:"required"` |
-| `refresh` | yes | `vef.security.refresh_rate_limit` | `refreshToken`; `validate:"required"` |
+| `refresh` | yes | `vef.security.refresh_rate_limit` | `refreshToken`; `validate:"required"`. Only mounted under `token_type = "jwt_token"` — under `opaque_token` the operation does not exist (sessions renew themselves) |
 | `logout` | no | default API rate limit | none |
 | `resolve_challenge` | yes | `vef.security.login_rate_limit` | `challengeToken`, `type`, `response`; all are `validate:"required"` |
 | `get_user_info` | no | default API rate limit | arbitrary `params`, forwarded to `UserInfoLoader.LoadUserInfo(...)` |
@@ -101,16 +101,23 @@ brute-force lockout, password strength/history/expiry (see
 [Login Hardening](./login-hardening)) and opaque-token session control (see
 [Session Management](./session-management)).
 
-The built-in authenticator type strings are `password`, `token`, `refresh`,
-and `signature`. In normal client calls, `security/auth.login` uses
-`type: "password"` with username and password credentials. Bearer-protected
-operations use the `token` authenticator internally, `security/auth.refresh`
-uses `refresh` internally, and `SignatureAuth` maps the signature headers to
-the `signature` authenticator.
+The built-in authenticator type strings are `password`, `jwt_token`,
+`opaque_token`, `refresh`, and `signature` (the former `token` string was
+renamed to `jwt_token` in v0.38). In normal client calls, `security/auth.login`
+uses `type: "password"` with username and password credentials.
+Bearer-protected operations dispatch the configured token mechanism internally
+(`jwt_token` or `opaque_token` per `vef.security.token_type`),
+`security/auth.refresh` uses `refresh` internally, and `SignatureAuth` maps
+the signature headers to the `signature` authenticator. Only the configured
+mechanism's authenticators are registered, and `login` refuses the
+framework-issued token types as login credentials (see
+[Session Management](./session-management)).
 
-`logout` returns an ok result immediately. It does not revoke or blacklist a
-server-side token; clients are expected to remove their stored tokens, and
-applications that need server-side revocation must add that policy themselves.
+`logout` always returns an ok result. Under `jwt_token` it is effectively a
+no-op — there is no server-side session to revoke, clients are expected to
+remove their stored tokens. Under `opaque_token` it revokes the session
+backing the presented bearer token, best-effort (a missing session or a store
+failure is only logged).
 
 ## Login Flow
 

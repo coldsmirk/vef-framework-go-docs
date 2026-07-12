@@ -88,7 +88,7 @@ SubscribeOption：
 | 选项 | 作用 |
 | --- | --- |
 | `event.WithGroup(name)` | 消费者组。**当可订阅路由命中任何 at-least-once transport（例如 Redis Streams 或其他 durable sink）时必须显式提供**，否则返回 `event.ErrGroupRequired`。该 group 同时是 Inbox 去重作用域和 Redis Streams XGROUP，重启期间必须保持稳定。 |
-| `event.WithConcurrency(n)` | 单个订阅的 worker 数量，默认 1；非正数会被忽略。 |
+| `event.WithConcurrency(n)` | 单个订阅的 worker 数量，默认 1；非正数会被忽略。大于 1 时用顺序换吞吐——多个 worker 争抢同一条订阅 feed，即使在 `Ordered` transport 上 handler 的执行也会交错；顺序敏感的订阅者保持 1。 |
 
 ### 类型化订阅
 
@@ -142,7 +142,7 @@ Envelope 大小限制也是公开 publish 契约：
 | --- | --- |
 | `Durable` | 消息能在进程重启后存活 |
 | `Transactional` | 实现 `TxTransport`，可被 `WithTx` 选中 |
-| `Ordered` | 同 partition 内保持发布顺序 |
+| `Ordered` | 消息按发布顺序*交付*给订阅。该保证只对串行消费成立：`WithConcurrency(n > 1)` 时多个 worker 从同一条有序 feed 拉取，handler 执行交错，可观察的处理顺序即告丢失 |
 | `AtLeastOnce` | 可能重复投递 → Inbox 中间件会自动挂上 |
 | `SupportsGroups` | `WithGroup` 影响投递语义（负载均衡） |
 | `PublishOnly` | 只接受发布但不会投递（典型如事务性 outbox） |
@@ -202,9 +202,9 @@ type RouteInspector interface {
 ```
 
 - `HasTransactionalRoute`：使用 `WithTx`（事务性 outbox 模式）的模块必须确认路由里有 `Transactional` transport，否则第一次 `WithTx` 发布就会 `ErrTxRequired`。
-- `HasSubscribableTransport`：框架侧自行订阅事件的模块（binding listener、projection、集成 handler）必须确认路由里有可订阅 transport，否则路由若只解析到 publish-only transport，应用能启动，但每次 Subscribe 都会 `ErrNoRouteMatched`。v0.25.0 新增。
+- `HasSubscribableTransport`：框架侧自行订阅事件的模块（集成 handler、事件驱动的 projection）必须确认路由里有可订阅 transport，否则路由若只解析到 publish-only transport，应用能启动，但每次 Subscribe 都会 `ErrNoRouteMatched`。v0.25.0 新增。
 
-Approval 模块的 binding listener 和 outbox 发布都依赖这两个检查 —— 参考 [Approval 模块](../approval)。
+Approval 模块在启动时对它的 `approval.*` 事件断言 `HasTransactionalRoute`（其业务投影从持久化状态收敛，不再订阅事件）—— 参考 [Approval 模块](../approval)。
 
 ## 中间件
 

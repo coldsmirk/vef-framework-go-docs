@@ -83,6 +83,10 @@ type LoginDecision struct {
 用的凭据此时已经验证成功）就调用 `RecordSuccess`。失败次数按
 `LockoutPolicy.Key` 维度累积，认证成功后清零。
 
+从 v0.38 起，同一个 guard 也覆盖 `resolve_challenge`：第二因素猜测失败会
+计入同一个锁定 key，锁定触发后两个端点同时被拦——攻击者即使走到挑战环节，
+也无法在锁定预算之外暴力猜测。
+
 ### 启用与配置
 
 锁定功能**默认开启**（`max_failures = 10`）。在 `vef.security.lockout` 下配
@@ -185,8 +189,8 @@ type PasswordRule interface {
 | --- | --- |
 | `NewMinLengthRule(minLength)` | 至少 `minLength` 个 rune |
 | `NewMaxLengthRule(maxLength)` | 至多 `maxLength` 个 rune（同时防御慢 KDF 拒绝服务和 bcrypt 静默截断） |
-| `NewCharacterClassRule(requireUpper, requireLower, requireDigit, requireSymbol, minClasses)` | 要求的字符类别，及/或要求同时出现的不同类别的最少数量 |
-| `NewDisallowIdentityRule()` | 拒绝包含 principal 的 `ID` 或 `Name` 的密码（大小写不敏感，短于 3 个字符的片段会被忽略） |
+| `NewCharacterClassRule(requireUpper, requireLower, requireDigit, requireSymbol, minClasses)` | 要求的字符类别，及/或要求同时出现的不同类别的最少数量。符号类是任何非字母、非数字、非空白的 rune；无大小写的字母（如中文）不计入任何类别（v0.38 修正） |
+| `NewDisallowIdentityRule()` | 拒绝包含 principal 的 `ID` 或 `Name` 的密码（大小写不敏感；短于 3 个 rune 的片段会被忽略——按 rune 计数，两个汉字的名字不会拒绝掉大部分密码） |
 | `NewBlocklistRule(entries)` | 拒绝匹配黑名单条目的密码（大小写不敏感，比对前会去除首尾空白） |
 
 ### 配置

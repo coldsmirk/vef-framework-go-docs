@@ -13,7 +13,7 @@ sidebar_position: 2
 列表，由 `vef.Run` 和 `internal/apptest` 测试脚手架共用，保证两个 FX 图不会
 出现分叉）：
 
-`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
+`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> lock -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
 
 `datasource` 是单独的一步：它在同一个模块里把 `*sql.DB` 连接起来（通过
 `internal/database`）并包装成 `orm.DB`（通过 `internal/orm`）——启动流程里

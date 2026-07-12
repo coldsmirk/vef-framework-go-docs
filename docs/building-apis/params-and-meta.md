@@ -110,6 +110,28 @@ For REST requests:
 
 That means paging and sorting are not automatically pulled from query string into built-in meta helpers. If a handler expects meta-based controls such as `page.Pageable`, the caller should provide them through `X-Meta-*` headers or a typed meta contract.
 
+## Numeric Fidelity
+
+Since v0.38, JSON payloads for `params` and `meta` are parsed with number
+preservation (`json.Decoder.UseNumber`), so numeric values keep their exact
+digits instead of collapsing to `float64` at the parse step:
+
+- **Typed numeric fields** (`int64`, `uint32`, `float64`, …) get an exact
+  digit parse. A fractional or exponent-form number targeting an integer
+  field fails with `mapx.ErrJSONNumberNotInteger`; a value that does not fit
+  the target type fails with `mapx.ErrJSONNumberOverflow` — mirroring
+  `encoding/json` strictness instead of silently truncating.
+- **`json.RawMessage` captures** see the original literal with full
+  precision — large IDs and high-precision decimals survive a round trip
+  through `api.Params` unchanged.
+- **Untyped targets** (`any` / `map[string]any` / `[]any`) still receive
+  `float64`, preserving the long-standing runtime contract for dynamic
+  handlers — `json.Number` never leaks into decoded results.
+
+No handler code changes are needed; the difference is visible only where
+precision used to be lost (int64 IDs above 2^53, decimal amounts) or where
+out-of-range numbers used to be accepted silently.
+
 ## Multipart File Support
 
 Multipart uploads can populate params fields such as:

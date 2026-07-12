@@ -58,6 +58,7 @@ schema 模块会注册：
 | --- | --- |
 | `schema.ErrTableNotFound` | 请求的表不存在时返回的业务错误 |
 | `schema.ErrCodeTableNotFound` | 表不存在对应的数值业务错误码 |
+| `schema.ErrTableMissing` | 普通 Go sentinel（v0.38），`Service` 检查找不到请求的表时返回——供直接使用 service 的 Go 调用方；RPC 层仍映射为 `ErrTableNotFound` |
 
 ## 公共 Schema 类型
 
@@ -124,6 +125,8 @@ PostgreSQL identity column，以及 PostgreSQL `serial`、`bigserial`、
 | --- | --- | --- |
 | `name` | `string` | 唯一键名 |
 | `columns` | `[]string` | 唯一列 |
+| `predicate` | `string` | 条件唯一索引（partial index）的谓词（v0.38；为空时省略） |
+| `hasExpressions` | `bool` | 唯一索引含表达式列时为 `true`（v0.38；这类键不保证纯列组合的唯一性） |
 
 ### `schema.ForeignKey`
 

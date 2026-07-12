@@ -43,6 +43,17 @@ type = "sqlite"
 | `body_limit` | `string` | Fiber body limit，例如 `10mib`；未配置时默认 `32mib`。 |
 | `trusted_proxies` | `[]string` | 允许设置 `X-Forwarded-For` 的代理 IP 或 CIDR 列表；为空时只信任直接连接来源。 |
 
+## `vef.api`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `rate_limit.max` | `int` | 未声明自己 `OperationSpec.RateLimit` 的操作使用的默认限流；默认 `100`（v0.38）。 |
+| `rate_limit.period` | `duration` | 默认限流的时间窗口；默认 `5m`（v0.38）。 |
+
+限流按操作 × 客户端计数（resource、version、action、客户端 IP、principal
+ID），且按节点独立统计。每个端点自己的 `OperationSpec.RateLimit` 仍然优先；
+见 [API](../building-apis/api#限流)。
+
 ## `vef.data_sources`
 
 `vef.data_sources` 是以数据源名称为 key 的 map。`primary` 条目必填，并为全框架注入的 `orm.DB` 提供来源；其他条目会用各自 map key 注册到数据源 registry。
@@ -161,7 +172,9 @@ path = "./analytics.db"
 | --- | --- | --- |
 | `sample_interval` | `duration` | 采样间隔；默认 `10s`。 |
 | `sample_duration` | `duration` | 采样窗口时长；默认 `2s`。 |
-| `excluded_mounts` | `[]string` | 额外排除的 mount-point 子串列表，用于过滤开发工具、虚拟化或厂商特定挂载。 |
+
+> `excluded_mounts` 已在 v0.38 移除：overview 的磁盘摘要只报告根文件系统，
+> 挂载点排除不再适用（完整挂载清单仍可通过磁盘详情查询获取）。
 
 ## `vef.mcp`
 
@@ -182,6 +195,9 @@ path = "./analytics.db"
 | `form_snapshot_retention` | `duration` | apv_form_snapshot 保留期，默认 90 天。 |
 | `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
 | `cc_record_retention` | `duration` | 已读 apv_cc_record 记录保留期，默认 90 天。 |
+| `business_binding.consistency` | `synchronous \| eventual` | 业务表投影模式；默认 `synchronous`（失败回滚审批动作）。`eventual` 先提交期望状态、由 worker 收敛（v0.38）。 |
+| `business_binding.scan_interval` | `duration` | eventual 投影 worker 的扫描节奏，默认 `10s`（v0.38）。 |
+| `business_binding.batch_size` | `int` | 每次扫描认领的投影数，默认 `100`（v0.38）。 |
 
 > 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
 

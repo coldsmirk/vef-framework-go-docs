@@ -146,10 +146,29 @@ The vocabulary is:
 | `PermissionHidden` | `hidden` | not shown |
 | `PermissionRequired` | `required` | editable and must be provided |
 
+An absent key means `visible`. Deploy validation (v0.38) checks the map
+against the derived form fields: every key must reference a top-level form
+field, values must be in the enum, CC nodes may only use the `visible` /
+`hidden` subset, and a `required` permission is rejected on a node whose
+timeout action resolves to `auto_pass` (the timeout scanner's auto-pass
+finishes tasks without the required check).
+
 The map is enforced on the write path: during task processing, submitted
 `formData` is merged only for fields whose `fieldPermissions` entry is
-`editable` or `required`; fields marked `visible`, `hidden`, or omitted from
-the map are ignored for that task update.
+`editable` or `required`, and the merged subset is re-validated against the
+field definitions. The `required` must-fill check applies to `approve` and
+`handle` decisions only — `reject`, `transfer`, and `rollback` stay exempt. A
+node with no `fieldPermissions` map grants no write access: submitted form
+data is dropped.
+
+On the read side, `my.get_instance_detail` returns a viewer-scoped
+`fieldPermissions` projection: the framework max-merges the lattice
+(`hidden < visible < editable < required`) over the viewer's participation
+contexts (own task, CC delivery, applicant), grants write strength
+(`editable` / `required`) only from a pending task or a resubmittable
+applicant, and clamps every read-only context to `visible`. `hidden` values
+are stripped from the returned `formData`, and a viewer with no recognized
+context sees nothing — the resolution is fail-closed.
 
 ## Designer Defaults
 
@@ -238,14 +257,38 @@ runtime default of 30 minutes. `rollbackTargetKeys` is checked when
 `fieldPermissions` semantics are described in
 [Node Field Permissions](#node-field-permissions).
 
-### Form JSON Wire Shape
+### Form Schema and Derived Fields
 
-`FlowVersion.FormSchema` is the structured form definition of a version: a
-`FormDefinition` document whose single JSON field is `fields`, a flat
-`[]FormFieldDefinition` list. It is submitted at `deploy` as
-`params.formDefinition`, validated at deploy time, and is the form shape the
-framework consumes for form-data validation, storage-table DDL, and aggregate
-checks. Each `FormFieldDefinition` entry uses
+Since v0.38 the form definition is split in two at deploy:
+
+- `FlowVersion.FormSchema` (`formSchema`) is the **host-owned form-designer
+  document**, submitted at `deploy` as `params.formSchema` and stored /
+  returned as semantically equal JSON — the jsonb column normalizes formatting
+  and key order while numeric precision is preserved (`json.RawMessage` end to
+  end). The framework never interprets it.
+- `FlowVersion.FormFields` (`formFields`) is the flat `[]FormFieldDefinition`
+  list derived from that document exactly once at deploy through the injected
+  `approval.FormSchemaParser`, and is the **only** form shape the framework
+  consumes — for form-data validation, storage-table DDL, aggregate checks,
+  and field-permission resolution. Parser upgrades never affect
+  already-deployed versions.
+
+```go
+type FormSchemaParser interface {
+    ParseFormFields(ctx context.Context, schema json.RawMessage) ([]FormFieldDefinition, error)
+}
+```
+
+The built-in parser understands the vef-framework-react form-editor document;
+hosts with their own designer replace it wholesale with
+`vef.ProvideApprovalFormSchemaParser(constructor)`. A nil or empty schema
+yields no fields (a flow without a form); parser errors abort the deploy. The
+`ctx` carries the deploy request's deadline — a host parser that performs I/O
+must honor it.
+
+The derived fields are validated at deploy (unique keys, known kinds,
+compilable patterns, coherent bounds, single-level tables). Each
+`FormFieldDefinition` entry uses
 `key`, `kind`, `label`, `placeholder`, `defaultValue`, `isRequired`,
 `options`, `validation`, `props`, `sortOrder`, `columnType`, `scale`, and
 `columns`. Each option uses `label` and `value`. `columns` defines the row
@@ -270,8 +313,10 @@ strings. `validation.message` is used as the custom error message for
 
 Flow design and persistence models exposed by the public package include
 `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`,
-`FlowNodeAssignee`, `FlowNodeCC`, `FormDefinition`, `FormFieldDefinition`,
-`FormSnapshot`, `ActionLog`, `OperatorInfo`, and `UrgeRecord`. Flow-version
+`FlowNodeAssignee`, `FlowNodeCC`, `FormFieldDefinition`,
+`FormSnapshot`, `ActionLog`, `OperatorInfo`, and `UrgeRecord` (the structured
+`FormDefinition` wrapper was removed in v0.38 — the host document is opaque
+and only `FormFieldDefinition` remains a framework shape). Flow-version
 status uses `VersionStatus`: `VersionDraft` (`draft`), `VersionPublished`
 (`published`), and `VersionArchived` (`archived`).
 

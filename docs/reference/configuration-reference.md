@@ -43,6 +43,17 @@ Common environment keys include:
 | `body_limit` | `string` | Fiber body limit, for example `10mib`; defaults to `32mib` when omitted |
 | `trusted_proxies` | `[]string` | proxy IPs or CIDR ranges trusted to set `X-Forwarded-For`; empty means forwarded headers from untrusted clients are ignored |
 
+## `vef.api`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `rate_limit.max` | `int` | default per-operation rate limit applied to operations that declare no `OperationSpec.RateLimit` of their own; default `100` (v0.38) |
+| `rate_limit.period` | `duration` | window for the default rate limit; default `5m` (v0.38) |
+
+The limit is keyed per operation × client (resource, version, action, client
+IP, principal ID) and counted per node. Per-endpoint `OperationSpec.RateLimit`
+overrides still win; see [API](../building-apis/api#rate-limiting).
+
 ## `vef.data_sources`
 
 `vef.data_sources` is a map keyed by data source name. The `primary` entry is
@@ -163,7 +174,10 @@ Runtime note:
 | --- | --- | --- |
 | `sample_interval` | `duration` | interval between samples; default `10s` |
 | `sample_duration` | `duration` | sampling window duration; default `2s` |
-| `excluded_mounts` | `[]string` | additional mount-point substrings to exclude from disk statistics |
+
+> `excluded_mounts` was removed in v0.38: the overview's disk summary now
+> reports the root filesystem only, so mount-point exclusions no longer apply
+> (the full mount inventory remains available in the disk detail query).
 
 ## `vef.mcp`
 
@@ -184,6 +198,9 @@ Runtime note:
 | `form_snapshot_retention` | `duration` | `apv_form_snapshot` retention, default 90 days |
 | `urge_record_retention` | `duration` | `apv_urge_record` retention, default 30 days |
 | `cc_record_retention` | `duration` | retention for read `apv_cc_record` rows, default 90 days |
+| `business_binding.consistency` | `synchronous \| eventual` | business-table projection mode; default `synchronous` (failure rolls the approval action back). `eventual` commits desired state and lets the worker converge (v0.38) |
+| `business_binding.scan_interval` | `duration` | eventual projection worker cadence, default `10s` (v0.38) |
+| `business_binding.batch_size` | `int` | projections claimed per scan, default `100` (v0.38) |
 
 > Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../infrastructure/event-bus).
 

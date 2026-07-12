@@ -89,6 +89,11 @@ verifies (before any second-factor challenge, since the brute-forced
 credential has already succeeded). Failures accumulate per `LockoutPolicy.Key`
 and reset on success.
 
+Since v0.38 the same guard also covers `resolve_challenge`: a failed
+second-factor guess counts toward the same lockout key, and a tripped lockout
+blocks both endpoints — so an attacker who reaches the challenge step cannot
+brute-force it outside the lockout budget.
+
 ### Enabling and configuring it
 
 Lockout is **on by default** (`max_failures = 10`). Configure it under
@@ -197,8 +202,8 @@ Built-in rules:
 | --- | --- |
 | `NewMinLengthRule(minLength)` | at least `minLength` runes |
 | `NewMaxLengthRule(maxLength)` | at most `maxLength` runes (also guards against slow-KDF DoS and silent bcrypt truncation) |
-| `NewCharacterClassRule(requireUpper, requireLower, requireDigit, requireSymbol, minClasses)` | required character classes, and/or a minimum count of distinct classes present |
-| `NewDisallowIdentityRule()` | rejects a password containing the principal's `ID` or `Name` (case-insensitive, tokens shorter than 3 characters are ignored) |
+| `NewCharacterClassRule(requireUpper, requireLower, requireDigit, requireSymbol, minClasses)` | required character classes, and/or a minimum count of distinct classes present. The symbol class is any non-letter, non-digit, non-space rune; caseless letters such as CJK count toward no class (v0.38 fix) |
+| `NewDisallowIdentityRule()` | rejects a password containing the principal's `ID` or `Name` (case-insensitive; tokens shorter than 3 runes are ignored, counted in runes so two-character CJK names do not reject most passwords) |
 | `NewBlocklistRule(entries)` | rejects passwords matching a deny list (case-insensitive, trimmed) |
 
 ### Configuration

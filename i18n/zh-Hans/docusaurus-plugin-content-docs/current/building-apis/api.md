@@ -153,7 +153,7 @@ Operation 默认化规则：
 | `Timeout` | 非正值使用 engine 默认值；未覆盖时默认 `30s` |
 | `Public` | 为 `true` 时先解析为 `api.Public()`，优先于资源级/default auth |
 | `RequiredPermission` | 非空时写入 auth options 中的 required permission token |
-| `RateLimit` | nil 使用 engine 默认 `Max=100`、`Period=5m`；自定义 `RateLimitConfig` 会替换默认值 |
+| `RateLimit` | nil 使用 engine 默认——配置了 `vef.api.rate_limit` 时用配置值，否则 `Max=100`、`Period=5m`（v0.38）；自定义 `RateLimitConfig` 会替换默认值 |
 | `Handler` | RPC 可在省略时从 action 推断；REST 必须显式提供 handler |
 
 ### 配合 CRUD Builder 使用
@@ -342,10 +342,18 @@ type RateLimitConfig struct {
 crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
-内置 rate limiter 使用 sliding window。`Operation.RateLimit` 为 nil 或
-`RateLimit.Max <= 0` 时，该 operation 不启用限流。框架默认 key 包含
-resource、version、action、解析后的客户端 IP 和 principal ID；匿名请求使用
-anonymous principal。
+内置 rate limiter 使用 sliding window，并按节点独立计数。未声明自己
+`RateLimit` 的 operation 使用 engine 默认值，v0.38 起可由用户配置：
+
+```toml
+[vef.api.rate_limit]
+max    = 100   # 省略时的默认值
+period = "5m"  # 省略时的默认值
+```
+
+显式提供 `RateLimitConfig` 且 `Max <= 0` 时，该 operation 不启用限流。框架
+默认 key 包含 resource、version、action、解析后的客户端 IP 和 principal
+ID；匿名请求使用 anonymous principal。
 
 Operation 认证配置由 `Operation.Auth` 承载；公开 operation 会解析为
 `api.AuthStrategyNone`，受保护 operation 则携带选中的 auth strategy 和 options。

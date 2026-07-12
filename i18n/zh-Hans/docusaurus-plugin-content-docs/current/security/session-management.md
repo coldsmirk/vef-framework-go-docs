@@ -29,7 +29,14 @@ token_type = "opaque_token" # 默认："jwt_token"
 `token_type` 的类型是 `config.TokenType`，仅有的两个合法取值是常量
 `config.TokenTypeJWT`（`"jwt_token"`）和 `config.TokenTypeOpaque`
 （`"opaque_token"`）——写错值会在配置校验阶段（`SecurityConfig.Validate`）
-直接导致启动失败。无论选哪种机制，`AuthResource.Login`、`refresh`、`logout` 在客户端看来行为完全一致；不同的只是令牌形态和服务端具备的能力。`TokenGenerator.Generate(ctx, principal, SessionMeta)` 与具体机制无关，因此自定义登录流程不需要关心当前激活的是哪一种。
+直接导致启动失败。`TokenGenerator.Generate(ctx, principal, SessionMeta)` 与具体机制无关，因此自定义登录流程不需要关心当前激活的是哪一种。
+
+从 v0.38 起，这个开关是严格的：**只有已配置机制的认证器会被注册。**在
+`opaque_token` 下，遗留的 JWT（access 或 refresh）在任何地方——包括 MCP
+入口——都不再能通过认证，`refresh` 操作也根本不会挂载（会话在使用中自行
+续期，没有单独的东西需要 refresh）。`Login` 还会拒绝框架签发的令牌类型
+（`jwt_token` / `opaque_token` / `refresh`）作为登录凭据，被窃取的短时
+access token 无法被"洗"成长期 refresh token 或额外会话。
 
 ## opaque 会话的工作原理
 
@@ -49,7 +56,7 @@ token_type = "opaque_token" # 默认："jwt_token"
 - **`idle_ttl`**——会话在没有活动时能存活多久。启用滑动续期时，每一次已认证请求都会把它再向后延长一个 `idle_ttl`。
 - **`max_lifetime`**——从 `CreatedAt` 起算的会话总时长硬上限，无论活动多频繁都无法突破。
 
-`OpaqueTokenAuthenticator.renew` 将下一次过期时间计算为 `now + idle_ttl`，如果这会超过 `CreatedAt + max_lifetime`，则将其钳制到该上限。也就是说，即便会话持续活跃，也仍会在登录后最晚 `max_lifetime` 时过期——滑动续期只是延长空闲存活时间，并不会延长账号的绝对会话预算。
+`OpaqueTokenAuthenticator.renew` 将下一次过期时间计算为 `now + idle_ttl`，如果这会超过 `CreatedAt + max_lifetime`，则将其钳制到该上限。同样的钳制在签发时也会执行（v0.38），因此把 `idle_ttl` 误配得比 `max_lifetime` 还大，也不会产生一个在首次续期之前就越过上限的会话。也就是说，即便会话持续活跃，也仍会在登录后最晚 `max_lifetime` 时过期——滑动续期只是延长空闲存活时间，并不会延长账号的绝对会话预算。
 
 ```toml
 [vef.security.session]
@@ -155,7 +162,7 @@ if inspector, ok := r.store.(security.SessionInspector); ok {
 
 ## 内存 vs. Redis：单节点 vs. 多节点
 
-默认的 `SessionStore` 是 `security.NewMemorySessionStore()`——基于进程内 map 实现，由框架的安全模块自动装配。对单实例部署而言完全可用：会话保存在三张内存索引表中（按 id、按令牌哈希、按用户），过期条目在被访问时惰性回收。
+默认的 `SessionStore` 是 `security.NewMemorySessionStore()`——进程内存储，由框架的安全模块自动装配。对单实例部署而言完全可用。从 v0.38 起它构建在框架的内存 TTL cache 之上，过期会话由后台 GC 回收，而不是堆积到下次访问才清理——长期运行且短会话很多的进程不会再无限增长。
 
 它**不会**跨进程共享状态。在多节点部署中，某个节点上创建的会话在另一个节点上不可见——需要通过 `fx.Decorate` 把存储替换为 `security.NewRedisSessionStore`：
 
@@ -181,6 +188,7 @@ token_type = "opaque_token"
 
 - 每一次涉及多个键的变更（`Create`、`RevokeUser`、吊销时的删除）都在一个 Redis `MULTI`/`EXEC` 事务中执行，因此读取方永远不会看到一个写了一半或删了一半的会话
 - 滑动续期对会话记录执行 `SET ... XX`，只有键仍然存在时才会成功——这样一次与并发 `Revoke` 竞争的续期就永远不可能“复活”一个刚被删除的会话
+- 按用户的会话 id 集合带有 TTL，在创建和续期时刷新，续期还会重新写入成员关系以自愈集合；`RevokeUser` 只删除它枚举到的 id，与强制登出竞争的登录不会在 `ListByUser` 里"隐身"（v0.38）
 - 每次读取时，`Session.ExpiresAt`（而不仅仅是 Redis 键的 TTL）仍然是权威的过期判断依据，因此两种存储对 `max_lifetime` 的执行是一致的
 
 两种存储都可安全并发使用，并且通过同一个 `security.SessionStore` 接口互为直接替换——切换存储时，应用的其余部分不需要做任何改动。

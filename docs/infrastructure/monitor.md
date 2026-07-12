@@ -142,9 +142,10 @@ Fallback behavior:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `physicalCores` | `int` | number of physical cores |
-| `logicalCores` | `int` | number of logical cores |
-| `usagePercent` | `float64` | aggregated CPU usage percent |
+| `physicalCores` | `int` | number of physical cores (host topology) |
+| `logicalCores` | `int` | number of logical cores (host topology) |
+| `usagePercent` | `float64` | aggregated CPU usage percent, normalized by `effectiveCores` |
+| `effectiveCores` | `float64` | the capacity used to normalize utilization (v0.38): inside a container this is the cgroup CPU quota (v1 and v2 supported), falling back to `logicalCores` when constrained usage cannot be sampled coherently |
 
 ### `monitor.CPUInfo`
 
@@ -156,12 +157,13 @@ Fallback behavior:
 | `mhz` | `float64` | clock frequency |
 | `cacheSize` | `int32` | cache size |
 | `usagePercent` | `[]float64` | per-core usage percentages |
-| `totalPercent` | `float64` | total usage percent |
+| `totalPercent` | `float64` | total usage percent, derived from the per-core sample |
 | `vendorId` | `string` | vendor identifier |
 | `family` | `string` | CPU family |
 | `model` | `string` | CPU model |
 | `stepping` | `int32` | CPU stepping |
 | `microcode` | `string` | microcode version |
+| `effectiveCores` | `float64` | capacity used to normalize utilization; see `CPUSummary.effectiveCores` (v0.38) |
 
 ### `monitor.MemorySummary`
 
@@ -170,6 +172,13 @@ Fallback behavior:
 | `total` | `uint64` | total memory |
 | `used` | `uint64` | used memory |
 | `usedPercent` | `float64` | memory usage percentage |
+
+Since v0.38 the monitor is container-aware: when the process runs under a
+cgroup (v2 or v1) that actually limits memory, the headline figures (`total`,
+`used`, `usedPercent`, and `VirtualMemory`'s available/free) reflect the
+cgroup limit and the cgroup's own usage instead of host-wide numbers — a
+512 MiB container on a 64 GiB host reports against 512 MiB. Without a limit,
+host-wide figures are reported unchanged.
 
 ### `monitor.MemoryInfo`
 
@@ -240,10 +249,16 @@ Fallback behavior:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `total` | `uint64` | total disk size across counted partitions |
-| `used` | `uint64` | used disk size |
-| `usedPercent` | `float64` | disk usage percentage |
-| `partitions` | `int` | partition count |
+| `total` | `uint64` | total size of the root filesystem |
+| `used` | `uint64` | used size of the root filesystem |
+| `usedPercent` | `float64` | root filesystem usage percentage |
+| `partitions` | `int` | always `1` since v0.38 |
+
+Since v0.38 the overview's disk summary reports **the filesystem that bounds
+the process's root path** instead of summing every mounted partition — remote
+mounts, disk images, and sibling volumes no longer inflate host capacity, and
+the `vef.monitor.excluded_mounts` config was removed with the summation. The
+raw mount inventory remains available through `DiskInfo.partitions`.
 
 ### `monitor.DiskInfo`
 

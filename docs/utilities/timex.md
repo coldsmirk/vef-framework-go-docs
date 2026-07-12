@@ -54,6 +54,12 @@ dt := timex.FromUnixMicro(1710510600000000)
 The `DateTime` constructors are `Now`, `Of`, `Parse`, `FromUnix`, `FromUnixMilli`,
 and `FromUnixMicro`.
 
+The lenient `Parse*` entry points try the given layout first, then fall back
+to common formats (RFC3339, ISO-8601, …). Both paths interpret zone-less input
+in the **local** timezone (v0.38 fix — the fallback used to assume UTC, which
+could shift a date-only string by up to a day); inputs carrying an explicit
+offset keep it on either path.
+
 ### Accessing Components
 
 ```go

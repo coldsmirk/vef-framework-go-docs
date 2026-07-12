@@ -136,9 +136,23 @@ vef.Run(
 | `PermissionHidden` | `hidden` | 不展示 |
 | `PermissionRequired` | `required` | 可编辑且必须提供 |
 
+缺失的 key 视为 `visible`。部署校验（v0.38）会对照派生的表单字段检查这个
+map：每个 key 必须引用一个顶层表单字段，取值必须在枚举内，抄送节点只能使用
+`visible` / `hidden` 子集，并且当节点的超时动作解析为 `auto_pass` 时会拒绝
+`required` 权限（超时扫描器的 auto-pass 结单时不会执行必填检查）。
+
 该 map 在写路径上强制生效：任务处理时，提交的 `formData` 只会合并
-`fieldPermissions` 中标为 `editable` 或 `required` 的字段；标为 `visible`、
-`hidden`，或没有出现在 map 中的字段都会在本次任务更新中被忽略。
+`fieldPermissions` 中标为 `editable` 或 `required` 的字段，且合并的子集会
+再按字段定义重新校验。`required` 的必填检查只在 `approve` 和 `handle`
+决策时执行——`reject`、`transfer`、`rollback` 保持豁免。没有配置
+`fieldPermissions` 的节点不授予任何写权限：提交的表单数据会被丢弃。
+
+在读侧，`my.get_instance_detail` 返回按查看者投影的 `fieldPermissions`：
+框架在查看者的参与上下文（本人任务、抄送、申请人）上对格
+（`hidden < visible < editable < required`）做 max-merge，只有 Pending
+任务或可重新提交的申请人才能获得写强度（`editable` / `required`），所有
+只读上下文都被钳制为 `visible`。`hidden` 的值会从返回的 `formData` 中剥离，
+没有任何可识别上下文的查看者什么都看不到——解析是 fail-closed 的。
 
 ## 设计器默认值
 
@@ -217,13 +231,33 @@ type FlowDefinition struct {
 `rollbackType = specified` 时校验，里面放的是节点 key，不是数据库节点 ID。
 `fieldPermissions` 的语义见[节点字段权限](#节点字段权限)。
 
-### 表单 JSON Wire Shape
+### 表单 Schema 与派生字段
 
-`FlowVersion.FormSchema` 是版本的结构化表单定义：一个 `FormDefinition`
-文档，唯一的 JSON 字段是 `fields`——扁平的 `[]FormFieldDefinition` 列表。
-它在 `deploy` 时以 `params.formDefinition` 提交、在部署期校验，并且是框架
-消费的表单形状（表单数据校验、storage-table DDL、聚合校验）。
-每个 `FormFieldDefinition` 条目使用
+从 v0.38 起，表单定义在部署时一分为二：
+
+- `FlowVersion.FormSchema`（`formSchema`）是**宿主自有的表单设计器文档**，
+  在 `deploy` 时以 `params.formSchema` 提交，以语义等价的 JSON 存储和返回——
+  jsonb 列会规范化格式与键序，数字精度端到端保留（全程
+  `json.RawMessage`）。框架从不解释它。
+- `FlowVersion.FormFields`（`formFields`）是部署时通过注入的
+  `approval.FormSchemaParser` 从该文档一次性派生出的扁平
+  `[]FormFieldDefinition` 列表，是框架自身消费的**唯一**表单形状——用于
+  表单数据校验、storage-table DDL、聚合校验和字段权限解析。parser 升级
+  永远不影响已部署的版本。
+
+```go
+type FormSchemaParser interface {
+    ParseFormFields(ctx context.Context, schema json.RawMessage) ([]FormFieldDefinition, error)
+}
+```
+
+内置 parser 理解 vef-framework-react form-editor 文档；使用自有设计器的宿主
+用 `vef.ProvideApprovalFormSchemaParser(constructor)` 整体替换。nil 或空
+schema 产出零字段（没有表单的流程）；parser 报错会中止部署。`ctx` 携带部署
+请求的 deadline——执行 I/O 的宿主 parser 必须遵守它。
+
+派生字段会在部署时校验（key 唯一、kind 已知、pattern 可编译、边界一致、
+明细表单层）。每个 `FormFieldDefinition` 条目使用
 `key`、`kind`、`label`、`placeholder`、`defaultValue`、`isRequired`、
 `options`、`validation`、`props`、`sortOrder`、`columnType`、`scale` 和
 `columns`。每个 option 使用 `label` 和 `value`。`columns` 定义 table 字段
@@ -245,8 +279,10 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 
 公开包暴露的流程设计和持久化模型包括 `FlowCategory`、`Flow`、`FlowVersion`、
 `FlowNode`、`FlowEdge`、`FlowInitiator`、`FlowNodeAssignee`、`FlowNodeCC`、
-`FormDefinition`、`FormFieldDefinition`、`FormSnapshot`、`ActionLog`、
-`OperatorInfo` 和 `UrgeRecord`。流程版本状态使用 `VersionStatus`：
+`FormFieldDefinition`、`FormSnapshot`、`ActionLog`、
+`OperatorInfo` 和 `UrgeRecord`（结构化的 `FormDefinition` 包装在 v0.38 中被
+移除——宿主文档是 opaque 的，框架侧只保留 `FormFieldDefinition` 这一种
+形状）。流程版本状态使用 `VersionStatus`：
 `VersionDraft`（`draft`）、`VersionPublished`（`published`）、
 `VersionArchived`（`archived`）。
 

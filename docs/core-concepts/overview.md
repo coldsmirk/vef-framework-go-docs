@@ -158,8 +158,8 @@ vef.Run(
 ```
 
 `vef.ApprovalModule` turns on the approval/workflow feature and registers its API
-resources, CQRS handlers, engine, binding listener, and scanners. Approval's
-`approval.*` events require a transactional route with a subscribable sink; see
+resources, CQRS handlers, engine, business-projection worker, and scanners.
+Approval's `approval.*` events require a transactional route; see
 [Approval Module](../approval) for the routing details.
 
 ## Module roles in a larger app

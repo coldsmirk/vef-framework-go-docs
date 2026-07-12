@@ -37,11 +37,18 @@ token_type = "opaque_token" # default: "jwt_token"
 `token_type` is a `config.TokenType`; its only accepted values are the
 constants `config.TokenTypeJWT` (`"jwt_token"`) and `config.TokenTypeOpaque`
 (`"opaque_token"`) — an unrecognized value fails config validation at boot
-(`SecurityConfig.Validate`). `AuthResource.Login`, `refresh`, and `logout` behave
-identically from the client's perspective either way; only the token shape and
-the server-side capabilities differ. `TokenGenerator.Generate(ctx, principal,
+(`SecurityConfig.Validate`). `TokenGenerator.Generate(ctx, principal,
 SessionMeta)` is mechanism-agnostic, so custom login flows do not need to know
 which one is active.
+
+Since v0.38 the switch is strict: **only the configured mechanism's
+authenticators are registered.** Under `opaque_token`, a leftover JWT (access
+or refresh) no longer authenticates anywhere — including the MCP surface —
+and the `refresh` operation is not mounted at all (sessions renew themselves
+on use; there is nothing separate to refresh). `Login` also refuses the
+framework-issued token types (`jwt_token` / `opaque_token` / `refresh`) as
+login credentials, so a stolen short-lived access token cannot be laundered
+into a long-lived refresh token or an extra session.
 
 ## How Opaque Sessions Work
 
@@ -72,10 +79,12 @@ Two independent lifetimes govern a session:
   `CreatedAt`, that no amount of activity can push past.
 
 `OpaqueTokenAuthenticator.renew` computes the next expiry as `now + idle_ttl`,
-then clamps it to `CreatedAt + max_lifetime` if that would exceed it. So a
-continuously active session still expires at the latest `max_lifetime` after
-login — sliding extends idle survival, it does not extend the account's
-absolute session budget.
+then clamps it to `CreatedAt + max_lifetime` if that would exceed it. The same
+clamp applies at issue time (v0.38), so a misconfigured `idle_ttl` larger than
+`max_lifetime` cannot produce a session that outlives the cap even before its
+first renewal. A continuously active session still expires at the latest
+`max_lifetime` after login — sliding extends idle survival, it does not extend
+the account's absolute session budget.
 
 ```toml
 [vef.security.session]
@@ -229,9 +238,11 @@ need pagination should build that on top of its own store.
 ## Memory vs. Redis: Single-Node vs. Multi-Node
 
 The default `SessionStore` is `security.NewMemorySessionStore()` — in-process
-maps, wired automatically by the framework's security module. It works correctly for a
-single instance, with sessions kept in three in-memory indexes (by id, by
-token hash, by user) and expired entries reclaimed lazily on access.
+storage, wired automatically by the framework's security module. It works
+correctly for a single instance. Since v0.38 it is built on the framework's
+in-memory TTL cache, so expired sessions are garbage-collected in the
+background instead of accumulating until the next access — a long-lived
+process with many short sessions no longer grows without bound.
 
 It does **not** share state across processes. In a multi-node deployment, a
 session created on one node is invisible to requests landing on another node —
@@ -267,6 +278,10 @@ Redis keys under `vef:security:session:` (`id:`, `token:`, `user:` sub-prefixes)
 - sliding renewal issues `SET ... XX` on the session record, which only
   succeeds if the key still exists — a renewal racing a concurrent `Revoke`
   can never resurrect a just-deleted session
+- the per-user session-id set carries a TTL refreshed on create and renew, and
+  renewal re-adds the session's membership to self-heal the set;
+  `RevokeUser` removes only the ids it enumerated, so a login racing a
+  force-logout is never left invisible to `ListByUser` (v0.38)
 - `Session.ExpiresAt` (not the Redis key TTL alone) remains the authoritative
   expiry check on every read, so both stores enforce `max_lifetime` identically
 

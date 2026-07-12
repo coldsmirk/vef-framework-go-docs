@@ -211,9 +211,12 @@ Helper:
 - `vef.ProvideApprovalLifecycleHook(...)`
 
 `approval.InstanceLifecycleHook` implementations run synchronously inside the
-approval engine transaction for lifecycle moments such as instance creation and
-completion. Returning an error rolls back the surrounding approval command. Use
-event subscriptions for asynchronous integrations that should run after commit.
+approval engine transaction — `OnInstanceCreated` at instance creation and
+`OnInstanceTransition(from, to)` at every instance status transition (v0.38).
+Returning an error rolls back the surrounding approval command. Invocation
+order across hooks is unspecified (FX value groups carry no ordering). Use
+event subscriptions or `approval.BindCommand` for asynchronous integrations
+that should run after commit.
 
 ## Approval aggregators and form schema
 
@@ -249,14 +252,16 @@ Helpers:
 `Flow.BindingMode == BindingBusiness` and lets the host resolve or allocate the
 business row, returning the opaque `Instance.BusinessRef`.
 
-`SupplyBusinessRefResolver` replaces the default identity
-`approval.BusinessRefResolver`. Register one when `Instance.BusinessRef` is not
-the bare primary key and the engine-owned write-back needs to extract the value
-matched against `Flow.BusinessPKField`.
+`SupplyBusinessRefResolver` replaces the default
+`approval.BusinessRefResolver`, which resolves `Instance.BusinessRef` into the
+`approval.BusinessRecordKey` matched against the flow's configured
+`BusinessBindingConfig.KeyColumns` (single-column refs verbatim, composite
+refs as a JSON object). Register one when the ref uses another shape or
+resolving the key requires a host lookup.
 
-Approval status write-back itself is owned by the engine. Hosts extend around it
-with `approval.InstanceLifecycleHook` or event subscriptions; they no longer
-replace the write-back path.
+The business-state projection itself is owned by the engine. Hosts extend
+around it with `approval.InstanceLifecycleHook`, event subscriptions, or
+`approval.BindCommand`; they no longer replace the projection path.
 
 ## Logging
 

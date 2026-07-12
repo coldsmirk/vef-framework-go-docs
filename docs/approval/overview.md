@@ -27,10 +27,11 @@ vef.Run(
 
 ## Event Routing Prerequisite
 
-Approval publishes `approval.*` events with `event.WithTx`, and its binding
-listener subscribes to those events. The host application must route
-`approval.*` to a transactional transport with a subscribable sink, such as an
-outbox route whose sink is Redis Streams:
+Approval publishes `approval.*` events with `event.WithTx`, so every event
+type except `approval.instance.binding_failed` must resolve to a
+**transactional** transport. The module asserts this at boot via
+`event.RouteInspector` — a misconfigured route fails the application instead
+of degrading silently:
 
 ```toml
 [vef.event]
@@ -41,21 +42,21 @@ pattern    = "approval.*"
 transports = ["outbox", "redis_stream"]
 ```
 
-The route must list the configured outbox `sink` (here `redis_stream`; the
-in-process `memory` transport also qualifies) alongside `outbox` itself: the
-outbox transport is publish-only, so subscribers — including the module's own
-binding listener — attach to the sink transport. Approval's binding listener
-and outbox publisher both assert routing at boot via `event.RouteInspector`, so
-a misconfigured route fails the application instead of degrading silently. See
-[Event Bus](../infrastructure/event-bus.md) for transports, routing semantics,
-and the outbox relay.
+Since v0.38 the business projection no longer consumes lifecycle events (it
+converges from the durable `apv_business_projection` table — see
+[Business-State Projection](./integration.md#business-state-projection)), so
+the module itself no longer requires a subscribable sink in the route: a bare
+`["outbox"]` route satisfies the startup check. Add the configured outbox
+`sink` transport (`memory` single-node, `redis_stream` cross-node) alongside
+`outbox` — as in the example above — whenever the **host** subscribes to
+approval events via `approval.SubscribeInstance` or `approval.BindCommand`,
+because the outbox transport is publish-only and subscribers attach to the
+sink. See [Event Bus](../infrastructure/event-bus.md) for transports, routing
+semantics, and the outbox relay.
 
 `InstanceBindingFailedEvent` is the exception to the transactional-route
-startup check: it is emitted by the asynchronous binding listener after the
-approval transaction has already committed. `InstanceCompletedEvent` has the
-strictest route requirement because the binding listener subscribes to it; the
-route must include a subscribable sink transport such as `memory` or
-`redis_stream` alongside the transactional outbox route.
+startup check: it is published by the eventual projection worker after the
+approval transaction has already committed.
 
 ## Architecture Overview
 
@@ -75,6 +76,7 @@ Flow Category → Flow → Flow Version → Nodes + Edges
 | Instance | `apv_instance` | A running instance of a flow |
 | Task | `apv_task` | An individual approval/handle task assigned to a user |
 | Action Log | `apv_action_log` | Audit trail of all actions |
+| Business Projection | `apv_business_projection` | Durable desired-state convergence for business-bound flows (v0.38) |
 
 ## Configuration
 
@@ -88,12 +90,26 @@ delegation_max_depth      = 10
 form_snapshot_retention   = "2160h"  # 90 days
 urge_record_retention     = "720h"   # 30 days
 cc_record_retention       = "2160h"  # 90 days
+
+[vef.approval.business_binding]
+consistency   = "synchronous"  # or "eventual"
+scan_interval = "10s"          # eventual worker cadence
+batch_size    = 100            # projections per scan
 ```
 
 `auto_migrate` is a plain boolean switch and is not set by
 `ApprovalConfig.ApplyDefaults()`: enable it explicitly when the app should run
 approval DDL on startup. `cc_record_retention` only prunes CC records that have
 already been read.
+
+`business_binding` (v0.38) controls how approval state is projected onto bound
+business tables: `synchronous` (default) writes the business row inside the
+approval transaction, `eventual` commits the desired state and lets a
+background worker converge the row (see
+[Business-State Projection](./integration.md#business-state-projection)).
+An out-of-enum `consistency` or a negative worker setting fails config
+validation at startup (`config.ErrInvalidApprovalBindingConsistency` /
+`ErrInvalidApprovalBusinessBindingWorkerConfig`).
 
 > The outbox-related fields that previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`) moved to `[vef.event.transports.outbox]` in v0.21. The approval module now publishes through the framework-wide outbox transport — see [Event Bus](../infrastructure/event-bus.md).
 
@@ -106,7 +122,7 @@ See [Configuration Reference](../reference/configuration-reference.md) for detai
 | Standalone | `BindingStandalone` | `standalone` | Form data stored in the approval module's own tables |
 | Business | `BindingBusiness` | `business` | Links to an existing business data table |
 
-Business binding connects the approval flow to your domain tables via `BusinessTable`, `BusinessPKField`, and `BusinessStatusField`, plus the optional `BusinessInstanceIDField`, `BusinessStartedAtField`, and `BusinessFinishedAtField` linkage columns (see [Business Write-Back Linkage Matrix](./integration.md#business-write-back-linkage-matrix)).
+Business binding connects the approval flow to your domain tables via a single `Flow.BusinessBinding` document (`approval.BusinessBindingConfig`): `tableName`, composite `keyColumns`, `statusColumn`, the mandatory `instanceIdColumn` CAS fence, optional `startedAtColumn` / `finishedAtColumn`, and an optional `statusMapping` (see [Business-State Projection](./integration.md#business-state-projection)). The binding is snapshotted onto each deployed flow version, and its state converges through the durable `apv_business_projection` table.
 
 ---
 

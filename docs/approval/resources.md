@@ -64,10 +64,10 @@ exhaustive JSON field ledger for every request and response DTO.
 
 | Action | Request fields |
 | --- | --- |
-| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessStatusField`, `params.businessInstanceIdField`, `params.businessStartedAtField`, `params.businessFinishedAtField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
-| `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formDefinition`, `params.storageMode` |
+| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
+| `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formSchema`, `params.storageMode` |
 | `publish_version` | `params.versionId` required |
-| `update` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.businessTable`, `params.businessPkField`, `params.businessStatusField`, `params.businessInstanceIdField`, `params.businessStartedAtField`, `params.businessFinishedAtField`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
+| `update` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
 | `toggle_active` | `params.flowId` required, `params.isActive` |
 | `get_graph` | `params.flowId` required, `params.tenantId` |
 | `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.page`, `params.pageSize` |
@@ -75,11 +75,16 @@ exhaustive JSON field ledger for every request and response DTO.
 | `find_versions` | `params.flowId` required, `params.tenantId` |
 
 `params.initiators` entries use `kind` (`user`, `role`, or `department`) and
-`ids`. `params.formDefinition` is the optional structured `FormDefinition`
-document (see [Form JSON Wire Shape](./flow-design.md#form-json-wire-shape));
-flows without forms omit it. For business binding, `businessTable`,
-`businessPkField`, and `businessStatusField` are SQL identifiers validated by
-`ValidateBusinessIdentifier`.
+`ids`. `params.formSchema` is the optional host-owned form-designer document,
+passed through opaque (see
+[Form Schema and Derived Fields](./flow-design.md#form-schema-and-derived-fields));
+flows without forms omit it. For business binding, `params.businessBinding` is
+an `approval.BusinessBindingConfig` object (`tableName`, `keyColumns`,
+`statusColumn`, `instanceIdColumn` required, optional `startedAtColumn` /
+`finishedAtColumn` / `statusMapping`); all identifiers are validated by
+`ValidateBusinessIdentifier`, the key must match a non-null primary or unique
+key on the live table, and binding settings stay frozen while instances are
+running (`ErrFlowBindingLocked`).
 
 ## `approval/instance`
 
@@ -133,10 +138,16 @@ the authenticated principal.
 | `get_instance_detail` | `params.instanceId` required |
 
 The `my.InstanceDetail` JSON payload includes `instance`, `formSchema`,
-`timeline`, `flowGraph`, and `availableActions`. `instance.formData` carries
-the submitted form data, `instance.businessRef` is the opaque business
-reference when the flow is business-bound, and `formSchema` is the
-version-pinned `FormDefinition` the instance was submitted under.
+`timeline`, `flowGraph`, `availableActions`, and `fieldPermissions`.
+`instance.formData` carries the submitted form data, `instance.businessRef` is
+the opaque business reference when the flow is business-bound, and
+`formSchema` is the version-pinned host form-designer document returned
+verbatim — the framework stores it as semantically equal JSON and never
+interprets it. `fieldPermissions` (v0.38) is the viewer-scoped field
+interactivity projection, materialized for every top-level form field
+(`visible` / `editable` / `hidden` / `required`); the client applies it
+verbatim, and `instance.formData` is already stripped of the fields the viewer
+may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)).
 
 `availableActions` is a query-layer UI hint. For the applicant it includes
 `withdraw` when the instance can transition to `withdrawn`, and `resubmit` when
@@ -155,8 +166,10 @@ their own validation.
 | `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | Full admin detail |
 | `find_action_logs` | `approval.action_log.query` | `AdminFindActionLogsParams` | Requires `instanceId` |
 | `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | Aggregated metrics |
+| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | Durable binding convergence state (v0.38) |
 | `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | Audited |
 | `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | Audited |
+| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | Audited; immediately retries one eventual projection (v0.38) |
 
 | Action | Request fields |
 | --- | --- |
@@ -165,8 +178,10 @@ their own validation.
 | `get_instance_detail` | `params.instanceId` required |
 | `find_action_logs` | `params.instanceId` required, `params.tenantId`, `params.page`, `params.pageSize` |
 | `get_metrics` | `params.tenantId` |
+| `find_business_projections` | `params.tenantId`, `params.status` (`pending`, `processing`, `applied`, `failed`), `params.page`, `params.pageSize` |
 | `terminate_instance` | `params.instanceId` required, `params.reason` max 2000 chars |
 | `reassign_task` | `params.taskId` required, `params.newAssigneeId` required, `params.reason` max 2000 chars |
+| `retry_business_projection` | `params.projectionId` required |
 
 For admin list and metrics queries, non-super-admin callers ignore a submitted
 `tenantId` override and are filtered to their own tenant. Super-admin callers
@@ -184,10 +199,11 @@ Admin responses use the DTOs from `approval/admin`:
 | --- | --- |
 | `admin.Instance` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `applicant` (`UserInfo`), `status`, `currentNodeName`, `createdAt`, `finishedAt` |
 | `admin.Task` | `taskId`, `instanceId`, `instanceTitle`, `flowName`, `nodeName`, `assignee` (`UserInfo`), `status`, `createdAt`, `deadline`, `finishedAt` |
-| `admin.InstanceDetail` | `instance`, `formSchema`, `timeline`, `flowGraph` |
+| `admin.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph` |
 | `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
 | `admin.ActionLog` | `logId`, `action`, `nodeId`, `taskId`, `operator`, `transferTo`, `rollbackToNodeId`, `addedAssignees`, `removedAssignees`, `ccUsers`, `opinion`, `attachments`, `createdAt` |
-| `admin.Metrics` | `tenantId`, `capturedAt`, `instanceCounts`, `taskCounts`, `timeoutTaskCount`, `avgCompletionSeconds`, `pendingBindingFailures` |
+| `admin.Metrics` | `tenantId`, `capturedAt`, `instanceCounts`, `taskCounts`, `timeoutTaskCount`, `avgCompletionSeconds`, `pendingBindingFailures`, `businessProjectionCounts`, `pendingBusinessProjections` |
+| `admin.BusinessProjection` | `projectionId`, `tenantId`, `flowId`, `flowVersionId`, `ownerInstanceId`, `appliedOwnerInstanceId`, `businessTable`, `recordKey`, `consistency`, `desiredStatus`, `desiredStartedAt`, `desiredFinishedAt`, `desiredRevision`, `appliedRevision`, `status`, `attemptCount`, `nextAttemptAt`, `leaseUntil`, `lastError`, `appliedAt`, `updatedAt` |
 
 Self-service responses use the DTOs from `approval/my`:
 
@@ -199,7 +215,7 @@ Self-service responses use the DTOs from `approval/my`:
 | `my.CompletedTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `status`, `finishedAt` |
 | `my.CCRecord` | `ccRecordId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `isRead`, `createdAt` |
 | `my.PendingCounts` | `pendingTaskCount`, `unreadCcCount` |
-| `my.InstanceDetail` | `instance`, `formSchema`, `timeline`, `flowGraph`, `availableActions` |
+| `my.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph`, `availableActions`, `fieldPermissions` |
 | `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
 
 ## Error Surface
@@ -232,18 +248,26 @@ surface rather than importing the internal Go symbols.
 | `40008` | `ErrCodeInvalidBusinessIdentifier` | `ErrInvalidBusinessIdentifier` | `approval_invalid_business_identifier` | business table / field identifier failed validation |
 | `40009` | `ErrCodeInvalidTitleTemplate` | `ErrInvalidTitleTemplate` | `approval_invalid_title_template` | instance title template failed parsing |
 | `40010` | `ErrCodeInvalidFormDesign` | `ErrInvalidFormDesign` | `approval_invalid_form_design` | form schema failed design-time validation |
-| `40011` | `ErrCodeBindingIncomplete` | `ErrBindingIncomplete` | `approval_binding_incomplete` | business binding is missing required table / primary-key / status fields |
+| `40011` | `ErrCodeBindingIncomplete` | `ErrBindingIncomplete` | `approval_binding_incomplete` | business binding is missing required table / key / status / instance-id fields |
 | `40012` | `ErrCodeInvalidBindingMode` | `ErrInvalidBindingMode` | `approval_invalid_binding_mode` | flow binding mode is out of enum |
 | `40013` | `ErrCodeInvalidInitiatorKind` | `ErrInvalidInitiatorKind` | `approval_invalid_initiator_kind` | flow initiator kind is out of enum |
 | `40014` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy requested a storage mode other than `json` or `table` |
-| `40015` | `ErrCodeFlowBindingLocked` | `ErrFlowBindingLocked` | `approval_flow_binding_locked` | flow business-binding settings are locked while instances are running |
+| `40015` | `ErrCodeFlowBindingLocked` | `ErrFlowBindingLocked` | `approval_flow_binding_locked` | retained as a stable error surface; version-pinned binding snapshots mean current flow commands no longer return it |
 | `40016` | `ErrCodeBindingColumnsConflict` | `ErrBindingColumnsConflict` | `approval_binding_columns_conflict` | two business-binding fields name the same column |
+| `40017` | `ErrCodeBindingUnexpected` | `ErrBindingUnexpected` | `approval_binding_unexpected` | business binding supplied on a standalone flow |
+| `40018` | `ErrCodeBindingSchemaInvalid` | `ErrBindingSchemaInvalid` | `approval_binding_schema_invalid` | configured binding table or columns do not exist in the primary database |
+| `40019` | `ErrCodeBindingKeyNotUnique` | `ErrBindingKeyNotUnique` | `approval_binding_key_not_unique` | key columns are not backed by one complete, non-null primary or unique key |
+| `40020` | `ErrCodeBindingStatusMappingInvalid` | `ErrBindingStatusMappingInvalid` | `approval_binding_status_mapping_invalid` | status mapping names an unknown status or maps to a blank value |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance lookup failed |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | instance is already complete |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | caller cannot initiate this flow |
 | `40104` | `ErrCodeWithdrawNotAllowed` | `ErrWithdrawNotAllowed` | `approval_withdraw_not_allowed` | withdraw is not allowed in the current state |
 | `40105` | `ErrCodeResubmitNotAllowed` | `ErrResubmitNotAllowed` | `approval_resubmit_not_allowed` | resubmit is not allowed in the current state |
 | `40106` | `ErrCodeInvalidInstanceTransition` | `ErrInvalidInstanceTransition` | `approval_invalid_instance_transition` | instance state transition is invalid |
+| `40107` | `ErrCodeBusinessRefRequired` | `ErrBusinessRefRequired` | `approval_business_ref_required` | business-bound flow started without a business reference |
+| `40108` | `ErrCodeBindingTargetBusy` | `ErrBindingTargetBusy` | `approval_binding_target_busy` | the business record is already claimed by a non-final approval instance |
+| `40109` | `ErrCodeInvalidBusinessRef` | `ErrInvalidBusinessRef` | `approval_invalid_business_ref` | the business reference could not be resolved into the configured record key |
+| `40110` | `ErrCodeBindingProjectionNotFound` | `ErrBindingProjectionNotFound` | `approval_binding_projection_not_found` | projection lookup failed (admin retry) |
 | `40201` | `ErrCodeTaskNotFound` | `ErrTaskNotFound` | `approval_task_not_found` | task lookup failed |
 | `40202` | `ErrCodeTaskNotPending` | `ErrTaskNotPending` | `approval_task_not_pending` | task is not pending |
 | `40203` | `ErrCodeNotAssignee` | `ErrNotAssignee` | `approval_not_assignee` | caller is not assigned to the task |

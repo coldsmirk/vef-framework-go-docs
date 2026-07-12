@@ -36,6 +36,13 @@ sidebar_position: 5
 | `mapx.ErrCollectionSetNotFinite` | NaN 或 infinity 目标是 integer set element 时的 sentinel |
 | `mapx.ErrCollectionSetNegative` | 负数目标是 unsigned set element 时的 sentinel |
 | `mapx.ErrCollectionSetUnsupportedTarget` | collection set element kind 没有转换策略时的 sentinel |
+| `mapx.ErrJSONNumberNotInteger` | 小数或指数形式的 `json.Number` 落到整数字段时的 sentinel（v0.38） |
+| `mapx.ErrJSONNumberOverflow` | `json.Number` 超出数值目标类型范围时的 sentinel（v0.38） |
+
+decoder hook 链会翻译数字保真 JSON 解析产生的 `json.Number` 值（v0.38）：
+数值目标按精确位数解析、严格性对齐 `encoding/json`，`json.Number` /
+`json.RawMessage` 目标保留字面量，其余目标——最重要的是 `any`——看到
+`float64`，动态消费者的既有运行时契约不变。
 
 ## 结构体转 Map
 
