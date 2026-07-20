@@ -482,8 +482,8 @@ db.NewSelect().Model(&users).
 db.NewSelect().Model(&users).
 	OrderByExpr(func(eb orm.ExprBuilder) any {
 		return eb.Case(func(cb orm.CaseBuilder) {
-			cb.When("status", "active").Then(1).
-				When("status", "pending").Then(2).
+			cb.When(func(c orm.ConditionBuilder) { c.Equals("status", "active") }).Then(1).
+				When(func(c orm.ConditionBuilder) { c.Equals("status", "pending") }).Then(2).
 				Else(3)
 		})
 	}).Scan(ctx)

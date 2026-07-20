@@ -96,7 +96,7 @@ type LoginDecision struct {
 [vef.security.lockout]
 enabled = true          # 默认值：true
 max_failures = 10       # 默认值：10
-window = "15m"           # 默认值：15m —— 超过这个时长的失败记录会被遗忘
+window = "15m"           # 默认值：15m —— 连续这么久没有新失败，计数器即清零
 lock_duration = "15m"    # 默认值：15m —— "lock" 策略下的封锁时长
 strategy = "lock"        # "lock" 或 "backoff"，默认值："lock"
 backoff_base = "1s"      # 默认值：1s —— "backoff" 策略下第一次的延迟
@@ -108,11 +108,11 @@ key = "user_ip"          # "user"、"ip" 或 "user_ip"，默认值："user_ip"
 析为各自的默认值——如果自己组装策略，应通过 `config.LockoutConfig` 的
 `Effective*` 访问器读取，而不是直接读原始字段。
 
-- **`strategy = "lock"`**（对应 Go 常量 `security.LockoutStrategyLock`）：一
-  旦失败次数超过 `max_failures`，就在 `lock_duration` 时长内封锁所有尝
-  试——是一种硬性拦截。
+- **`strategy = "lock"`**（对应 Go 常量 `security.LockoutStrategyLock`）：失
+  败次数**达到** `max_failures` 即在 `lock_duration` 时长内封锁所有尝试——
+  攻击者恰好获得 `max_failures` 次机会，触及阈值的那次失败即触发锁定。
 - **`strategy = "backoff"`**（对应 Go 常量 `security.LockoutStrategyBackoff`）：
-  改为施加逐步升高的延迟——超出阈值后的第一次失败等待 `backoff_base`，此后
+  改为施加逐步升高的延迟——触及阈值的那次失败开始等待 `backoff_base`，此后
   每多失败一次延迟翻倍，直到 `backoff_max` 封顶。合法用户会被拖慢，但永远
   不会被彻底锁死；攻击者也无法借此把受害者无限期地锁在门外。
 - **`key`** 选择失败次数按哪个身份维度计数：`"user"`
@@ -294,8 +294,11 @@ type PasswordMetadataLoader interface {
 checker := security.NewExpiryPasswordChangeChecker(myMetadataLoader, 90*24*time.Hour)
 ```
 
-`maxAge` 同样来自配置——`vef.security.password_policy.max_age`（零值表示关
-闭过期检查）：
+按约定，年龄上限声明在 `vef.security.password_policy.max_age`（零值表示
+关闭过期检查）——但注意框架**不会**自行消费这个键。与 `history_depth`
+（注册 `PasswordHistoryStore` 后自动组链）不同，`max_age` 是纯声明性字段：
+由你的装配代码从 `config.SecurityConfig` 读出并传给
+`NewExpiryPasswordChangeChecker`，如上例所示。
 
 ```toml
 [vef.security.password_policy]

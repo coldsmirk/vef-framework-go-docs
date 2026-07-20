@@ -55,7 +55,7 @@ security、event bus、CRUD、approval 等）都依赖 `logx.Logger`，从不直
 
 | 方面 | 行为 |
 | --- | --- |
-| Encoding | console——单行、面向人的文本；v0.37.0 没有 JSON 选项 |
+| Encoding | console——单行、面向人的文本；截至 v0.39 没有 JSON 选项 |
 | 输出目标 | 日志条目写到 stdout；zap 自身的内部错误写到 stderr |
 | 行结构 | 弱化显示的 `2006-01-02T15:04:05.000` 时间戳、大写 level、`[name]` namespace、截短的 caller 路径、message |
 | 颜色 | level 列始终带 ANSI 颜色（`zapcore.CapitalColorLevelEncoder`）；时间戳、caller 和 name 的样式只在 stdout 支持时应用（termenv 检测：非 TTY 输出和 `NO_COLOR` 下禁用） |
@@ -109,13 +109,13 @@ logger——没有 per-component 级别配置，也没有公开的运行时 API 
   是配置了 request logger 的 per-request 副本。
 
 request ID 作为 logger 的 *namespace* 携带——日志行显示
-`[request_id:<uuid>]`——而不是 structured field。v0.37.0 的 `logx.Logger`
+`[request_id:<uuid>]`——而不是 structured field。截至 v0.39，`logx.Logger`
 没有 `With(key, value)` 字段 API；要附加上下文，请派生 `Named(...)` child
 或把值格式化进 message。
 
 ## 替换或包装 Logger
 
-v0.37.0 的具体实现**不可替换**。root zap logger 是 `internal/logx` 里的
+截至 v0.39，具体实现**不可替换**。root zap logger 是 `internal/logx` 里的
 package-level 值，框架各 package 在包初始化时就捕获了各自的 named child，
 而且 `logx.Logger` 不是 DI 提供的类型——因此没有 `fx.Decorate` 切入点，也
 没有导出的替换钩子。框架内部的输出（库、格式、目标）是固定的。
@@ -143,8 +143,10 @@ logger := vef.NamedLogger("myjob")
 logger.Infof("processed %d records", count)
 ```
 
-在由 FX 构造的组件内部，优先直接注入 `logx.Logger`（对 immutable component
-则注入 `logx.LoggerConfigurable[T]`），而不是使用 `vef.NamedLogger`。
+注意 `logx.Logger` **不在** DI 图中——把它声明为 FX 构造器参数会导致启动
+失败。在由 FX 构造的组件内部，应在构造器体内调用 `vef.NamedLogger(...)`
+（或当框架配置你的组件时经 `logx.LoggerConfigurable[T]` 接收 logger）；
+请求 handler 直接声明 `logx.Logger` 参数即可，由 API 引擎按请求注入。
 
 ## 实用建议
 
@@ -166,5 +168,5 @@ logger.Infof("processed %d records", count)
   展示了 request-ID 和 logger middleware 在链路中的位置。
 - [扩展 Handler 参数](../advanced/extending-parameters) 记录了 `contextx`
   辅助函数和内置的 handler 参数解析器。
-- [配置 — 环境变量覆盖](../getting-started/configuration#环境变量覆盖)
+- [配置 — 环境变量](../getting-started/configuration#环境变量)
   把 `VEF_LOG_LEVEL` 列在框架环境变量之中。

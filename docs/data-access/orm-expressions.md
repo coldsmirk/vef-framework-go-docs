@@ -41,44 +41,56 @@ SelectExpr(func(eb orm.ExprBuilder) any {
 // JSON_OBJECT_AGG
 SelectExpr(func(eb orm.ExprBuilder) any {
 	return eb.JSONObjectAgg(func(ja orm.JSONObjectAggBuilder) {
-		ja.Key("code").Value("name")
+		ja.KeyColumn("code").Column("name")
 	})
 }, "code_map")
 ```
 
+`JSONObjectAggBuilder` takes its keys from `KeyColumn(column)` or
+`KeyExpr(expr)` and its values from the inherited `Column(...)` / `Expr(...)`
+methods.
+
 ## Window Functions
+
+The window clause always starts from `Over()`: partitioning and ordering
+methods live on the partition builder that `Over()` returns.
 
 ```go
 // ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC)
 db.NewSelect().Model(&users).
 	SelectExpr(func(eb orm.ExprBuilder) any {
 		return eb.RowNumber(func(rn orm.RowNumberBuilder) {
-			rn.PartitionBy("department_id").
+			rn.Over().
+				PartitionBy("department_id").
 				OrderByDesc("salary")
 		})
 	}, "row_num").
 	Scan(ctx)
 
 // RANK(), DENSE_RANK(), PERCENT_RANK()
-eb.Rank(func(r orm.RankBuilder) { r.OrderByDesc("score") })
-eb.DenseRank(func(r orm.DenseRankBuilder) { r.OrderByDesc("score") })
+eb.Rank(func(r orm.RankBuilder) { r.Over().OrderByDesc("score") })
+eb.DenseRank(func(r orm.DenseRankBuilder) { r.Over().OrderByDesc("score") })
 
 // LAG / LEAD
 eb.Lag(func(l orm.LagBuilder) {
-	l.Column("salary").Offset(1).Default(0)
+	l.Column("salary").Offset(1).DefaultValue(0)
+	l.Over().OrderBy("created_at")
 })
 eb.Lead(func(l orm.LeadBuilder) {
 	l.Column("salary").Offset(1)
+	l.Over().OrderBy("created_at")
 })
 
 // FIRST_VALUE / LAST_VALUE / NTH_VALUE
 eb.FirstValue(func(fv orm.FirstValueBuilder) {
-	fv.Column("name").OrderBy("created_at")
+	fv.Column("name")
+	fv.Over().OrderBy("created_at")
 })
 
 // Windowed aggregates: SUM() OVER (...)
 eb.WinSum(func(ws orm.WindowSumBuilder) {
-	ws.Column("amount").PartitionBy("department_id").OrderBy("created_at")
+	ws.Column("amount")
+	ws.Over().PartitionBy("department_id").OrderBy("created_at")
 })
 ```
 
@@ -232,31 +244,42 @@ eb.Coalesce(eb.Column("nickname"), eb.Column("username"), "Anonymous")
 eb.NullIf(eb.Column("value"), 0)
 eb.IfNull(eb.Column("name"), "Unknown")
 eb.Case(func(cb orm.CaseBuilder) {
-	cb.When("status", "active").Then("Active").
-		When("status", "inactive").Then("Inactive").
+	cb.When(func(c orm.ConditionBuilder) { c.Equals("status", "active") }).Then("Active").
+		When(func(c orm.ConditionBuilder) { c.Equals("status", "inactive") }).Then("Inactive").
 		Else("Unknown")
 })
 ```
 
+`CaseBuilder.When` takes a condition-builder callback (there is no
+`When(column, value)` shorthand); `WhenExpr(expr)` and
+`WhenSubQuery(op, build)` cover expression- and subquery-shaped branches.
+
 ### JSON Functions (Dialect-Aware)
 
 ```go
-eb.JSONExtractText(eb.Column("data"), "$.name")
-eb.JSONExtractInt(eb.Column("data"), "$.age")
-eb.JSONExtractBool(eb.Column("data"), "$.active")
-eb.JSONBuildObject("key1", value1, "key2", value2)
-eb.JSONBuildArray(value1, value2, value3)
-eb.JSONContains(eb.Column("tags"), "admin")
+eb.JSONExtract(eb.Column("data"), "$.name")            // raw JSON value at path
+eb.JSONUnquote(eb.JSONExtract(eb.Column("data"), "$.name")) // unquoted text
+eb.JSONObject("key1", value1, "key2", value2)
+eb.JSONArray(value1, value2, value3)
+eb.JSONContains(eb.Column("tags"), `"admin"`)
+eb.JSONContainsPath(eb.Column("data"), "$.address")
 eb.JSONLength(eb.Column("items"))
 eb.JSONKeys(eb.Column("data"))
+eb.JSONType(eb.Column("data"), "$.age")
+eb.JSONValid(eb.Column("payload"))
 eb.JSONSet(eb.Column("data"), "$.status", "active")
-eb.JSONRemove(eb.Column("data"), "$.temp")
+eb.JSONInsert(eb.Column("data"), "$.new", 1)
+eb.JSONReplace(eb.Column("data"), "$.old", 2)
+eb.JSONArrayAppend(eb.Column("tags"), "$", "extra")
 ```
+
+There is no `JSONRemove` helper; model removals as `JSONSet` to `null` or a
+dialect-specific raw expression.
 
 ### Cross-Database Dialect Support
 
 Prefer the built-in dialect-aware helpers (`ToString`, `ToDecimal`,
-`JSONExtractText`, `JSONBuildObject`, and similar expression methods). The
+`JSONExtract`, `JSONObject`, and similar expression methods). The
 low-level `ExprByDialect` hook is part of the generated index because it appears
 on the public method set, but its configuration type is not re-exported from the
 public `orm` package; application code should not construct dialect maps

@@ -190,7 +190,7 @@ Each embedded builder implements `api.OperationsProvider`, so the framework coll
 `Public()` keeps the tutorial runnable without an auth provider. In a real application, drop it and protect each operation instead:
 
 ```go
-crud.NewCreate[Product, ProductParams]().RequiredPermission("app:product:create")
+crud.NewCreate[Product, ProductParams]().RequiredPermission("app.product.create")
 ```
 
 ## 5. Register the module and run

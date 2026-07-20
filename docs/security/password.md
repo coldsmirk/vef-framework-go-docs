@@ -158,6 +158,6 @@ adds the outer `{algorithm}` prefix before that encoded value.
 | `ErrInvalidMemory` | Argon2 memory is too small |
 | `ErrInvalidIterations` | iteration count is lower than `1` |
 | `ErrInvalidParallelism` | Argon2 parallelism is lower than `1` |
-| `ErrInvalidEncoderID` | `CompositeEncoder` cannot find an encoder for the prefix |
+| `ErrInvalidEncoderID` | defined but currently unused: `Matches` answers `false` for an unknown prefix and `Encode` fails with `ErrDefaultEncoderNotFound`, so no code path returns this sentinel today |
 | `ErrInvalidHashFormat` | encoded password format is malformed |
 | `ErrDefaultEncoderNotFound` | default encoder ID is not registered in `CompositeEncoder` |

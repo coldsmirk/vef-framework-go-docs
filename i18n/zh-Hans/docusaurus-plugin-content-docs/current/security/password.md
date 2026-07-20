@@ -153,6 +153,6 @@ composite 会在这个 encoded value 前面追加外层 `{algorithm}` 前缀。
 | `ErrInvalidMemory` | Argon2 memory 参数过小 |
 | `ErrInvalidIterations` | iteration count 小于 `1` |
 | `ErrInvalidParallelism` | Argon2 parallelism 小于 `1` |
-| `ErrInvalidEncoderID` | `CompositeEncoder` 找不到前缀对应的 encoder |
+| `ErrInvalidEncoderID` | 已定义但当前未被使用：未知前缀时 `Matches` 直接返回 `false`，`Encode` 失败走 `ErrDefaultEncoderNotFound`，目前没有代码路径返回该哨兵 |
 | `ErrInvalidHashFormat` | 编码后的密码格式不合法 |
 | `ErrDefaultEncoderNotFound` | `CompositeEncoder` 没有注册默认 encoder ID |

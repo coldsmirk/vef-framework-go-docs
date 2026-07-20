@@ -216,7 +216,7 @@ The bus runs publish-side and consume-side middlewares from the FX groups `vef:e
 | --- | --- | --- |
 | logging | structured logs around publish/consume | toggled by `logging` |
 | tracing | W3C trace/span propagation across transports | toggled by `tracing`; set `tracing_strict = true` to treat incoming TraceIDs as untrusted at trust boundaries |
-| metrics | counters and latency histograms via `PublishObserved` and `ConsumeObserved` | pluggable `MetricsRecorder` |
+| metrics | counters and latency histograms via `PublishObserved` and `ConsumeObserved` | `[vef.event.middleware] metrics` toggle; pluggable `MetricsRecorder` |
 | recover | converts panics into `event.ErrHandlerPanic` | toggled by `recover` |
 | inbox | consume-side idempotency dedupe | toggled by `inbox`; attaches **only** when the transport's `Capabilities.AtLeastOnce` is true |
 
@@ -440,7 +440,7 @@ idle_group_sweep_interval = "10m"
 | `vef.storage.file.claimed` | a pending upload claim was adopted by a business transaction |
 | `vef.storage.file.deleted` | the storage delete worker drained a file from the backend |
 | `vef.storage.delete.dead_letter` | the delete worker exhausted retries; the queue row was retired and the event carries the investigation details |
-| `vef.approval.task.created` | approval task created (v0.25 — emitted on every task-creation path) |
+| `approval.task.created` | approval task created (v0.25 — emitted on every task-creation path; note the approval domain topics use the `approval.*` prefix, not `vef.*`) |
 
 If the approval module is enabled, additional approval-domain events are published on top of these — see [Approval module](../approval).
 

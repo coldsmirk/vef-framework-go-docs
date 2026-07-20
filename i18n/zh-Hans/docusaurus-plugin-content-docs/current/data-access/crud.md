@@ -23,10 +23,10 @@ type UserResource struct {
 func NewUserResource() api.Resource {
 	return &UserResource{
 		Resource: api.NewRPCResource("sys/user"),
-		FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
-		Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
-		Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
-		Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
+		FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys.user.query"),
+		Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys.user.create"),
+		Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys.user.update"),
+		Delete:   crud.NewDelete[User]().RequiredPermission("sys.user.delete"),
 	}
 }
 ```

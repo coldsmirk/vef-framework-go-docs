@@ -496,39 +496,40 @@ the S3/HTTP-header canonical form, such as `author` to `Author`; nil or empty
 input returns nil. Every backend applies this helper at the store boundary so
 metadata round-trips in one provider-neutral shape.
 
-## Error Sentinels
+## Errors
+
+The storage package exposes two kinds of error values; match both with
+`errors.Is`, but note only the first kind are plain Go sentinels.
+
+Plain Go sentinels (`errors.New`, no API code or HTTP status of their own):
 
 | Error | Cause |
 | --- | --- |
-| `storage.ErrInvalidFileKey` | malformed object key on a stat/download request |
-| `storage.ErrFileNotFound` | object missing from the backend |
-| `storage.ErrFailedToGetFile` | backend read failed |
 | `storage.ErrUploadSessionNotFound` | multipart session already closed or never opened |
 | `storage.ErrPartTooSmall` | non-final part smaller than `PartSize()` |
 | `storage.ErrPartETagMismatch` | recorded part ETag disagrees with backend state during completion |
 | `storage.ErrPartNumberOutOfRange` | parts don't cover `1..N` contiguously |
 | `storage.ErrClaimNotFound` | a claim referenced by `Consume` doesn't exist or belongs to another principal |
 | `storage.ErrAccessDenied` | anonymous / nil principal passed to a lifecycle method |
+| `storage.ErrBucketNotFound` / `ErrObjectNotFound` / `ErrInvalidBucketName` | provider-level lookup failures |
 
-Upload API errors also expose matching `ErrCode*` constants in the `2200-2299`
-range: `ErrCodeInvalidFileKey`, `ErrCodeFileNotFound`,
-`ErrCodeFailedToGetFile`, `ErrCodeClaimNotPending`, `ErrCodeClaimExpired`,
-`ErrCodeUploadSizeExceedsLimit`, `ErrCodeMultipartNotSupported`,
-`ErrCodePublicUploadsNotAllowed`, `ErrCodeUploadTooManyParts`,
-`ErrCodeTooManyPendingUploads`, `ErrCodeUploadRequiresMultipart`,
-`ErrCodeUploadRequiresFile`, `ErrCodeClaimNotMultipart`,
-`ErrCodeUploadPartNumberOutOfRange`, `ErrCodeUploadPartTooLarge`,
-`ErrCodeUploadPartTooSmall`, `ErrCodeUploadPartsIncomplete`,
-`ErrCodeUploadObjectNotFound`, `ErrCodeUploadSizeMismatch`, and
-`ErrCodeAbortFailed`. Additional public sentinels include `ErrClaimNotPending`,
-`ErrClaimExpired`, `ErrUploadSizeExceedsLimit`, `ErrMultipartNotSupported`,
-`ErrPublicUploadsNotAllowed`, `ErrUploadTooManyParts`,
-`ErrTooManyPendingUploads`, `ErrUploadRequiresMultipart`,
-`ErrUploadRequiresFile`, `ErrClaimNotMultipart`,
-`ErrUploadPartNumberOutOfRange`, `ErrUploadPartTooLarge`,
-`ErrUploadPartTooSmall`, `ErrUploadPartsIncomplete`,
-`ErrUploadObjectNotFound`, `ErrUploadSizeMismatch`, `ErrAbortFailed`,
-`ErrBucketNotFound`, `ErrObjectNotFound`, and `ErrInvalidBucketName`.
+`result.Err` business errors (carried through the API envelope with
+`ErrCode*` constants in the `2200-2299` range):
+
+| Error | Cause |
+| --- | --- |
+| `storage.ErrInvalidFileKey` | malformed object key on a stat/download request |
+| `storage.ErrFileNotFound` | object missing from the backend |
+| `storage.ErrFailedToGetFile` | backend read failed |
+
+The remaining upload-flow business errors follow the same pattern — each
+`ErrCode*` constant pairs with a `result.Err` value of the same name:
+`ClaimNotPending`, `ClaimExpired`, `UploadSizeExceedsLimit`,
+`MultipartNotSupported`, `PublicUploadsNotAllowed`, `UploadTooManyParts`,
+`TooManyPendingUploads`, `UploadRequiresMultipart`, `UploadRequiresFile`,
+`ClaimNotMultipart`, `UploadPartNumberOutOfRange`, `UploadPartTooLarge`,
+`UploadPartTooSmall`, `UploadPartsIncomplete`, `UploadObjectNotFound`,
+`UploadSizeMismatch`, and `AbortFailed`.
 
 ## Minimal Service Example
 

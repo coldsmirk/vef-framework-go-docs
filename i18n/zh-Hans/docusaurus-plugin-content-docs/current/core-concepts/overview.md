@@ -92,6 +92,10 @@ vef.Run(
 - `vef:event:consume-middlewares`
 - `vef:datasource:providers`
 - `vef:approval:lifecycle_hooks`
+- `vef:cron:job_handlers`（v0.39）
+- `vef:js:libs`（v0.39）
+- `vef:integration:inbound_handlers` / `vef:integration:outbound_auth_schemes` / `vef:integration:inbound_auth_schemes`（v0.39）
+- `vef:security:session_revocation_listeners`（v0.39）
 
 `di.go` 里的各种 helper，本质上就是帮你更安全地把值注册进这些 group。helper
 名称前缀不一定等于 FX 机制——有的 `Provide*` 是向 group 追加，有的则是替换默认的单个服务。逐个 helper 的权威表格（机制、group、契约）见[扩展点](../reference/extension-points)，本页不再重复维护。
@@ -159,6 +163,10 @@ vef.Run(
 CQRS handlers、engine、业务投影 worker 和 scanners。审批的
 `approval.*` 事件需要 transactional route；路由细节
 见[审批模块](../approval)。
+
+`vef.IntegrationModule`（v0.39）开启集成引擎——契约、系统、适配器、路由、
+入站 HTTP 网关与 `integration/*` 管理资源；见
+[集成引擎](../integration/overview)。
 
 ## 大型应用里的模块角色
 

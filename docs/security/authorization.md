@@ -12,7 +12,7 @@ The most common authorization entry point is `RequiredPermission` on an operatio
 
 ```go
 crud.NewUpdate[User, UserParams]().
-	RequiredPermission("sys:user:update")
+	RequiredPermission("sys.user.update")
 ```
 
 When the operation runs, the API auth middleware extracts the permission token and asks the configured permission checker whether the current principal is allowed.
@@ -85,9 +85,9 @@ Permission tokens should describe the action from the application's point of vie
 
 Good examples:
 
-- `sys:user:query`
-- `sys:user:create`
-- `approval:delegation:update`
+- `sys.user.query`
+- `sys.user.create`
+- `approval.delegation.update`
 
 These tokens stay stable even if the exact request payload changes.
 

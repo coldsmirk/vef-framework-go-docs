@@ -20,8 +20,8 @@ API groups covered in this guide:
 | resource and kind | `api.Resource`, `api.Kind`, `api.KindRPC`, `api.KindREST`, `api.ValidateActionName(action, kind) error`, `api.NewRPCResource(name, opts...)`, `api.NewRESTResource(name, opts...)`, `api.WithVersion(v)`, `api.WithAuth(config)`, `api.WithOperations(specs...)` |
 | engine and routing extension | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP` (v0.39), `api.M` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)` (v0.39), `api.HTTPBasicAuth()` (v0.39), `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler extension | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -156,8 +156,20 @@ Operation defaulting rules:
 | `Timeout` | non-positive values use the engine default, which is `30s` unless overridden |
 | `Public` | `true` resolves auth to `api.Public()` before resource/default auth |
 | `RequiredPermission` | copied into auth options as the required permission token when non-empty |
-| `RateLimit` | nil uses the engine default — `vef.api.rate_limit` when configured, else `Max=100`, `Period=5m` (v0.38); a custom `RateLimitConfig` replaces the default |
+| `RateLimit` | nil uses the engine default — `vef.api.rate_limit` when configured, else `Max=100`, `Period=5m` (v0.38); a custom `RateLimitConfig` replaces the default. An explicit `Max <= 0` does **not** disable limiting — the middleware falls back to the engine/config default for non-positive values |
 | `Handler` | RPC may infer from action when omitted; REST requires an explicit handler |
+
+Since v0.39, permission declarations are validated at registration and a
+violation fails startup:
+
+- `RequiredPermission` must be a **dot-separated** token matching
+  `^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$` (e.g. `sys.user.query`); colons,
+  slashes, dashes, empty segments, and whitespace are rejected with
+  `ErrPermissionTokenInvalid`.
+- Declaring `RequiredPermission` on an operation whose resolved auth strategy
+  is `none` (`Public: true`, or a resource-level `api.Public()`) is
+  contradictory — the anonymous principal can never satisfy it — and is
+  rejected with `ErrPermissionOnPublicOp`.
 
 ### Using with CRUD Builders
 
@@ -176,10 +188,10 @@ type UserResource struct {
 func NewUserResource() *UserResource {
     return &UserResource{
         Resource: api.NewRPCResource("sys/user"),
-        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
-        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
-        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
-        Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
+        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys.user.query"),
+        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys.user.create"),
+        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys.user.update"),
+        Delete:   crud.NewDelete[User]().RequiredPermission("sys.user.delete"),
     }
 }
 ```
@@ -194,7 +206,7 @@ resource := api.NewRPCResource("sys/user",
         api.OperationSpec{
             Action:             "reset_password",
             Handler:            resetPasswordHandler,
-            RequiredPermission: "sys:user:reset_password",
+            RequiredPermission: "sys.user.reset_password",
         },
     ),
 )
@@ -296,15 +308,20 @@ resource or operation customizes auth without mutating shared config.
 | Bearer | `api.AuthStrategyBearer` | Bearer token authentication |
 | Signature | `api.AuthStrategySignature` | Request signature authentication |
 | IP | `api.AuthStrategyIP` | Source-IP whitelist authentication |
+| API key | `api.AuthStrategyAPIKey` | Static API key authentication (v0.39) |
+| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic authentication (v0.39) |
 
 ### Helper Functions
 
 ```go
-api.Public()        // AuthConfig with strategy "none"
-api.BearerAuth()    // AuthConfig with strategy "bearer"
-api.SignatureAuth() // AuthConfig with strategy "signature"
-api.IPAuth()        // AuthConfig with strategy "ip" and whitelist "default"
-api.IPAuth("ops")   // AuthConfig with strategy "ip" and whitelist "ops"
+api.Public()               // AuthConfig with strategy "none"
+api.BearerAuth()           // AuthConfig with strategy "bearer"
+api.SignatureAuth()        // AuthConfig with strategy "signature"
+api.IPAuth()               // AuthConfig with strategy "ip" and whitelist "default"
+api.IPAuth("ops")          // AuthConfig with strategy "ip" and whitelist "ops"
+api.APIKeyAuth()           // AuthConfig with strategy "api_key", header X-API-Key (v0.39)
+api.APIKeyAuth("X-My-Key") // custom key header; more than one name panics
+api.HTTPBasicAuth()        // AuthConfig with strategy "http_basic" (v0.39)
 ```
 
 `api.IPAuth(...)` accepts zero or one whitelist name. With no argument it uses
@@ -317,6 +334,15 @@ panics. The built-in IP strategy resolves the named list through
 fail-closed rather than treated as public access. Behind a reverse proxy,
 configure `vef.app.trusted_proxies` so Fiber resolves the real client IP.
 
+`api.APIKeyAuth(...)` reads the key from `api.HeaderXAPIKey` (`X-API-Key`) by
+default; one custom header name may be passed and is stored under
+`api.AuthOptionAPIKeyHeader`. Keys resolve through `security.APIKeyLoader`
+(default: `vef.security.api_keys`). `api.HTTPBasicAuth()` verifies
+`Authorization: Basic` credentials through `security.BasicAccountLoader`
+(default: `vef.security.basic_accounts`) in constant time. Both reject
+uniformly with 401 (`ErrAPIKeyInvalid` / `ErrBasicCredentialsInvalid`); see
+[Authentication](../security/authentication) for the loader contracts.
+
 Custom authentication strategies implement `api.AuthStrategy` and register with
 `vef.ProvideAuthStrategy(...)` into `vef:api:auth_strategies`.
 
@@ -328,7 +354,7 @@ api.NewRPCResource("external/webhook", api.WithAuth(api.SignatureAuth()))
 
 // Operation-level: override per operation
 crud.NewCreate[User, UserParams]().Public()                    // No auth
-crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query") // Bearer + permission
+crud.NewFindPage[User, UserSearch]().RequiredPermission("sys.user.query") // Bearer + permission
 ```
 
 ## Rate Limiting
@@ -357,10 +383,12 @@ max    = 100   # default when omitted
 period = "5m"  # default when omitted
 ```
 
-An explicit `RateLimitConfig` with `Max <= 0` disables limiting for that
-operation. The framework's default key includes resource, version, action,
-resolved client IP, and the principal ID; anonymous requests use the anonymous
-principal.
+An explicit `RateLimitConfig` with `Max <= 0` does **not** disable limiting:
+the middleware only honors positive values and falls back to the
+engine/config default (which is always positive) for anything else — there is
+no per-operation off switch. The framework's default key includes resource,
+version, action, resolved client IP, and the principal ID; anonymous requests
+use the anonymous principal.
 
 Operation auth is carried by `Operation.Auth`; a public operation resolves to
 `api.AuthStrategyNone`, while protected operations carry the selected auth

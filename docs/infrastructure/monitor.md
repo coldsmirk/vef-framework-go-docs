@@ -55,12 +55,14 @@ Current actions:
 | `get_load` | none | `monitor.LoadInfo` | load averages |
 | `get_build_info` | none | `monitor.BuildInfo` | build metadata only |
 | `get_event_streams` | none | `monitor.EventStreamsInfo` | reports cross-process event stream and consumer-group state; `enabled=false` and an empty `streams` list when no `event.StreamInspector` is available (the redis_stream transport is off) |
+| `get_integration_stats` | none | `monitor.IntegrationStatsInfo` | reports per-node integration invocation statistics (v0.39); `enabled=false` and an empty `stats` list when no `integration.StatsInspector` is available (the integration module is off) |
 
 Implementation details visible in source:
 
 - each action currently sets a per-operation rate-limit max of `60`
 - `get_cpu` and `get_process` use a specific monitor-not-ready business error when samples are not ready
 - `get_event_streams` is gated by the optional `event.StreamInspector` dependency; a nil inspector still returns `200 OK` with `enabled=false` instead of failing
+- `get_integration_stats` mirrors the same degradation pattern over the optional `integration.StatsInspector`
 
 ## Error API
 
@@ -400,6 +402,13 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | --- | --- | --- |
 | `enabled` | `bool` | whether an `event.StreamInspector` is available (the redis_stream transport is on) |
 | `streams` | `[]event.StreamInfo` | one entry per transport stream; empty when `enabled` is `false` |
+
+### `monitor.IntegrationStatsInfo` (v0.39)
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | `bool` | whether an `integration.StatsInspector` is available (the integration module is on) |
+| `stats` | `[]integration.InvocationStats` | per-node counters per (system, contract, direction) tuple since process start; empty when `enabled` is `false`. Each entry carries `system`, `contract`, `direction`, `calls`, `successes`, `failures` (by failure kind), `avgDurationMs`, `maxDurationMs`, `lastError`, `lastErrorAt` — see [Integration Engine](../integration/overview#statistics) |
 
 ### `event.StreamInfo`
 

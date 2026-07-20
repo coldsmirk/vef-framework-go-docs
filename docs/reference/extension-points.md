@@ -14,7 +14,7 @@ The helper name prefix is not enough to tell how the value is wired. Use the mec
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib` (v0.39), `ProvideCronJobHandler` (v0.39), `ProvideIntegrationOutboundAuthScheme` (v0.39), `ProvideIntegrationInboundAuthScheme` (v0.39), `ProvideIntegrationInboundHandler` (v0.39), `ProvideSessionRevocationListener` (v0.39) |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
 | `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
@@ -38,7 +38,7 @@ Helpers:
 `ProvideAuthStrategy` appends a custom `api.AuthStrategy` into the auth-strategy
 group. The strategy is selected by the name returned from `Name()` through
 `api.AuthConfig.Strategy`; built-in strategies are `none`, `bearer`,
-`signature`, and `ip`.
+`signature`, `ip`, `api_key` (v0.39), and `http_basic` (v0.39).
 
 ## Minimal module example
 
@@ -68,10 +68,59 @@ Helper:
 ## Security
 
 - `vef:security:challenge_providers`
+- `vef:security:session_revocation_listeners` (v0.39)
+
+Helpers:
+
+- `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideSessionRevocationListener(...)` (v0.39) — appends a
+  `security.SessionRevocationListener` observing logout, concurrent-login
+  eviction, and administrative kicks; see
+  [Session Management](../security/session-management#revocation-listeners-v039)
+
+## Cron job handlers (v0.39)
+
+- `vef:cron:job_handlers`
 
 Helper:
 
-- `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideCronJobHandler(...)`
+
+Registers a durable `cron.JobHandler` with the schedule store — exactly one
+handler per job name; duplicate names fail startup. Handlers optionally ship
+a default schedule via `cron.WithDefaultSchedule`. See
+[Durable Schedules](../infrastructure/cron-store).
+
+## JS engine libraries (v0.39)
+
+- `vef:js:libs`
+
+Helper:
+
+- `vef.ProvideJSLib(...)`
+
+Contributes a `js.Lib` to the shared `js.Engine`: a lib whose name matches a
+built-in replaces it within its tier (always-on vs opt-in catalog), a new
+name joins the opt-in catalog. See [JS Engine](../data-tools/js-engine).
+
+## Integration engine (v0.39, requires `vef.IntegrationModule`)
+
+- `vef:integration:outbound_auth_schemes`
+- `vef:integration:inbound_auth_schemes`
+- `vef:integration:inbound_handlers`
+
+Helpers:
+
+- `vef.ProvideIntegrationOutboundAuthScheme(...)` — custom
+  `integration.OutboundAuthScheme`; a name matching a built-in replaces it
+- `vef.ProvideIntegrationInboundAuthScheme(...)` — custom
+  `integration.InboundAuthScheme`; same replacement rule
+- `vef.ProvideIntegrationInboundHandler(...)` — the business handler serving
+  one inbound contract; exactly one handler per contract code
+
+The default `integration.RouteResolver` is replaced with plain
+`fx.Decorate` when routing lives outside the `itg_route` table. See
+[Integration Engine](../integration/overview).
 
 ## Event bus
 

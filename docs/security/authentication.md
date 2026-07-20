@@ -238,7 +238,7 @@ The login response DTOs use these exact fields:
 | `Authentication` | JSON `type`, `principal`, `credentials` |
 | `LoginResult` | JSON `tokens`, `challengeToken`, `challenge` |
 | `LoginChallenge` | JSON `type`, `data`, `required` |
-| `ChallengeState` | Go-only state: `Principal`, `Pending`, `Resolved` |
+| `ChallengeState` | Go-only state: `Principal`, `Username` (original login identifier, preserved across steps for audit events), `Pending`, `Resolved` |
 
 ## What Applications Usually Provide
 

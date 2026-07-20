@@ -217,7 +217,7 @@ Go API 层里，这个响应形状由 `LoginResult` 表示；当前步骤由 `Lo
 | `Authentication` | JSON `type`、`principal`、`credentials` |
 | `LoginResult` | JSON `tokens`、`challengeToken`、`challenge` |
 | `LoginChallenge` | JSON `type`、`data`、`required` |
-| `ChallengeState` | Go-only state: `Principal`、`Pending`、`Resolved` |
+| `ChallengeState` | Go-only state: `Principal`、`Username`（第一步提交的原始登录标识，跨挑战步骤保留、用于审计事件）、`Pending`、`Resolved` |
 
 ## 应用通常还需要提供什么
 

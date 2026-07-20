@@ -14,23 +14,26 @@ This is the canonical statement of the VEF boot pipeline. It is assembled from
 `vef.Run` and the `internal/apptest` test harness, so the two graphs cannot
 drift):
 
-`config -> datasource -> middleware -> api -> security -> event -> expression -> cqrs -> cron -> redis -> lock -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> app`
+`config -> datasource -> middleware -> api -> security -> event -> expression -> js -> cqrs -> cron -> redis -> lock -> mold -> storage -> sequence -> outbox -> redis-stream -> inbox -> schema -> monitor -> mcp -> push -> app`
 
 `datasource` is a single step: it connects `*sql.DB` (via `internal/database`)
 and wraps it into `orm.DB` (via `internal/orm`) in one module — there is no
 separate `database` or `orm` boot step. `outbox`, `redis-stream`, and `inbox`
 are the event transport submodules — the outbox transport module, the
 redis-stream transport module, and the inbox module — registered after
-`sequence` and before `schema`.
+`sequence` and before `schema`. `js` is the shared JS engine module and
+`push` is the WebSocket push module (v0.39).
 
-That order matters because later modules depend on earlier ones:
+Note the list order is for readability: FX resolves the actual construction
+order from declared dependencies, so what matters is the dependency shape —
 
-- config comes before everything
-- datasource comes before API handlers that need `orm.DB`
-- security comes before authenticated API requests
-- the event transport submodules (outbox, redis-stream, inbox) come after the
-  core `event` module but before schema, monitor, and MCP
-- storage, monitor, schema, and MCP are registered before the app starts listening
+- config feeds everything
+- datasource feeds API handlers that need `orm.DB`
+- security feeds authenticated API requests
+- the event transport submodules (outbox, redis-stream, inbox) build on the
+  core `event` module
+- storage, monitor, schema, MCP, and push are all wired before the app starts
+  listening
 
 ## What `vef.Run(...)` actually does
 
@@ -102,9 +105,10 @@ From the current middleware module, the common order is:
 - panic recovery
 - request record logging
 - API routes
-- MCP endpoint middleware
-- storage proxy routes
-- SPA fallback middleware
+- push WebSocket endpoint (order 450, v0.39; the integration inbound gateway sits at 400 when that module is enabled)
+- MCP endpoint middleware (order 500)
+- storage proxy routes (order 900)
+- SPA fallback middleware (order 1000)
 
 The important consequence is that app middleware can run even for requests that never reach the API engine.
 

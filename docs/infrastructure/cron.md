@@ -14,7 +14,11 @@ package and coexist in one application.
 
 ## Public Surface
 
-The package has no exported fields. Its public top-level API is:
+This section lists the in-memory scheduler's public API only. The same `cron`
+package also exports the durable-scheduling surface (`Schedule`, `Run`,
+`TriggerSpec`, `ScheduleManager`, `JobHandler`, run events, and their
+exported fields) — that half is documented in
+[Durable Schedules](./cron-store).
 
 | API | Contract |
 | --- | --- |

@@ -490,8 +490,12 @@ Among foreign keys, `created_by` and `updated_by` must be placed last.
 
 ### 9.1 Audit Field Update Mechanism
 
-- `created_at` and `created_by` are filled by database defaults on insert and must not be updated later
-- `updated_at` and `updated_by` must be assigned by the application on every update
+- inserts and updates that go through the framework ORM maintain all four
+  audit columns automatically: `created_at`/`created_by` are stamped on
+  insert (and protected by `skipupdate`), `updated_at`/`updated_by` on every
+  update
+- DDL-level `DEFAULT` values on `created_at`/`created_by` are a fallback for
+  raw-SQL writes that bypass the ORM, not the primary mechanism
 - database triggers must not be used for this responsibility
 
 ### 9.2 System-Reserved User Initialization Prerequisite

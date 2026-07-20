@@ -190,7 +190,7 @@ func NewProductResource() api.Resource {
 `Public()` 让本教程无需认证提供者即可运行。在真实应用中应去掉它，改为按操作声明权限：
 
 ```go
-crud.NewCreate[Product, ProductParams]().RequiredPermission("app:product:create")
+crud.NewCreate[Product, ProductParams]().RequiredPermission("app.product.create")
 ```
 
 ## 5. 注册模块并运行

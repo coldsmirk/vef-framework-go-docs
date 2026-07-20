@@ -36,8 +36,8 @@ TTL. `vef.security.token_expires` configures the refresh-token TTL instead
 Access and refresh tokens generated together share the same `jti`.
 
 JWT parsing accepts only `HS256`, requires issuer `JWTIssuer` (`vef`), validates
-audience, requires `iat` and `exp`, and applies a 10-second leeway. The compact
-claim keys are:
+audience, validates `iat` when present, requires `exp`, and applies a
+10-second leeway. The compact claim keys are:
 
 | Claim | Key |
 | --- | --- |
@@ -98,8 +98,10 @@ Their wire values and default orders are:
 | `ChallengeTypePasswordChange` | `password_change` | `400` |
 | `ChallengeTypeDepartmentSelection` | `department_selection` | `500` |
 
-`ChallengeTokenStore.Generate(ctx, principal, pending, resolved)` and
-`Parse(ctx, token)` carry the state between `login` and `resolve_challenge`.
+`ChallengeTokenStore.Generate(ctx, principal, username, pending, resolved)` and
+`Parse(ctx, token)` carry the state between `login` and `resolve_challenge`
+(`username` is the original login identifier the applicant supplied at the
+first step, preserved across challenge steps for audit events).
 The built-in login resources expose that state field as `challengeToken`.
 `JWTChallengeTokenStore` is stateless; `MemoryChallengeTokenStore` is suitable
 for tests or single-instance deployments; `RedisChallengeTokenStore` is for
@@ -118,10 +120,12 @@ Challenge token stores have different wire/storage shapes:
 
 The JWT challenge claim keys are `ptp` (`ClaimChallengePrincipalType`), `pnm`
 (`ClaimChallengePrincipalName`), `unm` (`ClaimChallengeUsername`), `pnd`
-(`ClaimChallengePending`), and `rsd` (`ClaimChallengeResolved`). Challenge
-parsing accepts empty principal type as a backwards-compatible user principal,
-accepts `user`, `external_app`, and `system`, and rejects unknown principal
-types.
+(`ClaimChallengePending`), and `rsd` (`ClaimChallengeResolved`). Since the
+v0.39 reserved-identity hardening, challenge parsing accepts only `user` and
+`external_app` principal types — `system`, empty, and unknown types are all
+rejected with `ErrTokenInvalid` (a challenge token carrying the framework's
+internal identity has no legitimate origin), and a parsed principal that
+reports `IsReserved()` is rejected as well.
 
 Challenge providers are sorted by `Order()` in ascending order. The built-in
 convenience providers use `100` for TOTP, `200` for SMS, `300` for email, `400`
@@ -215,8 +219,10 @@ Signature storage keys and defaults:
 | Redis nonce prefix | `vef:security:nonce:` |
 | disable replay checking | `WithNonceStore(nil)` |
 
-Security-domain API errors expose `ErrCode*` constants in the `1000-1039`
-range:
+Security-domain API errors expose `ErrCode*` constants: `1000`–`1029` for
+authentication, `1030`–`1039` for challenges, and `1050` for password policy
+(every policy violation shares that one code — see
+[Login Hardening](./login-hardening)):
 
 | Code | Constant | Error | HTTP status |
 | --- | --- | --- | --- |
@@ -243,9 +249,13 @@ range:
 | `1020` | `ErrCodeNonceAlreadyUsed` | `ErrNonceAlreadyUsed` | `401` |
 | `1021` | `ErrCodeAuthHeaderMissing` | `ErrAuthHeaderMissing` | `401` |
 | `1022` | `ErrCodeAuthHeaderInvalid` | `ErrAuthHeaderInvalid` | `401` |
+| `1023` | `ErrCodeAccountLocked` | dynamic account-locked error (see [Login Hardening](./login-hardening)) | `429` |
+| `1024` | `ErrCodeTooManyConcurrentSessions` | `ErrTooManyConcurrentSessions` | `403` |
+| `1025` | `ErrCodeAPIKeyInvalid` | `ErrAPIKeyInvalid` (v0.39) | `401` |
+| `1026` | `ErrCodeBasicCredentialsInvalid` | `ErrBasicCredentialsInvalid` (v0.39) | `401` |
 | `1031` | `ErrCodeChallengeTokenInvalid` | `ErrChallengeTokenInvalid` | `401` |
 | `1033` | `ErrCodeChallengeTypeInvalid` | `ErrChallengeTypeInvalid` | `400` |
-| `1034` | `ErrCodeChallengeResolveFailed` | challenge resolve failure message ID | reserved |
+| `1034` | `ErrCodeChallengeResolveFailed` | `ErrChallengeResolveFailed` | `401` |
 | `1035` | `ErrCodeOTPCodeRequired` | `ErrOTPCodeRequired` | `400` |
 | `1036` | `ErrCodeOTPCodeInvalid` | `ErrOTPCodeInvalid` | `401` |
 | `1037` | `ErrCodeNewPasswordRequired` | `ErrNewPasswordRequired` | `400` |
@@ -259,11 +269,16 @@ Authentication-related sentinels include `ErrUnauthenticated`,
 `ErrExternalAppDisabled`, `ErrIPNotAllowed`, `ErrNonceRequired`,
 `ErrNonceInvalid`, `ErrNonceAlreadyUsed`, `ErrAuthHeaderMissing`,
 `ErrAuthHeaderInvalid`, `ErrChallengeTokenInvalid`,
-`ErrChallengeTypeInvalid`, `ErrOTPCodeRequired`, `ErrOTPCodeInvalid`,
-`ErrNewPasswordRequired`, `ErrDepartmentRequired`, plus the factory helpers
+`ErrChallengeTypeInvalid`, `ErrChallengeResolveFailed`, `ErrOTPCodeRequired`,
+`ErrOTPCodeInvalid`, `ErrNewPasswordRequired`, `ErrDepartmentRequired`,
+`ErrTooManyConcurrentSessions`, `ErrAPIKeyInvalid`,
+`ErrBasicCredentialsInvalid`, and `ErrReservedPrincipal` (v0.39 — rejects a
+framework-internal identity at every entry point; it rides
+`ErrCodePrincipalInvalid`/`1007` with HTTP 401), plus the factory helpers
 `ErrCredentialsInvalid(message)` and `ErrPrincipalInvalid(message)`.
-`ErrCodeChallengeResolveFailed` and `ErrChallengeResolveFailed` are reserved
-for challenge resolution failures.
+Since v0.39, `ErrChallengeResolveFailed` is no longer a reserved placeholder:
+`resolve_challenge` normalizes bare errors returned by a `ChallengeProvider`
+into it.
 
 Low-level secret parsing errors use `ErrDecodeJWTSecretFailed`,
 `ErrGenerateJWTSecretFailed`, `ErrDecodeSignatureSecretFailed`, and

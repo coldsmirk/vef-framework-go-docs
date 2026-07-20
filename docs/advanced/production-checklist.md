@@ -7,7 +7,7 @@ sidebar_position: 4
 Production-readiness concerns are spread across many pages. This page collects
 them into one ordered checklist: each item states what to set, why, and the
 config key or API, then links to the page that documents it in depth. All
-defaults and failure modes below reflect v0.37.0.
+defaults and failure modes below reflect v0.39.0.
 
 ## Security
 
@@ -103,13 +103,41 @@ defaults and failure modes below reflect v0.37.0.
     `60`); add permission checks or network controls if host metrics are
     sensitive in your environment. See [Monitor](../infrastructure/monitor)
     and [Built-in Resources](../reference/built-in-resources).
-18. **Set the log level.** `VEF_LOG_LEVEL` accepts `debug|info|warn|error` and
-    defaults to `info`. See [logx](../utilities/logx).
+18. **Set the log level.** `VEF_LOG_LEVEL` accepts `debug|info|warn|error`
+    (plus `panic`); unrecognized values fall back to `info`, the default. See
+    [logx](../utilities/logx).
 19. **Inject build info.** Generate build metadata with
     `vef-cli generate-build-info` and supply it via `vef.Supply(BuildInfo)`;
     without it, `sys/monitor` reports `unknown` for app version, build time,
     and git commit. See [CLI Tools](./cli-tools) and
     [Monitor](../infrastructure/monitor).
+
+## Optional modules (v0.39)
+
+Skip the items for modules you do not enable.
+
+20. **Set `vef.integration.secret_key` before enabling
+    `vef.IntegrationModule`.** Without it, integration auth parameters and
+    data-source passwords are stored in **plaintext** with only a startup
+    warning. Pick `secret_algorithm` (`aes` default, `sm4`) deliberately —
+    values sealed under one algorithm are unreadable under the other. Treat
+    `vef.security.api_keys` / `basic_accounts` (the static credential maps
+    behind the `api_key` / `http_basic` strategies) with the same secrecy.
+    See [Integration Engine](../integration/overview).
+21. **Whitelist `vef.push.allowed_origins`.** The push endpoint allows every
+    browser origin when the list is empty (the handshake is still
+    token-authenticated; the whitelist is defense in depth). Multi-node
+    deployments need Redis for the cross-node relay, and the relay refuses to
+    start without a non-empty `vef.app.name`. See
+    [Server Push](../infrastructure/push).
+22. **Review cron store limits when enabling `vef.cron.store`.**
+    `run_timeout` defaults to `0` (runs are unbounded) and `run_retention`
+    defaults to `0` (the journal is never pruned) — opt into both
+    deliberately; startup validates `abandoned_after ≥ 2 × heartbeat_interval`.
+    See [Durable Schedules](../infrastructure/cron-store).
+23. **Recount your Redis dependents.** Beyond item 10, v0.38+ opaque-token
+    sessions (`security.NewRedisSessionStore`) and the v0.39 push relay also
+    need Redis in multi-node deployments.
 
 ## Next step
 

@@ -35,7 +35,7 @@ _, err := db.NewCreateIndex().
 db.NewDropTable().Model((*User)(nil)).IfExists().Exec(ctx)
 db.NewTruncateTable().Model((*User)(nil)).Exec(ctx)
 db.NewAddColumn().Model((*User)(nil)).
-    Column("phone", orm.DataType.Varchar(20)).
+    Column("phone", orm.DataType.VarChar(20)).
     IfNotExists().
     Exec(ctx)
 db.NewDropColumn().Model((*User)(nil)).Column("phone").Exec(ctx)
@@ -62,7 +62,7 @@ subquery 和 condition-builder helpers。
 | 表达式占位符 | `PlaceholderKeyOperator`, `ExprOperator`, `ExprTableColumns`, `ExprColumns`, `ExprTablePKs`, `ExprPKs`, `ExprTableName`, `ExprTableAlias` |
 | 审计常量 | `ColumnID`, `ColumnCreatedAt`, `ColumnUpdatedAt`, `ColumnCreatedBy`, `ColumnUpdatedBy`, `ColumnCreatedByName`, `ColumnUpdatedByName`, `FieldID`, `FieldCreatedAt`, `FieldUpdatedAt`, `FieldCreatedBy`, `FieldUpdatedBy`, `FieldCreatedByName`, `FieldUpdatedByName`, `OperatorSystem`, `OperatorCronJob`, `OperatorAnonymous` |
 | enum family | `JoinType`, `FuzzyKind`, `NullsMode`, `FromDirection`, `FrameType`, `FrameBoundKind`, `StatisticalMode`, `DateTimeUnit`, `JoinDefault`, `JoinInner`, `JoinLeft`, `JoinRight`, `JoinFull`, `JoinCross`, `FuzzyStarts`, `FuzzyEnds`, `FuzzyContains`, `NullsDefault`, `NullsRespect`, `NullsIgnore`, `FromDefault`, `FromFirst`, `FromLast`, `FrameDefault`, `FrameRows`, `FrameRange`, `FrameGroups`, `FrameBoundNone`, `FrameBoundUnboundedPreceding`, `FrameBoundUnboundedFollowing`, `FrameBoundCurrentRow`, `FrameBoundPreceding`, `FrameBoundFollowing`, `StatisticalDefault`, `StatisticalPopulation`, `StatisticalSample`, `ConflictDoNothing`, `ConflictDoUpdate`, `UnitYear`, `UnitMonth`, `UnitDay`, `UnitHour`, `UnitMinute`, `UnitSecond`, `ReferenceCascade`, `ReferenceRestrict`, `ReferenceSetNull`, `ReferenceSetDefault`, `ReferenceNoAction`, `IndexBTree`, `IndexHash`, `IndexGIN`, `IndexGiST`, `IndexSPGiST`, `IndexBRIN`, `PartitionRange`, `PartitionList`, `PartitionHash` |
-| helper | `Applier`, `ApplyFunc`, `ApplySort`, `DataType`, `PrimaryKey`, `NotNull`, `Nullable`, `Default`, `Unique`, `Check`, `References`, `AutoIncrement`, `PKField`, `ColumnInfo` |
+| helper | `Applier`, `ApplyFunc`, `ApplySort`, `DataType`, `PrimaryKey`, `NotNull`, `Nullable`, `Default`, `Unique`, `Check`, `References`, `AutoIncrement`, `PKField`, `ColumnInfo`, `LabelsEqual`（v0.39）, `ValidateLabels`（v0.39）, `ErrInvalidLabel`（v0.39） |
 
 只有 DDL default 必须原样渲染可信 SQL 表达式时，才使用
 `orm.RawDefault("CURRENT_TIMESTAMP")`。普通 `orm.Default(value)` 仍让字符串、

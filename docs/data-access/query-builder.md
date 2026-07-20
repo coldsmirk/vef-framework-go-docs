@@ -24,11 +24,15 @@ The `search` tag describes how a field becomes one or more SQL conditions.
 
 ## Default Behavior Without A `search` Tag
 
-If a field has no `search` tag at all:
+If a named (non-embedded) field has no `search` tag at all:
 
 - the framework still includes it in the parsed search schema
 - the default operator is `eq`
 - the default column name is the snake_case form of the field name
+
+Anonymous embedded fields without a `search` tag are skipped entirely (not
+just `api.P` — embedding `crud.Sortable` or any other struct never produces a
+condition); tag an embedded field with `search:"dive"` to recurse into it.
 
 That means this field:
 
@@ -68,8 +72,9 @@ Supported tag attributes:
 The outer `search` tag is comma-separated. The `params` value itself is parsed
 as space-separated `key:value` pairs, for example
 `params=delimiter:| type:int`. Internally this uses
-`WithSpacePairDelimiter` with `:` as the value delimiter. An anonymous embedded
-`api.P` field is skipped by the parser instead of becoming a search condition.
+`WithSpacePairDelimiter` with `:` as the value delimiter. Anonymous embedded
+fields without a `search` tag (including `api.P`) are skipped by the parser
+instead of becoming search conditions.
 The ignored-field marker value is `-`.
 
 ## Supported Operators

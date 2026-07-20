@@ -490,8 +490,10 @@ CREATE TABLE sys_user (
 
 ### 9.1 审计字段更新机制
 
-- `created_at` 和 `created_by` 只在插入时由数据库默认值填充，后续不得修改
-- `updated_at` 和 `updated_by` 必须由应用程序在每次更新时赋值
+- 经框架 ORM 的插入与更新会自动维护全部四个审计列：`created_at`/`created_by`
+  在插入时写入（并由 `skipupdate` 保护），`updated_at`/`updated_by` 在每次
+  更新时写入
+- DDL 层面的 `DEFAULT` 只是绕过 ORM 的裸 SQL 写入场景下的兜底，不是主要机制
 - 不得使用数据库触发器承担这一职责
 
 ### 9.2 系统保留用户初始化前提

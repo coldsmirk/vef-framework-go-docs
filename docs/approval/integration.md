@@ -227,6 +227,7 @@ type Delegation struct {
     StartTime      timex.DateTime // Delegation start
     EndTime        timex.DateTime // Delegation end
     IsActive       bool
+    Reason         *string        // Optional: why the delegation exists
 }
 ```
 
@@ -253,7 +254,7 @@ type Delegation struct {
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
 | DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
 | admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
-| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts` |
+| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm` (v0.39), `ViewerTask` (v0.39), `RollbackTarget` (v0.39), `RemovableAssignee` (v0.39) |
 
 ---
 

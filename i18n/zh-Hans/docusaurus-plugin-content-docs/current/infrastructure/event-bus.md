@@ -214,7 +214,7 @@ Bus 会运行 FX group `vef:event:publish-middlewares` 和 `vef:event:consume-mi
 | --- | --- | --- |
 | logging | 包住 publish/consume 的结构化日志 | `logging` 开关 |
 | tracing | W3C trace/span 跨 transport 传播 | `tracing` 开关；在信任边界处把 `tracing_strict = true` 打开，把跨进程进来的 TraceID 当作不可信 |
-| metrics | 通过 `PublishObserved` 和 `ConsumeObserved` 记录计数和延迟直方图 | 可自定义 `MetricsRecorder` |
+| metrics | 通过 `PublishObserved` 和 `ConsumeObserved` 记录计数和延迟直方图 | `[vef.event.middleware] metrics` 开关；可自定义 `MetricsRecorder` |
 | recover | 把 panic 包装为 `event.ErrHandlerPanic` | `recover` 开关 |
 | inbox | 消费侧幂等去重 | `inbox` 开关；**只**在 transport 的 `Capabilities.AtLeastOnce = true` 时挂上 |
 
@@ -434,7 +434,7 @@ idle_group_sweep_interval = "10m"
 | `vef.storage.file.claimed` | 业务事务采纳了一个 pending 的上传 claim |
 | `vef.storage.file.deleted` | storage 删除 worker 把文件从后端删除完成 |
 | `vef.storage.delete.dead_letter` | 删除 worker 重试用尽；队列行已退役，事件携带排查信息 |
-| `vef.approval.task.created` | 审批任务创建（v0.25，所有任务创建路径统一发出） |
+| `approval.task.created` | 审批任务创建（v0.25，所有任务创建路径统一发出；注意审批域主题使用 `approval.*` 前缀，而非 `vef.*`） |
 
 启用 approval 模块后，还会发布更多审批域事件 —— 参考 [Approval 模块](../approval)。
 

@@ -37,6 +37,7 @@ Key fields:
 - `name`: used as the app name and as input to JWT audience generation
 - `port`: HTTP port for the Fiber app
 - `body_limit`: parsed by Fiber; defaults to `32mib` when omitted
+- `trusted_proxies`: proxy IPs/CIDRs whose forwarding headers Fiber may trust; empty means `X-Forwarded-For` is ignored
 
 ### `vef.api`
 
@@ -79,10 +80,14 @@ Supported `type` values (drivers registered in the framework runtime):
 - `postgres`
 - `mysql`
 - `sqlite`
+- `sqlserver` (v0.39)
+- `oracle` (v0.39)
 
 For SQLite, `path` is optional. When omitted, the framework uses a shared in-memory database.
 
-> The `config.DBKind` enum also declares `oracle` and `sqlserver` constants for future use, but the framework does not currently ship runtime providers for them — configuring those values returns `database.ErrUnsupportedDBKind` at boot.
+Network dialects also accept `ssl_mode` (`disable` | `require` | `verify-ca`
+| `verify-full`, default `disable`) and `ssl_root_cert`; dialect notes for
+SQL Server and Oracle live in [Datasources](../data-access/datasources).
 
 ### `vef.cors`
 
@@ -220,16 +225,16 @@ and the module guides:
 [Integration Engine](../integration/overview), and
 [Server Push](../infrastructure/push).
 
-## Environment overrides
+## Environment variables
 
-VEF uses an environment prefix and dot-to-underscore replacement, so config keys can be overridden with environment variables.
+Configuration keys are **not** overridable through environment variables —
+the generic prefix + dot-to-underscore override mechanism was removed. The
+framework reads exactly three standalone environment variables, none of which
+maps to a config key:
 
-Examples:
-
-- `VEF_CONFIG_PATH`
-- `VEF_LOG_LEVEL`
-- `VEF_NODE_ID`
-- `VEF_I18N_LANGUAGE`
+- `VEF_CONFIG_PATH` — extra config search directory
+- `VEF_LOG_LEVEL` — log verbosity
+- `VEF_I18N_LANGUAGE` — framework language
 
 ## What configuration does not do
 

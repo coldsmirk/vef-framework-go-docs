@@ -25,6 +25,7 @@ The framework supports these request-decoding targets:
 | Target type | Decoded from | Validation | Typical use |
 | --- | --- | --- | --- |
 | typed struct embedding `api.P` | `params` | Yes | business params |
+| typed struct embedding `api.StrictP` (v0.39) | `params` | Yes | business params, rejecting request keys the struct does not declare (`Params.DecodeStrict`) |
 | typed struct embedding `api.M` | `meta` | Yes | typed meta |
 | `page.Pageable` | `meta` | Yes | paging |
 | `api.Params` | `params` | No typed validation | raw dynamic payload |
@@ -73,8 +74,10 @@ The framework has built-in support for these meta-oriented helper types:
 
 Important distinction:
 
-- `page.Pageable` is a built-in meta target type
-- `crud.Sortable` is not resolved as a standalone built-in meta type, but it works naturally when embedded in a typed `api.M` struct
+- `page.Pageable` is the only entry in the built-in meta type list
+- `crud.Sortable` is not on that list, but since it embeds `api.M` itself it
+  still resolves as a standalone handler parameter through the embedded-`M`
+  path — and it works naturally when embedded in your own typed meta struct
 
 ## Raw Access
 

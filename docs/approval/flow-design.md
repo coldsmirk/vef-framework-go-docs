@@ -28,10 +28,13 @@ combined with OR logic.
 `OperatorGreaterOrEq`, `OperatorLess`, `OperatorLessOrEq`, `OperatorIn`,
 `OperatorNotIn`, `OperatorContains`, `OperatorNotContains`,
 `OperatorStartsWith`, `OperatorEndsWith`, `OperatorIsEmpty`, and
-`OperatorIsNotEmpty`. The built-in evaluator converts field conditions to an
-`expr-lang` expression; unknown operators evaluate to `false`.
+`OperatorIsNotEmpty`. The built-in evaluator compares field conditions
+**natively in Go** — no expression templating, no injection surface — with
+operator semantics typed per field kind; an operator outside the vocabulary
+fails the evaluation with an error rather than silently evaluating to
+`false`.
 
-`ConditionExpression` evaluates the raw `Expression` string with `expr-lang`.
+`ConditionExpression` evaluates the raw `Expression` string.
 The evaluation environment exposes:
 
 | Name | Value |
@@ -41,9 +44,10 @@ The evaluation environment exposes:
 | `applicantDepartmentId` | applicant department ID, or `""` when absent |
 | globals | host-resolved `Instance.Globals` values exposed as top-level bindings |
 
-Approval conditions intentionally use `expr-lang` directly, not the public
-`expression.Engine` wrapper. That keeps workflow condition semantics tied to
-the approval evaluator and independent of expression module wiring.
+Expression conditions are evaluated through the framework's
+`expression.Engine` abstraction (currently backed by `expr-lang`), wired by
+DI — the same engine documented in
+[Expression Engine](../data-tools/expression).
 
 Host applications can implement `approval.InstanceGlobalsResolver` to resolve
 global variables from the authenticated principal at instance start. The
@@ -319,6 +323,10 @@ Flow design and persistence models exposed by the public package include
 and only `FormFieldDefinition` remains a framework shape). Flow-version
 status uses `VersionStatus`: `VersionDraft` (`draft`), `VersionPublished`
 (`published`), and `VersionArchived` (`archived`).
+
+`Flow.Labels` (v0.39) is host-owned selection metadata — validated at save
+time by the shared label rule and equality-filterable in list queries; see
+[RPC Resources](./resources.md) for the wire shape.
 
 Additional flow-designer enums:
 

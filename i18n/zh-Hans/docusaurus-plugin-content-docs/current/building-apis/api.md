@@ -19,8 +19,8 @@ surface 背后的受支持行为和运行时 contract。
 | resource 和 kind | `api.Resource`, `api.Kind`, `api.KindRPC`, `api.KindREST`, `api.ValidateActionName(action, kind) error`, `api.NewRPCResource(name, opts...)`, `api.NewRESTResource(name, opts...)`, `api.WithVersion(v)`, `api.WithAuth(config)`, `api.WithOperations(specs...)` |
 | engine 和 routing 扩展 | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP`（v0.39）, `api.M` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`（v0.39）, `api.HTTPBasicAuth()`（v0.39）, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler 扩展 | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit、headers、versions、errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -153,8 +153,17 @@ Operation 默认化规则：
 | `Timeout` | 非正值使用 engine 默认值；未覆盖时默认 `30s` |
 | `Public` | 为 `true` 时先解析为 `api.Public()`，优先于资源级/default auth |
 | `RequiredPermission` | 非空时写入 auth options 中的 required permission token |
-| `RateLimit` | nil 使用 engine 默认——配置了 `vef.api.rate_limit` 时用配置值，否则 `Max=100`、`Period=5m`（v0.38）；自定义 `RateLimitConfig` 会替换默认值 |
+| `RateLimit` | nil 使用 engine 默认——配置了 `vef.api.rate_limit` 时用配置值，否则 `Max=100`、`Period=5m`（v0.38）；自定义 `RateLimitConfig` 会替换默认值。显式 `Max <= 0` **不会**关闭限流——中间件对非正值回退到 engine/配置默认值 |
 | `Handler` | RPC 可在省略时从 action 推断；REST 必须显式提供 handler |
+
+自 v0.39 起，权限声明在注册时校验，违规将导致启动失败：
+
+- `RequiredPermission` 必须是匹配 `^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$` 的
+  **点分隔**令牌（如 `sys.user.query`）；冒号、斜杠、连字符、空段与空白
+  均被 `ErrPermissionTokenInvalid` 拒绝。
+- 在解析后认证策略为 `none` 的操作上（`Public: true`，或资源级
+  `api.Public()`）声明 `RequiredPermission` 是自相矛盾的——匿名主体永远
+  无法满足它——会被 `ErrPermissionOnPublicOp` 拒绝。
 
 ### 配合 CRUD Builder 使用
 
@@ -173,10 +182,10 @@ type UserResource struct {
 func NewUserResource() *UserResource {
     return &UserResource{
         Resource: api.NewRPCResource("sys/user"),
-        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query"),
-        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys:user:create"),
-        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys:user:update"),
-        Delete:   crud.NewDelete[User]().RequiredPermission("sys:user:delete"),
+        FindPage: crud.NewFindPage[User, UserSearch]().RequiredPermission("sys.user.query"),
+        Create:   crud.NewCreate[User, UserParams]().RequiredPermission("sys.user.create"),
+        Update:   crud.NewUpdate[User, UserParams]().RequiredPermission("sys.user.update"),
+        Delete:   crud.NewDelete[User]().RequiredPermission("sys.user.delete"),
     }
 }
 ```
@@ -191,7 +200,7 @@ resource := api.NewRPCResource("sys/user",
         api.OperationSpec{
             Action:             "reset_password",
             Handler:            resetPasswordHandler,
-            RequiredPermission: "sys:user:reset_password",
+            RequiredPermission: "sys.user.reset_password",
         },
     ),
 )
@@ -292,15 +301,20 @@ type AuthConfig struct {
 | Bearer | `api.AuthStrategyBearer` | Bearer 令牌认证 |
 | 签名 | `api.AuthStrategySignature` | 请求签名认证 |
 | IP | `api.AuthStrategyIP` | 来源 IP 白名单认证 |
+| API key | `api.AuthStrategyAPIKey` | 静态 API key 认证（v0.39） |
+| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic 认证（v0.39） |
 
 ### 辅助函数
 
 ```go
-api.Public()        // 策略为 "none" 的 AuthConfig
-api.BearerAuth()    // 策略为 "bearer" 的 AuthConfig
-api.SignatureAuth() // 策略为 "signature" 的 AuthConfig
-api.IPAuth()        // 策略为 "ip"，使用 "default" whitelist
-api.IPAuth("ops")   // 策略为 "ip"，使用 "ops" whitelist
+api.Public()               // 策略为 "none" 的 AuthConfig
+api.BearerAuth()           // 策略为 "bearer" 的 AuthConfig
+api.SignatureAuth()        // 策略为 "signature" 的 AuthConfig
+api.IPAuth()               // 策略为 "ip"，使用 "default" whitelist
+api.IPAuth("ops")          // 策略为 "ip"，使用 "ops" whitelist
+api.APIKeyAuth()           // 策略为 "api_key"，读 X-API-Key 头（v0.39）
+api.APIKeyAuth("X-My-Key") // 自定义 key 头；传多个名称会 panic
+api.HTTPBasicAuth()        // 策略为 "http_basic"（v0.39）
 ```
 
 `api.IPAuth(...)` 接受 0 或 1 个 whitelist 名称。不传时使用
@@ -311,6 +325,14 @@ api.IPAuth("ops")   // 策略为 "ip"，使用 "ops" whitelist
 `security.ErrIPNotAllowed`，缺失或为空的命名 whitelist 会 fail-closed，而不会
 降级为公开访问。位于反向代理之后时，需要配置 `vef.app.trusted_proxies`，让
 Fiber 解析到真实客户端 IP。
+
+`api.APIKeyAuth(...)` 默认从 `api.HeaderXAPIKey`（`X-API-Key`）读取密钥；
+可以传一个自定义头名，写入 `api.AuthOptionAPIKeyHeader`。密钥经
+`security.APIKeyLoader` 解析（默认读 `vef.security.api_keys`）。
+`api.HTTPBasicAuth()` 经 `security.BasicAccountLoader`（默认读
+`vef.security.basic_accounts`）以常数时间比较验证 `Authorization: Basic`
+凭证。两者都统一以 401 拒绝（`ErrAPIKeyInvalid` /
+`ErrBasicCredentialsInvalid`）；loader 契约见[认证](../security/authentication)。
 
 自定义认证策略实现 `api.AuthStrategy`，并通过
 `vef.ProvideAuthStrategy(...)` 注册到 `vef:api:auth_strategies`。
@@ -323,7 +345,7 @@ api.NewRPCResource("external/webhook", api.WithAuth(api.SignatureAuth()))
 
 // 操作级：按操作覆盖
 crud.NewCreate[User, UserParams]().Public()                      // 无认证
-crud.NewFindPage[User, UserSearch]().RequiredPermission("sys:user:query") // Bearer + 权限
+crud.NewFindPage[User, UserSearch]().RequiredPermission("sys.user.query") // Bearer + 权限
 ```
 
 ## 限流
@@ -351,9 +373,10 @@ max    = 100   # 省略时的默认值
 period = "5m"  # 省略时的默认值
 ```
 
-显式提供 `RateLimitConfig` 且 `Max <= 0` 时，该 operation 不启用限流。框架
-默认 key 包含 resource、version、action、解析后的客户端 IP 和 principal
-ID；匿名请求使用 anonymous principal。
+显式提供 `RateLimitConfig` 且 `Max <= 0` 时**不会**关闭限流：中间件只采用
+正值，其余情况回退到 engine/配置默认值（恒为正）——不存在按操作关闭限流的
+开关。框架默认 key 包含 resource、version、action、解析后的客户端 IP 和
+principal ID；匿名请求使用 anonymous principal。
 
 Operation 认证配置由 `Operation.Auth` 承载；公开 operation 会解析为
 `api.AuthStrategyNone`，受保护 operation 则携带选中的 auth strategy 和 options。

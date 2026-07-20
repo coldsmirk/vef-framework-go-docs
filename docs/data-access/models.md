@@ -108,7 +108,7 @@ type FullAuditedModel struct {
 
 - **`bun:",skipupdate"`**: `created_at` and `created_by` are set on insert only and never overwritten on update
 - **`bun:",scanonly"`**: `created_by_name` and `updated_by_name` are read-side convenience fields — they are populated from JOIN queries but are not persisted as separate columns
-- **`mold:"translate=user?"`**: the `mold` transformer translates user IDs into display names via a data dictionary, populating the `*ByName` fields automatically
+- **`mold:"translate=user?"`**: an optional hook for a **host-registered** `mold.Translator` that turns user IDs into display names, populating the `*ByName` fields. The framework's only built-in translator handles `codes:<codeSet>` kinds (see [Mold](../data-tools/mold)); it does not serve `user`. The trailing `?` means "skip silently when no registered translator supports this kind" — without a custom user translator the fields are simply left untouched
 - **`timex.DateTime`**: the framework's custom timestamp type (see [Timex](../utilities/timex)) — not `time.Time`
 
 ## Embedding And Composition
@@ -143,14 +143,15 @@ type Role struct {
 	IsActive bool   `json:"isActive" bun:"is_active"`
 }
 
-// Composite PK: audit fields but PK defined separately
+// Composite PK: creation tracking only, PK columns declared on the fields
+// themselves (orm.Model is deliberately absent — it would add a single `id`
+// primary key).
 type UserRole struct {
 	bun.BaseModel `bun:"table:sys_user_role,alias:sur"`
-	orm.Model
 	orm.CreationTrackedModel
 
-	UserID string `json:"userId" bun:"user_id,notnull"`
-	RoleID string `json:"roleId" bun:"role_id,notnull"`
+	UserID string `json:"userId" bun:"user_id,pk"`
+	RoleID string `json:"roleId" bun:"role_id,pk"`
 }
 ```
 

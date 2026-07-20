@@ -108,7 +108,7 @@ type FullAuditedModel struct {
 
 - **`bun:",skipupdate"`**：`created_at` 和 `created_by` 仅在插入时设置，更新操作不会覆盖
 - **`bun:",scanonly"`**：`created_by_name` 和 `updated_by_name` 是读侧辅助字段——它们通过 JOIN 查询填充，不作为独立列持久化
-- **`mold:"translate=user?"`**：`mold` 变换器通过数据字典将用户 ID 翻译为显示名称，自动填充 `*ByName` 字段
+- **`mold:"translate=user?"`**：为**宿主注册的** `mold.Translator` 预留的可选挂点，用于把用户 ID 翻译为显示名并填充 `*ByName` 字段。框架唯一的内置翻译器只处理 `codes:<codeSet>` 类别（见 [Mold](../data-tools/mold)），不服务 `user`。结尾的 `?` 表示"没有任何已注册翻译器支持该类别时静默跳过"——未注册自定义用户翻译器时字段保持原样
 - **`timex.DateTime`**：框架自定义的时间戳类型（参见 [Timex](../utilities/timex)），而不是标准库的 `time.Time`
 
 ## 匿名嵌入与组合
@@ -143,14 +143,14 @@ type Role struct {
 	IsActive bool   `json:"isActive" bun:"is_active"`
 }
 
-// 复合主键：审计字段但主键需要单独定义
+// 复合主键：只做创建追踪，主键列在字段上自行声明
+//（刻意不嵌入 orm.Model——它会引入单列 `id` 主键）。
 type UserRole struct {
 	bun.BaseModel `bun:"table:sys_user_role,alias:sur"`
-	orm.Model
 	orm.CreationTrackedModel
 
-	UserID string `json:"userId" bun:"user_id,notnull"`
-	RoleID string `json:"roleId" bun:"role_id,notnull"`
+	UserID string `json:"userId" bun:"user_id,pk"`
+	RoleID string `json:"roleId" bun:"role_id,pk"`
 }
 ```
 

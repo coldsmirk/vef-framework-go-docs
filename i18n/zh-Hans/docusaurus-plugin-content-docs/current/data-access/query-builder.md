@@ -24,11 +24,15 @@ type UserSearch struct {
 
 ## 不写 `search` 标签时的默认行为
 
-如果一个字段完全没有 `search` 标签：
+如果一个具名（非嵌入）字段完全没有 `search` 标签：
 
 - 框架仍然会把它纳入搜索结构解析
 - 默认操作符是 `eq`
 - 默认列名是字段名的 snake_case 形式
+
+没有 `search` 标签的匿名嵌入字段会被整体跳过（不只是 `api.P`——嵌入
+`crud.Sortable` 或任何其他结构体都不会产生条件）；要递归进嵌入字段，
+请为它标注 `search:"dive"`。
 
 也就是说，这个字段：
 
@@ -67,8 +71,9 @@ Age int `search:"eq,column=age"`
 
 外层 `search` 标签按逗号分隔。`params` 的值内部再按空格拆成
 `key:value` 参数，例如 `params=delimiter:| type:int`。内部解析使用
-`WithSpacePairDelimiter`，并把 `:` 作为 value delimiter。匿名嵌入的
-`api.P` 字段会被 parser 跳过，不会变成搜索条件。忽略字段标记的值是 `-`。
+`WithSpacePairDelimiter`，并把 `:` 作为 value delimiter。没有 `search`
+标签的匿名嵌入字段（包括 `api.P`）都会被 parser 跳过，不会变成搜索条件。
+忽略字段标记的值是 `-`。
 
 ## 支持的操作符
 

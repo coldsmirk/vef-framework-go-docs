@@ -10,7 +10,7 @@ This page covers the minimum environment and project setup required to boot a VE
 
 The current framework version requires:
 
-- Go `1.26.1`
+- Go `1.26.4`
 
 The built-in expression engine is pure Go. CGO is not required by the expression
 module; enable CGO only when your selected database driver or another native
@@ -51,6 +51,8 @@ VEF boots its database module during startup, so your application configuration 
 - PostgreSQL
 - MySQL
 - SQLite
+- SQL Server (v0.39)
+- Oracle (v0.39)
 
 For local exploration and small demos, SQLite is the simplest choice because it avoids external infrastructure.
 
@@ -88,7 +90,8 @@ my-app/
 
 ## Minimal configuration
 
-This is enough to boot an application with SQLite and the default in-memory storage provider:
+This is the smallest configuration that boots — SQLite, the default in-memory
+storage provider, and the outbox event transport the storage module requires:
 
 ```toml
 [vef.app]
@@ -97,11 +100,25 @@ port = 8080
 
 [vef.data_sources.primary]
 type = "sqlite"
+
+[vef.event.transports.outbox]
+enabled = true
+
+[[vef.event.routing]]
+pattern    = "vef.storage.*"
+transports = ["outbox"]
 ```
 
 The `primary` data source is mandatory. It powers the framework-wide `orm.DB`
 injection; additional named data sources live under the same `vef.data_sources`
 map.
+
+The two event blocks are not optional decoration: the storage module publishes
+its domain events transactionally and **fails startup** when no transactional
+route serves `vef.storage.*` (the default `memory` transport is not
+transactional). Setting `vef.event.default_transport = "outbox"` is the
+routing-rule-free alternative. See [Quick Start](./quick-start) for the
+walkthrough of this exact failure.
 
 If you omit `vef.storage.provider`, the framework falls back to memory storage.
 Add `vef.redis` only when the application really uses Redis-backed features.
@@ -109,19 +126,21 @@ Add `vef.redis` only when the application really uses Redis-backed features.
 ## What happens during startup
 
 When you call `vef.Run(...)`, the framework initializes configuration, the data
-source registry and primary `orm.DB`, middleware, API routing, security, events,
-the expression engine, CQRS, cron, Redis, mold, storage, sequence, schema,
-monitoring, MCP, and finally the HTTP application.
+source registry and primary `orm.DB`, middleware, API routing, security, events
+(plus the outbox / redis-stream / inbox transport submodules), the expression
+engine, the JS engine, CQRS, cron, Redis, distributed locks, mold, storage,
+sequence, schema, monitoring, MCP, server push, and finally the HTTP
+application.
 
 That is why installation in VEF is not just “import the package”. A valid config file is part of installation.
 
 ## Optional environment variables
 
-The following environment variables are especially useful during setup:
+The framework reads exactly three environment variables; all are useful during
+setup:
 
 - `VEF_CONFIG_PATH`: add an extra config search directory
 - `VEF_LOG_LEVEL`: adjust log verbosity
-- `VEF_NODE_ID`: provide a node identifier for distributed ID scenarios
 - `VEF_I18N_LANGUAGE`: switch the framework language, defaulting to Simplified Chinese
 
 ## Next step

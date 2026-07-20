@@ -227,6 +227,7 @@ type Delegation struct {
     StartTime      timex.DateTime // 委托开始时间
     EndTime        timex.DateTime // 委托结束时间
     IsActive       bool
+    Reason         *string        // 可选：委托原因
 }
 ```
 
@@ -253,7 +254,7 @@ type Delegation struct {
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
 | DI helpers（`vef` 包） | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
 | admin DTOs | `approval/admin` 包：`Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
-| user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts` |
+| user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`（v0.39）, `ViewerTask`（v0.39）, `RollbackTarget`（v0.39）, `RemovableAssignee`（v0.39） |
 
 ---
 

@@ -37,6 +37,7 @@ body_limit = "32mib"
 - `name`：应用名，也会参与 JWT audience 的构造
 - `port`：Fiber HTTP 服务监听端口
 - `body_limit`：请求体大小限制；未配置时默认是 `32mib`
+- `trusted_proxies`：Fiber 信任其转发头的代理 IP/CIDR；为空时忽略 `X-Forwarded-For`
 
 ### `vef.api`
 
@@ -78,10 +79,14 @@ path = "./analytics.db"
 - `postgres`
 - `mysql`
 - `sqlite`
+- `sqlserver`（v0.39）
+- `oracle`（v0.39）
 
 对 SQLite 来说，`path` 可以省略；省略后框架会使用共享内存数据库。
 
-> `config.DBKind` 枚举里还声明了 `oracle` 和 `sqlserver` 两个常量，留作未来扩展，但框架目前**没有**提供对应的运行时 provider —— 实际配置这两个值会在启动时报 `database.ErrUnsupportedDBKind`。
+网络方言还接受 `ssl_mode`（`disable` | `require` | `verify-ca` |
+`verify-full`，默认 `disable`）与 `ssl_root_cert`；SQL Server 与 Oracle 的
+方言说明见[数据源](../data-access/datasources)。
 
 ### `vef.cors`
 
@@ -216,16 +221,14 @@ enabled = true       # /ws WebSocket 推送端点
 与各模块指南：[持久化调度](../infrastructure/cron-store)、
 [集成引擎](../integration/overview)、[服务端推送](../infrastructure/push)。
 
-## 环境变量覆盖
+## 环境变量
 
-VEF 使用固定前缀，并把点号替换成下划线，所以配置可以通过环境变量覆盖。
+配置键**不能**通过环境变量覆盖——通用的"前缀 + 点转下划线"覆盖机制已被
+移除。框架只读取三个独立的环境变量，它们都不对应配置键：
 
-常见示例：
-
-- `VEF_CONFIG_PATH`
-- `VEF_LOG_LEVEL`
-- `VEF_NODE_ID`
-- `VEF_I18N_LANGUAGE`
+- `VEF_CONFIG_PATH` —— 额外配置搜索目录
+- `VEF_LOG_LEVEL` —— 日志级别
+- `VEF_I18N_LANGUAGE` —— 框架语言
 
 ## 配置不负责什么
 

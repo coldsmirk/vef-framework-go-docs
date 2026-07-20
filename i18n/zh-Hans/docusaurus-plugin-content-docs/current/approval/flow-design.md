@@ -26,10 +26,11 @@ group 按 OR 组合。
 `OperatorNotEquals`、`OperatorGreater`、`OperatorGreaterOrEq`、`OperatorLess`、
 `OperatorLessOrEq`、`OperatorIn`、`OperatorNotIn`、`OperatorContains`、
 `OperatorNotContains`、`OperatorStartsWith`、`OperatorEndsWith`、
-`OperatorIsEmpty` 和 `OperatorIsNotEmpty`。内置 evaluator 会把 field condition
-转换成 `expr-lang` 表达式；未知 operator 会被转换成恒为 `false` 的表达式。
+`OperatorIsEmpty` 和 `OperatorIsNotEmpty`。内置 evaluator 以**原生 Go 比较**
+求值 field condition——不做表达式模板化、没有注入面——操作符语义按字段类型
+定型；词汇表之外的操作符会以错误终止求值，而不是静默评为 `false`。
 
-`ConditionExpression` 直接用 `expr-lang` 执行原始 `Expression` 字符串。
+`ConditionExpression` 执行原始 `Expression` 字符串。
 评估环境暴露：
 
 | 名称 | 值 |
@@ -39,9 +40,9 @@ group 按 OR 组合。
 | `applicantDepartmentId` | 申请人部门 ID；不存在时是 `""` |
 | globals | 宿主解析出的 `Instance.Globals`，作为顶层 binding 暴露 |
 
-审批条件目前有意直接使用 `expr-lang`，不走公开的 `expression.Engine`
-wrapper。这样工作流条件语义由审批 evaluator 固定，不依赖 expression
-module 的装配方式。
+表达式条件经框架的 `expression.Engine` 抽象求值（当前由 `expr-lang`
+支撑），由 DI 装配——即[表达式引擎](../data-tools/expression)文档描述的
+同一引擎。
 
 宿主应用可以实现 `approval.InstanceGlobalsResolver`，在实例启动时根据已认证
 principal 解析全局变量。该快照会持久化到 `Instance.Globals`；客户端不能在
@@ -285,6 +286,9 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 形状）。流程版本状态使用 `VersionStatus`：
 `VersionDraft`（`draft`）、`VersionPublished`（`published`）、
 `VersionArchived`（`archived`）。
+
+`Flow.Labels`（v0.39）是宿主自有的筛选元数据——保存时按共享 label 规则
+校验、在列表查询中支持相等过滤；wire 形状见 [RPC 资源](./resources.md)。
 
 其他流程设计器枚举：
 

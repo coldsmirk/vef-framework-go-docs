@@ -280,7 +280,7 @@ VEF ships ready-made `result.Error` values across the framework. Starting from v
 
 ### Security errors (`security` package)
 
-Authentication, signature, session, and challenge flow errors live in `github.com/coldsmirk/vef-framework-go/security` with their own `ErrCodeXxx` constants. Authentication uses `1000-1024`; challenge errors reserve `1030-1039` and currently export `1031`, `1033-1038`; password-policy violations share a single code, `1050` (see [Login Hardening](../security/login-hardening) for the full password-rule and lockout error catalog).
+Authentication, signature, session, and challenge flow errors live in `github.com/coldsmirk/vef-framework-go/security` with their own `ErrCodeXxx` constants. Authentication uses `1000-1029` (currently through `1026`); challenge errors reserve `1030-1039` and currently export `1031`, `1033-1038`; password-policy violations share a single code, `1050` (see [Login Hardening](../security/login-hardening) for the full password-rule and lockout error catalog).
 
 | Error value | Business code | Default HTTP status |
 | --- | --- | --- |
@@ -306,6 +306,9 @@ Authentication, signature, session, and challenge flow errors live in `github.co
 | `security.ErrAuthHeaderInvalid` | `security.ErrCodeAuthHeaderInvalid` (1022) | `401` |
 | `security.ErrAccountLocked(retryAfter)` | `security.ErrCodeAccountLocked` (1023) | `429` |
 | `security.ErrTooManyConcurrentSessions` | `security.ErrCodeTooManyConcurrentSessions` (1024) | `403` |
+| `security.ErrAPIKeyInvalid` (v0.39) | `security.ErrCodeAPIKeyInvalid` (1025) | `401` |
+| `security.ErrBasicCredentialsInvalid` (v0.39) | `security.ErrCodeBasicCredentialsInvalid` (1026) | `401` |
+| `security.ErrReservedPrincipal` (v0.39) | `security.ErrCodePrincipalInvalid` (1007, shared) | `401` |
 | `security.ErrChallengeTokenInvalid` | `security.ErrCodeChallengeTokenInvalid` (1031) | `401` |
 | `security.ErrChallengeTypeInvalid` | `security.ErrCodeChallengeTypeInvalid` (1033) | `400` |
 | `security.ErrChallengeResolveFailed` | `security.ErrCodeChallengeResolveFailed` (1034) | `401` |

@@ -248,6 +248,23 @@ Valid examples:
 
 Versions should only be incremented when the external contract actually changes.
 
+#### Permission tokens (v0.39)
+
+`RequiredPermission` tokens must be **dot-separated** and match
+`^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$`; the API engine validates them at
+registration and refuses to start otherwise. The recommended shape is
+`domain.entity.action`.
+
+Valid examples:
+
+- `sys.user.query`
+- `approval.flow.create`
+- `integration.ops.dry_run`
+
+Invalid (startup fails): `sys:user:query` (colons), `sys/user.query`
+(slashes), `sys..query` (empty segment). Declaring a permission on a public
+operation is also rejected at registration.
+
 ### Handler, Params, And Meta Types
 
 Application-owned API types must use names that reflect their role in the request pipeline.

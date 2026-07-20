@@ -247,6 +247,21 @@ REST action name 必须使用以下两种格式之一：
 
 只有外部接口契约发生真实变化时，才应当递增版本号。
 
+#### 权限令牌（v0.39）
+
+`RequiredPermission` 令牌必须是**点分隔**并匹配
+`^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$`；API 引擎在注册时校验，违规则拒绝
+启动。推荐形态为 `domain.entity.action`。
+
+合法示例：
+
+- `sys.user.query`
+- `approval.flow.create`
+- `integration.ops.dry_run`
+
+非法（启动失败）：`sys:user:query`（冒号）、`sys/user.query`（斜杠）、
+`sys..query`（空段）。在公开操作上声明权限同样会在注册时被拒绝。
+
 ### Handler、Params 与 Meta 类型命名
 
 对于应用自定义的 API 类型，名称必须直接表达它在请求链路中的角色。

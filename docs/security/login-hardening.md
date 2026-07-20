@@ -103,7 +103,7 @@ Lockout is **on by default** (`max_failures = 10`). Configure it under
 [vef.security.lockout]
 enabled = true          # default: true
 max_failures = 10       # default: 10
-window = "15m"           # default: 15m — failures older than this are forgotten
+window = "15m"           # default: 15m — a spell with no new failures this long resets the counter
 lock_duration = "15m"    # default: 15m — block length under the "lock" strategy
 strategy = "lock"        # "lock" or "backoff", default: "lock"
 backoff_base = "1s"      # default: 1s — first delay under the "backoff" strategy
@@ -117,14 +117,15 @@ resolves to its default when omitted or zero — read them through
 build a policy yourself.
 
 - **`strategy = "lock"`** (Go constant `security.LockoutStrategyLock`) blocks
-  all attempts for `lock_duration` once `max_failures` is exceeded — a hard
-  stop.
+  all attempts for `lock_duration` once `max_failures` is reached — the
+  attacker gets exactly `max_failures` guesses, and the failure that hits the
+  threshold triggers the lock.
 - **`strategy = "backoff"`** (Go constant `security.LockoutStrategyBackoff`)
-  imposes an escalating delay instead: the first excess failure waits
-  `backoff_base`, and each further failure doubles the wait, capped at
-  `backoff_max`. A legitimate user is slowed down but never fully locked out,
-  and an attacker cannot use it to lock a victim out indefinitely by feeding
-  wrong passwords.
+  imposes an escalating delay instead: the failure that reaches the threshold
+  starts a `backoff_base` wait, and each further failure doubles the wait,
+  capped at `backoff_max`. A legitimate user is slowed down but never fully
+  locked out, and an attacker cannot use it to lock a victim out indefinitely
+  by feeding wrong passwords.
 - **`key`** selects the identity dimension failures are counted by:
   `"user"` (`security.LockoutKeyUser` — per login identifier, across all
   source IPs), `"ip"` (`security.LockoutKeyIP` — per source address, across
@@ -314,8 +315,12 @@ Wrap it in an `ExpiryPasswordChangeChecker`:
 checker := security.NewExpiryPasswordChangeChecker(myMetadataLoader, 90*24*time.Hour)
 ```
 
-`maxAge` also comes from config — `vef.security.password_policy.max_age`
-(zero disables expiry):
+The conventional place to declare the age limit is
+`vef.security.password_policy.max_age` (zero disables expiry) — but note the
+framework does **not** consume this key itself. Unlike `history_depth`
+(auto-wired once a `PasswordHistoryStore` is registered), `max_age` is purely
+declarative: your wiring code reads it from `config.SecurityConfig` and
+passes it to `NewExpiryPasswordChangeChecker`, as in the example above.
 
 ```toml
 [vef.security.password_policy]

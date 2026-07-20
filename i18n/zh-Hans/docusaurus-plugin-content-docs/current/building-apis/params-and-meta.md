@@ -25,6 +25,7 @@ VEF 把请求输入拆成两个部分：
 | 目标类型 | 解码来源 | 是否自动验证 | 常见用途 |
 | --- | --- | --- | --- |
 | 嵌入 `api.P` 的 typed struct | `params` | 是 | 业务 params |
+| 嵌入 `api.StrictP` 的 typed struct（v0.39） | `params` | 是 | 业务 params，拒绝结构体未声明的请求键（`Params.DecodeStrict`） |
 | 嵌入 `api.M` 的 typed struct | `meta` | 是 | typed meta |
 | `page.Pageable` | `meta` | 是 | 分页 |
 | `api.Params` | `params` | 否 | 原始动态 payload |
@@ -73,8 +74,10 @@ typed 请求控制信息就是这样注入的。
 
 这里有一个容易忽略的区别：
 
-- `page.Pageable` 是框架内置识别的 meta 目标类型
-- `crud.Sortable` 并不是单独的内置 meta 类型，但它嵌入到 typed `api.M` 结构体里时会自然工作
+- `page.Pageable` 是内置 meta 类型列表中唯一的条目
+- `crud.Sortable` 不在该列表上，但它自身内嵌 `api.M`，因此作为独立的
+  handler 参数同样能经"内嵌 M"路径解析——嵌入到你自己的 typed meta 结构体
+  里也自然工作
 
 ## 原始访问
 

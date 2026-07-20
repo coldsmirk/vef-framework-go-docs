@@ -93,6 +93,10 @@ Several framework features are connected through FX groups. These are the most i
 - `vef:event:consume-middlewares`
 - `vef:datasource:providers`
 - `vef:approval:lifecycle_hooks`
+- `vef:cron:job_handlers` (v0.39)
+- `vef:js:libs` (v0.39)
+- `vef:integration:inbound_handlers` / `vef:integration:outbound_auth_schemes` / `vef:integration:inbound_auth_schemes` (v0.39)
+- `vef:security:session_revocation_listeners` (v0.39)
 
 The helper functions in `di.go` exist mainly to register values into those groups safely. The helper name prefix does not always describe the FX mechanism — some `Provide*` helpers append to a group while others replace a default single service. The authoritative, per-helper table (mechanism, group, contract) lives in [Extension Points](../reference/extension-points); this page intentionally does not duplicate it.
 
@@ -161,6 +165,10 @@ vef.Run(
 resources, CQRS handlers, engine, business-projection worker, and scanners.
 Approval's `approval.*` events require a transactional route; see
 [Approval Module](../approval) for the routing details.
+
+`vef.IntegrationModule` (v0.39) turns on the integration engine — contracts,
+systems, adapters, routes, the inbound HTTP gateway, and the `integration/*`
+management resources; see [Integration Engine](../integration/overview).
 
 ## Module roles in a larger app
 

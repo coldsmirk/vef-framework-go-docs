@@ -201,6 +201,8 @@ VEF currently has these built-in auth strategy names:
 | `bearer` | Bearer token authentication |
 | `signature` | signature-based authentication |
 | `ip` | source-IP whitelist authentication |
+| `api_key` | static API key authentication (v0.39) |
+| `http_basic` | RFC 7617 Basic authentication (v0.39) |
 
 Helpers:
 
@@ -210,6 +212,8 @@ Helpers:
 | `api.BearerAuth()` | Bearer auth |
 | `api.SignatureAuth()` | signature auth |
 | `api.IPAuth(...)` | source-IP whitelist auth |
+| `api.APIKeyAuth(...)` | API key auth; optional custom header name (v0.39) |
+| `api.HTTPBasicAuth()` | HTTP Basic auth (v0.39) |
 
 ## Authentication Inputs
 
@@ -241,6 +245,27 @@ IP auth resolves the client IP against a named whitelist loaded through
 `vef.app.trusted_proxies` so Fiber resolves the real client IP. All failures
 deny with `security.ErrIPNotAllowed`; an empty or missing whitelist is
 fail-closed.
+
+### API key (v0.39)
+
+| Source | Format |
+| --- | --- |
+| request header (default `X-API-Key`, configurable per operation via `api.APIKeyAuth("X-My-Key")`) | the raw key value |
+
+Keys resolve through `security.APIKeyLoader` (default backed by
+`vef.security.api_keys`); missing or unmatched keys deny uniformly with
+`security.ErrAPIKeyInvalid` (401).
+
+### HTTP Basic (v0.39)
+
+| Source | Format |
+| --- | --- |
+| `Authorization` header | `Basic base64(username:password)` |
+
+Accounts resolve through `security.BasicAccountLoader` (default backed by
+`vef.security.basic_accounts`) with constant-time comparison; malformed
+headers, unknown accounts, and wrong passwords all deny uniformly with
+`security.ErrBasicCredentialsInvalid` (401).
 
 ## Default Operation Behavior
 

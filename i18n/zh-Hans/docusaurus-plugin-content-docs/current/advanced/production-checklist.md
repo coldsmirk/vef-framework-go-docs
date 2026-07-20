@@ -6,7 +6,7 @@ sidebar_position: 4
 
 生产就绪相关的注意事项分散在许多页面中。本页把它们汇总成一份有序清单：
 每一项都说明要设置什么、为什么，以及对应的配置键或 API，并链接到详细
-文档所在的页面。以下所有默认值与失效行为均以 v0.37.0 为准。
+文档所在的页面。以下所有默认值与失效行为均以 v0.39.0 为准。
 
 ## 安全（Security）
 
@@ -89,12 +89,37 @@ sidebar_position: 4
     中属于敏感信息，请补充权限检查或网络层控制。参见
     [监控](../infrastructure/monitor) 和
     [内置资源](../reference/built-in-resources)。
-18. **设置日志级别。** `VEF_LOG_LEVEL` 接受 `debug|info|warn|error`，默认
-    `info`。参见 [logx](../utilities/logx)。
+18. **设置日志级别。** `VEF_LOG_LEVEL` 接受 `debug|info|warn|error`（另有
+    `panic`）；无法识别的值回退到默认的 `info`。参见
+    [logx](../utilities/logx)。
 19. **注入构建信息。** 用 `vef-cli generate-build-info` 生成构建元数据并通过
     `vef.Supply(BuildInfo)` 提供；否则 `sys/monitor` 的应用版本、构建时间和
     git commit 都显示为 `unknown`。参见 [CLI 工具](./cli-tools) 和
     [监控](../infrastructure/monitor)。
+
+## 可选模块（v0.39）
+
+未启用对应模块的部署可跳过相应条目。
+
+20. **启用 `vef.IntegrationModule` 前先设置
+    `vef.integration.secret_key`。** 不设置时，集成认证参数与数据源口令会
+    以**明文**落库、仅打启动警告。`secret_algorithm`（默认 `aes`，可选
+    `sm4`）需要慎重选定——一种算法封存的值在另一种下不可读。
+    `vef.security.api_keys` / `basic_accounts`（`api_key` / `http_basic`
+    策略背后的静态凭据表）也应按同等机密对待。参见
+    [集成引擎](../integration/overview)。
+21. **为 `vef.push.allowed_origins` 配置白名单。** 列表为空时推送端点放行
+    所有浏览器 Origin（握手仍经令牌认证，白名单是纵深防御）。多节点部署
+    需要 Redis 做跨节点中继，且中继要求非空的 `vef.app.name`。参见
+    [服务端推送](../infrastructure/push)。
+22. **启用 `vef.cron.store` 时复核限制项。** `run_timeout` 默认 `0`
+    （运行不设上限）、`run_retention` 默认 `0`（流水账永不清理）——两者都
+    应刻意选择；启动校验要求
+    `abandoned_after ≥ 2 × heartbeat_interval`。参见
+    [持久化调度](../infrastructure/cron-store)。
+23. **重新盘点 Redis 依赖方。** 在第 10 条之外，v0.38+ 的不透明令牌会话
+    （`security.NewRedisSessionStore`）与 v0.39 的推送中继在多节点部署下
+    同样需要 Redis。
 
 ## 下一步
 

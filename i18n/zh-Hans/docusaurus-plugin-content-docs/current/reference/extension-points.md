@@ -14,7 +14,7 @@ helper 名称前缀不足以判断实际 wiring 方式，要看具体机制：
 
 | 机制 | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider` |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`（v0.39）, `ProvideCronJobHandler`（v0.39）, `ProvideIntegrationOutboundAuthScheme`（v0.39）, `ProvideIntegrationInboundAuthScheme`（v0.39）, `ProvideIntegrationInboundHandler`（v0.39）, `ProvideSessionRevocationListener`（v0.39） |
 | 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
 | `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
 | 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
@@ -33,7 +33,7 @@ Helpers：
 - `vef.ProvideAuthStrategy(...)`
 - `vef.ProvideMiddleware(...)`
 
-`ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置策略是 `none`、`bearer`、`signature` 和 `ip`。
+`ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置策略是 `none`、`bearer`、`signature`、`ip`、`api_key`（v0.39）和 `http_basic`（v0.39）。
 
 ## 最小模块示例
 
@@ -63,10 +63,56 @@ Helper：
 ## 安全
 
 - `vef:security:challenge_providers`
+- `vef:security:session_revocation_listeners`（v0.39）
 
 Helper：
 
 - `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideSessionRevocationListener(...)`（v0.39）——追加
+  `security.SessionRevocationListener`，观察登出、并发登录驱逐与管理员
+  踢出；见[会话管理](../security/session-management)
+
+## 定时任务处理器（v0.39）
+
+- `vef:cron:job_handlers`
+
+Helper：
+
+- `vef.ProvideCronJobHandler(...)`
+
+向调度存储注册持久化 `cron.JobHandler`——每个任务名恰好一个处理器，重名
+导致启动失败。处理器可经 `cron.WithDefaultSchedule` 附带默认调度。见
+[持久化调度](../infrastructure/cron-store)。
+
+## JS 引擎库（v0.39）
+
+- `vef:js:libs`
+
+Helper：
+
+- `vef.ProvideJSLib(...)`
+
+向共享 `js.Engine` 贡献 `js.Lib`：与内置同名的库在其所在档位（常驻 vs
+opt-in 目录）内替换，新名称加入 opt-in 目录。见
+[JS 引擎](../data-tools/js-engine)。
+
+## 集成引擎（v0.39，需启用 `vef.IntegrationModule`）
+
+- `vef:integration:outbound_auth_schemes`
+- `vef:integration:inbound_auth_schemes`
+- `vef:integration:inbound_handlers`
+
+Helper：
+
+- `vef.ProvideIntegrationOutboundAuthScheme(...)` —— 自定义
+  `integration.OutboundAuthScheme`；与内置同名则替换
+- `vef.ProvideIntegrationInboundAuthScheme(...)` —— 自定义
+  `integration.InboundAuthScheme`；同样的替换规则
+- `vef.ProvideIntegrationInboundHandler(...)` —— 服务一个入站契约的业务
+  处理器；每个契约编码恰好一个
+
+当路由不在 `itg_route` 表中维护时，用普通 `fx.Decorate` 替换默认的
+`integration.RouteResolver`。见[集成引擎](../integration/overview)。
 
 ## 事件总线
 

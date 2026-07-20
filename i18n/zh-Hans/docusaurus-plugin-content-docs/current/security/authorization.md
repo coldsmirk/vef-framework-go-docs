@@ -12,7 +12,7 @@ sidebar_position: 3
 
 ```go
 crud.NewUpdate[User, UserParams]().
-	RequiredPermission("sys:user:update")
+	RequiredPermission("sys.user.update")
 ```
 
 当操作执行时，API auth 中间件会取出这个 permission token，并交给当前配置的 permission checker 判断当前 principal 是否有权访问。
@@ -82,9 +82,9 @@ permission token 应该表达的是业务动作本身，而不是传输细节。
 
 好的例子：
 
-- `sys:user:query`
-- `sys:user:create`
-- `approval:delegation:update`
+- `sys.user.query`
+- `sys.user.create`
+- `approval.delegation.update`
 
 这样即使请求结构变化，权限语义仍然稳定。
 

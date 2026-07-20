@@ -56,7 +56,7 @@ Out of the box, every `logx.Logger` is backed by a `zap.SugaredLogger`
 
 | Aspect | Behavior |
 | --- | --- |
-| Encoding | console — single-line, human-readable text; there is no JSON option at v0.37.0 |
+| Encoding | console — single-line, human-readable text; there is no JSON option as of v0.39 |
 | Destination | log entries go to stdout; zap's own internal errors go to stderr |
 | Line layout | dimmed `2006-01-02T15:04:05.000` timestamp, capitalized level, `[name]` namespace, trimmed caller path, message |
 | Color | the level column is always ANSI-colorized (`zapcore.CapitalColorLevelEncoder`); timestamp, caller, and name styling is applied only when stdout supports it (termenv detection: disabled for non-TTY output and under `NO_COLOR`) |
@@ -118,12 +118,12 @@ Downstream, the request logger travels three ways:
 
 The request ID is carried as a logger *namespace* — log lines show
 `[request_id:<uuid>]` — not as a structured field. `logx.Logger` has no
-`With(key, value)` field API at v0.37.0; attach context by deriving
+`With(key, value)` field API as of v0.39; attach context by deriving
 `Named(...)` children or by formatting values into the message.
 
 ## Replacing Or Wrapping The Logger
 
-The concrete implementation is **not replaceable** at v0.37.0. The root zap
+The concrete implementation is **not replaceable** as of v0.39. The root zap
 logger is a package-level value in `internal/logx`, framework packages
 capture their named children at package initialization, and `logx.Logger` is
 not a DI-provided type — so there is no `fx.Decorate` point and no exported
@@ -156,9 +156,12 @@ logger := vef.NamedLogger("myjob")
 logger.Infof("processed %d records", count)
 ```
 
-Inside FX-constructed components, prefer injecting `logx.Logger` directly
-(or `logx.LoggerConfigurable[T]` for immutable components) over reaching for
-`vef.NamedLogger`.
+Note that `logx.Logger` is **not** in the DI graph — declaring it as an FX
+constructor parameter fails startup. Inside FX-constructed components, call
+`vef.NamedLogger(...)` in the constructor body (or accept a logger through
+`logx.LoggerConfigurable[T]` when the framework configures your component);
+request handlers can simply declare a `logx.Logger` parameter, which the API
+engine injects per request.
 
 ## Practical Advice
 
@@ -182,5 +185,5 @@ Inside FX-constructed components, prefer injecting `logx.Logger` directly
   shows where the request-ID and logger middlewares sit in the chain.
 - [Extending Handler Parameters](../advanced/extending-parameters) documents
   the `contextx` helpers and the built-in handler-parameter resolvers.
-- [Configuration — Environment overrides](../getting-started/configuration#environment-overrides)
+- [Configuration — Environment variables](../getting-started/configuration#environment-variables)
   lists `VEF_LOG_LEVEL` among the framework's environment variables.
