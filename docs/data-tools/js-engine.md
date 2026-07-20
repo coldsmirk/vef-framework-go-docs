@@ -5,7 +5,7 @@ sidebar_position: 2
 # JS Engine
 
 The `js` package embeds a sandboxed JavaScript runtime powered by
-[goja](https://github.com/dop251/goja). Since v0.39 it is built around an
+[goja](https://github.com/dop251/goja). It is built around an
 **Engine / Runtime / Lib** split: an immutable `Engine` holds a validated
 set of libraries and stamps out single-use `Runtime`s; capabilities (HTTP,
 SQL, cache, events, ...) are `Lib`s installed per runtime, so scripts can

@@ -224,7 +224,7 @@ DateRange string `search:"operator=between,column=created_at,params=type:date de
 ## Apply 语义
 
 `Search.Apply(...)` 只会为当前 operator 能使用的值追加条件。nil pointer 字段
-会在取值前被跳过；自 v0.39 起，零值的**非指针**字段会被整体跳过——JSON 无法
+会在取值前被跳过；零值的**非指针**字段会被整体跳过——JSON 无法
 区分省略的字段和零值，把 `""` 或 `0` 变成 `eq` 条件会悄悄过滤掉所有行。当
 需要表达显式的零值过滤（如 `*bool` 的 false）时，请使用指针字段。`between` /
 `notBetween` 要求值是 `monad.Range[T]` 风格结构、双元素切片，或带 `type` 的

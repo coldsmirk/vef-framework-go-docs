@@ -22,8 +22,8 @@ sidebar_position: 2
 | `sys/storage` | `storage` | 默认 Bearer 认证 | 多片上传 session 生命周期（init / part / list / complete / abort）。下载走 `/storage/files/<key>` app 代理，不通过 RPC。 |
 | `sys/schema` | `schema` | 默认 Bearer 认证 | 数据库结构检查 |
 | `sys/monitor` | `monitor` | 默认 Bearer 认证 | 运行时与宿主机监控信息 |
-| `sys/cron/schedule`、`sys/cron/run` | `cron`（store） | Bearer 认证 + `cron.schedule.*` / `cron.run.*` 权限 | 持久化调度管理与运行流水账（v0.39）。仅当 `vef.cron.store.enabled = true` 时挂载操作 |
-| `integration/*` | `integration` | Bearer 认证 + `integration.*` 权限 | 仅在启用 `vef.IntegrationModule` 时注册的集成引擎管理资源（v0.39） |
+| `sys/cron/schedule`、`sys/cron/run` | `cron`（store） | Bearer 认证 + `cron.schedule.*` / `cron.run.*` 权限 | 持久化调度管理与运行流水账。仅当 `vef.cron.store.enabled = true` 时挂载操作 |
+| `integration/*` | `integration` | Bearer 认证 + `integration.*` 权限 | 仅在启用 `vef.IntegrationModule` 时注册的集成引擎管理资源 |
 | `approval/*` | `approval` | 需要 Bearer 认证；声明权限的 action 还会校验对应权限点 | 仅在启用 `vef.ApprovalModule` 时注册的可选工作流资源 |
 
 ## `security/auth`
@@ -91,9 +91,11 @@ sidebar_position: 2
 - 如果没有注册 `security.UserInfoLoader`，这个 action 会返回 `not implemented`
 - 返回体结构由 `security.UserInfo` 决定
 
+`security/auth` 各 action 的字段级请求/响应参考见[认证参考](../security/authentication-reference)。
+
 ## `sys/storage`
 
-由 storage 模块提供的存储资源。v0.21 起单次 PUT 形式的 `upload` 动作已废弃，所有上传都走下面的多片 session 协议。围绕的生命周期（claim、pending-delete、ACL）见 [文件存储](../infrastructure/storage)。
+由 storage 模块提供的存储资源。没有单次 PUT 形式的 `upload` 动作，所有上传都走下面的多片 session 协议。围绕的生命周期（claim、pending-delete、ACL）见 [文件存储](../infrastructure/storage)。
 
 ### 操作列表
 
@@ -212,6 +214,8 @@ sidebar_position: 2
 }
 ```
 
+围绕上传生命周期（claim、ACL、下载代理）的字段级请求/响应参考见[文件存储](../infrastructure/storage)。
+
 ## `sys/schema`
 
 由 schema 模块提供的结构检查资源。
@@ -229,6 +233,8 @@ sidebar_position: 2
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
 | `name` | `string` | 是 | 要检查的表名 |
+
+字段级请求/响应参考见 [Schema 结构检查](../infrastructure/schema)。
 
 ## `sys/monitor`
 
@@ -248,7 +254,7 @@ sidebar_position: 2
 | `get_load` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回系统负载信息 | 无 |
 | `get_build_info` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回应用构建信息 | 无 |
 | `get_event_streams` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `event.StreamInspector` 报告每个 redis_stream 流及其消费组状态（consumer、pending、lag、last-delivered），便于运维发现孤儿消费组 | 无 |
-| `get_integration_stats` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `integration.StatsInspector` 报告本节点集成调用统计，包裹为 `{enabled, stats}`——进程启动以来按（系统、契约、方向）一条：`system`、`contract`、`direction`、`calls`、`successes`、`failures`（按类别）、`avgDurationMs`、`maxDurationMs`、`lastError`、`lastErrorAt`（v0.39） | 无 |
+| `get_integration_stats` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `integration.StatsInspector` 报告本节点集成调用统计，包裹为 `{enabled, stats}`——进程启动以来按（系统、契约、方向）一条：`system`、`contract`、`direction`、`calls`、`successes`、`failures`（按类别）、`avgDurationMs`、`maxDurationMs`、`lastError`、`lastErrorAt` | 无 |
 
 补充说明：
 
@@ -267,9 +273,11 @@ sidebar_position: 2
 }
 ```
 
+字段级请求/响应参考见[监控](../infrastructure/monitor)。
+
 ## `sys/cron/schedule` 与 `sys/cron/run`
 
-由 cron 模块的调度存储提供的持久化调度资源（v0.39）。当
+由 cron 模块的调度存储提供的持久化调度资源。当
 `vef.cron.store.enabled = false` 时资源存在但不挂载任何操作——关闭的特性
 不暴露任何表面。
 
@@ -284,7 +292,7 @@ sidebar_position: 2
 
 ## Integration 资源
 
-如果你显式引入集成模块（v0.39），框架还会注册 `integration/*` 管理资源：
+如果你显式引入集成模块，框架还会注册 `integration/*` 管理资源：
 `integration/contract`、`integration/system`、`integration/adapter`、
 `integration/route`、`integration/code_map`、`integration/code_set`、
 `integration/log` 与 `integration/ops`。

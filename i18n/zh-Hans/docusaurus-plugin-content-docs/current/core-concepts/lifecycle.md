@@ -20,7 +20,7 @@ sidebar_position: 2
 并不存在独立的 `database` 或 `orm` 步骤。`outbox`、`redis-stream`、`inbox`
 是事件传输子模块——即 outbox 传输模块、redis-stream 传输模块和 inbox
 模块——排在 `sequence` 之后、`schema` 之前注册。`js` 是共享 JS 引擎模块，
-`push` 是 WebSocket 推送模块（v0.39）。
+`push` 是 WebSocket 推送模块。
 
 注意清单顺序只是为了可读性：FX 按声明的依赖关系解析实际构建顺序，真正
 重要的是依赖形状——
@@ -103,7 +103,7 @@ func main() {
 - panic recovery
 - request record logging
 - API 路由
-- push WebSocket 端点（order 450，v0.39；启用集成模块时其入站网关位于 400）
+- push WebSocket 端点（order 450；启用集成模块时其入站网关位于 400）
 - MCP 端点中间件（order 500）
 - storage 文件代理路由（order 900）
 - SPA fallback middleware（order 1000）

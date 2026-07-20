@@ -8,7 +8,7 @@ Authentication tells VEF who the caller is. Authorization decides what that call
 
 ## Permission Checks In Operations
 
-The most common authorization entry point is `RequiredPermission` on an operation (renamed from `PermToken` in v0.24):
+The most common authorization entry point is `RequiredPermission` on an operation:
 
 ```go
 crud.NewUpdate[User, UserParams]().

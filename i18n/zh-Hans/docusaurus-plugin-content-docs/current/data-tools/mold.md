@@ -19,9 +19,9 @@ transformer，因此响应模型可以暴露派生字段或翻译字段。
 `CodeSetTranslator`，它只处理 `mold:"translate=codes:status"` 这样的
 `codes:` kind。
 
-> **v0.39 重命名**："字典（dictionary）"词汇统一改为"码值集（code set）"。
-> 标签前缀由 `dict:` 变为 `codes:`，所有 `Dictionary*` 标识符变为
-> `CodeSet*`（见下方对照表）。
+> **命名说明**：这里的词汇是"码值集（code set）"，不是"字典（dictionary）"。
+> 标签前缀是 `codes:`（没有 `dict:` 前缀），标识符是 `CodeSet*` 而非
+> `Dictionary*`（见下方对照表）。
 
 ```go
 type Order struct {
@@ -243,9 +243,11 @@ err := mold.PublishCodeSetChangedEvent(ctx, bus, "gender", "status")
 `PublishCodeSetChangedEvent` 和 `CachedCodeSetResolver.Resolve`；其中
 `CachedCodeSetResolver.Resolve` 实现 `CodeSetResolver.Resolve`。
 
-### v0.38 → v0.39 重命名对照
+### 旧"字典"命名对照
 
-| 旧标识符 | 新标识符 |
+如果你在找 `Dictionary*` 标识符，对应的 `CodeSet*` 名称如下：
+
+| 旧标识符 | 现名称 |
 | --- | --- |
 | 标签 `mold:"translate=dict:xxx"` | `mold:"translate=codes:xxx"` |
 | `DictionaryTranslator` | `CodeSetTranslator` |

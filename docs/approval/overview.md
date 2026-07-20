@@ -42,10 +42,10 @@ pattern    = "approval.*"
 transports = ["outbox", "redis_stream"]
 ```
 
-Since v0.38 the business projection no longer consumes lifecycle events (it
+The business projection does not consume lifecycle events (it
 converges from the durable `apv_business_projection` table — see
 [Business-State Projection](./integration.md#business-state-projection)), so
-the module itself no longer requires a subscribable sink in the route: a bare
+the module itself requires no subscribable sink in the route: a bare
 `["outbox"]` route satisfies the startup check. Add the configured outbox
 `sink` transport (`memory` single-node, `redis_stream` cross-node) alongside
 `outbox` — as in the example above — whenever the **host** subscribes to
@@ -76,7 +76,7 @@ Flow Category → Flow → Flow Version → Nodes + Edges
 | Instance | `apv_instance` | A running instance of a flow |
 | Task | `apv_task` | An individual approval/handle task assigned to a user |
 | Action Log | `apv_action_log` | Audit trail of all actions |
-| Business Projection | `apv_business_projection` | Durable desired-state convergence for business-bound flows (v0.38) |
+| Business Projection | `apv_business_projection` | Durable desired-state convergence for business-bound flows |
 
 ## Configuration
 
@@ -102,7 +102,7 @@ batch_size    = 100            # projections per scan
 approval DDL on startup. `cc_record_retention` only prunes CC records that have
 already been read.
 
-`business_binding` (v0.38) controls how approval state is projected onto bound
+`business_binding` controls how approval state is projected onto bound
 business tables: `synchronous` (default) writes the business row inside the
 approval transaction, `eventual` commits the desired state and lets a
 background worker converge the row (see
@@ -111,7 +111,7 @@ An out-of-enum `consistency` or a negative worker setting fails config
 validation at startup (`config.ErrInvalidApprovalBindingConsistency` /
 `ErrInvalidApprovalBusinessBindingWorkerConfig`).
 
-> The outbox-related fields that previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`) moved to `[vef.event.transports.outbox]` in v0.21. The approval module now publishes through the framework-wide outbox transport — see [Event Bus](../infrastructure/event-bus.md).
+> Outbox tuning (`relay_interval`, `max_retries`, `batch_size`) lives under `[vef.event.transports.outbox]`, not `[vef.approval]`. The approval module publishes through the framework-wide outbox transport — see [Event Bus](../infrastructure/event-bus.md).
 
 See [Configuration Reference](../reference/configuration-reference.md) for details.
 

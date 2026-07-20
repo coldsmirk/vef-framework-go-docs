@@ -14,7 +14,7 @@ The helper name prefix is not enough to tell how the value is wired. Use the mec
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib` (v0.39), `ProvideCronJobHandler` (v0.39), `ProvideIntegrationOutboundAuthScheme` (v0.39), `ProvideIntegrationInboundAuthScheme` (v0.39), `ProvideIntegrationInboundHandler` (v0.39), `ProvideSessionRevocationListener` (v0.39) |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
 | `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
@@ -38,7 +38,7 @@ Helpers:
 `ProvideAuthStrategy` appends a custom `api.AuthStrategy` into the auth-strategy
 group. The strategy is selected by the name returned from `Name()` through
 `api.AuthConfig.Strategy`; built-in strategies are `none`, `bearer`,
-`signature`, `ip`, `api_key` (v0.39), and `http_basic` (v0.39).
+`signature`, `ip`, `api_key`, and `http_basic`.
 
 ## Minimal module example
 
@@ -68,17 +68,17 @@ Helper:
 ## Security
 
 - `vef:security:challenge_providers`
-- `vef:security:session_revocation_listeners` (v0.39)
+- `vef:security:session_revocation_listeners`
 
 Helpers:
 
 - `vef.ProvideChallengeProvider(...)`
-- `vef.ProvideSessionRevocationListener(...)` (v0.39) — appends a
+- `vef.ProvideSessionRevocationListener(...)` — appends a
   `security.SessionRevocationListener` observing logout, concurrent-login
   eviction, and administrative kicks; see
-  [Session Management](../security/session-management#revocation-listeners-v039)
+  [Session Management](../security/session-management#revocation-listeners)
 
-## Cron job handlers (v0.39)
+## Cron job handlers
 
 - `vef:cron:job_handlers`
 
@@ -91,7 +91,7 @@ handler per job name; duplicate names fail startup. Handlers optionally ship
 a default schedule via `cron.WithDefaultSchedule`. See
 [Durable Schedules](../infrastructure/cron-store).
 
-## JS engine libraries (v0.39)
+## JS engine libraries
 
 - `vef:js:libs`
 
@@ -103,7 +103,7 @@ Contributes a `js.Lib` to the shared `js.Engine`: a lib whose name matches a
 built-in replaces it within its tier (always-on vs opt-in catalog), a new
 name joins the opt-in catalog. See [JS Engine](../data-tools/js-engine).
 
-## Integration engine (v0.39, requires `vef.IntegrationModule`)
+## Integration engine (requires `vef.IntegrationModule`)
 
 - `vef:integration:outbound_auth_schemes`
 - `vef:integration:inbound_auth_schemes`
@@ -261,7 +261,7 @@ Helper:
 
 `approval.InstanceLifecycleHook` implementations run synchronously inside the
 approval engine transaction — `OnInstanceCreated` at instance creation and
-`OnInstanceTransition(from, to)` at every instance status transition (v0.38).
+`OnInstanceTransition(from, to)` at every instance status transition.
 Returning an error rolls back the surrounding approval command. Invocation
 order across hooks is unspecified (FX value groups carry no ordering). Use
 event subscriptions or `approval.BindCommand` for asynchronous integrations

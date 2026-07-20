@@ -131,7 +131,7 @@ Variants: `cryptox.NewSM2(privateKey, publicKey)`, `cryptox.NewSM2FromHex`, `cry
 ### SM4 (Chinese National Standard — Symmetric)
 
 ```go
-// key: 16 bytes. Default mode is GCM (authenticated; IV is generated per call) since v0.39.
+// key: 16 bytes. Default mode is GCM (authenticated; IV is generated per call).
 cipher, err := cryptox.NewSM4(key)
 
 // Use CBC instead. Encrypt generates a fresh IV and prepends it to ciphertext.
@@ -145,9 +145,9 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 Variants: `cryptox.NewSM4FromHex`, `cryptox.NewSM4FromBase64`.
 
-:::caution Breaking change in v0.39
-`NewSM4` now defaults to **GCM** (matching AES). SM4 ciphertext produced by
-earlier versions used CBC; to decrypt it, construct the cipher with
+:::caution SM4 defaults to GCM
+`NewSM4` defaults to **GCM** (matching AES), not CBC. To decrypt SM4
+ciphertext that was produced in CBC mode, construct the cipher with
 `cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)` explicitly.
 :::
 

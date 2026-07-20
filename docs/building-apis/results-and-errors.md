@@ -276,7 +276,7 @@ This is why returning explicit `result.Error` values is better than returning op
 
 ## Per-Module Error Tables
 
-VEF ships ready-made `result.Error` values across the framework. Starting from v0.25, module-specific errors live next to the module that owns them — the `result` package now only keeps cross-cutting errors. The codes themselves stay stable; just the import path changes.
+VEF ships ready-made `result.Error` values across the framework. Module-specific errors live next to the module that owns them — the `result` package only keeps cross-cutting errors.
 
 ### Security errors (`security` package)
 
@@ -306,9 +306,9 @@ Authentication, signature, session, and challenge flow errors live in `github.co
 | `security.ErrAuthHeaderInvalid` | `security.ErrCodeAuthHeaderInvalid` (1022) | `401` |
 | `security.ErrAccountLocked(retryAfter)` | `security.ErrCodeAccountLocked` (1023) | `429` |
 | `security.ErrTooManyConcurrentSessions` | `security.ErrCodeTooManyConcurrentSessions` (1024) | `403` |
-| `security.ErrAPIKeyInvalid` (v0.39) | `security.ErrCodeAPIKeyInvalid` (1025) | `401` |
-| `security.ErrBasicCredentialsInvalid` (v0.39) | `security.ErrCodeBasicCredentialsInvalid` (1026) | `401` |
-| `security.ErrReservedPrincipal` (v0.39) | `security.ErrCodePrincipalInvalid` (1007, shared) | `401` |
+| `security.ErrAPIKeyInvalid` | `security.ErrCodeAPIKeyInvalid` (1025) | `401` |
+| `security.ErrBasicCredentialsInvalid` | `security.ErrCodeBasicCredentialsInvalid` (1026) | `401` |
+| `security.ErrReservedPrincipal` | `security.ErrCodePrincipalInvalid` (1007, shared) | `401` |
 | `security.ErrChallengeTokenInvalid` | `security.ErrCodeChallengeTokenInvalid` (1031) | `401` |
 | `security.ErrChallengeTypeInvalid` | `security.ErrCodeChallengeTypeInvalid` (1033) | `400` |
 | `security.ErrChallengeResolveFailed` | `security.ErrCodeChallengeResolveFailed` (1034) | `401` |
@@ -318,8 +318,6 @@ Authentication, signature, session, and challenge flow errors live in `github.co
 | `security.ErrDepartmentRequired` | `security.ErrCodeDepartmentRequired` (1038) | `400` |
 | `security.ErrCredentialsInvalid(message)` | `security.ErrCodeCredentialsInvalid` (1008) | `401` |
 | `security.ErrPrincipalInvalid(message)` | `security.ErrCodePrincipalInvalid` (1007) | `401` |
-
-> v0.25.1 dropped the unused `ErrTokenMissingSubject` / `ErrTokenMissingTokenType` sentinels and compacted the surrounding codes. Bumps from older snapshots have no compatibility shim — update call sites to the current names.
 
 ### Other module errors
 

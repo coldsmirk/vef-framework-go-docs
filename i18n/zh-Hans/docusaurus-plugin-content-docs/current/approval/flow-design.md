@@ -52,7 +52,7 @@ principal 解析全局变量。该快照会持久化到 `Instance.Globals`；客
 
 ### 明细表格聚合
 
-字段条件可以不比较标量 subject，而是对明细表格的行做聚合（v0.36）。条件仍然
+字段条件可以不比较标量 subject，而是对明细表格的行做聚合。条件仍然
 是结构化的——没有字符串 DSL：`subject` 指定表格字段，`aggregate` 选择聚合
 方式，`column` 指定要聚合的数字列。
 
@@ -137,7 +137,7 @@ vef.Run(
 | `PermissionHidden` | `hidden` | 不展示 |
 | `PermissionRequired` | `required` | 可编辑且必须提供 |
 
-缺失的 key 视为 `visible`。部署校验（v0.38）会对照派生的表单字段检查这个
+缺失的 key 视为 `visible`。部署校验会对照派生的表单字段检查这个
 map：每个 key 必须引用一个顶层表单字段，取值必须在枚举内，抄送节点只能使用
 `visible` / `hidden` 子集，并且当节点的超时动作解析为 `auto_pass` 时会拒绝
 `required` 权限（超时扫描器的 auto-pass 结单时不会执行必填检查）。
@@ -234,7 +234,7 @@ type FlowDefinition struct {
 
 ### 表单 Schema 与派生字段
 
-从 v0.38 起，表单定义在部署时一分为二：
+表单定义在部署时一分为二：
 
 - `FlowVersion.FormSchema`（`formSchema`）是**宿主自有的表单设计器文档**，
   在 `deploy` 时以 `params.formSchema` 提交，以语义等价的 JSON 存储和返回——
@@ -281,13 +281,13 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 公开包暴露的流程设计和持久化模型包括 `FlowCategory`、`Flow`、`FlowVersion`、
 `FlowNode`、`FlowEdge`、`FlowInitiator`、`FlowNodeAssignee`、`FlowNodeCC`、
 `FormFieldDefinition`、`FormSnapshot`、`ActionLog`、
-`OperatorInfo` 和 `UrgeRecord`（结构化的 `FormDefinition` 包装在 v0.38 中被
-移除——宿主文档是 opaque 的，框架侧只保留 `FormFieldDefinition` 这一种
+`OperatorInfo` 和 `UrgeRecord`（没有结构化的 `FormDefinition`
+包装——宿主文档是 opaque 的，框架侧只有 `FormFieldDefinition` 这一种
 形状）。流程版本状态使用 `VersionStatus`：
 `VersionDraft`（`draft`）、`VersionPublished`（`published`）、
 `VersionArchived`（`archived`）。
 
-`Flow.Labels`（v0.39）是宿主自有的筛选元数据——保存时按共享 label 规则
+`Flow.Labels` 是宿主自有的筛选元数据——保存时按共享 label 规则
 校验、在列表查询中支持相等过滤；wire 形状见 [RPC 资源](./resources.md)。
 
 其他流程设计器枚举：

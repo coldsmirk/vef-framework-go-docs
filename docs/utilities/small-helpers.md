@@ -6,36 +6,7 @@ sidebar_position: 10
 
 This page documents small, focused utility packages that do not need a full
 feature page on their own: `page`, `sortx`, `monad`, `strx`, `dbx`, `fiberx`,
-and `version`, plus a note on the removed `ptr` package and its replacement.
-
-## `ptr` — Removed
-
-:::caution
-The `ptr` package has been removed from the framework in favor of Go's
-builtin `new` and `github.com/samber/lo`'s pointer helpers. If you are
-migrating code that still imports `github.com/coldsmirk/vef-framework-go/ptr`,
-use the table below.
-:::
-
-| Old `ptr` API | Replacement | Notes |
-| --- | --- | --- |
-| `ptr.Of(v)` | `new(v)` (builtin) | Go's builtin `new` accepts a value expression and returns a pointer to a copy of it. Unlike the old `ptr.Of`, `new(v)` always returns a non-nil pointer — including for zero values such as `""`, `0`, and `false`. |
-| `ptr.Of(v)` (nil-for-zero semantics) | `lo.EmptyableToPtr(v)` | Returns `nil` when `v` is the zero value, matching the old `ptr.Of` behavior exactly. |
-| `ptr.Zero[T]()` | `lo.Empty[T]()` | Returns the zero value for `T`. |
-| `ptr.Value(p)` | `lo.FromPtr(p)` | Dereferences `p`, or returns zero if `p` is nil. |
-| `ptr.Value(p, fallback)` / `ptr.ValueOrElse(p, fn)` | `lo.FromPtrOr(p, fallback)` | Dereferences `p`, or returns the given fallback if `p` is nil. `lo.FromPtrOr` evaluates the fallback eagerly, unlike the old lazy `ptr.ValueOrElse`. |
-| `ptr.Coalesce(p1, p2, ...)` | plain `if`/`switch` on nil checks | `lo` has no direct multi-pointer coalesce helper; a short manual check is clearest. |
-
-```go
-import "github.com/samber/lo"
-
-p := new(true)                  // *bool → true (builtin new, always non-nil)
-p2 := lo.EmptyableToPtr("")     // *string → nil (zero value)
-p3 := lo.EmptyableToPtr(42)     // *int → 42
-
-s := lo.FromPtr(p2)             // "" (dereference, or zero if nil)
-s = lo.FromPtrOr(p2, "default") // "default"
-```
+and `version`.
 
 ## `page`
 
@@ -259,8 +230,8 @@ record found`.
 
 ## `fiberx`
 
-Fiber request helpers. Renamed from `httpx` in v0.39 to free that name for
-the [outbound HTTP client](./httpx).
+Fiber request helpers. Not to be confused with `httpx` — that name belongs
+to the [outbound HTTP client](./httpx).
 
 | API | Signature | Purpose |
 | --- | --- | --- |
@@ -297,9 +268,8 @@ semver format. The published value includes the leading `v` prefix.
 
 ### Optional fields with pointers
 
-Since the `ptr` package was removed, use the builtin `new` for pointers that
-should always be non-nil, or `lo.EmptyableToPtr` when a zero value should
-become `nil`:
+Use the builtin `new` for pointers that should always be non-nil, or
+`lo.EmptyableToPtr` when a zero value should become `nil`:
 
 - **Search structs**: Optional filter fields use `*bool`, `*string`, etc.
 - **Model fields**: Nullable database columns use pointer types

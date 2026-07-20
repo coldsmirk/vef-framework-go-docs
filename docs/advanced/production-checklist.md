@@ -6,8 +6,7 @@ sidebar_position: 4
 
 Production-readiness concerns are spread across many pages. This page collects
 them into one ordered checklist: each item states what to set, why, and the
-config key or API, then links to the page that documents it in depth. All
-defaults and failure modes below reflect v0.39.0.
+config key or API, then links to the page that documents it in depth.
 
 ## Security
 
@@ -112,7 +111,7 @@ defaults and failure modes below reflect v0.39.0.
     and git commit. See [CLI Tools](./cli-tools) and
     [Monitor](../infrastructure/monitor).
 
-## Optional modules (v0.39)
+## Optional modules
 
 Skip the items for modules you do not enable.
 
@@ -135,8 +134,8 @@ Skip the items for modules you do not enable.
     defaults to `0` (the journal is never pruned) — opt into both
     deliberately; startup validates `abandoned_after ≥ 2 × heartbeat_interval`.
     See [Durable Schedules](../infrastructure/cron-store).
-23. **Recount your Redis dependents.** Beyond item 10, v0.38+ opaque-token
-    sessions (`security.NewRedisSessionStore`) and the v0.39 push relay also
+23. **Recount your Redis dependents.** Beyond item 10, opaque-token
+    sessions (`security.NewRedisSessionStore`) and the push relay also
     need Redis in multi-node deployments.
 
 ## Next step

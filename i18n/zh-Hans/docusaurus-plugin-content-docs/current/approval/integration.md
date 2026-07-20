@@ -96,7 +96,7 @@ type InstanceLifecycleHook interface {
 }
 ```
 
-v0.38 把 hook 泛化了：原先的 `OnInstanceCompleted(instance, finalStatus)` 被 `OnInstanceTransition(instance, from, to)` 取代，它在**每一次**实例状态迁移的同一事务内执行——完成（`to.IsFinal()`）、退回、撤回、重新提交、终止。它在引擎拥有的业务投影记录（同步模式下还包括应用）新状态之后运行，所以 hook 观察到的业务表就是这次迁移留下的样子；`instance.Status` 已经是 `to`。返回 error 会回滚整个迁移。
+这个 hook 是面向迁移的通用形态——没有只针对完成的变体。`OnInstanceTransition(instance, from, to)` 在**每一次**实例状态迁移的同一事务内执行——完成（`to.IsFinal()`）、退回、撤回、重新提交、终止。它在引擎拥有的业务投影记录（同步模式下还包括应用）新状态之后运行，所以 hook 观察到的业务表就是这次迁移留下的样子；`instance.Status` 已经是 `to`。返回 error 会回滚整个迁移。
 
 事务内必须成立的不变量（比如分配一个紧耦合的业务行）应该用 lifecycle hook；其他场景都用事件订阅（或下文的 `BindCommand`）。用 `vef.ProvideApprovalLifecycleHook(constructor)` 注册 hook——constructor 必须返回 `approval.InstanceLifecycleHook`，多个 hook 通过 `vef:approval:lifecycle_hooks` group 组合。多个 hook 之间的调用顺序是**未定义的**（FX value group 不携带顺序），所以 hook 必须彼此独立；任何非 nil error 会中止剩余的 hook。`approval.NewFilteredLifecycleHook(hook, filters...)` 用与 `SubscribeInstance`（见下文）相同的 `InstanceFilter` 词汇包装一个 hook，让 hook 可以按 flow code 或 tenant 限定范围，而不必手写谓词。
 
@@ -116,7 +116,7 @@ type BusinessRefResolver interface {
 
 ### 业务状态投影
 
-v0.38 用持久化的期望状态投影取代了逐 trigger 写回（以及 binding listener）。业务绑定的流程配置一份 `BusinessBinding` 文档——`approval.BusinessBindingConfig`，以 jsonb 存在 `apv_flow` 上，并在每次部署时不可变地快照到 `apv_flow_version`；运行期实例只读版本快照：
+业务写回是持久化的期望状态投影，而不是逐 trigger 写回。业务绑定的流程配置一份 `BusinessBinding` 文档——`approval.BusinessBindingConfig`，以 jsonb 存在 `apv_flow` 上，并在每次部署时不可变地快照到 `apv_flow_version`；运行期实例只读版本快照：
 
 | 字段 | JSON | 含义 |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ func SubscribeInstance[T InstanceEvent](
 
 `SubscribeInstance` 是 `event.SubscribeTyped` 针对实例事件（任何内嵌 `InstanceEventBase` 的事件类型，例如 `InstanceCompletedEvent`）的声明式封装。路由过滤器是数据，不是谓词：`InstanceSubscribeOption` 接受 `approval.ForFlows(codes...)` / `approval.ForTenants(ids...)`（`InstanceFilter` 值），同一维度内是 OR，传给同一次调用的多个 filter 之间是 AND；未通过某个 filter 的事件会被直接 ack，不会调用 handler。业务谓词（最终状态、表单字段值）应放在 handler 内部，而不是 filter 里。
 
-从 v0.38 起 handler 还会收到投递的 `event.Envelope`：`Envelope.ID` 是 Inbox 去重键，跨重投稳定，因此当路由是 at-least-once 时，它就是构建手动幂等的键。
+handler 还会收到投递的 `event.Envelope`：`Envelope.ID` 是 Inbox 去重键，跨重投稳定，因此当路由是 at-least-once 时，它就是构建手动幂等的键。
 
 ```go
 vef.Invoke(func(bus event.Bus) error {
@@ -181,7 +181,7 @@ func BindCommand[E InstanceEvent, C cqrs.Action](
 ) (event.Unsubscribe, error)
 ```
 
-`BindCommand`（v0.38）订阅实例事件 `E`，并把映射出的命令 `C` 派发到宿主的 CQRS bus——从审批事实到宿主副作用的声明式桥。`mapper` 是纯翻译：用事件加投递 envelope 组装命令，并报告相关性（`ok=false` 直接 ack、不派发）。业务逻辑属于命令 handler，它会经过宿主完整的 behavior 管线（事务、审计、校验）；handler 的返回值被丢弃——派发是 fire-and-record。
+`BindCommand` 订阅实例事件 `E`，并把映射出的命令 `C` 派发到宿主的 CQRS bus——从审批事实到宿主副作用的声明式桥。`mapper` 是纯翻译：用事件加投递 envelope 组装命令，并报告相关性（`ok=false` 直接 ack、不派发）。业务逻辑属于命令 handler，它会经过宿主完整的 behavior 管线（事务、审计、校验）；handler 的返回值被丢弃——派发是 fire-and-record。
 
 ```go
 vef.Invoke(func(bus event.Bus, commands cqrs.Bus) error {
@@ -254,7 +254,7 @@ type Delegation struct {
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
 | DI helpers（`vef` 包） | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
 | admin DTOs | `approval/admin` 包：`Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
-| user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`（v0.39）, `ViewerTask`（v0.39）, `RollbackTarget`（v0.39）, `RemovableAssignee`（v0.39） |
+| user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`, `ViewerTask`, `RollbackTarget`, `RemovableAssignee` |
 
 ---
 

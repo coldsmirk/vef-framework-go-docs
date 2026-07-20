@@ -60,7 +60,7 @@ collisions.
 ### Detail-Table Aggregation
 
 A field condition may fold a detail table's rows instead of comparing a scalar
-subject (v0.36). The condition stays structured — no string DSL: `subject`
+subject. The condition stays structured — no string DSL: `subject`
 names the table field, `aggregate` picks the fold, and `column` names the
 numeric column to fold.
 
@@ -150,7 +150,7 @@ The vocabulary is:
 | `PermissionHidden` | `hidden` | not shown |
 | `PermissionRequired` | `required` | editable and must be provided |
 
-An absent key means `visible`. Deploy validation (v0.38) checks the map
+An absent key means `visible`. Deploy validation checks the map
 against the derived form fields: every key must reference a top-level form
 field, values must be in the enum, CC nodes may only use the `visible` /
 `hidden` subset, and a `required` permission is rejected on a node whose
@@ -263,7 +263,7 @@ runtime default of 30 minutes. `rollbackTargetKeys` is checked when
 
 ### Form Schema and Derived Fields
 
-Since v0.38 the form definition is split in two at deploy:
+The form definition is split in two at deploy:
 
 - `FlowVersion.FormSchema` (`formSchema`) is the **host-owned form-designer
   document**, submitted at `deploy` as `params.formSchema` and stored /
@@ -318,13 +318,13 @@ strings. `validation.message` is used as the custom error message for
 Flow design and persistence models exposed by the public package include
 `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`,
 `FlowNodeAssignee`, `FlowNodeCC`, `FormFieldDefinition`,
-`FormSnapshot`, `ActionLog`, `OperatorInfo`, and `UrgeRecord` (the structured
-`FormDefinition` wrapper was removed in v0.38 — the host document is opaque
-and only `FormFieldDefinition` remains a framework shape). Flow-version
+`FormSnapshot`, `ActionLog`, `OperatorInfo`, and `UrgeRecord` (there is no
+structured `FormDefinition` wrapper — the host document is opaque
+and only `FormFieldDefinition` is a framework shape). Flow-version
 status uses `VersionStatus`: `VersionDraft` (`draft`), `VersionPublished`
 (`published`), and `VersionArchived` (`archived`).
 
-`Flow.Labels` (v0.39) is host-owned selection metadata — validated at save
+`Flow.Labels` is host-owned selection metadata — validated at save
 time by the shared label rule and equality-filterable in list queries; see
 [RPC Resources](./resources.md) for the wire shape.
 

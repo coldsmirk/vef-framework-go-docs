@@ -56,7 +56,7 @@ Out of the box, every `logx.Logger` is backed by a `zap.SugaredLogger`
 
 | Aspect | Behavior |
 | --- | --- |
-| Encoding | console — single-line, human-readable text; there is no JSON option as of v0.39 |
+| Encoding | console — single-line, human-readable text; there is no JSON option |
 | Destination | log entries go to stdout; zap's own internal errors go to stderr |
 | Line layout | dimmed `2006-01-02T15:04:05.000` timestamp, capitalized level, `[name]` namespace, trimmed caller path, message |
 | Color | the level column is always ANSI-colorized (`zapcore.CapitalColorLevelEncoder`); timestamp, caller, and name styling is applied only when stdout supports it (termenv detection: disabled for non-TTY output and under `NO_COLOR`) |
@@ -118,12 +118,12 @@ Downstream, the request logger travels three ways:
 
 The request ID is carried as a logger *namespace* — log lines show
 `[request_id:<uuid>]` — not as a structured field. `logx.Logger` has no
-`With(key, value)` field API as of v0.39; attach context by deriving
+`With(key, value)` field API; attach context by deriving
 `Named(...)` children or by formatting values into the message.
 
 ## Replacing Or Wrapping The Logger
 
-The concrete implementation is **not replaceable** as of v0.39. The root zap
+The concrete implementation is **not replaceable**. The root zap
 logger is a package-level value in `internal/logx`, framework packages
 capture their named children at package initialization, and `logx.Logger` is
 not a DI-provided type — so there is no `fx.Decorate` point and no exported

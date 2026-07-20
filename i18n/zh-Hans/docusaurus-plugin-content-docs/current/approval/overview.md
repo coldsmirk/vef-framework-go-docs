@@ -40,9 +40,9 @@ pattern    = "approval.*"
 transports = ["outbox", "redis_stream"]
 ```
 
-从 v0.38 起，业务投影不再消费生命周期事件（它从持久化的
+业务投影不消费生命周期事件（它从持久化的
 `apv_business_projection` 表收敛——见
-[业务状态投影](./integration.md#业务状态投影)），所以模块自身不再要求路由带
+[业务状态投影](./integration.md#业务状态投影)），所以模块自身不要求路由带
 可订阅 sink：只写 `["outbox"]` 的路由就能通过启动检查。当**宿主**通过
 `approval.SubscribeInstance` 或 `approval.BindCommand` 订阅审批事件时，
 仍要像上例一样在 `outbox` 之外列出配置的 outbox `sink` transport
@@ -71,7 +71,7 @@ publish-only 的，订阅方挂在 sink 上。transport、路由语义和 outbox
 | 实例 | `apv_instance` | 流程的运行实例 |
 | 任务 | `apv_task` | 分配给用户的审批/办理任务 |
 | 操作日志 | `apv_action_log` | 所有操作的审计追踪 |
-| 业务投影 | `apv_business_projection` | 业务绑定流程的持久化期望状态收敛（v0.38） |
+| 业务投影 | `apv_business_projection` | 业务绑定流程的持久化期望状态收敛 |
 
 ## 配置
 
@@ -96,7 +96,7 @@ batch_size    = 100            # 每次扫描处理的投影数
 自动设为 true；需要启动时执行 approval DDL 时必须显式开启。
 `cc_record_retention` 只清理已经读过的 CC 记录。
 
-`business_binding`（v0.38）控制审批状态如何投影到绑定的业务表：
+`business_binding` 控制审批状态如何投影到绑定的业务表：
 `synchronous`（默认）在审批事务内写业务行，`eventual` 先提交期望状态、由
 后台 worker 收敛业务行（见
 [业务状态投影](./integration.md#业务状态投影)）。`consistency` 超出枚举或
@@ -104,7 +104,7 @@ worker 配置为负值会在启动时的配置校验直接失败
 （`config.ErrInvalidApprovalBindingConsistency` /
 `ErrInvalidApprovalBusinessBindingWorkerConfig`）。
 
-> 老版本里归属 `[vef.approval]` 的 `outbox_relay_interval` / `outbox_max_retries` / `outbox_batch_size` 已在 v0.21 迁移至 `[vef.event.transports.outbox]`，由全框架统一的 outbox transport 服务所有模块——参考 [事件总线](../infrastructure/event-bus.md)。
+> outbox 调优项（`relay_interval` / `max_retries` / `batch_size`）归属 `[vef.event.transports.outbox]`，而不是 `[vef.approval]`——审批模块通过全框架统一的 outbox transport 发布事件，参考 [事件总线](../infrastructure/event-bus.md)。
 
 详见[配置参考](../reference/configuration-reference.md)。
 

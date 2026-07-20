@@ -41,7 +41,7 @@ body_limit = "32mib"
 
 ### `vef.api`
 
-操作级默认限流（v0.38），作用于所有未声明自己 `OperationSpec.RateLimit`
+操作级默认限流，作用于所有未声明自己 `OperationSpec.RateLimit`
 的操作：
 
 ```toml
@@ -79,8 +79,8 @@ path = "./analytics.db"
 - `postgres`
 - `mysql`
 - `sqlite`
-- `sqlserver`（v0.39）
-- `oracle`（v0.39）
+- `sqlserver`
+- `oracle`
 
 对 SQLite 来说，`path` 可以省略；省略后框架会使用共享内存数据库。
 
@@ -200,7 +200,7 @@ cc_record_retention       = "2160h"  # 90 天
 
 > 老版本里的 `outbox_relay_interval` / `outbox_max_retries` / `outbox_batch_size` 已经从 `[vef.approval]` 搬到 `[vef.event.transports.outbox]`，由全框架共享的 outbox transport 服务所有模块——参考 [事件总线](../infrastructure/event-bus)。
 
-### `vef.cron`、`vef.integration` 与 `vef.push`（v0.39）
+### `vef.cron`、`vef.integration` 与 `vef.push`
 
 三个默认关闭的可选特性配置段：
 
@@ -217,7 +217,7 @@ secret_key = "base64-key"
 enabled = true       # /ws WebSocket 推送端点
 ```
 
-完整键位列表见[配置参考](../reference/configuration-reference#vefcronv039)
+完整键位列表见[配置参考](../reference/configuration-reference#vefcron)
 与各模块指南：[持久化调度](../infrastructure/cron-store)、
 [集成引擎](../integration/overview)、[服务端推送](../infrastructure/push)。
 

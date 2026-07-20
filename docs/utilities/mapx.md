@@ -36,11 +36,11 @@ The `mapx` package provides bidirectional conversion between Go structs and `map
 | `mapx.ErrCollectionSetNotFinite` | Sentinel for NaN or infinity targeting integer set elements |
 | `mapx.ErrCollectionSetNegative` | Sentinel for negative values targeting unsigned set elements |
 | `mapx.ErrCollectionSetUnsupportedTarget` | Sentinel for collection set element kinds without a conversion strategy |
-| `mapx.ErrJSONNumberNotInteger` | Sentinel for a fractional or exponent-form `json.Number` targeting an integer field (v0.38) |
-| `mapx.ErrJSONNumberOverflow` | Sentinel for a `json.Number` that does not fit the numeric target type (v0.38) |
+| `mapx.ErrJSONNumberNotInteger` | Sentinel for a fractional or exponent-form `json.Number` targeting an integer field |
+| `mapx.ErrJSONNumberOverflow` | Sentinel for a `json.Number` that does not fit the numeric target type |
 
 The decoder hook chain translates `json.Number` values produced by
-number-preserving JSON parsing (v0.38): numeric targets get an exact digit
+number-preserving JSON parsing: numeric targets get an exact digit
 parse with `encoding/json`-equivalent strictness, `json.Number` /
 `json.RawMessage` targets keep the literal, and every other target — most
 importantly `any` — sees `float64`, preserving the pre-`json.Number` runtime

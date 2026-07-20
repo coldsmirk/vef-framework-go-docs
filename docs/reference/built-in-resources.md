@@ -22,8 +22,8 @@ Unless noted otherwise:
 | `sys/storage` | `storage` | Bearer auth by default | Multipart upload session lifecycle (init / part / list / complete / abort). Downloads are served via the `/storage/files/<key>` app proxy, not via RPC. |
 | `sys/schema` | `schema` | Bearer auth by default | Database schema inspection |
 | `sys/monitor` | `monitor` | Bearer auth by default | Runtime and host monitoring data |
-| `sys/cron/schedule`, `sys/cron/run` | `cron` (store) | Bearer auth + `cron.schedule.*` / `cron.run.*` permissions | Durable schedule management and the run journal (v0.39). Operations mount only when `vef.cron.store.enabled = true` |
-| `integration/*` | `integration` | Bearer auth + `integration.*` permissions | Integration-engine management resources registered only when `vef.IntegrationModule` is enabled (v0.39) |
+| `sys/cron/schedule`, `sys/cron/run` | `cron` (store) | Bearer auth + `cron.schedule.*` / `cron.run.*` permissions | Durable schedule management and the run journal. Operations mount only when `vef.cron.store.enabled = true` |
+| `integration/*` | `integration` | Bearer auth + `integration.*` permissions | Integration-engine management resources registered only when `vef.IntegrationModule` is enabled |
 | `approval/*` | `approval` | Bearer auth required; per-action permissions where declared | Optional workflow resources registered only when `vef.ApprovalModule` is enabled |
 
 ## `security/auth`
@@ -91,9 +91,11 @@ Notes:
 - if no `security.UserInfoLoader` is registered, this action returns `not implemented`
 - response shape is defined by `security.UserInfo`
 
+Field-level request/response reference for every `security/auth` action: see [Authentication Reference](../security/authentication-reference).
+
 ## `sys/storage`
 
-Storage resource provided by the storage module. The single-PUT `upload` action was retired in v0.21; every upload now goes through the multipart session lifecycle below. See [File Storage](../infrastructure/storage) for the surrounding lifecycle (claim, pending-delete, ACL).
+Storage resource provided by the storage module. There is no single-PUT `upload` action; every upload goes through the multipart session lifecycle below. See [File Storage](../infrastructure/storage) for the surrounding lifecycle (claim, pending-delete, ACL).
 
 ### Operations
 
@@ -213,6 +215,8 @@ Minimal request example:
 }
 ```
 
+Field-level request/response reference for the surrounding lifecycle (claims, ACL, download proxy): see [File Storage](../infrastructure/storage).
+
 ## `sys/schema`
 
 Schema inspection resource provided by the schema module.
@@ -230,6 +234,8 @@ Schema inspection resource provided by the schema module.
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | `name` | `string` | Yes | Table name to inspect |
+
+Field-level request/response reference: see [Schema Inspection](../infrastructure/schema).
 
 ## `sys/monitor`
 
@@ -249,7 +255,7 @@ Monitoring resource provided by the monitor module.
 | `get_load` | Bearer auth required | Custom operation max `60` | Returns system load averages | None |
 | `get_build_info` | Bearer auth required | Custom operation max `60` | Returns application build metadata | None |
 | `get_event_streams` | Bearer auth required | Custom operation max `60` | Reports every redis_stream stream and consumer group (consumers / pending / lag / last-delivered) via the optional `event.StreamInspector`, so operators can spot orphaned groups | None |
-| `get_integration_stats` | Bearer auth required | Custom operation max `60` | Reports per-node integration invocation statistics via the optional `integration.StatsInspector`, wrapped as `{enabled, stats}` — one stats entry per (system, contract, direction) tuple since process start: `system`, `contract`, `direction`, `calls`, `successes`, `failures` (by kind), `avgDurationMs`, `maxDurationMs`, `lastError`, `lastErrorAt` (v0.39) | None |
+| `get_integration_stats` | Bearer auth required | Custom operation max `60` | Reports per-node integration invocation statistics via the optional `integration.StatsInspector`, wrapped as `{enabled, stats}` — one stats entry per (system, contract, direction) tuple since process start: `system`, `contract`, `direction`, `calls`, `successes`, `failures` (by kind), `avgDurationMs`, `maxDurationMs`, `lastError`, `lastErrorAt` | None |
 
 Notes:
 
@@ -268,10 +274,12 @@ Minimal request example:
 }
 ```
 
+Field-level request/response reference: see [Monitor](../infrastructure/monitor).
+
 ## `sys/cron/schedule` and `sys/cron/run`
 
-Durable-scheduling resources provided by the cron module's schedule store
-(v0.39). With `vef.cron.store.enabled = false` the resources exist but mount
+Durable-scheduling resources provided by the cron module's schedule store.
+With `vef.cron.store.enabled = false` the resources exist but mount
 no operations — a feature that is off exposes no surface.
 
 - `sys/cron/schedule`: `find_page`, `get`, `list_jobs`, `preview_fires`
@@ -286,7 +294,7 @@ Every request parameter and response field is documented in
 
 ## Integration resources
 
-If you explicitly include the integration module (v0.39), the framework also
+If you explicitly include the integration module, the framework also
 registers the `integration/*` management resources: `integration/contract`,
 `integration/system`, `integration/adapter`, `integration/route`,
 `integration/code_map`, `integration/code_set`, `integration/log`, and

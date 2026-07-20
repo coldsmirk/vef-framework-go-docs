@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Integration Engine
 
-The integration module (v0.39) is a config- and script-driven engine for
+The integration module is a config- and script-driven engine for
 talking to external systems — HIS/ERP vendors, partner gateways, provincial
 platforms — without hard-coding any vendor's wire format into business code.
 It is optional: enable it by passing `vef.IntegrationModule` to `vef.Run`.

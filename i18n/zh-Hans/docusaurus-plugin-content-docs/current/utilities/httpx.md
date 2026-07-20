@@ -4,12 +4,12 @@ sidebar_position: 9
 
 # httpx（出站 HTTP 客户端）
 
-`httpx`（v0.39）是框架的出站 HTTP 客户端，提供流式请求 API——为每个第三方
+`httpx` 是框架的出站 HTTP 客户端，提供流式请求 API——为每个第三方
 系统构建一个 `Client`，再由它派生按调用的 `Request`。集成引擎的作用域
 `http` 脚本库即构建在它之上；应用 Go 代码也可以直接使用。
 
-> 不要与旧的 `httpx` Fiber 辅助函数混淆——它们在 v0.39 更名为
-> [`fiberx`](./small-helpers#fiberx)，把这个名字让给了出站客户端。
+> 不要与 [`fiberx`](./small-helpers#fiberx)（Fiber 请求辅助函数包）
+> 混淆——出站客户端才叫 `httpx`。
 
 ## 快速开始
 

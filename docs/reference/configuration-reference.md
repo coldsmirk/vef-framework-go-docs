@@ -47,8 +47,8 @@ Common environment keys include:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `rate_limit.max` | `int` | default per-operation rate limit applied to operations that declare no `OperationSpec.RateLimit` of their own; default `100` (v0.38) |
-| `rate_limit.period` | `duration` | window for the default rate limit; default `5m` (v0.38) |
+| `rate_limit.max` | `int` | default per-operation rate limit applied to operations that declare no `OperationSpec.RateLimit` of their own; default `100` |
+| `rate_limit.period` | `duration` | window for the default rate limit; default `5m` |
 
 The limit is keyed per operation × client (resource, version, action, client
 IP, principal ID) and counted per node. Per-endpoint `OperationSpec.RateLimit`
@@ -106,8 +106,8 @@ Runtime note:
 | `login_rate_limit` | `int` | login endpoint rate limit; default `6` |
 | `refresh_rate_limit` | `int` | refresh endpoint rate limit; default `1` |
 | `ip_whitelists` | `map[string][]string` | named source-IP whitelists (IP or CIDR entries) consumed by the built-in `ip` auth strategy; TOML keys are lowercased, and the no-arg `api.IPAuth()` targets the `default` key |
-| `api_keys` | `map[string]{key, roles}` | static API keys served by the default `security.APIKeyLoader` for the `api_key` auth strategy (v0.39); each entry carries the secret `key` (high-entropy random string) and the `roles` granted to the authenticated principal. TOML keys are lowercased |
-| `basic_accounts` | `map[string]{password, roles}` | static service accounts served by the default `security.BasicAccountLoader` for the `http_basic` auth strategy (v0.39); the map key is the username. These are machine-to-machine credentials, not user passwords |
+| `api_keys` | `map[string]{key, roles}` | static API keys served by the default `security.APIKeyLoader` for the `api_key` auth strategy; each entry carries the secret `key` (high-entropy random string) and the `roles` granted to the authenticated principal. TOML keys are lowercased |
+| `basic_accounts` | `map[string]{password, roles}` | static service accounts served by the default `security.BasicAccountLoader` for the `http_basic` auth strategy; the map key is the username. These are machine-to-machine credentials, not user passwords |
 | `lockout.*` | — | brute-force lockout on the login endpoint: `enabled` default `true`, `max_failures` default `10`, `window` default `15m`, `lock_duration` default `15m`, `strategy` (`lock` \| `backoff`) default `lock`, `backoff_base` default `1s`, `backoff_max` default `15m`, `key` (`user` \| `ip` \| `user_ip`) default `user_ip` |
 | `password_policy.*` | — | password strength rules; every field is opt-in (a zero value disables the rule): `min_length`, `max_length`, `require_upper`, `require_lower`, `require_digit`, `require_symbol`, `min_char_classes`, `disallow_username`, `blocklist`, `history_depth` (reuse prevention; requires an app-provided `security.PasswordHistoryStore`), `max_age` (expiry; requires an app-provided `security.PasswordMetadataLoader`) |
 | `token_type` | `jwt_token \| opaque_token` | login token mechanism; default `jwt_token`. Session control (concurrency limits, force-offline, renewal) is only available with `opaque_token` |
@@ -177,8 +177,8 @@ Runtime note:
 | `sample_interval` | `duration` | interval between samples; default `10s` |
 | `sample_duration` | `duration` | sampling window duration; default `2s` |
 
-> `excluded_mounts` was removed in v0.38: the overview's disk summary now
-> reports the root filesystem only, so mount-point exclusions no longer apply
+> There is no `excluded_mounts` field: the overview's disk summary reports
+> the root filesystem only, so mount-point exclusions do not apply
 > (the full mount inventory remains available in the disk detail query).
 
 ## `vef.mcp`
@@ -200,13 +200,13 @@ Runtime note:
 | `form_snapshot_retention` | `duration` | `apv_form_snapshot` retention, default 90 days |
 | `urge_record_retention` | `duration` | `apv_urge_record` retention, default 30 days |
 | `cc_record_retention` | `duration` | retention for read `apv_cc_record` rows, default 90 days |
-| `business_binding.consistency` | `synchronous \| eventual` | business-table projection mode; default `synchronous` (failure rolls the approval action back). `eventual` commits desired state and lets the worker converge (v0.38) |
-| `business_binding.scan_interval` | `duration` | eventual projection worker cadence, default `10s` (v0.38) |
-| `business_binding.batch_size` | `int` | projections claimed per scan, default `100` (v0.38) |
+| `business_binding.consistency` | `synchronous \| eventual` | business-table projection mode; default `synchronous` (failure rolls the approval action back). `eventual` commits desired state and lets the worker converge |
+| `business_binding.scan_interval` | `duration` | eventual projection worker cadence, default `10s` |
+| `business_binding.batch_size` | `int` | projections claimed per scan, default `100` |
 
-> Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../infrastructure/event-bus).
+> Outbox-related fields live under `[vef.event.transports.outbox]`, not `[vef.approval]`; see [Event Bus](../infrastructure/event-bus).
 
-## `vef.cron` (v0.39)
+## `vef.cron`
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -225,7 +225,7 @@ Validation rejects negative durations and an `abandoned_after` tighter than
 twice the heartbeat interval at startup. See
 [Durable Schedules](../infrastructure/cron-store).
 
-## `vef.integration` (v0.39)
+## `vef.integration`
 
 Read by the optional integration module (`vef.IntegrationModule`).
 
@@ -245,7 +245,7 @@ Read by the optional integration module (`vef.IntegrationModule`).
 
 See [Integration Engine](../integration/overview).
 
-## `vef.push` (v0.39)
+## `vef.push`
 
 | Field | Type | Meaning |
 | --- | --- | --- |

@@ -5,7 +5,7 @@ sidebar_position: 2
 # JS 引擎
 
 `js` 包内嵌了由 [goja](https://github.com/dop251/goja) 驱动的沙箱化
-JavaScript 运行时。自 v0.39 起，它围绕 **Engine / Runtime / Lib** 三元
+JavaScript 运行时。它围绕 **Engine / Runtime / Lib** 三元
 架构构建：不可变的 `Engine` 持有一组经过校验的库并批量产出一次性的
 `Runtime`；具备副作用的能力（HTTP、SQL、缓存、事件……）都是按运行时安装的
 `Lib`，脚本只能触及被安装的内容。

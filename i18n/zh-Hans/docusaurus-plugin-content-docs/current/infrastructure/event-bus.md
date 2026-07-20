@@ -6,7 +6,7 @@ sidebar_position: 5
 
 VEF 把事件系统做成了一个可插拔的多 transport 平台，对外通过单一的 `event.Bus` 暴露。FX 会负责启动总线，应用只管定义事件、发布、订阅，剩下的由路由配置决定。
 
-> 事件系统在 v0.21 被重写为可插拔多 transport 平台（`feat(event)!: rewrite event system as pluggable multi-transport platform`），之后不断加固：类型化订阅（`SubscribeTyped`）、能力感知路由、事务性 outbox、Redis Streams transport、Inbox 去重、路由检查器、明确的错误 sentinel。本页描述当前公开 API surface；老版本快照与现在已经不再兼容。
+> 平台能力覆盖类型化订阅（`SubscribeTyped`）、能力感知路由、事务性 outbox、Redis Streams transport、Inbox 去重、路由检查器与明确的错误 sentinel。本页描述当前公开 API surface。
 
 ## FX 自动注入的内容
 
@@ -202,7 +202,7 @@ type RouteInspector interface {
 ```
 
 - `HasTransactionalRoute`：使用 `WithTx`（事务性 outbox 模式）的模块必须确认路由里有 `Transactional` transport，否则第一次 `WithTx` 发布就会 `ErrTxRequired`。
-- `HasSubscribableTransport`：框架侧自行订阅事件的模块（集成 handler、事件驱动的 projection）必须确认路由里有可订阅 transport，否则路由若只解析到 publish-only transport，应用能启动，但每次 Subscribe 都会 `ErrNoRouteMatched`。v0.25.0 新增。
+- `HasSubscribableTransport`：框架侧自行订阅事件的模块（集成 handler、事件驱动的 projection）必须确认路由里有可订阅 transport，否则路由若只解析到 publish-only transport，应用能启动，但每次 Subscribe 都会 `ErrNoRouteMatched`。
 
 Approval 模块在启动时对它的 `approval.*` 事件断言 `HasTransactionalRoute`（其业务投影从持久化状态收敛，不再订阅事件）—— 参考 [Approval 模块](../approval)。
 
@@ -434,7 +434,7 @@ idle_group_sweep_interval = "10m"
 | `vef.storage.file.claimed` | 业务事务采纳了一个 pending 的上传 claim |
 | `vef.storage.file.deleted` | storage 删除 worker 把文件从后端删除完成 |
 | `vef.storage.delete.dead_letter` | 删除 worker 重试用尽；队列行已退役，事件携带排查信息 |
-| `approval.task.created` | 审批任务创建（v0.25，所有任务创建路径统一发出；注意审批域主题使用 `approval.*` 前缀，而非 `vef.*`） |
+| `approval.task.created` | 审批任务创建（所有任务创建路径统一发出；注意审批域主题使用 `approval.*` 前缀，而非 `vef.*`） |
 
 启用 approval 模块后，还会发布更多审批域事件 —— 参考 [Approval 模块](../approval)。
 

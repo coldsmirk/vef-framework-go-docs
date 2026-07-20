@@ -6,7 +6,7 @@ sidebar_position: 5
 
 VEF ships a pluggable multi-transport event platform behind a single `event.Bus` facade. The bus is auto-wired by FX — applications register events, publish, subscribe, and let the configured routing decide where each frame goes.
 
-> The event system was rewritten in v0.21 as a pluggable platform (`feat(event)!: rewrite event system as pluggable multi-transport platform`) and has been hardened repeatedly since: typed delivery (`SubscribeTyped`), capability-aware routing, transactional outbox, Redis Streams transport, Inbox dedupe, route inspection, and explicit error sentinels. This page describes the current public surface; older snapshots are not API-compatible.
+> The platform covers typed delivery (`SubscribeTyped`), capability-aware routing, a transactional outbox, a Redis Streams transport, Inbox dedupe, route inspection, and explicit error sentinels. This page describes the current public surface.
 
 ## What FX Wires For You
 
@@ -204,7 +204,7 @@ type RouteInspector interface {
 ```
 
 - `HasTransactionalRoute`: required by modules that publish with `WithTx` (transactional outbox pattern). Without it, the first `WithTx` publish fails with `ErrTxRequired`.
-- `HasSubscribableTransport`: required by modules whose framework-side code subscribes (integration handlers, event-driven projections). Without it, a route resolving only to publish-only transports lets the app start but every Subscribe fails with `ErrNoRouteMatched`. Added in v0.25.0.
+- `HasSubscribableTransport`: required by modules whose framework-side code subscribes (integration handlers, event-driven projections). Without it, a route resolving only to publish-only transports lets the app start but every Subscribe fails with `ErrNoRouteMatched`.
 
 The approval module asserts `HasTransactionalRoute` for its `approval.*` events at boot (its business projection converges from durable state and no longer subscribes) — see [Approval module](../approval).
 
@@ -440,7 +440,7 @@ idle_group_sweep_interval = "10m"
 | `vef.storage.file.claimed` | a pending upload claim was adopted by a business transaction |
 | `vef.storage.file.deleted` | the storage delete worker drained a file from the backend |
 | `vef.storage.delete.dead_letter` | the delete worker exhausted retries; the queue row was retired and the event carries the investigation details |
-| `approval.task.created` | approval task created (v0.25 — emitted on every task-creation path; note the approval domain topics use the `approval.*` prefix, not `vef.*`) |
+| `approval.task.created` | approval task created (emitted on every task-creation path; note the approval domain topics use the `approval.*` prefix, not `vef.*`) |
 
 If the approval module is enabled, additional approval-domain events are published on top of these — see [Approval module](../approval).
 

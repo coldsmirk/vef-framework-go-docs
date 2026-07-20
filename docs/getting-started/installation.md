@@ -51,8 +51,8 @@ VEF boots its database module during startup, so your application configuration 
 - PostgreSQL
 - MySQL
 - SQLite
-- SQL Server (v0.39)
-- Oracle (v0.39)
+- SQL Server
+- Oracle
 
 For local exploration and small demos, SQLite is the simplest choice because it avoids external infrastructure.
 

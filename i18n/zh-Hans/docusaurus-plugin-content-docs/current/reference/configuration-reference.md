@@ -47,8 +47,8 @@ type = "sqlite"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `rate_limit.max` | `int` | 未声明自己 `OperationSpec.RateLimit` 的操作使用的默认限流；默认 `100`（v0.38）。 |
-| `rate_limit.period` | `duration` | 默认限流的时间窗口；默认 `5m`（v0.38）。 |
+| `rate_limit.max` | `int` | 未声明自己 `OperationSpec.RateLimit` 的操作使用的默认限流；默认 `100`。 |
+| `rate_limit.period` | `duration` | 默认限流的时间窗口；默认 `5m`。 |
 
 限流按操作 × 客户端计数（resource、version、action、客户端 IP、principal
 ID），且按节点独立统计。每个端点自己的 `OperationSpec.RateLimit` 仍然优先；
@@ -104,8 +104,8 @@ path = "./analytics.db"
 | `login_rate_limit` | `int` | 登录接口限流；默认 `6`。 |
 | `refresh_rate_limit` | `int` | refresh 接口限流；默认 `1`。 |
 | `ip_whitelists` | `map[string][]string` | 内置 `ip` 认证策略使用的命名 IP 白名单（IP 或 CIDR 条目）；TOML key 会被转成小写，无参数的 `api.IPAuth()` 指向 `default`。 |
-| `api_keys` | `map[string]{key, roles}` | 默认 `security.APIKeyLoader` 为 `api_key` 认证策略提供的静态 API key（v0.39）；每项携带密钥 `key`（高熵随机串）与授予主体的 `roles`。TOML key 会被转成小写 |
-| `basic_accounts` | `map[string]{password, roles}` | 默认 `security.BasicAccountLoader` 为 `http_basic` 认证策略提供的静态服务账号（v0.39）；map 键即用户名。这些是机器对机器凭证，不是用户密码 |
+| `api_keys` | `map[string]{key, roles}` | 默认 `security.APIKeyLoader` 为 `api_key` 认证策略提供的静态 API key；每项携带密钥 `key`（高熵随机串）与授予主体的 `roles`。TOML key 会被转成小写 |
+| `basic_accounts` | `map[string]{password, roles}` | 默认 `security.BasicAccountLoader` 为 `http_basic` 认证策略提供的静态服务账号；map 键即用户名。这些是机器对机器凭证，不是用户密码 |
 | `lockout.*` | — | 登录接口的暴力破解防护：`enabled` 默认 `true`、`max_failures` 默认 `10`、`window` 默认 `15m`、`lock_duration` 默认 `15m`、`strategy`（`lock` \| `backoff`）默认 `lock`、`backoff_base` 默认 `1s`、`backoff_max` 默认 `15m`、`key`（`user` \| `ip` \| `user_ip`）默认 `user_ip`。 |
 | `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
 | `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
@@ -175,8 +175,8 @@ path = "./analytics.db"
 | `sample_interval` | `duration` | 采样间隔；默认 `10s`。 |
 | `sample_duration` | `duration` | 采样窗口时长；默认 `2s`。 |
 
-> `excluded_mounts` 已在 v0.38 移除：overview 的磁盘摘要只报告根文件系统，
-> 挂载点排除不再适用（完整挂载清单仍可通过磁盘详情查询获取）。
+> 没有 `excluded_mounts` 字段：overview 的磁盘摘要只报告根文件系统，
+> 不存在挂载点排除（完整挂载清单仍可通过磁盘详情查询获取）。
 
 ## `vef.mcp`
 
@@ -197,13 +197,13 @@ path = "./analytics.db"
 | `form_snapshot_retention` | `duration` | apv_form_snapshot 保留期，默认 90 天。 |
 | `urge_record_retention` | `duration` | apv_urge_record 保留期，默认 30 天。 |
 | `cc_record_retention` | `duration` | 已读 apv_cc_record 记录保留期，默认 90 天。 |
-| `business_binding.consistency` | `synchronous \| eventual` | 业务表投影模式；默认 `synchronous`（失败回滚审批动作）。`eventual` 先提交期望状态、由 worker 收敛（v0.38）。 |
-| `business_binding.scan_interval` | `duration` | eventual 投影 worker 的扫描节奏，默认 `10s`（v0.38）。 |
-| `business_binding.batch_size` | `int` | 每次扫描认领的投影数，默认 `100`（v0.38）。 |
+| `business_binding.consistency` | `synchronous \| eventual` | 业务表投影模式；默认 `synchronous`（失败回滚审批动作）。`eventual` 先提交期望状态、由 worker 收敛。 |
+| `business_binding.scan_interval` | `duration` | eventual 投影 worker 的扫描节奏，默认 `10s`。 |
+| `business_binding.batch_size` | `int` | 每次扫描认领的投影数，默认 `100`。 |
 
-> 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
+> outbox 配置归属 `[vef.event.transports.outbox]`，而不是 `[vef.approval]`，详见 [事件总线](../infrastructure/event-bus)。
 
-## `vef.cron`（v0.39）
+## `vef.cron`
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
@@ -221,7 +221,7 @@ path = "./analytics.db"
 启动校验拒绝负的时长以及比心跳间隔两倍更紧的 `abandoned_after`。见
 [持久化调度](../infrastructure/cron-store)。
 
-## `vef.integration`（v0.39）
+## `vef.integration`
 
 由可选的集成模块（`vef.IntegrationModule`）读取。
 
@@ -241,7 +241,7 @@ path = "./analytics.db"
 
 见[集成引擎](../integration/overview)。
 
-## `vef.push`（v0.39）
+## `vef.push`
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |

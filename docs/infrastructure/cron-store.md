@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Durable Schedules
 
-The durable schedule store (v0.39) extends the [cron module](./cron) with
+The durable schedule store extends the [cron module](./cron) with
 database-persisted schedules: cluster-wide single fire per occurrence,
 operator-editable triggers, misfire policies, a run journal, and crash
 recovery. The in-memory scheduler keeps serving process-local jobs; the store

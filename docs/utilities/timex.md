@@ -56,9 +56,8 @@ and `FromUnixMicro`.
 
 The lenient `Parse*` entry points try the given layout first, then fall back
 to common formats (RFC3339, ISO-8601, …). Both paths interpret zone-less input
-in the **local** timezone (v0.38 fix — the fallback used to assume UTC, which
-could shift a date-only string by up to a day); inputs carrying an explicit
-offset keep it on either path.
+in the **local** timezone — never UTC, which would shift a date-only string
+by up to a day; inputs carrying an explicit offset keep it on either path.
 
 ### Accessing Components
 
@@ -133,7 +132,7 @@ dt.Sunday()
 
 ```go
 dt.Unwrap()      // → time.Time
-dt.AsLocal()     // → time.Time, wall-clock fields reinterpreted in time.Local (v0.39)
+dt.AsLocal()     // → time.Time, wall-clock fields reinterpreted in time.Local
 dt.String()      // → "2024-03-15 14:30:00"
 dt.Format(layout) // Custom format
 dt.Unix()        // Unix seconds

@@ -8,7 +8,7 @@ sidebar_position: 3
 
 ## 操作级权限检查
 
-最常见的授权入口，就是在操作上配置 `RequiredPermission`（v0.24 起从 `PermToken` 重命名）：
+最常见的授权入口，就是在操作上配置 `RequiredPermission`：
 
 ```go
 crud.NewUpdate[User, UserParams]().

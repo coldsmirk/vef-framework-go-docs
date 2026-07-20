@@ -4,13 +4,13 @@ sidebar_position: 9
 
 # httpx (Outbound HTTP Client)
 
-`httpx` (v0.39) is the framework's outbound HTTP client with a fluent
+`httpx` is the framework's outbound HTTP client with a fluent
 request API — construct one `Client` per third-party system and build
 per-call `Request`s from it. The integration engine's scoped `http` script
 library rides on it; application Go code can use it directly.
 
-> Not to be confused with the former `httpx` Fiber helpers, which were
-> renamed to [`fiberx`](./small-helpers#fiberx) in v0.39 to free this name.
+> Not to be confused with [`fiberx`](./small-helpers#fiberx), the package of
+> Fiber request helpers — the outbound client is `httpx`.
 
 ## Quick Start
 

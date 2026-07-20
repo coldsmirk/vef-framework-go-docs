@@ -55,7 +55,7 @@ security、event bus、CRUD、approval 等）都依赖 `logx.Logger`，从不直
 
 | 方面 | 行为 |
 | --- | --- |
-| Encoding | console——单行、面向人的文本；截至 v0.39 没有 JSON 选项 |
+| Encoding | console——单行、面向人的文本；没有 JSON 选项 |
 | 输出目标 | 日志条目写到 stdout；zap 自身的内部错误写到 stderr |
 | 行结构 | 弱化显示的 `2006-01-02T15:04:05.000` 时间戳、大写 level、`[name]` namespace、截短的 caller 路径、message |
 | 颜色 | level 列始终带 ANSI 颜色（`zapcore.CapitalColorLevelEncoder`）；时间戳、caller 和 name 的样式只在 stdout 支持时应用（termenv 检测：非 TTY 输出和 `NO_COLOR` 下禁用） |
@@ -109,13 +109,13 @@ logger——没有 per-component 级别配置，也没有公开的运行时 API 
   是配置了 request logger 的 per-request 副本。
 
 request ID 作为 logger 的 *namespace* 携带——日志行显示
-`[request_id:<uuid>]`——而不是 structured field。截至 v0.39，`logx.Logger`
+`[request_id:<uuid>]`——而不是 structured field。`logx.Logger`
 没有 `With(key, value)` 字段 API；要附加上下文，请派生 `Named(...)` child
 或把值格式化进 message。
 
 ## 替换或包装 Logger
 
-截至 v0.39，具体实现**不可替换**。root zap logger 是 `internal/logx` 里的
+具体实现**不可替换**。root zap logger 是 `internal/logx` 里的
 package-level 值，框架各 package 在包初始化时就捕获了各自的 named child，
 而且 `logx.Logger` 不是 DI 提供的类型——因此没有 `fx.Decorate` 切入点，也
 没有导出的替换钩子。框架内部的输出（库、格式、目标）是固定的。

@@ -22,7 +22,7 @@ separate `database` or `orm` boot step. `outbox`, `redis-stream`, and `inbox`
 are the event transport submodules — the outbox transport module, the
 redis-stream transport module, and the inbox module — registered after
 `sequence` and before `schema`. `js` is the shared JS engine module and
-`push` is the WebSocket push module (v0.39).
+`push` is the WebSocket push module.
 
 Note the list order is for readability: FX resolves the actual construction
 order from declared dependencies, so what matters is the dependency shape —
@@ -105,7 +105,7 @@ From the current middleware module, the common order is:
 - panic recovery
 - request record logging
 - API routes
-- push WebSocket endpoint (order 450, v0.39; the integration inbound gateway sits at 400 when that module is enabled)
+- push WebSocket endpoint (order 450; the integration inbound gateway sits at 400 when that module is enabled)
 - MCP endpoint middleware (order 500)
 - storage proxy routes (order 900)
 - SPA fallback middleware (order 1000)

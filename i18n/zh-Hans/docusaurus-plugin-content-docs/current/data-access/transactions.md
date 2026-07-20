@@ -14,7 +14,7 @@ VEF 通过 `orm.DB` 提供事务能力，不少 CRUD 写操作内部本身就已
 - `RunInReadOnlyTx`
 - `BeginTx`
 
-> v0.24 把原来大小写为 `RunInTX` / `RunInReadOnlyTX` 的方法改名为 `RunInTx` / `RunInReadOnlyTx`，以保持与框架其他地方一致的大小写风格。
+> 注意大小写是 `Tx`——方法名为 `RunInTx` / `RunInReadOnlyTx`，不是 `RunInTX` / `RunInReadOnlyTX`，与框架其他地方的风格一致。
 
 最常见的用法是：
 

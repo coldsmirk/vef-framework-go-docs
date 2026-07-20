@@ -4,7 +4,7 @@ sidebar_position: 10
 
 # Distributed Lock
 
-The `lock` package (v0.38) provides lease-based distributed locks for
+The `lock` package provides lease-based distributed locks for
 applications that deploy multiple replicas and need "only one of us does
 this" guarantees — singleton cron jobs, one-off migrations, resource-exclusive
 maintenance work. Inject `lock.Locker` and the framework hands you the right

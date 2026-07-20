@@ -35,41 +35,63 @@ The public monitoring service exposes:
 
 ## Built-In Resource
 
-The monitor module registers:
+The monitor module registers the `sys/monitor` RPC resource, mounted under
+`/api` with the standard envelope (`resource`, `action`, `version`,
+`params`, `meta`). No operation is public and none declares a dedicated
+permission token: every action inherits the API engine's default Bearer
+authentication.
 
-| Resource |
-| --- |
-| `sys/monitor` |
+Every action sets a custom per-operation rate limit of `max 60`. The window
+length is not overridden, so it inherits `vef.api.rate_limit.period`
+(default `5m`); the limiter counts per operation + client IP + principal,
+in process memory on each node.
 
-Current actions:
+None of the actions define framework-level input parameters: `params` is
+ignored and may be omitted entirely.
 
-| Action | Input params | Output type | Notes |
-| --- | --- | --- | --- |
-| `get_overview` | none | `monitor.SystemOverview` | overview can contain partial data when some probes are unavailable |
-| `get_cpu` | none | `monitor.CPUInfo` | returns `monitor not ready` when CPU sample cache is not ready |
-| `get_memory` | none | `monitor.MemoryInfo` | includes virtual memory and swap |
-| `get_disk` | none | `monitor.DiskInfo` | includes partitions and I/O counters |
-| `get_network` | none | `monitor.NetworkInfo` | includes interfaces and I/O counters |
-| `get_host` | none | `monitor.HostInfo` | static host metadata |
-| `get_process` | none | `monitor.ProcessInfo` | returns `monitor not ready` when process sample cache is not ready |
-| `get_load` | none | `monitor.LoadInfo` | load averages |
-| `get_build_info` | none | `monitor.BuildInfo` | build metadata only |
-| `get_event_streams` | none | `monitor.EventStreamsInfo` | reports cross-process event stream and consumer-group state; `enabled=false` and an empty `streams` list when no `event.StreamInspector` is available (the redis_stream transport is off) |
-| `get_integration_stats` | none | `monitor.IntegrationStatsInfo` | reports per-node integration invocation statistics (v0.39); `enabled=false` and an empty `stats` list when no `integration.StatsInspector` is available (the integration module is off) |
+| Action | Access | Rate limit | Input | Output |
+| --- | --- | --- | --- | --- |
+| `get_overview` | Bearer auth | `max 60` | none | `monitor.SystemOverview` |
+| `get_cpu` | Bearer auth | `max 60` | none | `monitor.CPUInfo` |
+| `get_memory` | Bearer auth | `max 60` | none | `monitor.MemoryInfo` |
+| `get_disk` | Bearer auth | `max 60` | none | `monitor.DiskInfo` |
+| `get_network` | Bearer auth | `max 60` | none | `monitor.NetworkInfo` |
+| `get_host` | Bearer auth | `max 60` | none | `monitor.HostInfo` |
+| `get_process` | Bearer auth | `max 60` | none | `monitor.ProcessInfo` |
+| `get_load` | Bearer auth | `max 60` | none | `monitor.LoadInfo` |
+| `get_build_info` | Bearer auth | `max 60` | none | `monitor.BuildInfo` |
+| `get_event_streams` | Bearer auth | `max 60` | none | `monitor.EventStreamsInfo` |
+| `get_integration_stats` | Bearer auth | `max 60` | none | `monitor.IntegrationStatsInfo` |
 
-Implementation details visible in source:
+Behavior visible in source:
 
-- each action currently sets a per-operation rate-limit max of `60`
-- `get_cpu` and `get_process` use a specific monitor-not-ready business error when samples are not ready
-- `get_event_streams` is gated by the optional `event.StreamInspector` dependency; a nil inspector still returns `200 OK` with `enabled=false` instead of failing
-- `get_integration_stats` mirrors the same degradation pattern over the optional `integration.StatsInspector`
+- `get_overview` is best-effort and never fails as a whole: a sub-probe that
+  errors is logged and its overview field is left `null`, so one broken
+  collector does not mask the rest.
+- `get_cpu` and `get_process` are served from the background sample cache and
+  return the monitor-not-ready business error (`monitor.ErrNotReady`) until
+  the first sample lands.
+- `get_memory`, `get_disk`, `get_network`, `get_host`, and `get_load` read
+  live probes; a probe failure maps to `monitor.ErrCollectionFailed`.
+- `get_build_info` cannot fail: the service always holds a non-nil build-info
+  object (see [Build Info Behavior](#build-info-behavior)).
+- `get_event_streams` is gated by the optional `event.StreamInspector`
+  dependency. A nil inspector (the redis_stream transport is off) still
+  returns `200 OK` with `enabled: false` and an empty `streams` list instead
+  of failing; an inspector read error maps to `monitor.ErrCollectionFailed`.
+- `get_integration_stats` mirrors the same degradation over the optional
+  `integration.StatsInspector` (nil when the integration module is off):
+  `enabled: false` with an empty `stats` list. Reading the in-memory snapshot
+  itself cannot fail.
+- business errors ride the standard result envelope: the HTTP status stays
+  `200` and the failure is carried by the body `code`.
 
 ## Error API
 
 | API | Meaning |
 | --- | --- |
-| `monitor.ErrNotReady` / `ErrCodeNotReady` | sample-backed data such as CPU or process metrics is not ready yet |
-| `monitor.ErrCollectionFailed` / `ErrCodeCollectionFailed` | a monitor probe failed while collecting runtime data |
+| `monitor.ErrNotReady` / `ErrCodeNotReady` (`2100`) | sample-backed data such as CPU or process metrics is not ready yet |
+| `monitor.ErrCollectionFailed` / `ErrCodeCollectionFailed` (`2101`) | a monitor probe failed while collecting runtime data |
 
 ## Default Sampling Configuration
 
@@ -77,10 +99,14 @@ When no explicit monitor config is supplied, the module uses:
 
 | Setting | Default |
 | --- | --- |
-| sample interval | `10s` |
-| sample duration | `2s` |
+| `vef.monitor.sample_interval` | `10s` |
+| `vef.monitor.sample_duration` | `2s` |
 
-These defaults primarily affect CPU and process sampling behavior.
+These settings drive the background sampler behind `get_cpu` and
+`get_process`: a sample is taken immediately at startup and then once per
+sample interval, and each sample measures utilization over one
+sample-duration window. Until the first sample completes (roughly the first
+window after startup), both actions answer with `monitor.ErrNotReady`.
 
 ## Build Info Behavior
 
@@ -95,11 +121,19 @@ Fallback behavior:
 | `gitCommit` | `unknown` |
 | `vefVersion` | current framework version |
 
-## Data Shapes
+## Responses by Action
 
-### `monitor.SystemOverview`
+Field names below are the JSON wire names (the Go structs' json tags). Byte
+quantities are plain byte counts, percentages range `0`–`100`, and counters
+are cumulative since boot unless noted otherwise. Fields a platform does not
+expose are reported as `0` or empty.
 
-| Field | Type | Meaning |
+### `get_overview` — `monitor.SystemOverview`
+
+One combined snapshot assembled from every probe. Each field is `null` when
+its probe failed; `build` is always present.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `host` | `*monitor.HostSummary` | condensed host information |
 | `cpu` | `*monitor.CPUSummary` | condensed CPU information |
@@ -107,12 +141,12 @@ Fallback behavior:
 | `disk` | `*monitor.DiskSummary` | condensed disk usage |
 | `network` | `*monitor.NetworkSummary` | condensed network activity |
 | `process` | `*monitor.ProcessSummary` | condensed current process metrics |
-| `load` | `*monitor.LoadInfo` | load averages |
-| `build` | `*monitor.BuildInfo` | build metadata |
+| `load` | `*monitor.LoadInfo` | load averages (same shape as `get_load`) |
+| `build` | `*monitor.BuildInfo` | build metadata (same shape as `get_build_info`) |
 
-### `monitor.HostSummary`
+#### `monitor.HostSummary`
 
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `hostname` | `string` | host name |
 | `os` | `string` | operating system |
@@ -120,80 +154,111 @@ Fallback behavior:
 | `platformVersion` | `string` | platform version |
 | `kernelVersion` | `string` | kernel version |
 | `kernelArch` | `string` | kernel architecture |
-| `uptime` | `uint64` | uptime in seconds |
+| `uptime` | `uint64` | host uptime in seconds |
 
-### `monitor.HostInfo`
+#### `monitor.CPUSummary`
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `hostname` | `string` | host name |
-| `uptime` | `uint64` | uptime in seconds |
-| `bootTime` | `uint64` | boot timestamp |
-| `processes` | `uint64` | number of processes |
-| `os` | `string` | operating system |
-| `platform` | `string` | platform name |
-| `platformFamily` | `string` | platform family |
-| `platformVersion` | `string` | platform version |
-| `kernelVersion` | `string` | kernel version |
-| `kernelArch` | `string` | kernel architecture |
-| `virtualizationSystem` | `string` | virtualization system |
-| `virtualizationRole` | `string` | virtualization role |
-| `hostId` | `string` | host identifier |
-
-### `monitor.CPUSummary`
-
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `physicalCores` | `int` | number of physical cores (host topology) |
 | `logicalCores` | `int` | number of logical cores (host topology) |
-| `usagePercent` | `float64` | aggregated CPU usage percent, normalized by `effectiveCores` |
-| `effectiveCores` | `float64` | the capacity used to normalize utilization (v0.38): inside a container this is the cgroup CPU quota (v1 and v2 supported), falling back to `logicalCores` when constrained usage cannot be sampled coherently |
+| `usagePercent` | `float64` | aggregated CPU usage percent over the last sampling window, normalized by `effectiveCores` |
+| `effectiveCores` | `float64` | the capacity used to normalize utilization: inside a container this is the cgroup CPU quota (v1 and v2 supported), falling back to `logicalCores` when constrained usage cannot be sampled coherently |
 
-### `monitor.CPUInfo`
+#### `monitor.MemorySummary`
 
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
-| `physicalCores` | `int` | number of physical cores |
-| `logicalCores` | `int` | number of logical cores |
-| `modelName` | `string` | CPU model name |
-| `mhz` | `float64` | clock frequency |
-| `cacheSize` | `int32` | cache size |
-| `usagePercent` | `[]float64` | per-core usage percentages |
-| `totalPercent` | `float64` | total usage percent, derived from the per-core sample |
-| `vendorId` | `string` | vendor identifier |
-| `family` | `string` | CPU family |
-| `model` | `string` | CPU model |
-| `stepping` | `int32` | CPU stepping |
-| `microcode` | `string` | microcode version |
-| `effectiveCores` | `float64` | capacity used to normalize utilization; see `CPUSummary.effectiveCores` (v0.38) |
-
-### `monitor.MemorySummary`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `total` | `uint64` | total memory |
-| `used` | `uint64` | used memory |
+| `total` | `uint64` | total memory in bytes |
+| `used` | `uint64` | used memory in bytes |
 | `usedPercent` | `float64` | memory usage percentage |
 
-Since v0.38 the monitor is container-aware: when the process runs under a
+The monitor is container-aware: when the process runs under a
 cgroup (v2 or v1) that actually limits memory, the headline figures (`total`,
 `used`, `usedPercent`, and `VirtualMemory`'s available/free) reflect the
 cgroup limit and the cgroup's own usage instead of host-wide numbers — a
 512 MiB container on a 64 GiB host reports against 512 MiB. Without a limit,
 host-wide figures are reported unchanged.
 
-### `monitor.MemoryInfo`
+#### `monitor.DiskSummary`
 
-| Field | Type | Meaning |
+| Field | Type | Description |
+| --- | --- | --- |
+| `total` | `uint64` | total size of the root filesystem in bytes |
+| `used` | `uint64` | used size of the root filesystem in bytes |
+| `usedPercent` | `float64` | root filesystem usage percentage |
+| `partitions` | `int` | always `1` (the summary covers a single filesystem) |
+
+The overview's disk summary reports **the filesystem that bounds
+the process's root path** rather than summing every mounted partition — remote
+mounts, disk images, and sibling volumes do not inflate host capacity, and
+there is no `vef.monitor.excluded_mounts` config (nothing is summed, so
+nothing needs excluding). The raw mount inventory remains available through
+`DiskInfo.partitions`.
+
+#### `monitor.NetworkSummary`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `interfaces` | `int` | interface count |
+| `bytesSent` | `uint64` | total bytes sent, summed across interfaces |
+| `bytesRecv` | `uint64` | total bytes received, summed across interfaces |
+| `packetsSent` | `uint64` | total packets sent, summed across interfaces |
+| `packetsRecv` | `uint64` | total packets received, summed across interfaces |
+
+#### `monitor.ProcessSummary`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `pid` | `int32` | process ID |
+| `name` | `string` | process name |
+| `cpuPercent` | `float64` | process CPU usage percent over the last sampling window; expressed against one CPU, so it can exceed `100` on multi-core hosts |
+| `memoryPercent` | `float32` | share of total host RAM used by the process, percent |
+
+### `get_cpu` — `monitor.CPUInfo`
+
+Served from the background sample cache: refreshed once per sample interval
+(default `10s`), each refresh measuring one sample-duration window (default
+`2s`). Inventory fields (`modelName`, `vendorId`, `family`, `model`,
+`stepping`, `microcode`, `mhz`, `cacheSize`) describe the first CPU package.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `physicalCores` | `int` | number of physical cores (host topology) |
+| `logicalCores` | `int` | number of logical cores (host topology) |
+| `modelName` | `string` | CPU model name |
+| `mhz` | `float64` | nominal clock frequency in MHz |
+| `cacheSize` | `int32` | cache size in KB |
+| `usagePercent` | `[]float64` | per-core busy percentage over the sampling window, one entry per logical core; `null` inside a CPU-limited container (the cgroup measurement replaces the per-core sample) |
+| `totalPercent` | `float64` | aggregate usage percent: the mean of the per-core sample, or — inside a CPU-limited container — the share of the cgroup capacity consumed over the window, capped at `100` |
+| `vendorId` | `string` | vendor identifier |
+| `family` | `string` | CPU family |
+| `model` | `string` | CPU model |
+| `stepping` | `int32` | CPU stepping |
+| `microcode` | `string` | microcode version |
+| `effectiveCores` | `float64` | capacity used to normalize utilization; see `CPUSummary.effectiveCores` |
+
+### `get_memory` — `monitor.MemoryInfo`
+
+Read live on every call. The container-aware headline behavior described
+under `MemorySummary` applies to `virtual` as well.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `virtual` | `*monitor.VirtualMemory` | physical or virtual memory detail |
-| `swap` | `*monitor.SwapMemory` | swap detail |
+| `swap` | `*monitor.SwapMemory` | swap detail; `null` when the swap probe fails |
 
-### `monitor.VirtualMemory`
+#### `monitor.VirtualMemory`
 
-| Field | Type | Meaning |
+All fields are byte quantities except `usedPercent` (percent) and the
+huge-page counters: `hugePagesTotal`, `hugePagesFree`, `hugePagesReserved`,
+and `hugePagesSurplus` are page counts, while `hugePageSize` and
+`anonHugePages` are bytes. Detail fields keep their host meaning even inside
+a memory-limited container.
+
+| Field | Type | Description |
 | --- | --- | --- |
-| `total` | `uint64` | total virtual memory |
+| `total` | `uint64` | total memory |
 | `available` | `uint64` | available memory |
 | `used` | `uint64` | used memory |
 | `usedPercent` | `float64` | used percentage |
@@ -225,70 +290,65 @@ host-wide figures are reported unchanged.
 | `vmAllocTotal` | `uint64` | VM allocated total |
 | `vmAllocUsed` | `uint64` | VM allocated used |
 | `vmAllocChunk` | `uint64` | VM allocation chunk |
-| `hugePagesTotal` | `uint64` | huge pages total |
-| `hugePagesFree` | `uint64` | huge pages free |
-| `hugePagesReserved` | `uint64` | huge pages reserved |
-| `hugePagesSurplus` | `uint64` | huge pages surplus |
-| `hugePageSize` | `uint64` | huge page size |
-| `anonHugePages` | `uint64` | anonymous huge pages |
+| `hugePagesTotal` | `uint64` | huge pages total (count) |
+| `hugePagesFree` | `uint64` | huge pages free (count) |
+| `hugePagesReserved` | `uint64` | huge pages reserved (count) |
+| `hugePagesSurplus` | `uint64` | huge pages surplus (count) |
+| `hugePageSize` | `uint64` | huge page size in bytes |
+| `anonHugePages` | `uint64` | anonymous huge pages in bytes |
 
-### `monitor.SwapMemory`
+#### `monitor.SwapMemory`
 
-| Field | Type | Meaning |
+`total`, `used`, and `free` are bytes. `swapIn`, `swapOut`, `pageIn`, and
+`pageOut` are cumulative byte volumes converted from kernel page counters;
+`pageFault` and `pageMajorFault` are cumulative event counts.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `total` | `uint64` | total swap |
 | `used` | `uint64` | used swap |
 | `free` | `uint64` | free swap |
 | `usedPercent` | `float64` | swap usage percentage |
-| `swapIn` | `uint64` | swap-in count |
-| `swapOut` | `uint64` | swap-out count |
-| `pageIn` | `uint64` | page-in count |
-| `pageOut` | `uint64` | page-out count |
+| `swapIn` | `uint64` | swapped-in volume |
+| `swapOut` | `uint64` | swapped-out volume |
+| `pageIn` | `uint64` | paged-in volume |
+| `pageOut` | `uint64` | paged-out volume |
 | `pageFault` | `uint64` | page faults |
 | `pageMajorFault` | `uint64` | major page faults |
 
-### `monitor.DiskSummary`
+### `get_disk` — `monitor.DiskInfo`
 
-| Field | Type | Meaning |
+Read live on every call. A partition whose usage probe fails is skipped from
+`partitions`; `ioCounters` is `null` when the I/O counter probe fails.
+
+| Field | Type | Description |
 | --- | --- | --- |
-| `total` | `uint64` | total size of the root filesystem |
-| `used` | `uint64` | used size of the root filesystem |
-| `usedPercent` | `float64` | root filesystem usage percentage |
-| `partitions` | `int` | always `1` since v0.38 |
+| `partitions` | `[]*monitor.PartitionInfo` | per-mount partition details |
+| `ioCounters` | `map[string]*monitor.IOCounter` | per-device I/O counters, keyed by device name |
 
-Since v0.38 the overview's disk summary reports **the filesystem that bounds
-the process's root path** instead of summing every mounted partition — remote
-mounts, disk images, and sibling volumes no longer inflate host capacity, and
-the `vef.monitor.excluded_mounts` config was removed with the summation. The
-raw mount inventory remains available through `DiskInfo.partitions`.
+#### `monitor.PartitionInfo`
 
-### `monitor.DiskInfo`
-
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `partitions` | `[]*monitor.PartitionInfo` | partition details |
-| `ioCounters` | `map[string]*monitor.IOCounter` | per-device I/O counters |
-
-### `monitor.PartitionInfo`
-
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `device` | `string` | device name |
 | `mountPoint` | `string` | mount path |
 | `fsType` | `string` | filesystem type |
 | `options` | `[]string` | mount options |
-| `total` | `uint64` | total size |
-| `free` | `uint64` | free size |
-| `used` | `uint64` | used size |
+| `total` | `uint64` | total size in bytes |
+| `free` | `uint64` | free size in bytes |
+| `used` | `uint64` | used size in bytes |
 | `usedPercent` | `float64` | usage percentage |
 | `iNodesTotal` | `uint64` | total inodes |
 | `iNodesUsed` | `uint64` | used inodes |
 | `iNodesFree` | `uint64` | free inodes |
 | `iNodesUsedPercent` | `float64` | inode usage percentage |
 
-### `monitor.IOCounter`
+#### `monitor.IOCounter`
 
-| Field | Type | Meaning |
+Counters are cumulative since boot; `readTime`, `writeTime`, `ioTime`, and
+`weightedIo` are milliseconds.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `readCount` | `uint64` | read operation count |
 | `mergedReadCount` | `uint64` | merged read operation count |
@@ -296,35 +356,27 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | `mergedWriteCount` | `uint64` | merged write operation count |
 | `readBytes` | `uint64` | bytes read |
 | `writeBytes` | `uint64` | bytes written |
-| `readTime` | `uint64` | read time |
-| `writeTime` | `uint64` | write time |
+| `readTime` | `uint64` | time spent reading |
+| `writeTime` | `uint64` | time spent writing |
 | `iopsInProgress` | `uint64` | I/O operations in progress |
-| `ioTime` | `uint64` | total I/O time |
+| `ioTime` | `uint64` | total time spent on I/O |
 | `weightedIo` | `uint64` | weighted I/O time |
 | `name` | `string` | device name |
 | `serialNumber` | `string` | device serial number |
 | `label` | `string` | device label |
 
-### `monitor.NetworkSummary`
+### `get_network` — `monitor.NetworkInfo`
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `interfaces` | `int` | interface count |
-| `bytesSent` | `uint64` | total bytes sent |
-| `bytesRecv` | `uint64` | total bytes received |
-| `packetsSent` | `uint64` | total packets sent |
-| `packetsRecv` | `uint64` | total packets received |
+Read live on every call.
 
-### `monitor.NetworkInfo`
-
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `interfaces` | `[]*monitor.InterfaceInfo` | interface metadata |
-| `ioCounters` | `map[string]*monitor.NetIOCounter` | per-interface counters |
+| `ioCounters` | `map[string]*monitor.NetIOCounter` | per-interface counters, keyed by interface name |
 
-### `monitor.InterfaceInfo`
+#### `monitor.InterfaceInfo`
 
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `index` | `int` | interface index |
 | `mtu` | `int` | MTU |
@@ -333,9 +385,11 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | `flags` | `[]string` | interface flags |
 | `addrs` | `[]string` | bound addresses |
 
-### `monitor.NetIOCounter`
+#### `monitor.NetIOCounter`
 
-| Field | Type | Meaning |
+Counters are cumulative since boot, per interface.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `name` | `string` | interface name |
 | `bytesSent` | `uint64` | bytes sent |
@@ -349,18 +403,32 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | `fifoIn` | `uint64` | inbound FIFO count |
 | `fifoOut` | `uint64` | outbound FIFO count |
 
-### `monitor.ProcessSummary`
+### `get_host` — `monitor.HostInfo`
 
-| Field | Type | Meaning |
+Static host metadata, read live on every call.
+
+| Field | Type | Description |
 | --- | --- | --- |
-| `pid` | `int32` | process ID |
-| `name` | `string` | process name |
-| `cpuPercent` | `float64` | CPU usage percent |
-| `memoryPercent` | `float32` | memory usage percent |
+| `hostname` | `string` | host name |
+| `uptime` | `uint64` | host uptime in seconds |
+| `bootTime` | `uint64` | boot time as a Unix timestamp (seconds) |
+| `processes` | `uint64` | number of processes on the host |
+| `os` | `string` | operating system |
+| `platform` | `string` | platform name |
+| `platformFamily` | `string` | platform family |
+| `platformVersion` | `string` | platform version |
+| `kernelVersion` | `string` | kernel version |
+| `kernelArch` | `string` | kernel architecture |
+| `virtualizationSystem` | `string` | virtualization system |
+| `virtualizationRole` | `string` | virtualization role |
+| `hostId` | `string` | host identifier |
 
-### `monitor.ProcessInfo`
+### `get_process` — `monitor.ProcessInfo`
 
-| Field | Type | Meaning |
+Describes the application's own process. Served from the background sample
+cache on the same cadence as `get_cpu`.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `pid` | `int32` | process ID |
 | `parentPid` | `int32` | parent process ID |
@@ -370,57 +438,58 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | `cwd` | `string` | working directory |
 | `status` | `string` | process status |
 | `username` | `string` | owner username |
-| `createTime` | `int64` | creation timestamp |
+| `createTime` | `int64` | process creation time, milliseconds since the Unix epoch (UTC) |
 | `numThreads` | `int32` | thread count |
 | `numFds` | `int32` | open file-descriptor count |
-| `cpuPercent` | `float64` | CPU usage percent |
-| `memoryPercent` | `float32` | memory usage percent |
-| `memoryRss` | `uint64` | RSS memory |
-| `memoryVms` | `uint64` | virtual memory size |
-| `memorySwap` | `uint64` | swap usage |
+| `cpuPercent` | `float64` | process CPU usage percent over the sampling window; expressed against one CPU, so it can exceed `100` on multi-core hosts |
+| `memoryPercent` | `float32` | share of total host RAM used by the process, percent |
+| `memoryRss` | `uint64` | resident set size in bytes |
+| `memoryVms` | `uint64` | virtual memory size in bytes |
+| `memorySwap` | `uint64` | swap usage in bytes |
 
-### `monitor.LoadInfo`
+### `get_load` — `monitor.LoadInfo`
 
-| Field | Type | Meaning |
+Read live on every call.
+
+| Field | Type | Description |
 | --- | --- | --- |
 | `load1` | `float64` | 1-minute load average |
 | `load5` | `float64` | 5-minute load average |
 | `load15` | `float64` | 15-minute load average |
 
-### `monitor.BuildInfo`
+### `get_build_info` — `monitor.BuildInfo`
 
-| Field | Type | Meaning |
+Build metadata only; see [Build Info Behavior](#build-info-behavior) for the
+fallback values.
+
+| Field | Type | Description |
 | --- | --- | --- |
-| `vefVersion` | `string` | framework version |
+| `vefVersion` | `string` | framework version, always stamped by the module |
 | `appVersion` | `string` | application version |
 | `buildTime` | `string` | build time |
 | `gitCommit` | `string` | git commit |
 
-### `monitor.EventStreamsInfo`
+### `get_event_streams` — `monitor.EventStreamsInfo`
 
-| Field | Type | Meaning |
+Reports cross-process event stream and consumer-group state through the
+optional `event.StreamInspector` (provided by the redis_stream transport).
+
+| Field | Type | Description |
 | --- | --- | --- |
-| `enabled` | `bool` | whether an `event.StreamInspector` is available (the redis_stream transport is on) |
+| `enabled` | `bool` | whether an `event.StreamInspector` is available (the redis_stream transport is on); `false` means the report is an empty degradation, not an error |
 | `streams` | `[]event.StreamInfo` | one entry per transport stream; empty when `enabled` is `false` |
 
-### `monitor.IntegrationStatsInfo` (v0.39)
+#### `event.StreamInfo`
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `enabled` | `bool` | whether an `integration.StatsInspector` is available (the integration module is on) |
-| `stats` | `[]integration.InvocationStats` | per-node counters per (system, contract, direction) tuple since process start; empty when `enabled` is `false`. Each entry carries `system`, `contract`, `direction`, `calls`, `successes`, `failures` (by failure kind), `avgDurationMs`, `maxDurationMs`, `lastError`, `lastErrorAt` — see [Integration Engine](../integration/overview#statistics) |
-
-### `event.StreamInfo`
-
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `stream` | `string` | full transport-level stream key (prefix + event type) |
 | `length` | `int64` | current number of entries in the stream (post-trim) |
 | `groups` | `[]event.StreamGroupInfo` | consumer groups attached to the stream |
 
-### `event.StreamGroupInfo`
+#### `event.StreamGroupInfo`
 
-| Field | Type | Meaning |
+| Field | Type | Description |
 | --- | --- | --- |
 | `name` | `string` | consumer group name (the subscription's `WithGroup` value or its derived default) |
 | `consumers` | `int64` | number of consumer records registered in the group, including historical consumers of restarted processes |
@@ -429,6 +498,35 @@ raw mount inventory remains available through `DiskInfo.partitions`.
 | `lastDeliveredId` | `string` | stream ID of the last entry delivered to the group |
 
 A group with growing `lag` and only idle consumers is an orphan candidate — a subscriber that was removed or renamed without decommissioning its consumer group. See the [Event Bus](./event-bus) page for the transport-level detail.
+
+### `get_integration_stats` — `monitor.IntegrationStatsInfo`
+
+Reports per-node integration invocation statistics through the
+optional `integration.StatsInspector`. Numbers are in-memory counters held
+since process start — the invocation log is the durable record.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `enabled` | `bool` | whether an `integration.StatsInspector` is available (the integration module is on); `false` means the report is an empty degradation, not an error |
+| `stats` | `[]integration.InvocationStats` | one entry per `(system, contract, direction)` tuple observed since process start, ordered by system, contract, then direction; empty when `enabled` is `false` |
+
+#### `integration.InvocationStats`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `system` | `string` | system code that served (or rejected) the invocation |
+| `contract` | `string` | invoked contract code; empty for inbound deliveries rejected by verification — the contract code is unvalidated caller input at rejection time |
+| `direction` | `string` | `outbound` or `inbound` |
+| `calls` | `int64` | total invocations observed |
+| `successes` | `int64` | invocations that completed successfully |
+| `failures` | `map[string]int64` | failure counts keyed by [failure kind](../integration/overview#failure-vocabulary) (`input_invalid`, `output_invalid`, `upstream`, `transport`, `timeout`, `canceled`, `script`, `config`, `auth`, `handler`); omitted when empty |
+| `avgDurationMs` | `int64` | average invocation duration in milliseconds |
+| `maxDurationMs` | `int64` | maximum invocation duration in milliseconds |
+| `lastError` | `string` | most recent failure message; omitted when no failure occurred |
+| `lastErrorAt` | timestamp | time of the most recent failure; omitted when no failure occurred |
+
+See [Integration Engine](../integration/overview#statistics) for how these
+counters are recorded.
 
 ## Minimal Request Example
 

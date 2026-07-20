@@ -46,8 +46,8 @@ dt := timex.FromUnixMicro(1710510600000000)            // 从微秒时间戳
 和 `FromUnixMicro`。
 
 宽松的 `Parse*` 入口先尝试给定 layout，再回退到常见格式（RFC3339、
-ISO-8601 等）。两条路径都在**本地**时区解释不带时区的输入（v0.38 修复——
-回退路径过去假定 UTC，日期字符串可能因此偏移最多一天）；带显式时区偏移的
+ISO-8601 等）。两条路径都在**本地**时区解释不带时区的输入——绝不假定
+UTC（否则日期字符串可能偏移最多一天）；带显式时区偏移的
 输入在两条路径上都保留原偏移。
 
 ### 访问组件
@@ -123,7 +123,7 @@ dt.Sunday()
 
 ```go
 dt.Unwrap()      // → time.Time
-dt.AsLocal()     // → time.Time，把墙钟字段重解释到 time.Local（v0.39）
+dt.AsLocal()     // → time.Time，把墙钟字段重解释到 time.Local
 dt.String()      // → "2024-03-15 14:30:00"
 dt.Format(layout) // 自定义格式
 dt.Unix()        // Unix 秒

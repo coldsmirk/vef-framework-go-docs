@@ -20,8 +20,8 @@ API groups covered in this guide:
 | resource and kind | `api.Resource`, `api.Kind`, `api.KindRPC`, `api.KindREST`, `api.ValidateActionName(action, kind) error`, `api.NewRPCResource(name, opts...)`, `api.NewRESTResource(name, opts...)`, `api.WithVersion(v)`, `api.WithAuth(config)`, `api.WithOperations(specs...)` |
 | engine and routing extension | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP` (v0.39), `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)` (v0.39), `api.HTTPBasicAuth()` (v0.39), `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP`, `api.M` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`, `api.HTTPBasicAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler extension | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -136,7 +136,7 @@ type OperationSpec struct {
     EnableAudit        bool              // Enable audit logging
     Timeout            time.Duration     // Request timeout
     Public             bool              // No authentication required
-    RequiredPermission string            // Required permission token (renamed from PermToken in v0.24)
+    RequiredPermission string            // Required permission token
     RateLimit          *RateLimitConfig  // Rate limiting config
     Handler            any               // Business logic handler
 }
@@ -156,11 +156,11 @@ Operation defaulting rules:
 | `Timeout` | non-positive values use the engine default, which is `30s` unless overridden |
 | `Public` | `true` resolves auth to `api.Public()` before resource/default auth |
 | `RequiredPermission` | copied into auth options as the required permission token when non-empty |
-| `RateLimit` | nil uses the engine default — `vef.api.rate_limit` when configured, else `Max=100`, `Period=5m` (v0.38); a custom `RateLimitConfig` replaces the default. An explicit `Max <= 0` does **not** disable limiting — the middleware falls back to the engine/config default for non-positive values |
+| `RateLimit` | nil uses the engine default — `vef.api.rate_limit` when configured, else `Max=100`, `Period=5m`; a custom `RateLimitConfig` replaces the default. An explicit `Max <= 0` does **not** disable limiting — the middleware falls back to the engine/config default for non-positive values |
 | `Handler` | RPC may infer from action when omitted; REST requires an explicit handler |
 
-Since v0.39, permission declarations are validated at registration and a
-violation fails startup:
+Permission declarations are validated at registration and a violation fails
+startup:
 
 - `RequiredPermission` must be a **dot-separated** token matching
   `^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$` (e.g. `sys.user.query`); colons,
@@ -308,8 +308,8 @@ resource or operation customizes auth without mutating shared config.
 | Bearer | `api.AuthStrategyBearer` | Bearer token authentication |
 | Signature | `api.AuthStrategySignature` | Request signature authentication |
 | IP | `api.AuthStrategyIP` | Source-IP whitelist authentication |
-| API key | `api.AuthStrategyAPIKey` | Static API key authentication (v0.39) |
-| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic authentication (v0.39) |
+| API key | `api.AuthStrategyAPIKey` | Static API key authentication |
+| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic authentication |
 
 ### Helper Functions
 
@@ -319,9 +319,9 @@ api.BearerAuth()           // AuthConfig with strategy "bearer"
 api.SignatureAuth()        // AuthConfig with strategy "signature"
 api.IPAuth()               // AuthConfig with strategy "ip" and whitelist "default"
 api.IPAuth("ops")          // AuthConfig with strategy "ip" and whitelist "ops"
-api.APIKeyAuth()           // AuthConfig with strategy "api_key", header X-API-Key (v0.39)
+api.APIKeyAuth()           // AuthConfig with strategy "api_key", header X-API-Key
 api.APIKeyAuth("X-My-Key") // custom key header; more than one name panics
-api.HTTPBasicAuth()        // AuthConfig with strategy "http_basic" (v0.39)
+api.HTTPBasicAuth()        // AuthConfig with strategy "http_basic"
 ```
 
 `api.IPAuth(...)` accepts zero or one whitelist name. With no argument it uses
@@ -375,7 +375,7 @@ crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 
 The built-in rate limiter uses a sliding window, counted per node. An
 operation that declares no `RateLimit` of its own receives the engine default,
-which is user-configurable since v0.38:
+which is user-configurable:
 
 ```toml
 [vef.api.rate_limit]

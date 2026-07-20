@@ -38,8 +38,7 @@ closed）。
 | `update` | `approval.category.update` | `CategoryParams` | 更新后的 `FlowCategory` |
 | `delete` | `approval.category.delete` | 主键参数（`params.id`） | 成功 |
 
-`find_tree_options` 操作已在 v0.39 删除（此前无人使用）；选项列表请改由
-`find_tree` 构建。
+没有 `find_tree_options` 操作；选项列表请由 `find_tree` 构建。
 
 `CategorySearch`（查询过滤，从 `meta` 解码）：
 
@@ -144,7 +143,7 @@ closed）。
 | `categoryId` | `string` | 是 | 所属 `FlowCategory` id |
 | `icon` | `string` | 否 | 显示图标标识 |
 | `description` | `string` | 否 | 描述 |
-| `labels` | `object`（string→string） | 否 | 宿主自有的选择元数据（v0.39）；按共享 label 规则校验 —— 见下方说明 |
+| `labels` | `object`（string→string） | 否 | 宿主自有的选择元数据；按共享 label 规则校验 —— 见下方说明 |
 | `bindingMode` | `string` | 是 | `standalone`（表单数据存审批自己的表）或 `business`（挂接既有业务行） |
 | `businessBinding` | `BusinessBindingConfig` | business 模式 | 回写目标描述（见下）；standalone 流程提交会被拒绝（`ErrBindingUnexpected`） |
 | `adminUserIds` | `string[]` | 否 | 流程管理员（用于 `transfer_admin` 空办理人处理与管理可见性） |
@@ -175,7 +174,7 @@ closed）。
 做快照，编辑流程的绑定不影响运行在旧版本上的实例。回写生命周期见
 [业务集成](./integration.md)。
 
-`params.labels`（v0.39）是流程上宿主自有的选择元数据 —— 在 `find_flows`
+`params.labels` 是流程上宿主自有的选择元数据 —— 在 `find_flows`
 与 `my.find_available_flows` 中可按相等过滤（提交的每一对都必须匹配），
 在实例详情视图中透出，引擎从不解释其取值。校验为共享的
 `orm.ValidateLabels` 规则：键为字母数字加内部 `-`/`_`（不允许点号），
@@ -228,7 +227,7 @@ closed）。
 | --- | --- | --- | --- |
 | `flowId` | `string` | 是 | 要加载图的流程 |
 | `tenantId` | `string` | 否 | 可选预过滤；真正的跨租户闸门是调用者的租户权限 |
-| `versionId` | `string` | 否 | 显式加载某个版本（v0.39）—— 设计器从最新部署（无论是否已发布）继续编辑的场景；省略则解析最新已发布版本 |
+| `versionId` | `string` | 否 | 显式加载某个版本 —— 设计器从最新部署（无论是否已发布）继续编辑的场景；省略则解析最新已发布版本 |
 
 `get_graph` 响应 `FlowGraph`：
 
@@ -247,7 +246,7 @@ closed）。
 | `categoryId` | `string` | 否 | 按分类过滤 |
 | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
 | `isActive` | `bool` | 否 | 按启用状态过滤 |
-| `labels` | `object`（string→string） | 否 | label 相等过滤 —— 提交的每一对都必须匹配（v0.39） |
+| `labels` | `object`（string→string） | 否 | label 相等过滤 —— 提交的每一对都必须匹配 |
 | `page` | `int` | 否 | 页码（从 1 开始） |
 | `pageSize` | `int` | 否 | 每页大小 |
 
@@ -261,7 +260,7 @@ closed）。
 | `name` | `string` | 显示名称 |
 | `icon` | `string` \| `null` | 显示图标标识 |
 | `description` | `string` \| `null` | 描述 |
-| `labels` | `object` \| 缺省 | 宿主自有选择元数据（v0.39） |
+| `labels` | `object` \| 缺省 | 宿主自有选择元数据 |
 | `bindingMode` | `string` | `standalone` 或 `business` |
 | `businessBinding` | `BusinessBindingConfig` \| 缺省 | 当前回写配置（可变副本；各版本有自己的快照） |
 | `adminUserIds` | `string[]` | 流程管理员 |
@@ -278,7 +277,7 @@ closed）。
 | `flowId` | `string` | 是 | 要查看的流程 |
 | `tenantId` | `string` | 否 | 可选预过滤（跨租户闸门是调用者权限） |
 
-自 v0.39 起 `find_versions` 返回 `FlowVersionSummary` 条目 —— 不含图文档
+`find_versions` 返回 `FlowVersionSummary` 条目 —— 不含图文档
 （`flowSchema` / `formSchema` / `formFields`）的版本列表，列表本就不渲染
 它们。单个版本的完整定义通过 `get_graph` 携带 `params.versionId` 获取。
 
@@ -419,7 +418,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | Action | 入参 | 出参 |
 | --- | --- | --- |
 | `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[AvailableFlow]` |
-| `get_start_form` | `GetStartFormParams` | `StartForm`（v0.39） |
+| `get_start_form` | `GetStartFormParams` | `StartForm` |
 | `find_initiated` | `FindInitiatedParams` | `page.Page[InitiatedInstance]` |
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[CompletedTask]` |
@@ -433,7 +432,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | --- | --- | --- | --- | --- |
 | `find_available_flows` | `tenantId` | `string` | 否 | 租户过滤 |
 | | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
-| | `labels` | `object` | 否 | label 相等过滤 —— 每一对都必须匹配（v0.39） |
+| | `labels` | `object` | 否 | label 相等过滤 —— 每一对都必须匹配 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
 | `get_start_form` | `tenantId` | `string` | 是 | 流程所在租户 |
 | | `flowCode` | `string` | 是 | 要加载发起表单的流程 |
@@ -460,10 +459,10 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `flowId` / `flowCode` / `flowName` | `string` | 流程标识 |
 | `flowIcon` | `string` \| 缺省 | 显示图标 |
 | `description` | `string` \| 缺省 | 流程描述 |
-| `labels` | `object` \| 缺省 | 宿主自有选择元数据（v0.39） |
+| `labels` | `object` \| 缺省 | 宿主自有选择元数据 |
 | `categoryId` / `categoryName` | `string` | 所属分类标识 |
 
-`StartForm`（v0.39）—— 流程的提交前视图。加载受到与发起实例完全一致的
+`StartForm` —— 流程的提交前视图。加载受到与发起实例完全一致的
 闸门约束（流程启用、发起权限、存在已发布版本），因此能渲染出的表单必然
 对应一个可发起的流程：
 
@@ -530,8 +529,8 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `timeline` | `TimelineEntry[]` | 实例实际走过路径的逐节点记录（见下） |
 | `flowGraph` | `InstanceFlowGraph` | React Flow 就绪、标注进度的只读图（见下） |
 | `availableActions` | `string[]` | 面向当前查看者的动作提示（见下） |
-| `fieldPermissions` | `object`（字段→权限） | 查看者维度的字段交互投影（v0.38）：`visible` / `editable` / `hidden` / `required`，对每个顶层表单字段都物化；客户端原样应用，且 `instance.formData` 已剥除查看者无权看到的字段（见 [节点字段权限](./flow-design.md#节点字段权限)） |
-| `myTask` | `ViewerTask` \| `null` | 查看者自己的可操作上下文（v0.39，见下） |
+| `fieldPermissions` | `object`（字段→权限） | 查看者维度的字段交互投影：`visible` / `editable` / `hidden` / `required`，对每个顶层表单字段都物化；客户端原样应用，且 `instance.formData` 已剥除查看者无权看到的字段（见 [节点字段权限](./flow-design.md#节点字段权限)） |
+| `myTask` | `ViewerTask` \| `null` | 查看者自己的可操作上下文（见下） |
 
 `InstanceInfo`：
 
@@ -539,7 +538,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | --- | --- | --- |
 | `instanceId` / `instanceNo` / `title` | `string` | 实例标识 |
 | `flowName` / `flowIcon` | `string` | 流程显示标识，查询时从可变流程行读取 |
-| `labels` | `object` \| 缺省 | 流程的宿主自有选择元数据（v0.39）—— 与 `flowName` 一样属于显示标识，不是版本锁定的快照 |
+| `labels` | `object` \| 缺省 | 流程的宿主自有选择元数据 —— 与 `flowName` 一样属于显示标识，不是版本锁定的快照 |
 | `applicant` | `UserInfo` | 申请人快照 |
 | `status` | `string` | 实例状态 |
 | `currentNodeId` / `currentNodeName` | `string` \| 缺省 | 当前进行中的节点 |
@@ -547,7 +546,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `formData` | `object` \| 缺省 | 表单数据，已剥除查看者无权看到的字段 |
 | `createdAt` / `finishedAt` | `DateTime` | 生命周期时间戳 |
 
-`ViewerTask`（v0.39）—— `process_task` 应指向的待办任务，加上客户端构建
+`ViewerTask` —— `process_task` 应指向的待办任务，加上客户端构建
 操作 UI 所需的节点级配置，客户端无需重新推导引擎语义。查看者在该实例上
 没有待办任务时为 `null`：
 
@@ -579,10 +578,10 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | `InstanceDetail` | — |
 | `find_action_logs` | `approval.action_log.query` | `AdminFindActionLogsParams` | `page.Page[ActionLog]` | — |
 | `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | `Metrics` | — |
-| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | `page.Page[BusinessProjection]`（v0.38） | — |
+| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | `page.Page[BusinessProjection]` | — |
 | `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | 成功 | 是 |
 | `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | 成功 | 是 |
-| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | 成功（v0.38） | 是 |
+| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | 成功 | 是 |
 
 请求参数（全部从 `params` 解码）：
 
@@ -805,7 +804,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `40012` | `ErrCodeInvalidBindingMode` | `ErrInvalidBindingMode` | `approval_invalid_binding_mode` | 流程绑定模式不在枚举内 |
 | `40013` | `ErrCodeInvalidInitiatorKind` | `ErrInvalidInitiatorKind` | `approval_invalid_initiator_kind` | 流程发起人类型不在枚举内 |
 | `40014` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy 请求了 `json` / `table` 之外的存储模式 |
-| `40015` | — | — | — | v0.39 退役（原流程绑定锁）；该编码不会被复用 |
+| `40015` | — | — | — | 未使用（原流程绑定锁）；该编码不会被复用 |
 | `40016` | `ErrCodeBindingColumnsConflict` | `ErrBindingColumnsConflict` | `approval_binding_columns_conflict` | 两个业务绑定字段指向同一列 |
 | `40017` | `ErrCodeBindingUnexpected` | `ErrBindingUnexpected` | `approval_binding_unexpected` | standalone 流程提交了业务绑定 |
 | `40018` | `ErrCodeBindingSchemaInvalid` | `ErrBindingSchemaInvalid` | `approval_binding_schema_invalid` | 配置的绑定表或列在主库中不存在 |

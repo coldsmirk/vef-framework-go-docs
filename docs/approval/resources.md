@@ -42,8 +42,8 @@ tenant and fails closed without one.
 | `update` | `approval.category.update` | `CategoryParams` | updated `FlowCategory` |
 | `delete` | `approval.category.delete` | primary-key params (`params.id`) | success |
 
-The `find_tree_options` operation was removed in v0.39 (it was unused); build
-option lists from `find_tree` instead.
+There is no `find_tree_options` operation; build option lists from
+`find_tree` instead.
 
 `CategorySearch` (query filters, decoded from `meta`):
 
@@ -152,7 +152,7 @@ versions, and the designer-facing graph reads.
 | `categoryId` | `string` | Yes | owning `FlowCategory` id |
 | `icon` | `string` | No | display icon identifier |
 | `description` | `string` | No | free-text description |
-| `labels` | `object` (string→string) | No | host-owned selection metadata (v0.39); validated by the shared label rule — see the note below |
+| `labels` | `object` (string→string) | No | host-owned selection metadata; validated by the shared label rule — see the note below |
 | `bindingMode` | `string` | Yes | `standalone` (form data lives in approval tables) or `business` (links an existing business row) |
 | `businessBinding` | `BusinessBindingConfig` | business mode | write-back target description (below); rejected on standalone flows (`ErrBindingUnexpected`) |
 | `adminUserIds` | `string[]` | No | flow administrators (used by `transfer_admin` empty-assignee handling and admin visibility) |
@@ -185,7 +185,7 @@ editing a flow's binding never affects instances already running under
 earlier versions. See [Integration](./integration.md) for the write-back
 lifecycle.
 
-`params.labels` (v0.39) is host-owned selection metadata on the flow —
+`params.labels` is host-owned selection metadata on the flow —
 equality-filterable in `find_flows` and `my.find_available_flows` (every
 submitted pair must match), surfaced in instance detail views, and never
 interpreted by the engine. Validation is the shared `orm.ValidateLabels`
@@ -240,7 +240,7 @@ are immutable):
 | --- | --- | --- | --- |
 | `flowId` | `string` | Yes | flow whose graph to load |
 | `tenantId` | `string` | No | optional pre-filter; the actual cross-tenant gate is the caller's tenant authority |
-| `versionId` | `string` | No | explicit version to load (v0.39) — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version |
+| `versionId` | `string` | No | explicit version to load — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version |
 
 `get_graph` responds with a `FlowGraph`:
 
@@ -259,7 +259,7 @@ are immutable):
 | `categoryId` | `string` | No | filter by category |
 | `keyword` | `string` | No | contains match against the flow name |
 | `isActive` | `bool` | No | filter by active flag |
-| `labels` | `object` (string→string) | No | label equality filter — every submitted pair must match (v0.39) |
+| `labels` | `object` (string→string) | No | label equality filter — every submitted pair must match |
 | `page` | `int` | No | page number (1-based) |
 | `pageSize` | `int` | No | page size |
 
@@ -273,7 +273,7 @@ are immutable):
 | `name` | `string` | display name |
 | `icon` | `string` \| `null` | display icon identifier |
 | `description` | `string` \| `null` | free-text description |
-| `labels` | `object` \| absent | host-owned selection metadata (v0.39) |
+| `labels` | `object` \| absent | host-owned selection metadata |
 | `bindingMode` | `string` | `standalone` or `business` |
 | `businessBinding` | `BusinessBindingConfig` \| absent | current write-back configuration (mutable copy; versions snapshot their own) |
 | `adminUserIds` | `string[]` | flow administrators |
@@ -290,7 +290,7 @@ are immutable):
 | `flowId` | `string` | Yes | flow to inspect |
 | `tenantId` | `string` | No | optional pre-filter (cross-tenant gate is the caller's authority) |
 
-Since v0.39, `find_versions` returns `FlowVersionSummary` entries — the
+`find_versions` returns `FlowVersionSummary` entries — the
 version list without the graph documents (`flowSchema` / `formSchema` /
 `formFields`), which a list never renders. Fetch one version's full definition
 through `get_graph` with `params.versionId`.
@@ -436,7 +436,7 @@ is keyed to the caller's identity server-side.
 | Action | Input | Output |
 | --- | --- | --- |
 | `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[AvailableFlow]` |
-| `get_start_form` | `GetStartFormParams` | `StartForm` (v0.39) |
+| `get_start_form` | `GetStartFormParams` | `StartForm` |
 | `find_initiated` | `FindInitiatedParams` | `page.Page[InitiatedInstance]` |
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[CompletedTask]` |
@@ -450,7 +450,7 @@ Request parameters (all decoded from `params`):
 | --- | --- | --- | --- | --- |
 | `find_available_flows` | `tenantId` | `string` | No | tenant filter |
 | | `keyword` | `string` | No | contains match against the flow name |
-| | `labels` | `object` | No | label equality filter — every pair must match (v0.39) |
+| | `labels` | `object` | No | label equality filter — every pair must match |
 | | `page` / `pageSize` | `int` | No | pagination |
 | `get_start_form` | `tenantId` | `string` | Yes | tenant of the flow |
 | | `flowCode` | `string` | Yes | flow to load the start form for |
@@ -477,10 +477,10 @@ Response DTOs (`approval/my` package):
 | `flowId` / `flowCode` / `flowName` | `string` | flow identity |
 | `flowIcon` | `string` \| absent | display icon |
 | `description` | `string` \| absent | flow description |
-| `labels` | `object` \| absent | host-owned selection metadata (v0.39) |
+| `labels` | `object` \| absent | host-owned selection metadata |
 | `categoryId` / `categoryName` | `string` | owning category identity |
 
-`StartForm` (v0.39) — the pre-submission view of a flow. Loading it is gated
+`StartForm` — the pre-submission view of a flow. Loading it is gated
 exactly like starting the instance (active flow, initiation permission,
 published version), so a rendered form always implies a startable flow:
 
@@ -548,8 +548,8 @@ renderable concern:
 | `timeline` | `TimelineEntry[]` | node-by-node account of the path actually taken (below) |
 | `flowGraph` | `InstanceFlowGraph` | React Flow–ready read-only graph annotated with progress (below) |
 | `availableActions` | `string[]` | viewer-specific action hints (below) |
-| `fieldPermissions` | `object` (field→permission) | viewer-scoped field interactivity (v0.38): `visible` / `editable` / `hidden` / `required`, materialized for every top-level form field; the client applies it verbatim, and `instance.formData` is already stripped of fields the viewer may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)) |
-| `myTask` | `ViewerTask` \| `null` | the viewer's own actionable context (v0.39, below) |
+| `fieldPermissions` | `object` (field→permission) | viewer-scoped field interactivity: `visible` / `editable` / `hidden` / `required`, materialized for every top-level form field; the client applies it verbatim, and `instance.formData` is already stripped of fields the viewer may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)) |
+| `myTask` | `ViewerTask` \| `null` | the viewer's own actionable context (below) |
 
 `InstanceInfo`:
 
@@ -557,7 +557,7 @@ renderable concern:
 | --- | --- | --- |
 | `instanceId` / `instanceNo` / `title` | `string` | instance identity |
 | `flowName` / `flowIcon` | `string` | flow display identity, read from the mutable flow at query time |
-| `labels` | `object` \| absent | the flow's host-owned selection metadata (v0.39) — display identity like `flowName`, not a version-pinned snapshot |
+| `labels` | `object` \| absent | the flow's host-owned selection metadata — display identity like `flowName`, not a version-pinned snapshot |
 | `applicant` | `UserInfo` | applicant snapshot |
 | `status` | `string` | instance status |
 | `currentNodeId` / `currentNodeName` | `string` \| absent | node currently in progress |
@@ -565,7 +565,7 @@ renderable concern:
 | `formData` | `object` \| absent | form data, stripped of fields the viewer may not see |
 | `createdAt` / `finishedAt` | `DateTime` | lifecycle timestamps |
 
-`ViewerTask` (v0.39) — the pending task `process_task` should target plus the
+`ViewerTask` — the pending task `process_task` should target plus the
 node-level configuration the client needs to build the action UI without
 re-deriving engine semantics. `null` when the viewer holds no pending task on
 this instance:
@@ -601,10 +601,10 @@ filter one tenant or omit it for cross-tenant visibility.
 | `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | `InstanceDetail` | — |
 | `find_action_logs` | `approval.action_log.query` | `AdminFindActionLogsParams` | `page.Page[ActionLog]` | — |
 | `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | `Metrics` | — |
-| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | `page.Page[BusinessProjection]` (v0.38) | — |
+| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | `page.Page[BusinessProjection]` | — |
 | `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | success | Yes |
 | `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | success | Yes |
-| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | success (v0.38) | Yes |
+| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | success | Yes |
 
 Request parameters (all decoded from `params`):
 
@@ -835,7 +835,7 @@ surface rather than importing the internal Go symbols.
 | `40012` | `ErrCodeInvalidBindingMode` | `ErrInvalidBindingMode` | `approval_invalid_binding_mode` | flow binding mode is out of enum |
 | `40013` | `ErrCodeInvalidInitiatorKind` | `ErrInvalidInitiatorKind` | `approval_invalid_initiator_kind` | flow initiator kind is out of enum |
 | `40014` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy requested a storage mode other than `json` or `table` |
-| `40015` | — | — | — | retired in v0.39 (former flow-binding lock); the code is never reassigned |
+| `40015` | — | — | — | unused (former flow-binding lock); the code is never reassigned |
 | `40016` | `ErrCodeBindingColumnsConflict` | `ErrBindingColumnsConflict` | `approval_binding_columns_conflict` | two business-binding fields name the same column |
 | `40017` | `ErrCodeBindingUnexpected` | `ErrBindingUnexpected` | `approval_binding_unexpected` | business binding supplied on a standalone flow |
 | `40018` | `ErrCodeBindingSchemaInvalid` | `ErrBindingSchemaInvalid` | `approval_binding_schema_invalid` | configured binding table or columns do not exist in the primary database |

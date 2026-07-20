@@ -6,7 +6,7 @@ sidebar_position: 4
 
 生产就绪相关的注意事项分散在许多页面中。本页把它们汇总成一份有序清单：
 每一项都说明要设置什么、为什么，以及对应的配置键或 API，并链接到详细
-文档所在的页面。以下所有默认值与失效行为均以 v0.39.0 为准。
+文档所在的页面。
 
 ## 安全（Security）
 
@@ -97,7 +97,7 @@ sidebar_position: 4
     git commit 都显示为 `unknown`。参见 [CLI 工具](./cli-tools) 和
     [监控](../infrastructure/monitor)。
 
-## 可选模块（v0.39）
+## 可选模块
 
 未启用对应模块的部署可跳过相应条目。
 
@@ -117,8 +117,8 @@ sidebar_position: 4
     应刻意选择；启动校验要求
     `abandoned_after ≥ 2 × heartbeat_interval`。参见
     [持久化调度](../infrastructure/cron-store)。
-23. **重新盘点 Redis 依赖方。** 在第 10 条之外，v0.38+ 的不透明令牌会话
-    （`security.NewRedisSessionStore`）与 v0.39 的推送中继在多节点部署下
+23. **重新盘点 Redis 依赖方。** 在第 10 条之外，不透明令牌会话
+    （`security.NewRedisSessionStore`）与推送中继在多节点部署下
     同样需要 Redis。
 
 ## 下一步

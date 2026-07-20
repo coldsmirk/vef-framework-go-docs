@@ -25,7 +25,7 @@ The framework supports these request-decoding targets:
 | Target type | Decoded from | Validation | Typical use |
 | --- | --- | --- | --- |
 | typed struct embedding `api.P` | `params` | Yes | business params |
-| typed struct embedding `api.StrictP` (v0.39) | `params` | Yes | business params, rejecting request keys the struct does not declare (`Params.DecodeStrict`) |
+| typed struct embedding `api.StrictP` | `params` | Yes | business params, rejecting request keys the struct does not declare (`Params.DecodeStrict`) |
 | typed struct embedding `api.M` | `meta` | Yes | typed meta |
 | `page.Pageable` | `meta` | Yes | paging |
 | `api.Params` | `params` | No typed validation | raw dynamic payload |
@@ -115,9 +115,9 @@ That means paging and sorting are not automatically pulled from query string int
 
 ## Numeric Fidelity
 
-Since v0.38, JSON payloads for `params` and `meta` are parsed with number
-preservation (`json.Decoder.UseNumber`), so numeric values keep their exact
-digits instead of collapsing to `float64` at the parse step:
+JSON payloads for `params` and `meta` are parsed with number preservation
+(`json.Decoder.UseNumber`), so numeric values keep their exact digits instead
+of collapsing to `float64` at the parse step:
 
 - **Typed numeric fields** (`int64`, `uint32`, `float64`, …) get an exact
   digit parse. A fractional or exponent-form number targeting an integer

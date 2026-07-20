@@ -14,7 +14,7 @@ helper 名称前缀不足以判断实际 wiring 方式，要看具体机制：
 
 | 机制 | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`（v0.39）, `ProvideCronJobHandler`（v0.39）, `ProvideIntegrationOutboundAuthScheme`（v0.39）, `ProvideIntegrationInboundAuthScheme`（v0.39）, `ProvideIntegrationInboundHandler`（v0.39）, `ProvideSessionRevocationListener`（v0.39） |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
 | 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
 | `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
 | 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
@@ -33,7 +33,7 @@ Helpers：
 - `vef.ProvideAuthStrategy(...)`
 - `vef.ProvideMiddleware(...)`
 
-`ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置策略是 `none`、`bearer`、`signature`、`ip`、`api_key`（v0.39）和 `http_basic`（v0.39）。
+`ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置策略是 `none`、`bearer`、`signature`、`ip`、`api_key` 和 `http_basic`。
 
 ## 最小模块示例
 
@@ -63,16 +63,16 @@ Helper：
 ## 安全
 
 - `vef:security:challenge_providers`
-- `vef:security:session_revocation_listeners`（v0.39）
+- `vef:security:session_revocation_listeners`
 
 Helper：
 
 - `vef.ProvideChallengeProvider(...)`
-- `vef.ProvideSessionRevocationListener(...)`（v0.39）——追加
+- `vef.ProvideSessionRevocationListener(...)`——追加
   `security.SessionRevocationListener`，观察登出、并发登录驱逐与管理员
   踢出；见[会话管理](../security/session-management)
 
-## 定时任务处理器（v0.39）
+## 定时任务处理器
 
 - `vef:cron:job_handlers`
 
@@ -84,7 +84,7 @@ Helper：
 导致启动失败。处理器可经 `cron.WithDefaultSchedule` 附带默认调度。见
 [持久化调度](../infrastructure/cron-store)。
 
-## JS 引擎库（v0.39）
+## JS 引擎库
 
 - `vef:js:libs`
 
@@ -96,7 +96,7 @@ Helper：
 opt-in 目录）内替换，新名称加入 opt-in 目录。见
 [JS 引擎](../data-tools/js-engine)。
 
-## 集成引擎（v0.39，需启用 `vef.IntegrationModule`）
+## 集成引擎（需启用 `vef.IntegrationModule`）
 
 - `vef:integration:outbound_auth_schemes`
 - `vef:integration:inbound_auth_schemes`
@@ -231,7 +231,7 @@ Helper：
 
 - `vef.ProvideApprovalLifecycleHook(...)`
 
-`approval.InstanceLifecycleHook` 的实现会在审批 engine 事务内同步运行——`OnInstanceCreated` 在实例创建时、`OnInstanceTransition(from, to)` 在每一次实例状态迁移时（v0.38）。返回 error 会回滚外层的审批命令。多个 hook 之间的调用顺序未定义（FX value group 不携带顺序）。需要在提交后才运行的异步集成应使用事件订阅或 `approval.BindCommand`。
+`approval.InstanceLifecycleHook` 的实现会在审批 engine 事务内同步运行——`OnInstanceCreated` 在实例创建时、`OnInstanceTransition(from, to)` 在每一次实例状态迁移时。返回 error 会回滚外层的审批命令。多个 hook 之间的调用顺序未定义（FX value group 不携带顺序）。需要在提交后才运行的异步集成应使用事件订阅或 `approval.BindCommand`。
 
 ## 审批 aggregator 与表单 schema
 

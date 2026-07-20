@@ -20,9 +20,9 @@ The built-in `translate` transformer resolves a source field through registered
 field. The framework ships one built-in translator: `CodeSetTranslator`,
 which handles only `codes:` kinds such as `mold:"translate=codes:status"`.
 
-> **Renamed in v0.39**: the "dictionary" vocabulary became "code set". The tag
-> prefix changed from `dict:` to `codes:`, and every `Dictionary*` identifier
-> became `CodeSet*` (see the mapping table below).
+> **Naming note**: the vocabulary is "code set", not "dictionary". The tag
+> prefix is `codes:` (there is no `dict:` prefix), and the identifiers are
+> `CodeSet*`, not `Dictionary*` (see the mapping table below).
 
 ```go
 type Order struct {
@@ -260,9 +260,12 @@ The public APIs in this cache path are `CachedCodeSetResolver`,
 `PublishCodeSetChangedEvent`, and `CachedCodeSetResolver.Resolve`, which
 implements `CodeSetResolver.Resolve`.
 
-### v0.38 → v0.39 rename map
+### Former "dictionary" names
 
-| Old identifier | New identifier |
+If you are looking for a `Dictionary*` identifier, its current `CodeSet*`
+equivalent is:
+
+| Former identifier | Current identifier |
 | --- | --- |
 | tag `mold:"translate=dict:xxx"` | `mold:"translate=codes:xxx"` |
 | `DictionaryTranslator` | `CodeSetTranslator` |

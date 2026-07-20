@@ -201,8 +201,8 @@ VEF currently has these built-in auth strategy names:
 | `bearer` | Bearer token authentication |
 | `signature` | signature-based authentication |
 | `ip` | source-IP whitelist authentication |
-| `api_key` | static API key authentication (v0.39) |
-| `http_basic` | RFC 7617 Basic authentication (v0.39) |
+| `api_key` | static API key authentication |
+| `http_basic` | RFC 7617 Basic authentication |
 
 Helpers:
 
@@ -212,8 +212,8 @@ Helpers:
 | `api.BearerAuth()` | Bearer auth |
 | `api.SignatureAuth()` | signature auth |
 | `api.IPAuth(...)` | source-IP whitelist auth |
-| `api.APIKeyAuth(...)` | API key auth; optional custom header name (v0.39) |
-| `api.HTTPBasicAuth()` | HTTP Basic auth (v0.39) |
+| `api.APIKeyAuth(...)` | API key auth; optional custom header name |
+| `api.HTTPBasicAuth()` | HTTP Basic auth |
 
 ## Authentication Inputs
 
@@ -246,7 +246,7 @@ IP auth resolves the client IP against a named whitelist loaded through
 deny with `security.ErrIPNotAllowed`; an empty or missing whitelist is
 fail-closed.
 
-### API key (v0.39)
+### API key
 
 | Source | Format |
 | --- | --- |
@@ -256,7 +256,7 @@ Keys resolve through `security.APIKeyLoader` (default backed by
 `vef.security.api_keys`); missing or unmatched keys deny uniformly with
 `security.ErrAPIKeyInvalid` (401).
 
-### HTTP Basic (v0.39)
+### HTTP Basic
 
 | Source | Format |
 | --- | --- |

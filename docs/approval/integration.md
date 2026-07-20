@@ -96,7 +96,7 @@ type InstanceLifecycleHook interface {
 }
 ```
 
-v0.38 generalizes the hook: the former `OnInstanceCompleted(instance, finalStatus)` is replaced by `OnInstanceTransition(instance, from, to)`, which runs inside the same transaction as **every** instance status transition — completion (`to.IsFinal()`), return, withdrawal, resubmission, termination. It runs after the engine-owned business projection has recorded (and, in synchronous mode, applied) the new state, so the hook observes the business table as the transition leaves it; `instance.Status` already carries `to`. Returning an error rolls back the whole transition.
+The hook is transition-generic — there is no completion-only variant. `OnInstanceTransition(instance, from, to)` runs inside the same transaction as **every** instance status transition — completion (`to.IsFinal()`), return, withdrawal, resubmission, termination. It runs after the engine-owned business projection has recorded (and, in synchronous mode, applied) the new state, so the hook observes the business table as the transition leaves it; `instance.Status` already carries `to`. Returning an error rolls back the whole transition.
 
 Use lifecycle hooks for invariants that must hold inside the transaction (e.g. allocating a tightly-coupled business row). Use event subscriptions (or `BindCommand`, below) for everything else. Register hooks with `vef.ProvideApprovalLifecycleHook(constructor)` — the constructor must return `approval.InstanceLifecycleHook`, and multiple hooks compose via the `vef:approval:lifecycle_hooks` group. The invocation order across hooks is **unspecified** (FX value groups carry no ordering), so hooks must be mutually independent; any non-nil error stops the remaining hooks. `approval.NewFilteredLifecycleHook(hook, filters...)` wraps a hook with the same `InstanceFilter` vocabulary used by `SubscribeInstance` (below), so a hook can be scoped to specific flow codes or tenants without hand-written predicates.
 
@@ -116,7 +116,7 @@ type BusinessRefResolver interface {
 
 ### Business-State Projection
 
-v0.38 replaces the per-trigger write-back (and its binding listener) with a durable desired-state projection. A business-bound flow configures one `BusinessBinding` document — `approval.BusinessBindingConfig`, stored as jsonb on `apv_flow` and snapshotted immutably onto each deployed `apv_flow_version`; runtime instances only ever read the version snapshot:
+Business write-back is a durable desired-state projection, not a per-trigger write-back. A business-bound flow configures one `BusinessBinding` document — `approval.BusinessBindingConfig`, stored as jsonb on `apv_flow` and snapshotted immutably onto each deployed `apv_flow_version`; runtime instances only ever read the version snapshot:
 
 | Field | JSON | Meaning |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ func SubscribeInstance[T InstanceEvent](
 
 `SubscribeInstance` is the declarative wrapper over `event.SubscribeTyped` for instance events (any event type embedding `InstanceEventBase`, e.g. `InstanceCompletedEvent`). Routing filters are data, not predicates: `InstanceSubscribeOption` accepts `approval.ForFlows(codes...)` / `approval.ForTenants(ids...)` (`InstanceFilter` values), each OR-ing within its own dimension and AND-ing across filters passed to the same call; events that fail a filter are acknowledged without invoking the handler. Business predicates (final status, form values) belong in the handler body, not in filters.
 
-Since v0.38 the handler also receives the delivery `event.Envelope`: `Envelope.ID` is the Inbox dedupe key, stable across redeliveries, and therefore the key to build manual idempotency on when the route is at-least-once.
+The handler also receives the delivery `event.Envelope`: `Envelope.ID` is the Inbox dedupe key, stable across redeliveries, and therefore the key to build manual idempotency on when the route is at-least-once.
 
 ```go
 vef.Invoke(func(bus event.Bus) error {
@@ -181,7 +181,7 @@ func BindCommand[E InstanceEvent, C cqrs.Action](
 ) (event.Unsubscribe, error)
 ```
 
-`BindCommand` (v0.38) subscribes to instance event `E` and dispatches the mapped command `C` through the host's CQRS bus — the declarative bridge from approval facts to host side effects. `mapper` is a pure translation: it shapes the command from the event plus its delivery envelope and reports relevance (`ok=false` acknowledges without dispatching). Business logic belongs in the command handler, which runs the host's full behavior pipeline (transaction, audit, validation); the handler's result is discarded — dispatch is fire-and-record.
+`BindCommand` subscribes to instance event `E` and dispatches the mapped command `C` through the host's CQRS bus — the declarative bridge from approval facts to host side effects. `mapper` is a pure translation: it shapes the command from the event plus its delivery envelope and reports relevance (`ok=false` acknowledges without dispatching). Business logic belongs in the command handler, which runs the host's full behavior pipeline (transaction, audit, validation); the handler's result is discarded — dispatch is fire-and-record.
 
 ```go
 vef.Invoke(func(bus event.Bus, commands cqrs.Bus) error {
@@ -254,7 +254,7 @@ type Delegation struct {
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
 | DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
 | admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
-| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm` (v0.39), `ViewerTask` (v0.39), `RollbackTarget` (v0.39), `RemovableAssignee` (v0.39) |
+| user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`, `ViewerTask`, `RollbackTarget`, `RemovableAssignee` |
 
 ---
 

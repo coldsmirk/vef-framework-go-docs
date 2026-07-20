@@ -248,7 +248,7 @@ Valid examples:
 
 Versions should only be incremented when the external contract actually changes.
 
-#### Permission tokens (v0.39)
+#### Permission tokens
 
 `RequiredPermission` tokens must be **dot-separated** and match
 `^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$`; the API engine validates them at

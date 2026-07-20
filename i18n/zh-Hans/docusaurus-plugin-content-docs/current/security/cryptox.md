@@ -127,7 +127,7 @@ valid, err := cipher.Verify("data", signature)
 ### SM4（国密 — 对称）
 
 ```go
-// key：16 字节。自 v0.39 起默认模式为 GCM（带认证；每次调用生成 IV）。
+// key：16 字节。默认模式为 GCM（带认证；每次调用生成 IV）。
 cipher, err := cryptox.NewSM4(key)
 
 // 改用 CBC。Encrypt 会生成随机 IV 并前置到 ciphertext。
@@ -141,9 +141,9 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 变体：`cryptox.NewSM4FromHex`、`cryptox.NewSM4FromBase64`。
 
-:::caution v0.39 破坏性变更
-`NewSM4` 现在默认使用 **GCM**（与 AES 对齐）。早期版本产生的 SM4 密文为
-CBC；解密它们需要显式构造
+:::caution SM4 默认使用 GCM
+`NewSM4` 默认使用 **GCM**（与 AES 对齐），而不是 CBC。要解密以 CBC 模式
+产生的 SM4 密文，需要显式构造
 `cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)`。
 :::
 

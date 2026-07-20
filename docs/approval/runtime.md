@@ -163,7 +163,7 @@ definitions before the storage layer maps it to dialect-specific SQL types.
 ### Generated Table Layout
 
 Publishing a table-mode version provisions one main projection table plus one
-child table per detail-table (`table` kind) field (v0.36):
+child table per detail-table (`table` kind) field:
 
 | Table | Physical name | Built-in columns | Field columns |
 | --- | --- | --- | --- |

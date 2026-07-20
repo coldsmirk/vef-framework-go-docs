@@ -14,7 +14,7 @@ The public entry points are:
 - `RunInReadOnlyTx`
 - `BeginTx`
 
-> v0.24 renamed the previously upper-cased `RunInTX` / `RunInReadOnlyTX` helpers to use `Tx` casing for consistency with the rest of the framework.
+> Note the `Tx` casing — the helpers are `RunInTx` / `RunInReadOnlyTx`, not `RunInTX` / `RunInReadOnlyTX`, consistent with the rest of the framework.
 
 The most common one is:
 

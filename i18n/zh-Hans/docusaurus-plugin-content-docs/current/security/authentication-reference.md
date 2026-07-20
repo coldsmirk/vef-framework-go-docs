@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # 认证参考
 
-`security` 包中认证相关的公开接口面：principal、JWT、认证管理器、挑战提供者与令牌存储、签名认证与登录事件。叙述性指南——认证策略、内置认证资源与登录流程——见[认证](./authentication)。
+`security` 包中认证相关的公开接口面：principal、JWT、认证管理器、挑战提供者与令牌存储、签名认证与登录事件。叙述性指南——认证策略、内置认证资源与登录流程——见[认证](./authentication)。内置认证端点的 wire 层契约——每个 action 的请求与响应字段——收录在本页末尾的 [RPC Resource: `security/auth`](#rpc-resource-securityauth)。
 
 | API 组 | 公开 surface |
 | --- | --- |
@@ -114,8 +114,8 @@ challenge token store 的 wire/storage 形状不同：
 
 JWT challenge claim key 是 `ptp`（`ClaimChallengePrincipalType`）、`pnm`
 （`ClaimChallengePrincipalName`）、`unm`（`ClaimChallengeUsername`）、`pnd`
-（`ClaimChallengePending`）和 `rsd`（`ClaimChallengeResolved`）。自 v0.39
-保留身份加固起，challenge 解析只接受 `user` 与 `external_app` 两种
+（`ClaimChallengePending`）和 `rsd`（`ClaimChallengeResolved`）。在
+保留身份加固下，challenge 解析只接受 `user` 与 `external_app` 两种
 principal type——`system`、空值与未知类型一律以 `ErrTokenInvalid` 拒绝
 （携带框架内部身份的挑战 token 不可能有合法来源），解析出的 principal 若
 `IsReserved()` 同样被拒绝。
@@ -232,8 +232,8 @@ code——见[登录加固](./login-hardening)）：
 | `1022` | `ErrCodeAuthHeaderInvalid` | `ErrAuthHeaderInvalid` | `401` |
 | `1023` | `ErrCodeAccountLocked` | 动态账号锁定错误（见[登录加固](./login-hardening)） | `429` |
 | `1024` | `ErrCodeTooManyConcurrentSessions` | `ErrTooManyConcurrentSessions` | `403` |
-| `1025` | `ErrCodeAPIKeyInvalid` | `ErrAPIKeyInvalid`（v0.39） | `401` |
-| `1026` | `ErrCodeBasicCredentialsInvalid` | `ErrBasicCredentialsInvalid`（v0.39） | `401` |
+| `1025` | `ErrCodeAPIKeyInvalid` | `ErrAPIKeyInvalid` | `401` |
+| `1026` | `ErrCodeBasicCredentialsInvalid` | `ErrBasicCredentialsInvalid` | `401` |
 | `1031` | `ErrCodeChallengeTokenInvalid` | `ErrChallengeTokenInvalid` | `401` |
 | `1033` | `ErrCodeChallengeTypeInvalid` | `ErrChallengeTypeInvalid` | `400` |
 | `1034` | `ErrCodeChallengeResolveFailed` | `ErrChallengeResolveFailed` | `401` |
@@ -253,11 +253,11 @@ code——见[登录加固](./login-hardening)）：
 `ErrChallengeResolveFailed`、`ErrOTPCodeRequired`、`ErrOTPCodeInvalid`、
 `ErrNewPasswordRequired`、`ErrDepartmentRequired`、
 `ErrTooManyConcurrentSessions`、`ErrAPIKeyInvalid`、
-`ErrBasicCredentialsInvalid`，以及 `ErrReservedPrincipal`（v0.39——在认证、
+`ErrBasicCredentialsInvalid`，以及 `ErrReservedPrincipal`（在认证、
 挑战解析与令牌签发每个入口拒绝框架内部身份；复用
 `ErrCodePrincipalInvalid`/`1007`，HTTP 401），另有 factory helper
-`ErrCredentialsInvalid(message)` 和 `ErrPrincipalInvalid(message)`。自
-v0.39 起 `ErrChallengeResolveFailed` 不再是保留占位：`resolve_challenge`
+`ErrCredentialsInvalid(message)` 和 `ErrPrincipalInvalid(message)`。
+`ErrChallengeResolveFailed` 不是保留占位：`resolve_challenge`
 会把 `ChallengeProvider` 返回的裸 error 归一化为它。
 
 低层 secret 解析错误使用 `ErrDecodeJWTSecretFailed`、
@@ -268,6 +268,264 @@ v0.39 起 `ErrChallengeResolveFailed` 不再是保留占位：`resolve_challenge
 `ErrMessageCredentialsFormatInvalid`、`ErrMessageExternalAppLoaderNotImplemented`、
 `ErrMessageUnauthenticated`、`ErrMessageUnsupportedAuthenticationType`、
 `ErrMessageUserInfoLoaderNotImplemented` 和 `ErrMessageUserLoaderNotImplemented`。
+
+## RPC Resource: `security/auth`
+
+安全模块把内置认证资源作为 RPC 资源挂载在 `/api` 下，使用标准信封
+（`resource`、`action`、`version`、`params`）。响应遵循标准 result 信封——
+`code`（成功为 `0`）、`message`、`data`——下文描述的都是 `data` 载荷的
+形状。请求参数表也收录在[内置资源](../reference/built-in-resources)；
+本节是完整的 wire 层契约，包含每个响应字段。
+
+| Action | 访问性 | Rate limit（`max`） | 入参 | 出参（`data`） |
+| --- | --- | --- | --- | --- |
+| `login` | Public | `vef.security.login_rate_limit`（默认 `6`） | `LoginParams` | `LoginResult`——token **或** challenge 包络 |
+| `refresh` | Public；仅在 `token_type = "jwt_token"` 下挂载 | `vef.security.refresh_rate_limit`（默认 `1`） | `RefreshParams` | `AuthTokens`（无 `tokens` 包装） |
+| `logout` | Bearer 认证 | API 引擎默认 | 无 | 空（`data: null`） |
+| `resolve_challenge` | Public | `vef.security.login_rate_limit`（默认 `6`） | `ResolveChallengeParams` | `LoginResult`——下一个 challenge **或** 最终 token |
+| `get_user_info` | Bearer 认证 | API 引擎默认 | 原样 `params` map | `UserInfo` |
+
+自定义限流只设置 `max`；时间窗口回退到 API 引擎的默认限流周期
+（`vef.api.rate_limit`，默认 `5m`）。未声明自定义限流的操作完整继承引擎
+默认值（出厂为每 `5m` `100` 次）。在 `token_type = "opaque_token"` 下，
+`refresh` 操作根本不会挂载——调用它会得到操作不存在错误（HTTP 404），
+因为 opaque 会话在使用中自行续期。
+
+### `login`
+
+`LoginParams`：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `type` | `string` | 是 | 凭证类型。框架为该端点内置的只有 `password`；注册自定义 `security.Authenticator` 可扩展取值。框架签发的令牌类型（`jwt_token`、`opaque_token`、`refresh`）会以 code `1001` 拒绝，已签发的令牌永远无法在此洗换成新的 token 对 |
+| `principal` | `string` | 是 | 登录标识，通常是用户名。内置密码流程拒绝保留标识（`system`、`cron_job`、`anonymous`），返回 code `1007` |
+| `credentials` | `any` | 是 | 凭证载荷。`type = "password"` 时是密码字符串——配置了 `security.PasswordDecryptor` 时为传输加密密文，否则为明文 |
+
+响应是一个 `LoginResult`，形态严格二选一。`tokens`、`challengeToken`、
+`challenge` 均为 `omitempty`：不适用的那一半直接缺失，绝不会是 `null`。
+
+**形态一——token。** 未注册 challenge provider，或没有任何 provider 适用
+于该账号。`data.tokens` 是一个 `AuthTokens`：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `tokens.accessToken` | `string` | 后续请求使用的 bearer token。`jwt_token` 下是固定 `30m` 有效期的 JWT；`opaque_token` 下是随机会话引用，有效期由[会话策略](./session-management)（`idle_ttl` / `max_lifetime`）决定 |
+| `tokens.refreshToken` | `string` | JWT refresh token，有效期 `vef.security.token_expires`（默认 `168h`）。**`opaque_token` 下缺失**——会话自行续期，不存在 refresh token |
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+    }
+  }
+}
+```
+
+载荷中不携带任何过期时间字段——令牌有效期属于部署配置，需另行告知客户端。
+
+**形态二——challenge 包络。** 凭证已通过校验，但至少一个
+[challenge provider](#challenge-providers) 要求第二步。此时尚未签发任何
+认证 token：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `challengeToken` | `string` | 携带挑战进度（principal、原始登录标识、pending 与 resolved 类型列表）的状态令牌——客户端将其视为不透明值，传给 `resolve_challenge` 即可。每个令牌在 `ChallengeTokenExpires`（`5m`）后过期；每个成功步骤都会签发新令牌 |
+| `challenge` | `LoginChallenge` | 第一个待解的 challenge（见下） |
+
+`LoginChallenge`：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `type` | `string` | challenge type 的 wire value，如 `totp`、`sms_otp`、`password_change`（见 [wire value 表](#challenge-providers)） |
+| `data` | `any` | provider 特定的展示数据；provider 不提供时缺失。OTP provider 返回 `{destination, meta?}`（`OTPChallengeData`）；部门选择返回 `{departments, meta?}` |
+| `required` | `bool` | 完成登录是否必须解决该 challenge |
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "challengeToken": "eyJhbGciOiJIUzI1NiIs...",
+    "challenge": {
+      "type": "totp",
+      "data": { "destination": "Authenticator App" },
+      "required": true
+    }
+  }
+}
+```
+
+行为说明：
+
+- provider 严格按 `Order()` 顺序评估；`Evaluate(...)` 返回 `nil` 的
+  provider 被跳过，因此包络里始终是第一个真正适用的 challenge。
+- 暴力破解 guard 在凭证通过校验的那一刻——早于任何第二因子——就清空失败
+  计数。凭证被拒绝会发布失败 `LoginEvent`；成功事件只在 token 真正签发时
+  发布——无挑战时立即发布，有挑战时在挑战链末尾发布——始终携带提交的
+  登录标识。
+- 典型失败（均见上文[错误码表](#signature-helpers)）：`1001`（不支持/被
+  拒绝的 `type`，HTTP 400）、`1008`（凭证无效——未知用户、nil principal
+  或空存储哈希、密码错误刻意返回同一响应，HTTP 401）、`1007`（保留或非
+  法 principal，HTTP 401）、`1023`（触发暴力破解锁定，HTTP 429），以及
+  缺少必填字段时的通用校验错误 `1400`（HTTP 400）。
+
+### `refresh`
+
+仅在无状态 JWT 机制（`token_type = "jwt_token"`，即默认值）下挂载。
+
+`RefreshParams`：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `refreshToken` | `string` | 是 | 由 `login`、上一次 `refresh` 或签发 token 的 `resolve_challenge` 返回的 refresh token |
+
+响应 `data` **直接就是**新的 `AuthTokens` 对——**没有 `login` 那层
+`tokens` 包装**：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `accessToken` | `string` | 新 access token（`30m` 有效期） |
+| `refreshToken` | `string` | 新 refresh token（有效期 `vef.security.token_expires`） |
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  }
+}
+```
+
+行为说明：
+
+- 内部按 `refresh` 类型认证：JWT 必须能解析、携带 `typ: "refresh"`
+  （access token 会被拒绝），且 subject 必须是内置 generator 写入的
+  `id@name` 形式。
+- refresh token 在签发后 `vef.security.refresh_not_before`（默认 `15m`）
+  内不可用——过早兑换会以 `1004`（`ErrCodeTokenNotValidYet`）失败。
+- 会通过 `UserLoader.LoadByID(...)` 重新加载用户，使被停用的账号无法继续
+  刷新；loader 的错误原样返回给调用方。
+- 每次兑换返回全新 token 对。提交的 refresh token 不会在服务端吊销——该
+  机制是无状态的——它只会自然过期。
+- 典型失败：`1003`（令牌畸形、`typ` 不对、subject 形状不对，HTTP 401）、
+  `1002`（已过期，HTTP 401）、`1004`（尚未生效，HTTP 401）、`1400`
+  （`refreshToken` 缺失/为空，HTTP 400）。
+
+### `logout`
+
+无参数。总是返回成功且 `data` 为空——从客户端视角 logout 刻意设计为不可
+失败，无论如何客户端都必须丢弃已存储的 token。
+
+- `opaque_token` 下，尽力吊销当前 bearer token 背后的会话：按与 bearer
+  认证完全相同的方式读取 token（`Authorization: Bearer` 头，scheme 大小
+  写不敏感，其次 `__accessToken` 查询参数），哈希、查找并吊销。吊销成功
+  会通知已注册的 `security.SessionRevocationListener`，关联授权
+  ——例如 WebSocket 推送连接——随即被拆除。会话不存在或存储故障只记录
+  日志，绝不使调用失败。
+- `jwt_token` 下没有服务端会话：`logout` 实际上是 no-op，令牌失效等于
+  客户端删除自己的副本。
+
+### `resolve_challenge`
+
+`ResolveChallengeParams`：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `challengeToken` | `string` | 是 | 上一次 `login` 或 `resolve_challenge` 响应中的状态令牌——必须是**最新**那个；每一步都会重新签发 |
+| `type` | `string` | 是 | 正在解决的 challenge type。必须等于第一个 pending type（即刚返回的 `challenge.type`）；否则以 `1033` 失败 |
+| `response` | `any` | 是 | provider 特定的应答，如 OTP 验证码字符串、新密码载荷或所选部门 ID |
+
+响应是与 `login` 相同两种形态的 `LoginResult`：
+
+- **仍有 challenge 待解**——新的 `challengeToken` 加下一个 `challenge`。
+  挑战链严格按 provider 顺序推进；对该 principal `Evaluate(...)` 返回
+  `nil` 的 provider 被跳过。新令牌携带更新后的 pending/resolved 列表和
+  原始登录标识（保证审计连续性），并重新开始 `5m` 过期窗口。
+- **全部挑战已解决**——`data.tokens` 携带最终 `AuthTokens`，与 `login`
+  形态一完全一致。认证 token 只在此刻签发，成功的 `LoginEvent` 以原始
+  登录标识发布。
+
+行为说明：
+
+- challenge token 的任何解析失败——过期、被篡改、`typ` 不对，或
+  [Challenge providers](#challenge-providers) 中描述的保留身份拒绝
+  （`system`/空/未知 principal type、保留 ID）——在该端点统一表现为
+  `1031`（`ErrChallengeTokenInvalid`，HTTP 401）。
+- 被拒绝的 `response` 按登录失败对待：计入原始标识的暴力破解锁定并被审
+  计。返回类型化 `result.Error` 的 provider 保留自己的 code（`1035`
+  `ErrOTPCodeRequired`、`1036` `ErrOTPCodeInvalid`、`1037`
+  `ErrNewPasswordRequired`、`1038` `ErrDepartmentRequired`）；裸 error 被
+  归一化为 `1034`（`ErrChallengeResolveFailed`，HTTP 401）。
+- provider 解析出 nil 或框架保留 principal 会以 `1007`
+  （`ErrReservedPrincipal`）拒绝；该拒绝会被审计但不计入锁定——第二因子
+  本身是正确的，错在 provider。
+- 类型不符与令牌无效这类协议错误（`1031`、`1033`）不经过 guard 也不审
+  计；锁定检查（`1023`，HTTP 429）在 provider 校验应答之前进行。
+
+### `get_user_info`
+
+要求 Bearer 认证。`params` 对象不被框架解释：原样转发给应用的
+`security.UserInfoLoader.LoadUserInfo(ctx, principal, params)`。未注册
+loader 时，该 action 以通用 not-implemented 错误失败（code `1500`，
+HTTP 501，消息 `security_user_info_loader_not_implemented`）；loader 的
+错误原样返回。
+
+响应 `data` 是 loader 返回的 `security.UserInfo`：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | `string` | 用户标识 |
+| `name` | `string` | 显示名 |
+| `gender` | `string` | `male`、`female`、`unknown` 之一（`security.Gender`） |
+| `avatar` | `string` \| `null` | 头像 URL；未设置时为 `null`（字段总是存在） |
+| `permissionTokens` | `string[]` | 授予该用户的权限 token 列表，通常由前端消费以控制 UI 能力 |
+| `menus` | `UserMenu[]` | 导航菜单树（见下） |
+| `details` | `any` | 应用自定义的扩展载荷；缺省时省略（`omitempty`） |
+
+`UserMenu`（递归）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `type` | `string` | `directory`、`menu`、`view`、`dashboard`、`report` 之一（`security.UserMenuType`） |
+| `path` | `string` | 路由路径 |
+| `name` | `string` | 显示名 |
+| `icon` | `string` \| `null` | 图标标识；未设置时为 `null`（总是存在） |
+| `meta` | `object` | 可选扩展 map；缺省时省略 |
+| `children` | `UserMenu[]` | 子节点；缺省时省略 |
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "id": "user001",
+    "name": "Alice",
+    "gender": "female",
+    "avatar": null,
+    "permissionTokens": ["user.read", "order.read"],
+    "menus": [
+      {
+        "type": "directory",
+        "path": "/system",
+        "name": "System Management",
+        "icon": "setting",
+        "children": [
+          { "type": "menu", "path": "/system/users", "name": "User Management", "icon": null }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`permissionTokens` 与 `menus` 没有 `omitempty`：loader 请返回空 slice
+（而不是 nil），让客户端拿到 `[]` 而不是 `null`。
 
 ## 下一步
 

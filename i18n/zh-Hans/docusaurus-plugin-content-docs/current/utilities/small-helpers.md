@@ -5,36 +5,7 @@ sidebar_position: 10
 # 小助手
 
 本页文档记录了小而集中、不需要单独 feature 页的工具包：`page`、`sortx`、
-`monad`、`strx`、`dbx`、`fiberx`、`version`，以及关于已移除的 `ptr` 包及其
-替代方案的说明。
-
-## `ptr` —— 已移除
-
-:::caution
-`ptr` 包已从框架中移除，替换为 Go 内置的 `new` 和
-`github.com/samber/lo` 的指针 helper。如果你在迁移仍然 import
-`github.com/coldsmirk/vef-framework-go/ptr` 的代码，请参考下表。
-:::
-
-| 旧 `ptr` API | 替代方案 | 说明 |
-| --- | --- | --- |
-| `ptr.Of(v)` | `new(v)`（builtin） | Go 内置的 `new` 现在接受一个值表达式，返回指向该值副本的指针。与旧的 `ptr.Of` 不同，`new(v)` 总是返回非 nil 指针——包括 `""`、`0`、`false` 这样的 zero values。 |
-| `ptr.Of(v)`（zero-value 返回 nil 的语义） | `lo.EmptyableToPtr(v)` | `v` 是 zero value 时返回 `nil`，与旧的 `ptr.Of` 行为完全一致。 |
-| `ptr.Zero[T]()` | `lo.Empty[T]()` | 返回 `T` 的 zero value。 |
-| `ptr.Value(p)` | `lo.FromPtr(p)` | 解引用 `p`；`p` 为 nil 时返回 zero value。 |
-| `ptr.Value(p, fallback)` / `ptr.ValueOrElse(p, fn)` | `lo.FromPtrOr(p, fallback)` | 解引用 `p`；`p` 为 nil 时返回给定的 fallback。`lo.FromPtrOr` 会立即求值 fallback，不像旧的 `ptr.ValueOrElse` 那样是 lazy 的。 |
-| `ptr.Coalesce(p1, p2, ...)` | 普通的 nil 判断 `if`/`switch` | `lo` 没有直接对应的多指针 coalesce helper；手写一个简短判断反而更清晰。 |
-
-```go
-import "github.com/samber/lo"
-
-p := new(true)                  // *bool → true（builtin new，总是非 nil）
-p2 := lo.EmptyableToPtr("")     // *string → nil（zero value）
-p3 := lo.EmptyableToPtr(42)     // *int → 42
-
-s := lo.FromPtr(p2)             // ""（解引用，nil 时返回 zero）
-s = lo.FromPtrOr(p2, "default") // "default"
-```
+`monad`、`strx`、`dbx`、`fiberx` 和 `version`。
 
 ## `page`
 
@@ -249,7 +220,7 @@ foreign key`、`ora-02291` 和 `ora-02292`。它也会匹配包含 `violated`，
 
 ## `fiberx`
 
-Fiber 请求 helper。v0.39 从 `httpx` 更名而来，把该名字让给了
+Fiber 请求 helper。不要与 `httpx` 混淆——那个名字属于
 [出站 HTTP 客户端](./httpx)。
 
 | API | Signature | 作用 |
@@ -286,8 +257,8 @@ Fiber 会按自己的 proxy settings 处理 `X-Forwarded-For`。
 
 ### 用指针表达可选字段
 
-由于 `ptr` 包已经移除，需要始终非 nil 的指针使用内置的 `new`；需要
-zero-value 变成 `nil` 时使用 `lo.EmptyableToPtr`：
+需要始终非 nil 的指针时使用内置的 `new`；需要 zero-value 变成 `nil` 时
+使用 `lo.EmptyableToPtr`：
 
 - **搜索结构体**：可选筛选字段使用 `*bool`、`*string` 等
 - **模型字段**：可空数据库列使用指针类型

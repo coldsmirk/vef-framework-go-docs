@@ -23,8 +23,8 @@ The public `api` package exposes strategy helpers:
 - `api.BearerAuth()`
 - `api.SignatureAuth()`
 - `api.IPAuth(...)` (see [Signature helpers](./authentication-reference#signature-helpers) below for how it resolves whitelists)
-- `api.APIKeyAuth(...)` (v0.39)
-- `api.HTTPBasicAuth()` (v0.39)
+- `api.APIKeyAuth(...)`
+- `api.HTTPBasicAuth()`
 
 In practice, you normally control this through operation settings:
 
@@ -59,7 +59,7 @@ It expects these headers:
 
 The strategy delegates verification to the security module's signature authenticator.
 
-## API Key Authentication (v0.39)
+## API Key Authentication
 
 `api.APIKeyAuth()` authenticates machine-to-machine callers by a static
 secret key, read from the `X-API-Key` header by default; pass one header
@@ -96,7 +96,7 @@ A missing or unmatched key is rejected uniformly with
 resolves matches to an external-app principal named after the entry
 (`api_key:<name>`) carrying the configured roles.
 
-## HTTP Basic Authentication (v0.39)
+## HTTP Basic Authentication
 
 `api.HTTPBasicAuth()` authenticates RFC 7617 `Authorization: Basic`
 credentials. These are machine-to-machine service accounts — store
@@ -128,14 +128,14 @@ Malformed headers, unknown accounts, and wrong passwords are all rejected
 uniformly with `security.ErrBasicCredentialsInvalid` (HTTP 401), so callers
 cannot distinguish which part failed.
 
-## Reserved Identities (v0.39)
+## Reserved Identities
 
 Certain identities attribute work the framework performs outside any request
 — they are audit authors, never callers. `security.Principal.IsReserved()`
 reports them: the `system` principal type and the `orm.OperatorSystem` /
 `orm.OperatorCronJob` operator IDs.
 
-Since v0.39 the framework enforces this invariant fail-closed at every
+The framework enforces this invariant fail-closed at every
 boundary:
 
 - authenticators (including custom `security.Authenticator` implementations
@@ -188,6 +188,11 @@ runtime contract:
 | `resolve_challenge` | yes | `vef.security.login_rate_limit` | `challengeToken`, `type`, `response`; all are `validate:"required"` |
 | `get_user_info` | no | default API rate limit | arbitrary `params`, forwarded to `UserInfoLoader.LoadUserInfo(...)` |
 
+The complete field-level wire contract — every action's request parameters
+*and* response fields, with JSON examples for both login response shapes —
+is tabulated in
+[RPC Resource: `security/auth`](./authentication-reference#rpc-resource-securityauth).
+
 This resource, every registered `Authenticator`, and the `AuthManager`
 aggregator are wired by the framework's security module — the same module that layers in
 brute-force lockout, password strength/history/expiry (see
@@ -195,8 +200,8 @@ brute-force lockout, password strength/history/expiry (see
 [Session Management](./session-management)).
 
 The built-in authenticator type strings are `password`, `jwt_token`,
-`opaque_token`, `refresh`, and `signature` (the former `token` string was
-renamed to `jwt_token` in v0.38). In normal client calls, `security/auth.login`
+`opaque_token`, `refresh`, and `signature` (the JWT authenticator is named
+`jwt_token`, not `token`). In normal client calls, `security/auth.login`
 uses `type: "password"` with username and password credentials.
 Bearer-protected operations dispatch the configured token mechanism internally
 (`jwt_token` or `opaque_token` per `vef.security.token_type`),
@@ -239,6 +244,10 @@ The login response DTOs use these exact fields:
 | `LoginResult` | JSON `tokens`, `challengeToken`, `challenge` |
 | `LoginChallenge` | JSON `type`, `data`, `required` |
 | `ChallengeState` | Go-only state: `Principal`, `Username` (original login identifier, preserved across steps for audit events), `Pending`, `Resolved` |
+
+Field-by-field tables for both response shapes — the token payload and the
+challenge envelope — with JSON examples live in
+[RPC Resource: `security/auth`](./authentication-reference#rpc-resource-securityauth).
 
 ## What Applications Usually Provide
 
@@ -480,7 +489,7 @@ curl http://localhost:8080/api \
   }'
 ```
 
-Request parameters for every `security/auth` action are tabulated in [Built-in Resources](../reference/built-in-resources).
+Request parameters for every `security/auth` action are tabulated in [Built-in Resources](../reference/built-in-resources); the response fields — including the challenge envelope and the `get_user_info` `UserInfo` shape — are covered in [RPC Resource: `security/auth`](./authentication-reference#rpc-resource-securityauth).
 
 ## Practical Advice
 

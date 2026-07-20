@@ -41,7 +41,7 @@ constants `config.TokenTypeJWT` (`"jwt_token"`) and `config.TokenTypeOpaque`
 SessionMeta)` is mechanism-agnostic, so custom login flows do not need to know
 which one is active.
 
-Since v0.38 the switch is strict: **only the configured mechanism's
+The switch is strict: **only the configured mechanism's
 authenticators are registered.** Under `opaque_token`, a leftover JWT (access
 or refresh) no longer authenticates anywhere — including the MCP surface —
 and the `refresh` operation is not mounted at all (sessions renew themselves
@@ -80,7 +80,7 @@ Two independent lifetimes govern a session:
 
 `OpaqueTokenAuthenticator.renew` computes the next expiry as `now + idle_ttl`,
 then clamps it to `CreatedAt + max_lifetime` if that would exceed it. The same
-clamp applies at issue time (v0.38), so a misconfigured `idle_ttl` larger than
+clamp applies at issue time, so a misconfigured `idle_ttl` larger than
 `max_lifetime` cannot produce a session that outlives the cap even before its
 first renewal. A continuously active session still expires at the latest
 `max_lifetime` after login — sliding extends idle survival, it does not extend
@@ -162,7 +162,7 @@ an error, and a store failure during revoke is only logged. Under `jwt_token`,
 is expected to discard its stored token (see
 [Authentication](./authentication)).
 
-### Revocation listeners (v0.39)
+### Revocation listeners
 
 `security.SessionRevocationListener` observes session revocations — logout,
 concurrent-login eviction, administrative kicks — so long-lived grants can be
@@ -264,10 +264,10 @@ need pagination should build that on top of its own store.
 
 The default `SessionStore` is `security.NewMemorySessionStore()` — in-process
 storage, wired automatically by the framework's security module. It works
-correctly for a single instance. Since v0.38 it is built on the framework's
+correctly for a single instance. It is built on the framework's
 in-memory TTL cache, so expired sessions are garbage-collected in the
 background instead of accumulating until the next access — a long-lived
-process with many short sessions no longer grows without bound.
+process with many short sessions does not grow without bound.
 
 It does **not** share state across processes. In a multi-node deployment, a
 session created on one node is invisible to requests landing on another node —
@@ -306,7 +306,7 @@ Redis keys under `vef:security:session:` (`id:`, `token:`, `user:` sub-prefixes)
 - the per-user session-id set carries a TTL refreshed on create and renew, and
   renewal re-adds the session's membership to self-heal the set;
   `RevokeUser` removes only the ids it enumerated, so a login racing a
-  force-logout is never left invisible to `ListByUser` (v0.38)
+  force-logout is never left invisible to `ListByUser`
 - `Session.ExpiresAt` (not the Redis key TTL alone) remains the authoritative
   expiry check on every read, so both stores enforce `max_lifetime` identically
 

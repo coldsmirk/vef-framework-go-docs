@@ -19,8 +19,8 @@ surface 背后的受支持行为和运行时 contract。
 | resource 和 kind | `api.Resource`, `api.Kind`, `api.KindRPC`, `api.KindREST`, `api.ValidateActionName(action, kind) error`, `api.NewRPCResource(name, opts...)`, `api.NewRESTResource(name, opts...)`, `api.WithVersion(v)`, `api.WithAuth(config)`, `api.WithOperations(specs...)` |
 | engine 和 routing 扩展 | `api.Engine`, `api.RouterStrategy`, `api.Middleware` |
 | operations | `api.OperationSpec`, `api.Operation`, `api.RateLimitConfig`, `api.OperationsProvider`, `api.OperationsCollector` |
-| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP`（v0.39）, `api.M` |
-| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`（v0.39）, `api.HTTPBasicAuth()`（v0.39）, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
+| request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.StrictP`, `api.M` |
+| auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`, `api.HTTPBasicAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler 扩展 | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
 | audit、headers、versions、errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.VersionV1`, `api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType` |
 
@@ -134,7 +134,7 @@ type OperationSpec struct {
     EnableAudit        bool              // 启用审计日志
     Timeout            time.Duration     // 请求超时
     Public             bool              // 无需认证
-    RequiredPermission string            // 所需权限令牌（v0.24 起从 PermToken 重命名）
+    RequiredPermission string            // 所需权限令牌
     RateLimit          *RateLimitConfig  // 限流配置
     Handler            any               // 业务处理函数
 }
@@ -153,10 +153,10 @@ Operation 默认化规则：
 | `Timeout` | 非正值使用 engine 默认值；未覆盖时默认 `30s` |
 | `Public` | 为 `true` 时先解析为 `api.Public()`，优先于资源级/default auth |
 | `RequiredPermission` | 非空时写入 auth options 中的 required permission token |
-| `RateLimit` | nil 使用 engine 默认——配置了 `vef.api.rate_limit` 时用配置值，否则 `Max=100`、`Period=5m`（v0.38）；自定义 `RateLimitConfig` 会替换默认值。显式 `Max <= 0` **不会**关闭限流——中间件对非正值回退到 engine/配置默认值 |
+| `RateLimit` | nil 使用 engine 默认——配置了 `vef.api.rate_limit` 时用配置值，否则 `Max=100`、`Period=5m`；自定义 `RateLimitConfig` 会替换默认值。显式 `Max <= 0` **不会**关闭限流——中间件对非正值回退到 engine/配置默认值 |
 | `Handler` | RPC 可在省略时从 action 推断；REST 必须显式提供 handler |
 
-自 v0.39 起，权限声明在注册时校验，违规将导致启动失败：
+权限声明在注册时校验，违规将导致启动失败：
 
 - `RequiredPermission` 必须是匹配 `^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$` 的
   **点分隔**令牌（如 `sys.user.query`）；冒号、斜杠、连字符、空段与空白
@@ -301,8 +301,8 @@ type AuthConfig struct {
 | Bearer | `api.AuthStrategyBearer` | Bearer 令牌认证 |
 | 签名 | `api.AuthStrategySignature` | 请求签名认证 |
 | IP | `api.AuthStrategyIP` | 来源 IP 白名单认证 |
-| API key | `api.AuthStrategyAPIKey` | 静态 API key 认证（v0.39） |
-| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic 认证（v0.39） |
+| API key | `api.AuthStrategyAPIKey` | 静态 API key 认证 |
+| HTTP Basic | `api.AuthStrategyHTTPBasic` | RFC 7617 Basic 认证 |
 
 ### 辅助函数
 
@@ -312,9 +312,9 @@ api.BearerAuth()           // 策略为 "bearer" 的 AuthConfig
 api.SignatureAuth()        // 策略为 "signature" 的 AuthConfig
 api.IPAuth()               // 策略为 "ip"，使用 "default" whitelist
 api.IPAuth("ops")          // 策略为 "ip"，使用 "ops" whitelist
-api.APIKeyAuth()           // 策略为 "api_key"，读 X-API-Key 头（v0.39）
+api.APIKeyAuth()           // 策略为 "api_key"，读 X-API-Key 头
 api.APIKeyAuth("X-My-Key") // 自定义 key 头；传多个名称会 panic
-api.HTTPBasicAuth()        // 策略为 "http_basic"（v0.39）
+api.HTTPBasicAuth()        // 策略为 "http_basic"
 ```
 
 `api.IPAuth(...)` 接受 0 或 1 个 whitelist 名称。不传时使用
@@ -365,7 +365,7 @@ crud.NewCreate[User, UserParams]().RateLimit(100, time.Minute)
 ```
 
 内置 rate limiter 使用 sliding window，并按节点独立计数。未声明自己
-`RateLimit` 的 operation 使用 engine 默认值，v0.38 起可由用户配置：
+`RateLimit` 的 operation 使用 engine 默认值，可由用户配置：
 
 ```toml
 [vef.api.rate_limit]

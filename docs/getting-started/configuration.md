@@ -41,7 +41,7 @@ Key fields:
 
 ### `vef.api`
 
-Default per-operation rate limit (v0.38), applied to every operation that does
+Default per-operation rate limit, applied to every operation that does
 not declare its own `OperationSpec.RateLimit`:
 
 ```toml
@@ -80,8 +80,8 @@ Supported `type` values (drivers registered in the framework runtime):
 - `postgres`
 - `mysql`
 - `sqlite`
-- `sqlserver` (v0.39)
-- `oracle` (v0.39)
+- `sqlserver`
+- `oracle`
 
 For SQLite, `path` is optional. When omitted, the framework uses a shared in-memory database.
 
@@ -201,7 +201,7 @@ Key fields:
 
 > The outbox-related fields previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`). They have moved to `[vef.event.transports.outbox]` so the framework-wide outbox transport can serve any module — see [Event Bus](../infrastructure/event-bus).
 
-### `vef.cron`, `vef.integration`, and `vef.push` (v0.39)
+### `vef.cron`, `vef.integration`, and `vef.push`
 
 Three optional feature sections, each off by default:
 
@@ -219,7 +219,7 @@ enabled = true       # WebSocket push endpoint at /ws
 ```
 
 Full key lists live in the
-[Configuration Reference](../reference/configuration-reference#vefcron-v039)
+[Configuration Reference](../reference/configuration-reference#vefcron)
 and the module guides:
 [Durable Schedules](../infrastructure/cron-store),
 [Integration Engine](../integration/overview), and

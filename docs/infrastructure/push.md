@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Server Push
 
-The `push` module (v0.39) is a WebSocket server-push channel: business code
+The `push` module is a WebSocket server-push channel: business code
 sends typed messages to users, roles, or everyone, and connected clients
 receive them as JSON text frames.
 

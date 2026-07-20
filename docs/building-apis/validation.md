@@ -131,7 +131,7 @@ Typical uses:
 
 ## Nullable / Optional Fields
 
-VEF uses pointer types for nullable fields (the older `null.*` wrapper package was removed in v0.21 in favor of pointers).
+VEF uses pointer types for nullable fields — there is no `null.*` wrapper package.
 
 ```go
 type UserParams struct {

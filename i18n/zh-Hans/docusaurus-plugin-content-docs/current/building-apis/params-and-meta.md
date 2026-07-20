@@ -25,7 +25,7 @@ VEF 把请求输入拆成两个部分：
 | 目标类型 | 解码来源 | 是否自动验证 | 常见用途 |
 | --- | --- | --- | --- |
 | 嵌入 `api.P` 的 typed struct | `params` | 是 | 业务 params |
-| 嵌入 `api.StrictP` 的 typed struct（v0.39） | `params` | 是 | 业务 params，拒绝结构体未声明的请求键（`Params.DecodeStrict`） |
+| 嵌入 `api.StrictP` 的 typed struct | `params` | 是 | 业务 params，拒绝结构体未声明的请求键（`Params.DecodeStrict`） |
 | 嵌入 `api.M` 的 typed struct | `meta` | 是 | typed meta |
 | `page.Pageable` | `meta` | 是 | 分页 |
 | `api.Params` | `params` | 否 | 原始动态 payload |
@@ -115,8 +115,8 @@ typed 请求控制信息就是这样注入的。
 
 ## 数值精度
 
-从 v0.38 起，`params` 与 `meta` 的 JSON 载荷按数字保真解析
-（`json.Decoder.UseNumber`），数值保留原始位数，不再在解析阶段折叠成
+`params` 与 `meta` 的 JSON 载荷按数字保真解析
+（`json.Decoder.UseNumber`），数值保留原始位数，不会在解析阶段折叠成
 `float64`：
 
 - **有类型的数值字段**（`int64`、`uint32`、`float64` 等）按精确位数解析。

@@ -37,7 +37,7 @@ path = "./analytics.db"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite \| sqlserver \| oracle` | 数据库类型（`sqlserver` 与 `oracle` 自 v0.39 起支持） |
+| `type` | `postgres \| mysql \| sqlite \| sqlserver \| oracle` | 数据库类型 |
 | `host` | `string` | 数据库网络地址 |
 | `port` | `uint16` | 数据库端口 |
 | `user` | `string` | 数据库用户名 |
@@ -51,7 +51,7 @@ path = "./analytics.db"
 
 `vef.data_sources` 下除 `primary` 之外的每一项，都会在应用开始处理请求之前，以其在 map 中的键名注册进 `datasource.Registry`。完整字段列表见 [Configuration Reference](../reference/configuration-reference)。
 
-v0.39 新增方言说明：
+SQL Server 与 Oracle 的方言说明：
 
 - `sqlserver`（驱动 `microsoft/go-mssqldb`）：默认端口 `1433`；`database`
   为空时落在登录账号的默认目录上。任何 TLS `ssl_mode` 都会强制开启 TDS
