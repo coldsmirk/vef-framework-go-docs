@@ -913,21 +913,28 @@ func (x *extractor) extractRESTVerbs() {
 
 func (x *extractor) extractConfigKeys() {
 	roots := map[string]string{
-		"AppConfig":      "vef.app",
-		"APIConfig":      "vef.api",
-		"CORSConfig":     "vef.cors",
-		"SecurityConfig": "vef.security",
-		"RedisConfig":    "vef.redis",
-		"StorageConfig":  "vef.storage",
-		"MonitorConfig":  "vef.monitor",
-		"MCPConfig":      "vef.mcp",
-		"ApprovalConfig": "vef.approval",
-		"EventConfig":    "vef.event",
+		"AppConfig":         "vef.app",
+		"APIConfig":         "vef.api",
+		"CORSConfig":        "vef.cors",
+		"SecurityConfig":    "vef.security",
+		"RedisConfig":       "vef.redis",
+		"StorageConfig":     "vef.storage",
+		"MonitorConfig":     "vef.monitor",
+		"MCPConfig":         "vef.mcp",
+		"ApprovalConfig":    "vef.approval",
+		"EventConfig":       "vef.event",
+		"CronConfig":        "vef.cron",
+		"IntegrationConfig": "vef.integration",
+		"PushConfig":        "vef.push",
 	}
 	for typeName, root := range roots {
 		x.walkConfig(typeName, root, nil)
 	}
 	x.walkConfig("DataSourceConfig", "vef.data_sources.<name>", []string{"internal/config/data_sources.go:20", "config/data_sources.go:22"})
+	// API keys and basic accounts are map[string]T config values: their entry
+	// structs are unreachable from the struct-field walk, so they root here.
+	x.walkConfig("APIKeyConfig", "vef.security.api_keys.<name>", []string{"config/security.go:38"})
+	x.walkConfig("BasicAccountConfig", "vef.security.basic_accounts.<name>", []string{"config/security.go:44"})
 }
 
 func (x *extractor) walkConfig(typeName, prefix string, inheritedEvidence []string) {
@@ -1526,17 +1533,22 @@ func (x *extractor) verifyJSONSchemaCoverage() []string {
 
 func (x *extractor) configFieldKeyIndex() map[string]string {
 	roots := map[string]string{
-		"AppConfig":        "vef.app",
-		"APIConfig":        "vef.api",
-		"CORSConfig":       "vef.cors",
-		"SecurityConfig":   "vef.security",
-		"RedisConfig":      "vef.redis",
-		"StorageConfig":    "vef.storage",
-		"MonitorConfig":    "vef.monitor",
-		"MCPConfig":        "vef.mcp",
-		"ApprovalConfig":   "vef.approval",
-		"EventConfig":      "vef.event",
-		"DataSourceConfig": "vef.data_sources.<name>",
+		"AppConfig":          "vef.app",
+		"APIConfig":          "vef.api",
+		"CORSConfig":         "vef.cors",
+		"SecurityConfig":     "vef.security",
+		"RedisConfig":        "vef.redis",
+		"StorageConfig":      "vef.storage",
+		"MonitorConfig":      "vef.monitor",
+		"MCPConfig":          "vef.mcp",
+		"ApprovalConfig":     "vef.approval",
+		"EventConfig":        "vef.event",
+		"CronConfig":         "vef.cron",
+		"IntegrationConfig":  "vef.integration",
+		"PushConfig":         "vef.push",
+		"DataSourceConfig":   "vef.data_sources.<name>",
+		"APIKeyConfig":       "vef.security.api_keys.<name>",
+		"BasicAccountConfig": "vef.security.basic_accounts.<name>",
 	}
 
 	index := make(map[string]string)
@@ -1952,7 +1964,9 @@ func isRuntimeResourceFile(path string) bool {
 		strings.HasPrefix(path, "internal/storage/") ||
 		strings.HasPrefix(path, "internal/schema/") ||
 		strings.HasPrefix(path, "internal/monitor/") ||
-		strings.HasPrefix(path, "internal/approval/resource/")
+		strings.HasPrefix(path, "internal/approval/resource/") ||
+		strings.HasPrefix(path, "internal/cron/store/") ||
+		strings.HasPrefix(path, "internal/integration/resource/")
 }
 
 func (x *extractor) extractCLI() {
@@ -2294,6 +2308,11 @@ func isRuntimeDTOFile(path string) bool {
 		"event/", "internal/security/", "internal/storage/", "internal/schema/",
 		"internal/monitor/", "internal/approval/resource/", "internal/approval/shared/",
 		"internal/mcp/",
+		// v0.39 runtime surfaces: durable cron schedules, the integration
+		// engine (definitions, resource DTOs, script-facing shapes), the push
+		// envelope, and the jshttp script option/init objects.
+		"cron/", "integration/", "push/", "js/jshttp/",
+		"internal/cron/", "internal/integration/", "internal/push/",
 	}
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(path, prefix) {
