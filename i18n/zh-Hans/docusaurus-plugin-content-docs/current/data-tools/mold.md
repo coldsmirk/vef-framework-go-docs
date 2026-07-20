@@ -12,26 +12,30 @@ sidebar_position: 3
 `find_one`、`find_all`、`find_page`、`find_tree` 和 `export` 结果返回前运行
 transformer，因此响应模型可以暴露派生字段或翻译字段。
 
-### 内置：字典翻译
+### 内置：码值集翻译
 
 内置 `translate` transformer 会通过已注册的 `Translator` 实现解析源字段，并把
 结果写入同级 `<Field>Name` 字段。框架自带一个内置 translator：
-`DictionaryTranslator`，它只处理 `mold:"translate=dict:status"` 这样的
-`dict:` kind。
+`CodeSetTranslator`，它只处理 `mold:"translate=codes:status"` 这样的
+`codes:` kind。
+
+> **v0.39 重命名**："字典（dictionary）"词汇统一改为"码值集（code set）"。
+> 标签前缀由 `dict:` 变为 `codes:`，所有 `Dictionary*` 标识符变为
+> `CodeSet*`（见下方对照表）。
 
 ```go
 type Order struct {
-    Status     string `json:"status" mold:"translate=dict:status"`
+    Status     string `json:"status" mold:"translate=codes:status"`
     StatusName string `json:"statusName" bun:",scanonly"`
 }
 ```
 
-当查询结果包含 `Status = "active"` 时，transformer 会向字典 resolver 查询
-key `status`、code `active`，然后把显示名写入 `StatusName`。
+当查询结果包含 `Status = "active"` 时，transformer 会向码值集 resolver 查询
+码值集 `status`、code `active`，然后把显示名写入 `StatusName`。
 
 `orm.FullAuditedModel` 这类审计模型会在 `CreatedBy` 和 `UpdatedBy` 上使用
 `mold:"translate=user?"`。这个标签是给自定义用户 translator 预留的可选 hook；
-内置字典 translator 并不提供 `user` 翻译。
+内置码值集 translator 并不提供 `user` 翻译。
 
 ## 接口
 
@@ -142,15 +146,15 @@ type LineItem struct {
 
 `expr` tag 由 expression module 通过 `vef:mold:field_transformers` group 提供，
 不是 `mold` module 单独提供的默认 tag。`mold` module 自身提供内置
-`translate` field transformer 和 `DictionaryTranslator`；其他 field transformer
+`translate` field transformer 和 `CodeSetTranslator`；其他 field transformer
 需要通过同一个 group 注册，或由应用自行构造 custom transformer。
 
-## 字典翻译
+## 码值集翻译
 
 `translate` 变换器通过 `Translator` 接口翻译字段值。框架内置了一个
-`DictionaryTranslator`，负责处理 `dict:` 前缀的 kind（例如
-`mold:"translate=dict:gender"`）。如果 kind 是 `dict:status?`，内置 translator
-仍会认为完整字符串被支持，并解析字典 key `status?`；它不会自动剥掉 `?` 后缀。
+`CodeSetTranslator`，负责处理 `codes:` 前缀的 kind（例如
+`mold:"translate=codes:gender"`）。如果 kind 是 `codes:status?`，内置 translator
+仍会认为完整字符串被支持，并解析码值集 key `status?`；它不会自动剥掉 `?` 后缀。
 
 支持的源字段类型包括 `string`、`*string`、有符号和无符号整数、这些整数的指针、
 `[]string`，以及经 mold 解引用后的 `*[]string`。标量目标字段必须是 `string`
@@ -167,19 +171,35 @@ type Translator interface {
 }
 ```
 
-字典风格的 resolver / loader 接口：
+码值集的 resolver / loader 接口：
 
 ```go
-type DictionaryResolver interface {
-    Resolve(ctx context.Context, key, code string) (string, error)
+type CodeSetResolver interface {
+    Resolve(ctx context.Context, codeSet, code string) (string, error)
 }
 
-type DictionaryLoader interface {
-    Load(ctx context.Context, key string) (map[string]string, error)
+type CodeSetLoader interface {
+    Load(ctx context.Context, codeSet string) (map[string]string, error)
 }
 ```
 
-`DictionaryLoaderFunc` 可以让普通函数满足 `DictionaryLoader` 接口。
+`CodeSetLoaderFunc` 可以让普通函数满足 `CodeSetLoader` 接口。
+
+### 可枚举目录（可选）
+
+码值集可枚举的宿主可以在其 loader（或整体替换的 resolver）之上额外实现
+`mold.CodeSetInspector`：
+
+```go
+type CodeSetInspector interface {
+    ListCodeSets(ctx context.Context) ([]CodeSetInfo, error) // {codeSet, name}
+    ListCodes(ctx context.Context, codeSet string) ([]CodeInfo, error) // {code, label}
+}
+```
+
+消费方对其做类型断言，缺失时优雅降级。
+[集成模块](../integration/code-maps#宿主码值目录)用它驱动码值映射编辑器的
+选择器，并校验码值映射的标识。
 
 ### `?` 的真实含义
 
@@ -193,31 +213,43 @@ type DictionaryLoader interface {
 
 ## 带缓存的解析器
 
-`CachedDictionaryResolver` 包装的是 `DictionaryLoader`（不是 `DictionaryResolver`），并通过订阅 `mold.DictionaryChangedEvent` 自动失效：
+`CachedCodeSetResolver` 包装的是 `CodeSetLoader`（不是 `CodeSetResolver`），并通过订阅 `mold.CodeSetChangedEvent` 自动失效：
 
 ```go
-resolver := mold.NewCachedDictionaryResolver(loader, bus)
+resolver := mold.NewCachedCodeSetResolver(loader, bus)
 ```
 
-`NewCachedDictionaryResolver` 在 `DictionaryLoader` 或 `event.Bus` 为 nil 时会 panic。
-缓存按 loader 的 key 缓存整张字典，并会合并同一 key 的并发加载。`Resolve` 在
-key 为空、code 为空，或字典里找不到 code 时，都会无 error 地返回空字符串。
+`NewCachedCodeSetResolver` 在 `CodeSetLoader` 或 `event.Bus` 为 nil 时会 panic。
+缓存按 loader 的码值集缓存整套码值，并会合并同一 key 的并发加载。`Resolve` 在
+码值集为空、code 为空，或集合里找不到 code 时，都会无 error 地返回空字符串。
 
-当某个字典的底层数据发生变化时，通过事件总线发布
-`mold.DictionaryChangedEvent{Keys: []string{"..."}}` 来让对应缓存失效。
+当某个码值集的底层数据发生变化时，通过事件总线发布
+`mold.CodeSetChangedEvent{Keys: []string{"..."}}` 来让对应缓存失效。
 
 也可以使用辅助函数发布同一事件：
 
 ```go
-err := mold.PublishDictionaryChangedEvent(ctx, bus, "gender", "status")
+err := mold.PublishCodeSetChangedEvent(ctx, bus, "gender", "status")
 ```
 
-`DictionaryChangedEvent.EventType()` 返回缓存失效 subscriber 使用的框架事件类型。
+`CodeSetChangedEvent.EventType()` 返回缓存失效 subscriber 使用的框架事件类型
+（`vef.translate.code_set.changed`）。
 
-调用 `PublishDictionaryChangedEvent(ctx, bus)` 但不传 key 时，表示要求订阅方
-清空整个字典缓存。
+调用 `PublishCodeSetChangedEvent(ctx, bus)` 但不传 key 时，表示要求订阅方
+清空整个码值集缓存。
 
-这条缓存路径上的公开 API 是 `CachedDictionaryResolver`、
-`DictionaryChangedEvent`、`DictionaryChangedEvent.Keys`、
-`PublishDictionaryChangedEvent` 和 `CachedDictionaryResolver.Resolve`；其中
-`CachedDictionaryResolver.Resolve` 实现 `DictionaryResolver.Resolve`。
+这条缓存路径上的公开 API 是 `CachedCodeSetResolver`、
+`CodeSetChangedEvent`、`CodeSetChangedEvent.Keys`、
+`PublishCodeSetChangedEvent` 和 `CachedCodeSetResolver.Resolve`；其中
+`CachedCodeSetResolver.Resolve` 实现 `CodeSetResolver.Resolve`。
+
+### v0.38 → v0.39 重命名对照
+
+| 旧标识符 | 新标识符 |
+| --- | --- |
+| 标签 `mold:"translate=dict:xxx"` | `mold:"translate=codes:xxx"` |
+| `DictionaryTranslator` | `CodeSetTranslator` |
+| `DictionaryResolver` | `CodeSetResolver` |
+| `DictionaryLoader` / `DictionaryLoaderFunc` | `CodeSetLoader` / `CodeSetLoaderFunc` |
+| `CachedDictionaryResolver` / `NewCachedDictionaryResolver` | `CachedCodeSetResolver` / `NewCachedCodeSetResolver` |
+| `DictionaryChangedEvent` / `PublishDictionaryChangedEvent` | `CodeSetChangedEvent` / `PublishCodeSetChangedEvent` |

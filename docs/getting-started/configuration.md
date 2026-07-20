@@ -196,6 +196,30 @@ Key fields:
 
 > The outbox-related fields previously lived under `[vef.approval]` (`outbox_relay_interval`, `outbox_max_retries`, `outbox_batch_size`). They have moved to `[vef.event.transports.outbox]` so the framework-wide outbox transport can serve any module — see [Event Bus](../infrastructure/event-bus).
 
+### `vef.cron`, `vef.integration`, and `vef.push` (v0.39)
+
+Three optional feature sections, each off by default:
+
+```toml
+[vef.cron.store]
+enabled = true       # durable schedule store
+auto_migrate = true
+
+[vef.integration]
+auto_migrate = true  # read by vef.IntegrationModule
+secret_key = "base64-key"
+
+[vef.push]
+enabled = true       # WebSocket push endpoint at /ws
+```
+
+Full key lists live in the
+[Configuration Reference](../reference/configuration-reference#vefcron-v039)
+and the module guides:
+[Durable Schedules](../infrastructure/cron-store),
+[Integration Engine](../integration/overview), and
+[Server Push](../infrastructure/push).
+
 ## Environment overrides
 
 VEF uses an environment prefix and dot-to-underscore replacement, so config keys can be overridden with environment variables.

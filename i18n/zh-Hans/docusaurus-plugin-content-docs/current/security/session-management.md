@@ -106,6 +106,28 @@ func (a *AuthResource) Logout(ctx fiber.Ctx) error {
 
 它按令牌哈希查找会话，并调用 `SessionStore.Revoke(ctx, session.ID)`。这是尽力而为的操作，且始终返回 `Ok`——会话不存在（已过期，或者当前是 JWT 令牌、本来就没有会话）不算错误，吊销过程中的存储失败也只会被记录日志。在 `jwt_token` 机制下，`logout` 实际上是空操作：没有会话可吊销，客户端需要自行丢弃已保存的令牌（参见[身份认证](./authentication)）。
 
+### 吊销监听器（v0.39）
+
+`security.SessionRevocationListener` 观察会话吊销——登出、并发登录驱逐、
+管理员踢出——使长生命周期的授权可以立即拆除，而不是等下一次周期检查。
+[推送模块](../infrastructure/push)用这条接缝在会话失效的瞬间关闭
+WebSocket 连接。
+
+```go
+type SessionRevocationListener interface {
+    // 在会话从存储中移除后，于吊销调用路径上同步执行；
+    // 实现必须快速且不得阻塞。
+    OnSessionsRevoked(ctx context.Context, revocations []security.SessionRevocation)
+}
+```
+
+- 用 `vef.ProvideSessionRevocationListener(...)` 注册。每个
+  `SessionRevocation` 携带 `SessionID` 与 `UserID`。
+- 框架自己的吊销路径会触发监听器。直接对 `SessionStore` 做吊销的应用代码
+  （比如下文的会话管理端点）应注入 `*security.SessionRevocationNotifier`
+  并自行调用 `NotifyRevoked(ctx, revocations...)` —— 漏发通知只会退化到
+  下一次周期会话检查，绝不会导致过期授权继续有效。
+
 ## 构建会话管理端点
 
 框架内部使用的 `security.SessionStore` 是一个常规的、通过 DI 暴露出来的依赖，而不是私有实现细节——你可以把它注入自己的资源，构建“我的设备”或后台会话管理功能：

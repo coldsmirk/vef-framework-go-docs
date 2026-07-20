@@ -72,6 +72,8 @@ VEF **不会** 从一个 RPC 资源自动生成 REST 路由。如果你需要两
 - `sys/storage`：分片上传（init / part / list / complete / abort）以及 `/storage/files/<key>` 下载代理
 - `sys/schema`：数据库 schema 检查
 - `sys/monitor`：运行时与主机监控
+- `sys/cron/*`：启用调度存储后的持久化调度管理
+- `integration/*`：启用 `vef.IntegrationModule` 后的集成引擎管理
 - MCP 中间件与 MCP server 集成
 
 如果这些能力符合你的需求，通常不需要从零重写。
@@ -91,9 +93,10 @@ VEF **不会** 从一个 RPC 资源自动生成 REST 路由。如果你需要两
 之后可以按需求分支阅读：
 
 - [数据工具](./data-tools/expression) —— 表达式引擎、mold 数据清洗、i18n、表格导入导出
-- [基础设施](./infrastructure/cache) —— 缓存、定时任务、序列、事件总线、存储、schema、监控
+- [基础设施](./infrastructure/cache) —— 缓存、定时任务与持久化调度、序列、事件总线、服务端推送、存储、schema、监控
 - [AI 集成](./ai-integration/ai) —— AI 相关能力与 MCP
 - [审批](./approval) —— 工作流/审批引擎
+- [系统集成](./integration/overview) —— 配置与脚本驱动的外部系统对接
 - [进阶](./advanced/cqrs) —— CQRS、自定义参数解析器、CLI 工具
 - [工具库](./utilities/small-helpers) —— 各类小而专的辅助包
 - [规范](./conventions/application-project-conventions) —— 项目结构与数据库规范

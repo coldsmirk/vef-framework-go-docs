@@ -6,6 +6,12 @@ sidebar_position: 2
 
 VEF exposes `github.com/coldsmirk/vef-framework-go/cron` as a typed wrapper around `gocron`. The framework DI module provides `cron.Scheduler` automatically; applications that need custom wiring can pass their own `gocron.Scheduler` to `cron.NewScheduler`.
 
+This page covers the **in-memory scheduler**: jobs defined in code, scheduled
+per process, gone on restart. For database-persisted schedules with
+cluster-wide single fire, misfire policies, a run journal, and management
+APIs, see [Durable Schedules](./cron-store) — both live in the same `cron`
+package and coexist in one application.
+
 ## Public Surface
 
 The package has no exported fields. Its public top-level API is:
@@ -156,7 +162,8 @@ func RegisterCleanupJob(scheduler cron.Scheduler) error {
 
 ## Practical Usage
 
-Use cron when you need application-owned background work such as:
+Use the in-memory scheduler when you need application-owned background work
+such as:
 
 - periodic cleanup
 - polling and sync tasks
@@ -165,6 +172,10 @@ Use cron when you need application-owned background work such as:
 
 If the task is domain-heavy, keep business logic in a service and use the scheduler only for orchestration.
 
+Prefer [Durable Schedules](./cron-store) instead when the schedule must
+survive restarts, run exactly once across replicas, be editable by
+operators, or leave an auditable run journal.
+
 ## Next Step
 
-Read [Transactions](../data-access/transactions) if scheduled work needs explicit database transaction control.
+Read [Durable Schedules](./cron-store) for the persistent scheduling engine, or [Transactions](../data-access/transactions) if scheduled work needs explicit database transaction control.

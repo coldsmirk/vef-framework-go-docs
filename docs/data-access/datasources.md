@@ -37,7 +37,7 @@ Every entry uses the same `config.DataSourceConfig` shape:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite` | database kind (`oracle` and `sqlserver` constants exist but are not implemented yet) |
+| `type` | `postgres \| mysql \| sqlite \| sqlserver \| oracle` | database kind (`sqlserver` and `oracle` are supported since v0.39) |
 | `host` | `string` | network database host |
 | `port` | `uint16` | network database port |
 | `user` | `string` | database username |
@@ -50,6 +50,18 @@ Every entry uses the same `config.DataSourceConfig` shape:
 | `ssl_root_cert` | `string` | optional PEM path for `verify-ca` / `verify-full` |
 
 Every non-primary entry under `vef.data_sources` is registered into `datasource.Registry` under its map key before the application starts serving requests. See [Configuration Reference](../reference/configuration-reference) for the full field list.
+
+Dialect notes for the v0.39 kinds:
+
+- `sqlserver` (driver `microsoft/go-mssqldb`): default port `1433`; an empty
+  `database` lands on the login's default catalog. Any TLS `ssl_mode` forces
+  TDS encryption on; `verify-ca`/`verify-full` semantics (custom PEM root,
+  hostname pinning) work as for Postgres/MySQL.
+- `oracle` (driver `sijms/go-ora`): default port `1521`; `database` carries
+  the **service name** and is mandatory; `schema` is not mapped — Oracle
+  resolves unqualified names against the connecting user's own schema.
+  `verify-ca` is served with `verify-full` semantics (the stronger check),
+  and a PEM `ssl_root_cert` is not supported by the driver and fails fast.
 
 ## Injecting The Registry
 

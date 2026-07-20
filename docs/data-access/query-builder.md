@@ -222,7 +222,11 @@ remain strings.
 ## Apply Semantics
 
 `Search.Apply(...)` adds conditions only for values that the selected operator
-can use. nil pointer fields are skipped before extraction. `between` /
+can use. nil pointer fields are skipped before extraction, and since v0.39
+zero-valued **non-pointer** fields are skipped entirely: JSON cannot tell an
+omitted field from its zero value, and turning `""` or `0` into an `eq`
+condition would silently filter everything out. Use a pointer field (e.g.
+`*bool`) when an explicit zero filter must be expressible. `between` /
 `notBetween` require a `monad.Range[T]`-style value, a two-item slice, or a
 typed string range; malformed or unsupported ranges add no condition. `in` /
 `notIn` skip empty strings and empty parsed value lists. `isNull` and

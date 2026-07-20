@@ -39,6 +39,10 @@
     "message": "审批模块",
     "description": "The label for category 'Approval Workflow' in sidebar 'docsSidebar'"
   },
+  "sidebar.docsSidebar.category.Integration": {
+    "message": "系统集成",
+    "description": "The label for category 'Integration' in sidebar 'docsSidebar'"
+  },
   "sidebar.docsSidebar.category.Advanced": {
     "message": "进阶",
     "description": "The label for category 'Advanced' in sidebar 'docsSidebar'"

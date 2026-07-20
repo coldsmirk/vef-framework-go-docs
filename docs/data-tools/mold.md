@@ -13,27 +13,31 @@ actions run the transformer on `find_one`, `find_all`, `find_page`,
 `find_tree`, and `export` results before they are returned, so response models
 can expose derived or translated fields.
 
-### Built-in: Dictionary Translation
+### Built-in: Code Set Translation
 
 The built-in `translate` transformer resolves a source field through registered
 `Translator` implementations and writes the result to a sibling `<Field>Name`
-field. The framework ships one built-in translator: `DictionaryTranslator`,
-which handles only `dict:` kinds such as `mold:"translate=dict:status"`.
+field. The framework ships one built-in translator: `CodeSetTranslator`,
+which handles only `codes:` kinds such as `mold:"translate=codes:status"`.
+
+> **Renamed in v0.39**: the "dictionary" vocabulary became "code set". The tag
+> prefix changed from `dict:` to `codes:`, and every `Dictionary*` identifier
+> became `CodeSet*` (see the mapping table below).
 
 ```go
 type Order struct {
-    Status     string `json:"status" mold:"translate=dict:status"`
+    Status     string `json:"status" mold:"translate=codes:status"`
     StatusName string `json:"statusName" bun:",scanonly"`
 }
 ```
 
 When a query result contains `Status = "active"`, the transformer asks the
-dictionary resolver for key `status` and code `active`, then writes the display
-name to `StatusName`.
+code set resolver for code set `status` and code `active`, then writes the
+display name to `StatusName`.
 
 Auditing models such as `orm.FullAuditedModel` use `mold:"translate=user?"` on
 `CreatedBy` and `UpdatedBy`. That tag is an optional hook for a custom user
-translator; it is not provided by the built-in dictionary translator.
+translator; it is not provided by the built-in code set translator.
 
 ## Interfaces
 
@@ -148,16 +152,16 @@ full API.
 The `expr` tag is provided by the expression module through the
 `vef:mold:field_transformers` group. It is not provided by the `mold` module
 alone. The `mold` module itself contributes the built-in `translate` field
-transformer and the `DictionaryTranslator`; other field transformers must be
+transformer and the `CodeSetTranslator`; other field transformers must be
 registered through the same group or by constructing a custom transformer.
 
-## Dictionary Resolution
+## Code Set Resolution
 
 The `translate` transformer resolves field values through the `Translator`
-interface. The framework ships one built-in translator — `DictionaryTranslator`
-— that handles `kind` strings prefixed with `dict:` (for example,
-`mold:"translate=dict:gender"`). If the kind is `dict:status?`, the built-in
-translator still supports the full string and resolves dictionary key
+interface. The framework ships one built-in translator — `CodeSetTranslator`
+— that handles `kind` strings prefixed with `codes:` (for example,
+`mold:"translate=codes:gender"`). If the kind is `codes:status?`, the built-in
+translator still supports the full string and resolves code set key
 `status?`; it does not strip the `?` suffix.
 
 Supported source field shapes are `string`, `*string`, signed and unsigned
@@ -177,19 +181,37 @@ type Translator interface {
 }
 ```
 
-The dictionary-style resolver and loader interfaces:
+The code-set resolver and loader interfaces:
 
 ```go
-type DictionaryResolver interface {
-    Resolve(ctx context.Context, key, code string) (string, error)
+type CodeSetResolver interface {
+    Resolve(ctx context.Context, codeSet, code string) (string, error)
 }
 
-type DictionaryLoader interface {
-    Load(ctx context.Context, key string) (map[string]string, error)
+type CodeSetLoader interface {
+    Load(ctx context.Context, codeSet string) (map[string]string, error)
 }
 ```
 
-`DictionaryLoaderFunc` lets a plain function satisfy `DictionaryLoader`.
+`CodeSetLoaderFunc` lets a plain function satisfy `CodeSetLoader`.
+
+### Enumerable catalog (optional)
+
+A host whose code sets are enumerable can additionally implement
+`mold.CodeSetInspector` alongside its loader (or wholesale-replaced
+resolver):
+
+```go
+type CodeSetInspector interface {
+    ListCodeSets(ctx context.Context) ([]CodeSetInfo, error) // {codeSet, name}
+    ListCodes(ctx context.Context, codeSet string) ([]CodeInfo, error) // {code, label}
+}
+```
+
+Consumers type-assert for it and degrade gracefully when it is absent. The
+[integration module](../integration/code-maps#the-host-code-set-catalog) uses
+it to power the code-mapping editor's pickers and to validate code map
+identifiers.
 
 ### What `?` actually means
 
@@ -205,35 +227,46 @@ is left untouched and no error is returned. A required kind such as
 
 ## Cached Resolution
 
-`CachedDictionaryResolver` wraps a `DictionaryLoader` (not a `DictionaryResolver`) with in-process caching, and subscribes to `mold.DictionaryChangedEvent` for invalidation:
+`CachedCodeSetResolver` wraps a `CodeSetLoader` (not a `CodeSetResolver`) with in-process caching, and subscribes to `mold.CodeSetChangedEvent` for invalidation:
 
 ```go
-resolver := mold.NewCachedDictionaryResolver(loader, bus)
+resolver := mold.NewCachedCodeSetResolver(loader, bus)
 ```
 
-`NewCachedDictionaryResolver` panics if the `DictionaryLoader` or `event.Bus`
-is nil. The cache holds entire dictionaries keyed by the loader's key and
+`NewCachedCodeSetResolver` panics if the `CodeSetLoader` or `event.Bus`
+is nil. The cache holds entire code sets keyed by the loader's code set and
 merges concurrent loads for the same key. `Resolve` returns an empty string
-without error for an empty key, an empty code, or a code that is not present in
-the loaded dictionary.
+without error for an empty code set, an empty code, or a code that is not
+present in the loaded set.
 
-When the data underlying a dictionary changes, publish
-`mold.DictionaryChangedEvent{Keys: []string{"..."}}` through the event bus to
+When the data underlying a code set changes, publish
+`mold.CodeSetChangedEvent{Keys: []string{"..."}}` through the event bus to
 invalidate the matching cache entry.
 
 You can publish the same event through the helper:
 
 ```go
-err := mold.PublishDictionaryChangedEvent(ctx, bus, "gender", "status")
+err := mold.PublishCodeSetChangedEvent(ctx, bus, "gender", "status")
 ```
 
-`DictionaryChangedEvent.EventType()` returns the framework event type used by
-the cache invalidation subscriber.
+`CodeSetChangedEvent.EventType()` returns the framework event type used by
+the cache invalidation subscriber (`vef.translate.code_set.changed`).
 
-Calling `PublishDictionaryChangedEvent(ctx, bus)` without keys asks subscribers
-to clear their entire dictionary cache.
+Calling `PublishCodeSetChangedEvent(ctx, bus)` without keys asks subscribers
+to clear their entire code set cache.
 
-The public APIs in this cache path are `CachedDictionaryResolver`,
-`DictionaryChangedEvent`, `DictionaryChangedEvent.Keys`,
-`PublishDictionaryChangedEvent`, and `CachedDictionaryResolver.Resolve`, which
-implements `DictionaryResolver.Resolve`.
+The public APIs in this cache path are `CachedCodeSetResolver`,
+`CodeSetChangedEvent`, `CodeSetChangedEvent.Keys`,
+`PublishCodeSetChangedEvent`, and `CachedCodeSetResolver.Resolve`, which
+implements `CodeSetResolver.Resolve`.
+
+### v0.38 → v0.39 rename map
+
+| Old identifier | New identifier |
+| --- | --- |
+| tag `mold:"translate=dict:xxx"` | `mold:"translate=codes:xxx"` |
+| `DictionaryTranslator` | `CodeSetTranslator` |
+| `DictionaryResolver` | `CodeSetResolver` |
+| `DictionaryLoader` / `DictionaryLoaderFunc` | `CodeSetLoader` / `CodeSetLoaderFunc` |
+| `CachedDictionaryResolver` / `NewCachedDictionaryResolver` | `CachedCodeSetResolver` / `NewCachedCodeSetResolver` |
+| `DictionaryChangedEvent` / `PublishDictionaryChangedEvent` | `CodeSetChangedEvent` / `PublishCodeSetChangedEvent` |

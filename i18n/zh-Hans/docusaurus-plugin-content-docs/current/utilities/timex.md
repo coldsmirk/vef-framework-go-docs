@@ -123,6 +123,7 @@ dt.Sunday()
 
 ```go
 dt.Unwrap()      // → time.Time
+dt.AsLocal()     // → time.Time，把墙钟字段重解释到 time.Local（v0.39）
 dt.String()      // → "2024-03-15 14:30:00"
 dt.Format(layout) // 自定义格式
 dt.Unix()        // Unix 秒
@@ -133,6 +134,11 @@ dt.Since()       // 距离 dt 已经过了多久
 dt.Until()       // 距离 dt 还有多久
 dt.Sub(other)    // 两个时间的间隔
 ```
+
+`AsLocal` 的存在是因为 `DateTime` 按约定是时区朴素的——持久化与解析都用裸的
+`"2006-01-02 15:04:05"` 字符串——因此从数据库驱动扫描回来的值可能带着任意
+时区标签（某些驱动是 UTC），而其字段实际是本地墙钟时间。在与 `Now` 做时刻
+运算之前请用 `AsLocal()`；在 SQL 内部比较的值永远不需要它。
 
 ## Date
 

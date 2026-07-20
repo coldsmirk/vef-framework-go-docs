@@ -104,6 +104,8 @@ path = "./analytics.db"
 | `login_rate_limit` | `int` | 登录接口限流；默认 `6`。 |
 | `refresh_rate_limit` | `int` | refresh 接口限流；默认 `1`。 |
 | `ip_whitelists` | `map[string][]string` | 内置 `ip` 认证策略使用的命名 IP 白名单（IP 或 CIDR 条目）；TOML key 会被转成小写，无参数的 `api.IPAuth()` 指向 `default`。 |
+| `api_keys` | `map[string]{key, roles}` | 默认 `security.APIKeyLoader` 为 `api_key` 认证策略提供的静态 API key（v0.39）；每项携带密钥 `key`（高熵随机串）与授予主体的 `roles`。TOML key 会被转成小写 |
+| `basic_accounts` | `map[string]{password, roles}` | 默认 `security.BasicAccountLoader` 为 `http_basic` 认证策略提供的静态服务账号（v0.39）；map 键即用户名。这些是机器对机器凭证，不是用户密码 |
 | `lockout.*` | — | 登录接口的暴力破解防护：`enabled` 默认 `true`、`max_failures` 默认 `10`、`window` 默认 `15m`、`lock_duration` 默认 `15m`、`strategy`（`lock` \| `backoff`）默认 `lock`、`backoff_base` 默认 `1s`、`backoff_max` 默认 `15m`、`key`（`user` \| `ip` \| `user_ip`）默认 `user_ip`。 |
 | `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
 | `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
@@ -200,6 +202,63 @@ path = "./analytics.db"
 | `business_binding.batch_size` | `int` | 每次扫描认领的投影数，默认 `100`（v0.38）。 |
 
 > 原本归属 `[vef.approval]` 的 outbox 配置已在 v0.21 移至 `[vef.event.transports.outbox]`，详见 [事件总线](../infrastructure/event-bus)。
+
+## `vef.cron`（v0.39）
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `store.enabled` | `bool` | 打开持久化调度存储；默认 `false`（不加载调度、不触碰任何表，内存调度器不受影响） |
+| `store.auto_migrate` | `bool` | 启动时执行 cron DDL 迁移（`crn_schedule`、`crn_fire_request`、`crn_run`） |
+| `store.poll_interval` | `duration` | 节点重读调度表的等待上限；默认 `5s`。这是其他节点新建调度的可见性延迟，不是触发精度 |
+| `store.batch_size` | `int` | 每个轮询周期认领的调度数；默认 `32` |
+| `store.max_concurrent` | `int` | 每节点并发执行的运行数；默认 `16` |
+| `store.misfire_threshold` | `duration` | 触发晚到多久后应用调度的错触策略；默认 `1m` |
+| `store.heartbeat_interval` | `duration` | 执行器对运行中行的活性节律；默认 `10s` |
+| `store.abandoned_after` | `duration` | 心跳陈旧多久后恢复清扫将运行标记为 abandoned；默认 `1m`，必须至少是 `heartbeat_interval` 的两倍 |
+| `store.run_timeout` | `duration` | 调度未自带超时时的默认单次运行上限；默认 `0`（不限） |
+| `store.run_retention` | `duration` | （每小时清扫）删除超窗的终态流水账行；默认 `0`（永久保留） |
+
+启动校验拒绝负的时长以及比心跳间隔两倍更紧的 `abandoned_after`。见
+[持久化调度](../infrastructure/cron-store)。
+
+## `vef.integration`（v0.39）
+
+由可选的集成模块（`vef.IntegrationModule`）读取。
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `auto_migrate` | `bool` | 启动时执行集成模块 DDL 迁移（`itg_*` 表） |
+| `secret_key` | `string` | base64 编码密钥，静态加密敏感认证参数与数据源密码，长度按算法（AES：16/24/32 字节；SM4：16 字节）。不设置则明文存储并在启动时警告 |
+| `secret_algorithm` | `aes \| sm4` | `secret_key` 使用的算法：`aes`（AES-GCM，默认）或 `sm4`（SM4-GCM）。一种算法封存的值不能在另一种下读取 |
+| `run_timeout` | `duration` | 单次适配器脚本执行上限，含线上调用；默认 `30s` |
+| `max_response_body` | `int64` | 脚本读取的单个 HTTP 响应体上限；默认 8 MiB |
+| `log.mode` | `off \| errors \| all` | 记录哪些调用到 `itg_invocation_log`；默认 `errors` |
+| `log.capture_limit` | `int` | 每个捕获负载（输入、输出、线上报文）的字节上限；默认 `4096` |
+| `log.mask_fields` | `[]string` | 捕获中额外掩码的 JSON 字段名（不区分大小写），凭证头始终掩码 |
+| `log.retention` | `duration` | （每小时清扫）删除超窗的调用日志行；默认 `0`（永久保留） |
+| `inbound.rate_limit.max` | `int` | 每窗口每（系统、客户端 IP）允许的入站投递数；默认 `120` |
+| `inbound.rate_limit.period` | `duration` | 滑动窗口长度；默认 `1m`。限流器在进程内存中——多节点各自独立计数 |
+
+见[集成引擎](../integration/overview)。
+
+## `vef.push`（v0.39）
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `enabled` | `bool` | 打开 WebSocket 推送端点；默认 `false`。端点关闭时 `push.Notifier` 依然可用，投递被静默丢弃 |
+| `path` | `string` | 端点路径；默认 `/ws` |
+| `allowed_origins` | `[]string` | 握手的浏览器来源白名单；空表示允许所有来源（握手本身经令牌认证，这里是纵深防御） |
+| `ping_interval` | `duration` | 服务端心跳周期；连续错过两次 pong 即断开；默认 `30s` |
+| `write_timeout` | `duration` | 单个出站帧写入上限；默认 `10s` |
+| `send_buffer` | `int` | 每连接出站队列长度；消费过慢的客户端被断开；默认 `32` |
+| `max_connections_per_user` | `int` | 每节点每用户并发 socket 上限；`0` 为不限 |
+| `session_recheck_interval` | `duration` | 不透明令牌会话复核节律；默认 `60s` |
+
+运行时说明：
+
+- 启用 Redis 后，推送与吊销踢出经 pub/sub 频道
+  `vef:push:relay:<redis-db>:<app-name>` 跨节点中继；未设置 `vef.app.name`
+  时中继拒绝启动。见[服务端推送](../infrastructure/push)
 
 ## `vef.event`
 

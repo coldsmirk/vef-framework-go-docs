@@ -195,6 +195,27 @@ cc_record_retention       = "2160h"  # 90 天
 
 > 老版本里的 `outbox_relay_interval` / `outbox_max_retries` / `outbox_batch_size` 已经从 `[vef.approval]` 搬到 `[vef.event.transports.outbox]`，由全框架共享的 outbox transport 服务所有模块——参考 [事件总线](../infrastructure/event-bus)。
 
+### `vef.cron`、`vef.integration` 与 `vef.push`（v0.39）
+
+三个默认关闭的可选特性配置段：
+
+```toml
+[vef.cron.store]
+enabled = true       # 持久化调度存储
+auto_migrate = true
+
+[vef.integration]
+auto_migrate = true  # 由 vef.IntegrationModule 读取
+secret_key = "base64-key"
+
+[vef.push]
+enabled = true       # /ws WebSocket 推送端点
+```
+
+完整键位列表见[配置参考](../reference/configuration-reference#vefcronv039)
+与各模块指南：[持久化调度](../infrastructure/cron-store)、
+[集成引擎](../integration/overview)、[服务端推送](../infrastructure/push)。
+
 ## 环境变量覆盖
 
 VEF 使用固定前缀，并把点号替换成下划线，所以配置可以通过环境变量覆盖。

@@ -131,8 +131,13 @@ Variants: `cryptox.NewSM2(privateKey, publicKey)`, `cryptox.NewSM2FromHex`, `cry
 ### SM4 (Chinese National Standard — Symmetric)
 
 ```go
-// SM4 uses CBC. Encrypt generates a fresh IV and prepends it to ciphertext.
-cipher, err := cryptox.NewSM4(key) // key: 16 bytes
+// key: 16 bytes. Default mode is GCM (authenticated; IV is generated per call) since v0.39.
+cipher, err := cryptox.NewSM4(key)
+
+// Use CBC instead. Encrypt generates a fresh IV and prepends it to ciphertext.
+cbcCipher, err := cryptox.NewSM4(key,
+    cryptox.WithSM4Mode(cryptox.Sm4ModeCbc),
+)
 
 encrypted, err := cipher.Encrypt("data")
 plaintext, err := cipher.Decrypt(encrypted)
@@ -140,11 +145,21 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 Variants: `cryptox.NewSM4FromHex`, `cryptox.NewSM4FromBase64`.
 
+:::caution Breaking change in v0.39
+`NewSM4` now defaults to **GCM** (matching AES). SM4 ciphertext produced by
+earlier versions used CBC; to decrypt it, construct the cipher with
+`cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)` explicitly.
+:::
+
 For SM4-CBC interop with peers that send bare ciphertext without a prepended IV,
-configure the fixed IV and call `FixedIVDecrypter.DecryptWithFixedIV`:
+configure the fixed IV and call `FixedIVDecrypter.DecryptWithFixedIV` (the fixed
+IV only affects that interop decrypt path, never `Encrypt`):
 
 ```go
-fixedCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
+fixedCipher, err := cryptox.NewSM4(key,
+    cryptox.WithSM4Mode(cryptox.Sm4ModeCbc),
+    cryptox.WithSM4Iv(iv), // 16 bytes
+)
 plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
 ```
 

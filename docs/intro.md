@@ -72,6 +72,8 @@ The framework also ships with several built-in resources and modules:
 - `sys/storage` for multipart upload (init/part/list/complete/abort) plus a `/storage/files/<key>` download proxy
 - `sys/schema` for schema inspection
 - `sys/monitor` for runtime and host monitoring
+- `sys/cron/*` for durable schedule management when the cron store is enabled
+- `integration/*` for the integration engine when `vef.IntegrationModule` is enabled
 - MCP middleware and server integration when enabled
 
 You do not need to implement these from scratch unless your application requirements differ.
@@ -91,9 +93,10 @@ Most applications touch the framework in this order:
 From there, branch out by task:
 
 - [Data Tools](./data-tools/expression) — expression engine, mold data cleansing, i18n, tabular import/export
-- [Infrastructure](./infrastructure/cache) — cache, cron, sequence, event bus, storage, schema, monitor
+- [Infrastructure](./infrastructure/cache) — cache, cron and durable schedules, sequence, event bus, server push, storage, schema, monitor
 - [AI Integration](./ai-integration/ai) — AI helpers and MCP
 - [Approval](./approval) — the workflow/approval engine
+- [Integration](./integration/overview) — config- and script-driven integration with external systems
 - [Advanced](./advanced/cqrs) — CQRS, custom parameter resolvers, CLI tooling
 - [Utilities](./utilities/small-helpers) — small, focused helper packages
 - [Conventions](./conventions/application-project-conventions) — project layout and database conventions

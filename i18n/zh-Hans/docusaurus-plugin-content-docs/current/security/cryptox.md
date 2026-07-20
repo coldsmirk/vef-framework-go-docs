@@ -127,8 +127,13 @@ valid, err := cipher.Verify("data", signature)
 ### SM4（国密 — 对称）
 
 ```go
-// SM4 使用 CBC；Encrypt 会生成随机 IV 并前置到 ciphertext。
-cipher, err := cryptox.NewSM4(key) // key：16 字节
+// key：16 字节。自 v0.39 起默认模式为 GCM（带认证；每次调用生成 IV）。
+cipher, err := cryptox.NewSM4(key)
+
+// 改用 CBC。Encrypt 会生成随机 IV 并前置到 ciphertext。
+cbcCipher, err := cryptox.NewSM4(key,
+    cryptox.WithSM4Mode(cryptox.Sm4ModeCbc),
+)
 
 encrypted, err := cipher.Encrypt("data")
 plaintext, err := cipher.Decrypt(encrypted)
@@ -136,11 +141,21 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 变体：`cryptox.NewSM4FromHex`、`cryptox.NewSM4FromBase64`。
 
+:::caution v0.39 破坏性变更
+`NewSM4` 现在默认使用 **GCM**（与 AES 对齐）。早期版本产生的 SM4 密文为
+CBC；解密它们需要显式构造
+`cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)`。
+:::
+
 如果要和发送 bare ciphertext（未前置 IV）的 SM4-CBC 外部系统互操作，
-需要配置固定 IV，并调用 `FixedIVDecrypter.DecryptWithFixedIV`：
+需要配置固定 IV，并调用 `FixedIVDecrypter.DecryptWithFixedIV`（固定 IV 只
+作用于这条互操作解密路径，绝不影响 `Encrypt`）：
 
 ```go
-fixedCipher, err := cryptox.NewSM4(key, cryptox.WithSM4Iv(iv))
+fixedCipher, err := cryptox.NewSM4(key,
+    cryptox.WithSM4Mode(cryptox.Sm4ModeCbc),
+    cryptox.WithSM4Iv(iv), // 16 字节
+)
 plaintext, err := fixedCipher.(cryptox.FixedIVDecrypter).DecryptWithFixedIV(peerCiphertext)
 ```
 

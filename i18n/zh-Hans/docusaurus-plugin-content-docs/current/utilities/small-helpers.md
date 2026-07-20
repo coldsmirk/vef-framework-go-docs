@@ -5,7 +5,7 @@ sidebar_position: 10
 # 小助手
 
 本页文档记录了小而集中、不需要单独 feature 页的工具包：`page`、`sortx`、
-`monad`、`strx`、`dbx`、`httpx`、`version`，以及关于已移除的 `ptr` 包及其
+`monad`、`strx`、`dbx`、`fiberx`、`version`，以及关于已移除的 `ptr` 包及其
 替代方案的说明。
 
 ## `ptr` —— 已移除
@@ -247,15 +247,16 @@ foreign key`、`ora-02291` 和 `ora-02292`。它也会匹配包含 `violated`，
 `parent key not found` 或 `child record found` 的 Oracle integrity-constraint
 消息。
 
-## `httpx`
+## `fiberx`
 
-Fiber 请求 helper。
+Fiber 请求 helper。v0.39 从 `httpx` 更名而来，把该名字让给了
+[出站 HTTP 客户端](./httpx)。
 
 | API | Signature | 作用 |
 | --- | --- | --- |
-| `IsJSON` | `httpx.IsJSON(ctx fiber.Ctx) bool` | 判断 Fiber 是否认为请求 content type 是 JSON。 |
-| `IsMultipart` | `httpx.IsMultipart(ctx fiber.Ctx) bool` | 判断 `Content-Type` 是否以 `multipart/form-data` 开头。 |
-| `GetIP` | `httpx.GetIP(ctx fiber.Ctx) string` | 返回 Fiber 解析出的客户端 IP。 |
+| `IsJSON` | `fiberx.IsJSON(ctx fiber.Ctx) bool` | 判断 Fiber 是否认为请求 content type 是 JSON。 |
+| `IsMultipart` | `fiberx.IsMultipart(ctx fiber.Ctx) bool` | 判断 `Content-Type` 是否以 `multipart/form-data` 开头。 |
+| `GetIP` | `fiberx.GetIP(ctx fiber.Ctx) string` | 返回 Fiber 解析出的客户端 IP。 |
 
 这个包刻意暴露 helper 名称，而不是要求直接调用 Fiber：`IsJSON`、
 `IsMultipart` 和 `GetIP`。

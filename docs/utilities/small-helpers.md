@@ -5,7 +5,7 @@ sidebar_position: 10
 # Small Helpers
 
 This page documents small, focused utility packages that do not need a full
-feature page on their own: `page`, `sortx`, `monad`, `strx`, `dbx`, `httpx`,
+feature page on their own: `page`, `sortx`, `monad`, `strx`, `dbx`, `fiberx`,
 and `version`, plus a note on the removed `ptr` package and its replacement.
 
 ## `ptr` — Removed
@@ -257,15 +257,16 @@ foreign key constraint`, `statement conflicted with the foreign key`,
 messages that contain `violated` plus either `parent key not found` or `child
 record found`.
 
-## `httpx`
+## `fiberx`
 
-Fiber request helpers.
+Fiber request helpers. Renamed from `httpx` in v0.39 to free that name for
+the [outbound HTTP client](./httpx).
 
 | API | Signature | Purpose |
 | --- | --- | --- |
-| `IsJSON` | `httpx.IsJSON(ctx fiber.Ctx) bool` | Checks whether Fiber considers the request content type JSON. |
-| `IsMultipart` | `httpx.IsMultipart(ctx fiber.Ctx) bool` | Checks whether `Content-Type` starts with `multipart/form-data`. |
-| `GetIP` | `httpx.GetIP(ctx fiber.Ctx) string` | Returns the client IP resolved by Fiber. |
+| `IsJSON` | `fiberx.IsJSON(ctx fiber.Ctx) bool` | Checks whether Fiber considers the request content type JSON. |
+| `IsMultipart` | `fiberx.IsMultipart(ctx fiber.Ctx) bool` | Checks whether `Content-Type` starts with `multipart/form-data`. |
+| `GetIP` | `fiberx.GetIP(ctx fiber.Ctx) string` | Returns the client IP resolved by Fiber. |
 
 The package intentionally exposes helper names rather than raw Fiber calls:
 `IsJSON`, `IsMultipart`, and `GetIP`.

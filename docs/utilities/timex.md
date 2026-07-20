@@ -133,6 +133,7 @@ dt.Sunday()
 
 ```go
 dt.Unwrap()      // → time.Time
+dt.AsLocal()     // → time.Time, wall-clock fields reinterpreted in time.Local (v0.39)
 dt.String()      // → "2024-03-15 14:30:00"
 dt.Format(layout) // Custom format
 dt.Unix()        // Unix seconds
@@ -143,6 +144,13 @@ dt.Since()       // Duration since dt
 dt.Until()       // Duration until dt
 dt.Sub(other)    // Duration between
 ```
+
+`AsLocal` exists because `DateTime` is timezone-naive by convention —
+persisted and parsed as a bare `"2006-01-02 15:04:05"` string — so a value
+scanned back from a database driver may carry an arbitrary zone label (UTC on
+some drivers) while its fields hold local wall-clock time. Use `AsLocal()`
+before instant arithmetic against `Now`; values compared inside SQL never
+need it.
 
 ## Date
 

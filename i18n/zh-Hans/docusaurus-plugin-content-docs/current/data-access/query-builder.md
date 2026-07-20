@@ -219,10 +219,12 @@ DateRange string `search:"operator=between,column=created_at,params=type:date de
 ## Apply 语义
 
 `Search.Apply(...)` 只会为当前 operator 能使用的值追加条件。nil pointer 字段
-会在取值前被跳过。`between` / `notBetween` 要求值是 `monad.Range[T]` 风格结构、
-双元素切片，或带 `type` 的字符串区间；格式错误或类型不支持时不会追加条件。
-`in` / `notIn` 会跳过空字符串和空解析结果。`isNull` 和 `isNotNull` 只在字段值
-为 boolean `true` 时生效。
+会在取值前被跳过；自 v0.39 起，零值的**非指针**字段会被整体跳过——JSON 无法
+区分省略的字段和零值，把 `""` 或 `0` 变成 `eq` 条件会悄悄过滤掉所有行。当
+需要表达显式的零值过滤（如 `*bool` 的 false）时，请使用指针字段。`between` /
+`notBetween` 要求值是 `monad.Range[T]` 风格结构、双元素切片，或带 `type` 的
+字符串区间；格式错误或类型不支持时不会追加条件。`in` / `notIn` 会跳过空字符串
+和空解析结果。`isNull` 和 `isNotNull` 只在字段值为 boolean `true` 时生效。
 
 字符串匹配 operator 要求字段值是非空字符串。一个字段映射到多列时，生成的条件会
 按组包起来，并在这些列之间使用 OR。未知 operator 会触发 `Unknown operator` 日志警告并被忽略。

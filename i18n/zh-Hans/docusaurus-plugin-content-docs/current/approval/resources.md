@@ -18,15 +18,16 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 | Action | 权限 | 参数 | 说明 |
 | --- | --- | --- | --- |
 | `find_tree` | `approval.category.query` | `CategorySearch` | 按租户过滤的树查询 |
-| `find_tree_options` | `approval.category.query` | `CategorySearch` + `DataOptionConfig` | 按租户过滤的树形选项 |
 | `create` | `approval.category.create` | `CategoryParams` | 非 super-admin 的租户由调用者覆盖写入 |
 | `update` | `approval.category.update` | `CategoryParams` | 非 super-admin 只能修改自己租户的数据 |
 | `delete` | `approval.category.delete` | 主键参数 | 非 super-admin 只能删除自己租户的数据 |
 
+`find_tree_options` 操作已在 v0.39 删除（此前无人使用）；选项列表请改由
+`find_tree` 构建。
+
 | Action | 请求字段 |
 | --- | --- |
 | `find_tree` | `meta.name`、`meta.isActive`、`meta.sort` |
-| `find_tree_options` | `meta.name`、`meta.isActive`、`meta.sort`，以及 option 映射 metadata：`meta.labelColumn`、`meta.valueColumn`、`meta.descriptionColumn`、`meta.metaColumns` |
 | `create` | `params.id`、`params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.icon`、`params.parentId`、`params.sortOrder`、`params.isActive`、`params.remark` |
 | `update` | `params.id`、`params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.icon`、`params.parentId`、`params.sortOrder`、`params.isActive`、`params.remark` |
 | `delete` | `params.id` 必填 |
@@ -54,22 +55,22 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 | `create` | `approval.flow.create` | `CreateFlowParams` | 开启审计 |
 | `deploy` | `approval.flow.deploy` | `DeployFlowParams` | 开启审计 |
 | `publish_version` | `approval.flow.publish` | `PublishVersionParams` | 开启审计 |
-| `update` | `approval.flow.update` | `UpdateParams` | 开启审计 |
+| `update` | `approval.flow.update` | `UpdateFlowParams` | 开启审计（v0.39 起参数类型由 `UpdateParams` 更名） |
 | `toggle_active` | `approval.flow.update` | `ToggleActiveParams` | 开启审计 |
-| `get_graph` | `approval.flow.query` | `GetGraphParams` | 读取已发布流程图 |
+| `get_graph` | `approval.flow.query` | `GetGraphParams` | 读取最新已发布流程图，或经 `versionId` 读取指定版本（v0.39） |
 | `find_flows` | `approval.flow.query` | `FindFlowsParams` | 分页查询流程 |
 | `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | 查询发起人配置 |
-| `find_versions` | `approval.flow.query` | `FindVersionsParams` | 查询单个流程的版本列表 |
+| `find_versions` | `approval.flow.query` | `FindVersionsParams` | 查询单个流程的版本摘要（v0.39 起瘦身） |
 
 | Action | 请求字段 |
 | --- | --- |
-| `create` | `params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.categoryId` 必填、`params.bindingMode` 必填、`params.icon`、`params.description`、`params.businessBinding`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.instanceTitleTemplate`、`params.initiators` |
+| `create` | `params.tenantId` 必填、`params.code` 必填、`params.name` 必填、`params.categoryId` 必填、`params.bindingMode` 必填、`params.icon`、`params.description`、`params.labels`、`params.businessBinding`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.instanceTitleTemplate`、`params.initiators` |
 | `deploy` | `params.flowId` 必填、`params.description`、`params.flowDefinition` 必填、`params.formSchema`、`params.storageMode` |
 | `publish_version` | `params.versionId` 必填 |
-| `update` | `params.flowId` 必填、`params.name` 必填、`params.bindingMode` 必填、`params.instanceTitleTemplate` 必填、`params.icon`、`params.description`、`params.businessBinding`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.initiators` |
+| `update` | `params.flowId` 必填、`params.name` 必填、`params.bindingMode` 必填、`params.instanceTitleTemplate` 必填、`params.icon`、`params.description`、`params.labels`、`params.businessBinding`、`params.adminUserIds`、`params.isAllInitiationAllowed`、`params.initiators` |
 | `toggle_active` | `params.flowId` 必填、`params.isActive` |
-| `get_graph` | `params.flowId` 必填、`params.tenantId` |
-| `find_flows` | `params.tenantId`、`params.categoryId`、`params.keyword`、`params.isActive`、`params.page`、`params.pageSize` |
+| `get_graph` | `params.flowId` 必填、`params.tenantId`、`params.versionId`（指定版本——设计器从最新部署（无论是否发布）继续编辑；省略时解析最新已发布版本） |
+| `find_flows` | `params.tenantId`、`params.categoryId`、`params.keyword`、`params.isActive`、`params.labels`（逐对相等过滤）、`params.page`、`params.pageSize` |
 | `find_initiators` | `params.flowId` 必填、`params.tenantId` |
 | `find_versions` | `params.flowId` 必填、`params.tenantId` |
 
@@ -81,7 +82,19 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 `statusColumn`、`instanceIdColumn` 必填，`startedAtColumn` /
 `finishedAtColumn` / `statusMapping` 可选）；所有标识符都会经过
 `ValidateBusinessIdentifier` 校验，记录键必须与真实表上的非空主键或唯一键
-完全一致，且实例运行期间绑定设置保持冻结（`ErrFlowBindingLocked`）。
+完全一致。已部署版本对绑定做快照，编辑流程的绑定永远不影响早期版本下
+已在运行的实例。
+
+`params.labels`（v0.39）是流程上宿主自有的筛选元数据——在 `find_flows` 与
+`my.find_available_flows` 中按相等过滤（提交的每一对都必须匹配）、在实例
+详情视图中披露，引擎从不解释它。校验走共享的 `orm.ValidateLabels` 规则：
+键为字母数字加内部 `-`/`_`（不允许点号），≤ 63 字符；值 ≤ 256 字符，允许
+空值。`update` 时 labels **全量替换**——省略即清空流程的 labels。
+
+自 v0.39 起，`find_versions` 返回 `FlowVersionSummary` 条目——`id`、
+`flowId`、`version`、`status`、`description`、`storageMode`、
+`publishedAt`、`publishedBy`、`createdAt`、`createdBy` —— 不含图文档。
+具体版本的流程图请经 `get_graph` 的 `params.versionId` 显式获取。
 
 ## `approval/instance`
 
@@ -116,6 +129,7 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 | Action | 参数 | 输出 |
 | --- | --- | --- |
 | `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[my.AvailableFlow]` |
+| `get_start_form` | `GetStartFormParams` | `my.StartForm`（v0.39） |
 | `find_initiated` | `FindInitiatedParams` | `page.Page[my.InitiatedInstance]` |
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[my.PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[my.CompletedTask]` |
@@ -125,7 +139,8 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 
 | Action | 请求字段 |
 | --- | --- |
-| `find_available_flows` | `params.tenantId`、`params.keyword`、`params.page`、`params.pageSize` |
+| `find_available_flows` | `params.tenantId`、`params.keyword`、`params.labels`（逐对相等过滤，v0.39）、`params.page`、`params.pageSize` |
+| `get_start_form` | `params.tenantId` 必填、`params.flowCode` 必填 |
 | `find_initiated` | `params.tenantId`、`params.status`、`params.keyword`、`params.page`、`params.pageSize` |
 | `find_pending_tasks` | `params.tenantId`、`params.page`、`params.pageSize` |
 | `find_completed_tasks` | `params.tenantId`、`params.page`、`params.pageSize` |
@@ -133,8 +148,13 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 | `get_pending_counts` | `params.tenantId` |
 | `get_instance_detail` | `params.instanceId` 必填 |
 
+`get_start_form`（v0.39）是提交前的表单加载器：返回渲染发起页头所需的
+身份字段，加上已发布版本的宿主表单设计器文档（原样返回）。它的门禁与发起
+实例完全一致——流程激活、发起权限、存在已发布版本——因此渲染出的表单必然
+对应一个可发起的流程。
+
 `my.InstanceDetail` 的 JSON payload 包含 `instance`、`formSchema`、`timeline`、
-`flowGraph`、`availableActions` 和 `fieldPermissions`。已提交表单数据在
+`flowGraph`、`availableActions`、`fieldPermissions` 和 `myTask`。已提交表单数据在
 `instance.formData` 中；业务绑定流程的 opaque 业务引用在
 `instance.businessRef` 中；`formSchema` 是实例提交时所对应版本固定下来的
 宿主表单设计器文档，原样返回——框架以语义等价的 JSON 存储且从不解释它。
@@ -142,6 +162,22 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 字段都物化一个值（`visible` / `editable` / `hidden` / `required`）；客户端
 按原样应用，`instance.formData` 已剥离查看者无权看到的字段（见
 [节点字段权限](./flow-design.md#节点字段权限)）。
+
+`myTask`（v0.39）是查看者本人的可操作上下文——`process_task` 应指向的
+pending task，加上客户端构建操作 UI 所需的节点级配置，无需重新推导引擎
+语义。查看者在该实例上没有 pending task 时为 `null`：
+
+| `myTask` 字段 | 含义 |
+| --- | --- |
+| `taskId` / `nodeId` | pending task 及其节点 |
+| `isOpinionRequired` | 映射节点配置：置位时 approve/reject 必须携带非空意见 |
+| `addAssigneeTypes` | 节点允许的动态加签位置（`before` / `after` / `parallel`）；不允许加签时为空 |
+| `rollbackTargets` | 有效回退目标（`{nodeId, name}`），按节点回退配置与实例访问轨迹解析，与回退命令的校验完全一致；不允许回退时为空 |
+| `removableAssignees` | 查看者可移除的同级任务（`{taskId, assignee, status}`，`status` 为 `pending` / `waiting`），与减签命令的授权完全一致：查看者所在访问的仍可操作同级、排除查看者本人；节点禁止减签时为空 |
+
+`instance.labels`（v0.39）携带流程的宿主自有筛选元数据，在查询时从可变
+流程读取——与 `flowName` / `flowIcon` 一样是显示身份，不是版本固定快照。
+管理端详情的 `instance` 对象携带同一字段。
 
 `availableActions` 是查询层给 UI 的提示。对申请人来说，实例可以流转到
 `withdrawn` 时包含 `withdraw`，实例已退回或已撤回时包含
@@ -192,7 +228,7 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 | `admin.Instance` | `instanceId`、`instanceNo`、`title`、`tenantId`、`flowId`、`flowName`、`applicant`（`UserInfo`）、`status`、`currentNodeName`、`createdAt`、`finishedAt` |
 | `admin.Task` | `taskId`、`instanceId`、`instanceTitle`、`flowName`、`nodeName`、`assignee`（`UserInfo`）、`status`、`createdAt`、`deadline`、`finishedAt` |
 | `admin.InstanceDetail` | `instance`、`formSchema`（宿主设计器文档，原样返回）、`timeline`、`flowGraph` |
-| `admin.InstanceDetailInfo` | `instanceId`、`instanceNo`、`title`、`tenantId`、`flowId`、`flowName`、`flowVersionId`、`applicant`、`status`、`currentNodeId`、`currentNodeName`、`businessRef`、`formData`、`createdAt`、`finishedAt` |
+| `admin.InstanceDetailInfo` | `instanceId`、`instanceNo`、`title`、`tenantId`、`flowId`、`flowName`、`flowVersionId`、`labels`、`applicant`、`status`、`currentNodeId`、`currentNodeName`、`businessRef`、`formData`、`createdAt`、`finishedAt` |
 | `admin.ActionLog` | `logId`、`action`、`nodeId`、`taskId`、`operator`、`transferTo`、`rollbackToNodeId`、`addedAssignees`、`removedAssignees`、`ccUsers`、`opinion`、`attachments`、`createdAt` |
 | `admin.Metrics` | `tenantId`、`capturedAt`、`instanceCounts`、`taskCounts`、`timeoutTaskCount`、`avgCompletionSeconds`、`pendingBindingFailures`、`businessProjectionCounts`、`pendingBusinessProjections` |
 | `admin.BusinessProjection` | `projectionId`、`tenantId`、`flowId`、`flowVersionId`、`ownerInstanceId`、`appliedOwnerInstanceId`、`businessTable`、`recordKey`、`consistency`、`desiredStatus`、`desiredStartedAt`、`desiredFinishedAt`、`desiredRevision`、`appliedRevision`、`status`、`attemptCount`、`nextAttemptAt`、`leaseUntil`、`lastError`、`appliedAt`、`updatedAt` |
@@ -201,14 +237,16 @@ RPC 调用使用 [API](../building-apis/api.md) 里的标准 envelope：`resourc
 
 | DTO | JSON 字段 |
 | --- | --- |
-| `my.AvailableFlow` | `flowId`、`flowCode`、`flowName`、`flowIcon`、`description`、`categoryId`、`categoryName` |
+| `my.AvailableFlow` | `flowId`、`flowCode`、`flowName`、`flowIcon`、`description`、`labels`、`categoryId`、`categoryName` |
+| `my.StartForm` | `flowId`、`flowCode`、`flowName`、`flowIcon`、`description`、`versionId`、`version`、`formSchema`（宿主设计器文档，原样返回） |
 | `my.InitiatedInstance` | `instanceId`、`instanceNo`、`title`、`flowName`、`flowIcon`、`status`、`currentNodeName`、`createdAt`、`finishedAt` |
 | `my.PendingTask` | `taskId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicant`（`UserInfo`）、`nodeName`、`createdAt`、`deadline`、`isTimeout` |
 | `my.CompletedTask` | `taskId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicant`（`UserInfo`）、`nodeName`、`status`、`finishedAt` |
 | `my.CCRecord` | `ccRecordId`、`instanceId`、`instanceTitle`、`instanceNo`、`flowName`、`flowIcon`、`applicant`（`UserInfo`）、`nodeName`、`isRead`、`createdAt` |
 | `my.PendingCounts` | `pendingTaskCount`、`unreadCcCount` |
-| `my.InstanceDetail` | `instance`、`formSchema`（宿主设计器文档，原样返回）、`timeline`、`flowGraph`、`availableActions`、`fieldPermissions` |
-| `my.InstanceInfo` | `instanceId`、`instanceNo`、`title`、`flowName`、`flowIcon`、`applicant`、`status`、`currentNodeId`、`currentNodeName`、`businessRef`、`formData`、`createdAt`、`finishedAt` |
+| `my.InstanceDetail` | `instance`、`formSchema`（宿主设计器文档，原样返回）、`timeline`、`flowGraph`、`availableActions`、`fieldPermissions`、`myTask` |
+| `my.InstanceInfo` | `instanceId`、`instanceNo`、`title`、`flowName`、`flowIcon`、`labels`、`applicant`、`status`、`currentNodeId`、`currentNodeName`、`businessRef`、`formData`、`createdAt`、`finishedAt` |
+| `my.ViewerTask` | `taskId`、`nodeId`、`isOpinionRequired`、`addAssigneeTypes`、`rollbackTargets`（`{nodeId, name}`）、`removableAssignees`（`{taskId, assignee, status}`） |
 
 ## 错误面
 
@@ -243,7 +281,7 @@ internal 包中，所以宿主应用应把下表的 code/message 组合视为公
 | `40012` | `ErrCodeInvalidBindingMode` | `ErrInvalidBindingMode` | `approval_invalid_binding_mode` | flow binding mode 超出枚举范围 |
 | `40013` | `ErrCodeInvalidInitiatorKind` | `ErrInvalidInitiatorKind` | `approval_invalid_initiator_kind` | flow initiator kind 超出枚举范围 |
 | `40014` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy 请求的 storage mode 不是 `json` 或 `table` |
-| `40015` | `ErrCodeFlowBindingLocked` | `ErrFlowBindingLocked` | `approval_flow_binding_locked` | 作为稳定错误面保留；版本固定的绑定快照意味着当前 flow 命令不再返回它 |
+| `40015` | — | — | — | v0.39 退役（原流程绑定锁）；该 code 永不复用 |
 | `40016` | `ErrCodeBindingColumnsConflict` | `ErrBindingColumnsConflict` | `approval_binding_columns_conflict` | 两个 business-binding 字段指向了同一个列 |
 | `40017` | `ErrCodeBindingUnexpected` | `ErrBindingUnexpected` | `approval_binding_unexpected` | standalone flow 却提供了 business binding 配置 |
 | `40018` | `ErrCodeBindingSchemaInvalid` | `ErrBindingSchemaInvalid` | `approval_binding_schema_invalid` | 配置的绑定表或列在主库中不存在 |

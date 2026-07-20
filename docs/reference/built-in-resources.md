@@ -22,6 +22,8 @@ Unless noted otherwise:
 | `sys/storage` | `storage` | Bearer auth by default | Multipart upload session lifecycle (init / part / list / complete / abort). Downloads are served via the `/storage/files/<key>` app proxy, not via RPC. |
 | `sys/schema` | `schema` | Bearer auth by default | Database schema inspection |
 | `sys/monitor` | `monitor` | Bearer auth by default | Runtime and host monitoring data |
+| `sys/cron/schedule`, `sys/cron/run` | `cron` (store) | Bearer auth + `cron.schedule.*` / `cron.run.*` permissions | Durable schedule management and the run journal (v0.39). Operations mount only when `vef.cron.store.enabled = true` |
+| `integration/*` | `integration` | Bearer auth + `integration.*` permissions | Integration-engine management resources registered only when `vef.IntegrationModule` is enabled (v0.39) |
 | `approval/*` | `approval` | Bearer auth required; per-action permissions where declared | Optional workflow resources registered only when `vef.ApprovalModule` is enabled |
 
 ## `security/auth`
@@ -247,12 +249,14 @@ Monitoring resource provided by the monitor module.
 | `get_load` | Bearer auth required | Custom operation max `60` | Returns system load averages | None |
 | `get_build_info` | Bearer auth required | Custom operation max `60` | Returns application build metadata | None |
 | `get_event_streams` | Bearer auth required | Custom operation max `60` | Reports every redis_stream stream and consumer group (consumers / pending / lag / last-delivered) via the optional `event.StreamInspector`, so operators can spot orphaned groups | None |
+| `get_integration_stats` | Bearer auth required | Custom operation max `60` | Reports per-node integration invocation statistics via the optional `integration.StatsInspector`, wrapped as `{enabled, stats}` — one stats entry per (system, contract, direction) tuple since process start: `system`, `contract`, `direction`, `calls`, `successes`, `failures` (by kind), `avgDurationMs`, `maxDurationMs`, `lastError`, `lastErrorAt` (v0.39) | None |
 
 Notes:
 
 - these actions do not accept framework-defined input parameters
 - some actions may return a monitor-not-ready error when the underlying data source is unavailable
 - `get_event_streams` returns an empty, disabled report when no `event.StreamInspector` is available (for example when the redis_stream transport is off)
+- `get_integration_stats` returns `enabled: false` with an empty `stats` list when no `integration.StatsInspector` is available (the integration module is off)
 
 Minimal request example:
 
@@ -264,6 +268,37 @@ Minimal request example:
 }
 ```
 
+## `sys/cron/schedule` and `sys/cron/run`
+
+Durable-scheduling resources provided by the cron module's schedule store
+(v0.39). With `vef.cron.store.enabled = false` the resources exist but mount
+no operations — a feature that is off exposes no surface.
+
+- `sys/cron/schedule`: `find_page`, `get`, `list_jobs`, `preview_fires`
+  (permission `cron.schedule.query`), and the audited mutations `create`,
+  `update`, `delete`, `pause`, `resume`, `trigger_now` (permission
+  `cron.schedule.manage`).
+- `sys/cron/run`: read-only `find_page` / `find_one` over the run journal
+  (permission `cron.run.query`).
+
+Every request parameter and response field is documented in
+[Durable Schedules](../infrastructure/cron-store#rpc-resources).
+
+## Integration resources
+
+If you explicitly include the integration module (v0.39), the framework also
+registers the `integration/*` management resources: `integration/contract`,
+`integration/system`, `integration/adapter`, `integration/route`,
+`integration/code_map`, `integration/code_set`, `integration/log`, and
+`integration/ops`.
+
+They are expanded field by field in
+[Integration RPC Resources](../integration/resources), including each
+action's permission, request parameters, and response shape. The module also
+registers the non-RPC inbound gateway route
+`POST /integration/inbound/:systemCode/:contractCode`
+(see [Inbound Delivery](../integration/inbound)).
+
 ## Approval resources
 
 If you explicitly include the approval module, the framework also registers additional `approval/*` resources.
@@ -272,9 +307,22 @@ The registered resources are `approval/category`, `approval/delegation`, `approv
 
 They are expanded in [Approval Module](../approval), including each action name, required permission, params type, tenancy rule, audit setting, and rate limit. This page keeps them as an index because they are domain-level workflow resources rather than the framework's core general-purpose built-ins.
 
+## Non-RPC framework endpoints
+
+Some optional modules register plain HTTP routes rather than RPC resources:
+
+| Route | Module | Notes |
+| --- | --- | --- |
+| `/storage/files/<key>` | `storage` | download proxy; `pub/*` anonymous, others governed by `storage.FileACL` |
+| `POST /integration/inbound/:systemCode/:contractCode` | `integration` | inbound gateway; verified by the target system's inbound auth, rate-limited per (system, client IP) |
+| `GET /ws` (configurable via `vef.push.path`) | `push` | WebSocket push endpoint; token-authenticated handshake (see [Server Push](../infrastructure/push)) |
+| `/mcp` | `mcp` | MCP Streamable HTTP endpoint |
+
 ## See also
 
 - [Authentication](../security/authentication) for the behavior of `security/auth`
 - [File Storage](../infrastructure/storage) for `sys/storage`
 - [Schema](../infrastructure/schema) for `sys/schema`
 - [Monitor](../infrastructure/monitor) for `sys/monitor`
+- [Durable Schedules](../infrastructure/cron-store) for `sys/cron/*`
+- [Integration RPC Resources](../integration/resources) for `integration/*`

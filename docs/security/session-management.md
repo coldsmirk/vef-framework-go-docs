@@ -162,6 +162,31 @@ an error, and a store failure during revoke is only logged. Under `jwt_token`,
 is expected to discard its stored token (see
 [Authentication](./authentication)).
 
+### Revocation listeners (v0.39)
+
+`security.SessionRevocationListener` observes session revocations — logout,
+concurrent-login eviction, administrative kicks — so long-lived grants can be
+torn down immediately instead of waiting for the next periodic check. The
+[push module](../infrastructure/push) uses this seam to close WebSocket
+connections the moment their session dies.
+
+```go
+type SessionRevocationListener interface {
+    // Runs synchronously on the revoking call path after the sessions were
+    // removed from the store; implementations must be fast and not block.
+    OnSessionsRevoked(ctx context.Context, revocations []security.SessionRevocation)
+}
+```
+
+- Register with `vef.ProvideSessionRevocationListener(...)`. Each
+  `SessionRevocation` carries `SessionID` and `UserID`.
+- The framework fires listeners from its own revocation paths. Application
+  code that revokes sessions directly against the `SessionStore` (for
+  example the session-admin endpoints below) should inject
+  `*security.SessionRevocationNotifier` and call
+  `NotifyRevoked(ctx, revocations...)` itself — a missed notification
+  degrades to the next periodic session check, never to a stale grant.
+
 ## Building Session-Admin Endpoints
 
 The `security.SessionStore` used by the framework is a regular DI-exposed

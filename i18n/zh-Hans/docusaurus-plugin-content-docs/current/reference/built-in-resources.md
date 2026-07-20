@@ -22,6 +22,8 @@ sidebar_position: 2
 | `sys/storage` | `storage` | 默认 Bearer 认证 | 多片上传 session 生命周期（init / part / list / complete / abort）。下载走 `/storage/files/<key>` app 代理，不通过 RPC。 |
 | `sys/schema` | `schema` | 默认 Bearer 认证 | 数据库结构检查 |
 | `sys/monitor` | `monitor` | 默认 Bearer 认证 | 运行时与宿主机监控信息 |
+| `sys/cron/schedule`、`sys/cron/run` | `cron`（store） | Bearer 认证 + `cron.schedule.*` / `cron.run.*` 权限 | 持久化调度管理与运行流水账（v0.39）。仅当 `vef.cron.store.enabled = true` 时挂载操作 |
+| `integration/*` | `integration` | Bearer 认证 + `integration.*` 权限 | 仅在启用 `vef.IntegrationModule` 时注册的集成引擎管理资源（v0.39） |
 | `approval/*` | `approval` | 需要 Bearer 认证；声明权限的 action 还会校验对应权限点 | 仅在启用 `vef.ApprovalModule` 时注册的可选工作流资源 |
 
 ## `security/auth`
@@ -246,12 +248,14 @@ sidebar_position: 2
 | `get_load` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回系统负载信息 | 无 |
 | `get_build_info` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 返回应用构建信息 | 无 |
 | `get_event_streams` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `event.StreamInspector` 报告每个 redis_stream 流及其消费组状态（consumer、pending、lag、last-delivered），便于运维发现孤儿消费组 | 无 |
+| `get_integration_stats` | 需要 Bearer 认证 | 自定义 action 限流上限 `60` | 通过可选的 `integration.StatsInspector` 报告本节点集成调用统计，包裹为 `{enabled, stats}`——进程启动以来按（系统、契约、方向）一条：`system`、`contract`、`direction`、`calls`、`successes`、`failures`（按类别）、`avgDurationMs`、`maxDurationMs`、`lastError`、`lastErrorAt`（v0.39） | 无 |
 
 补充说明：
 
 - 这些 action 都没有框架定义的输入参数
 - 某些监控项在底层数据源不可用时，可能返回 monitor not ready 类错误
 - 当没有可用的 `event.StreamInspector`（例如 redis_stream 传输未启用）时，`get_event_streams` 返回一个空的、`enabled = false` 的报告
+- 当没有可用的 `integration.StatsInspector`（集成模块未启用）时，`get_integration_stats` 返回 `enabled: false` 与空的 `stats` 列表
 
 最小请求示例：
 
@@ -263,6 +267,33 @@ sidebar_position: 2
 }
 ```
 
+## `sys/cron/schedule` 与 `sys/cron/run`
+
+由 cron 模块的调度存储提供的持久化调度资源（v0.39）。当
+`vef.cron.store.enabled = false` 时资源存在但不挂载任何操作——关闭的特性
+不暴露任何表面。
+
+- `sys/cron/schedule`：`find_page`、`get`、`list_jobs`、`preview_fires`
+  （权限 `cron.schedule.query`），以及审计变更 `create`、`update`、
+  `delete`、`pause`、`resume`、`trigger_now`（权限
+  `cron.schedule.manage`）。
+- `sys/cron/run`：运行流水账的只读 `find_page` / `find_one`（权限
+  `cron.run.query`）。
+
+每个请求参数与响应字段见[持久化调度](../infrastructure/cron-store#rpc-资源)。
+
+## Integration 资源
+
+如果你显式引入集成模块（v0.39），框架还会注册 `integration/*` 管理资源：
+`integration/contract`、`integration/system`、`integration/adapter`、
+`integration/route`、`integration/code_map`、`integration/code_set`、
+`integration/log` 与 `integration/ops`。
+
+它们已在[集成 RPC 资源](../integration/resources)中逐字段展开，包括每个
+action 的权限、请求参数与响应结构。该模块还注册了非 RPC 的入站网关路由
+`POST /integration/inbound/:systemCode/:contractCode`
+（见[入站投递](../integration/inbound)）。
+
 ## Approval 资源
 
 如果你显式引入 approval 模块，框架还会额外挂载一组 `approval/*` 资源。
@@ -271,9 +302,22 @@ sidebar_position: 2
 
 这些资源已经在 [审批模块](../approval) 中按 action 展开，包括每个 action 名称、权限点、参数类型、租户规则、审计设置和限流。本页只保留索引，因为它们更偏工作流业务域，而不是框架核心通用内置资源。
 
+## 非 RPC 框架端点
+
+部分可选模块注册的是普通 HTTP 路由，而不是 RPC 资源：
+
+| 路由 | 模块 | 说明 |
+| --- | --- | --- |
+| `/storage/files/<key>` | `storage` | 下载代理；`pub/*` 匿名，其余由 `storage.FileACL` 治理 |
+| `POST /integration/inbound/:systemCode/:contractCode` | `integration` | 入站网关；由目标系统的入站认证验证，按（系统、客户端 IP）限流 |
+| `GET /ws`（`vef.push.path` 可配置） | `push` | WebSocket 推送端点；握手经令牌认证（见[服务端推送](../infrastructure/push)） |
+| `/mcp` | `mcp` | MCP Streamable HTTP 端点 |
+
 ## 延伸阅读
 
 - [认证](../security/authentication)：`security/auth` 的行为与使用方式
 - [文件存储](../infrastructure/storage)：`sys/storage`
 - [Schema 结构检查](../infrastructure/schema)：`sys/schema`
 - [监控](../infrastructure/monitor)：`sys/monitor`
+- [持久化调度](../infrastructure/cron-store)：`sys/cron/*`
+- [集成 RPC 资源](../integration/resources)：`integration/*`

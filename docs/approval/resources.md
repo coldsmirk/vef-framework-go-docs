@@ -19,15 +19,16 @@ exhaustive JSON field ledger for every request and response DTO.
 | Action | Permission | Params | Notes |
 | --- | --- | --- | --- |
 | `find_tree` | `approval.category.query` | `CategorySearch` | Tenant-scoped tree query |
-| `find_tree_options` | `approval.category.query` | `CategorySearch` + `DataOptionConfig` | Tenant-scoped tree options |
 | `create` | `approval.category.create` | `CategoryParams` | Non-super-admin tenant is stamped from caller |
 | `update` | `approval.category.update` | `CategoryParams` | Non-super-admin can only mutate own tenant |
 | `delete` | `approval.category.delete` | Primary-key params | Non-super-admin can only delete own tenant |
 
+The `find_tree_options` operation was removed in v0.39 (it was unused);
+build option lists from `find_tree` instead.
+
 | Action | Request fields |
 | --- | --- |
 | `find_tree` | `meta.name`, `meta.isActive`, `meta.sort` |
-| `find_tree_options` | `meta.name`, `meta.isActive`, `meta.sort`, plus option mapping metadata: `meta.labelColumn`, `meta.valueColumn`, `meta.descriptionColumn`, `meta.metaColumns` |
 | `create` | `params.id`, `params.tenantId` required, `params.code` required, `params.name` required, `params.icon`, `params.parentId`, `params.sortOrder`, `params.isActive`, `params.remark` |
 | `update` | `params.id`, `params.tenantId` required, `params.code` required, `params.name` required, `params.icon`, `params.parentId`, `params.sortOrder`, `params.isActive`, `params.remark` |
 | `delete` | `params.id` required |
@@ -55,22 +56,22 @@ exhaustive JSON field ledger for every request and response DTO.
 | `create` | `approval.flow.create` | `CreateFlowParams` | Audited |
 | `deploy` | `approval.flow.deploy` | `DeployFlowParams` | Audited |
 | `publish_version` | `approval.flow.publish` | `PublishVersionParams` | Audited |
-| `update` | `approval.flow.update` | `UpdateParams` | Audited |
+| `update` | `approval.flow.update` | `UpdateFlowParams` | Audited (params type renamed from `UpdateParams` in v0.39) |
 | `toggle_active` | `approval.flow.update` | `ToggleActiveParams` | Audited |
-| `get_graph` | `approval.flow.query` | `GetGraphParams` | Reads published graph |
+| `get_graph` | `approval.flow.query` | `GetGraphParams` | Reads the latest published graph, or an explicit version via `versionId` (v0.39) |
 | `find_flows` | `approval.flow.query` | `FindFlowsParams` | Paged query |
 | `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | Lists initiator configuration |
-| `find_versions` | `approval.flow.query` | `FindVersionsParams` | Lists versions for one flow |
+| `find_versions` | `approval.flow.query` | `FindVersionsParams` | Lists version summaries for one flow (slimmed in v0.39) |
 
 | Action | Request fields |
 | --- | --- |
-| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
+| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.labels`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
 | `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formSchema`, `params.storageMode` |
 | `publish_version` | `params.versionId` required |
-| `update` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
+| `update` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.labels`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
 | `toggle_active` | `params.flowId` required, `params.isActive` |
-| `get_graph` | `params.flowId` required, `params.tenantId` |
-| `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.page`, `params.pageSize` |
+| `get_graph` | `params.flowId` required, `params.tenantId`, `params.versionId` (explicit version — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version) |
+| `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.labels` (equality on every pair), `params.page`, `params.pageSize` |
 | `find_initiators` | `params.flowId` required, `params.tenantId` |
 | `find_versions` | `params.flowId` required, `params.tenantId` |
 
@@ -82,9 +83,24 @@ flows without forms omit it. For business binding, `params.businessBinding` is
 an `approval.BusinessBindingConfig` object (`tableName`, `keyColumns`,
 `statusColumn`, `instanceIdColumn` required, optional `startedAtColumn` /
 `finishedAtColumn` / `statusMapping`); all identifiers are validated by
-`ValidateBusinessIdentifier`, the key must match a non-null primary or unique
-key on the live table, and binding settings stay frozen while instances are
-running (`ErrFlowBindingLocked`).
+`ValidateBusinessIdentifier`, and the key must match a non-null primary or
+unique key on the live table. Deployed versions snapshot their binding, so
+editing a flow's binding never affects instances already running under
+earlier versions.
+
+`params.labels` (v0.39) is host-owned selection metadata on the flow —
+equality-filterable in `find_flows` and `my.find_available_flows` (every
+submitted pair must match), surfaced in instance detail views, and never
+interpreted by the engine. Validation is the shared `orm.ValidateLabels`
+rule: alphanumeric keys with inner `-`/`_` (no dots), ≤ 63 characters;
+values ≤ 256 characters, empty values legal. On `update`, labels are
+replaced wholesale — omitting them clears the flow's labels.
+
+Since v0.39, `find_versions` returns `FlowVersionSummary` entries — `id`,
+`flowId`, `version`, `status`, `description`, `storageMode`, `publishedAt`,
+`publishedBy`, `createdAt`, `createdBy` — without the graph documents. Fetch
+a specific version's graph explicitly through `get_graph` with
+`params.versionId`.
 
 ## `approval/instance`
 
@@ -120,6 +136,7 @@ the authenticated principal.
 | Action | Params | Output |
 | --- | --- | --- |
 | `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[my.AvailableFlow]` |
+| `get_start_form` | `GetStartFormParams` | `my.StartForm` (v0.39) |
 | `find_initiated` | `FindInitiatedParams` | `page.Page[my.InitiatedInstance]` |
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[my.PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[my.CompletedTask]` |
@@ -129,7 +146,8 @@ the authenticated principal.
 
 | Action | Request fields |
 | --- | --- |
-| `find_available_flows` | `params.tenantId`, `params.keyword`, `params.page`, `params.pageSize` |
+| `find_available_flows` | `params.tenantId`, `params.keyword`, `params.labels` (equality on every pair, v0.39), `params.page`, `params.pageSize` |
+| `get_start_form` | `params.tenantId` required, `params.flowCode` required |
 | `find_initiated` | `params.tenantId`, `params.status`, `params.keyword`, `params.page`, `params.pageSize` |
 | `find_pending_tasks` | `params.tenantId`, `params.page`, `params.pageSize` |
 | `find_completed_tasks` | `params.tenantId`, `params.page`, `params.pageSize` |
@@ -137,8 +155,14 @@ the authenticated principal.
 | `get_pending_counts` | `params.tenantId` |
 | `get_instance_detail` | `params.instanceId` required |
 
+`get_start_form` (v0.39) is the pre-submission form loader: it returns the
+identity fields needed to render the initiation header plus the published
+version's host form-designer document, verbatim. Loading it is gated exactly
+like starting the instance — active flow, initiation permission, published
+version — so a rendered form always implies a startable flow.
+
 The `my.InstanceDetail` JSON payload includes `instance`, `formSchema`,
-`timeline`, `flowGraph`, `availableActions`, and `fieldPermissions`.
+`timeline`, `flowGraph`, `availableActions`, `fieldPermissions`, and `myTask`.
 `instance.formData` carries the submitted form data, `instance.businessRef` is
 the opaque business reference when the flow is business-bound, and
 `formSchema` is the version-pinned host form-designer document returned
@@ -148,6 +172,24 @@ interactivity projection, materialized for every top-level form field
 (`visible` / `editable` / `hidden` / `required`); the client applies it
 verbatim, and `instance.formData` is already stripped of the fields the viewer
 may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)).
+
+`myTask` (v0.39) is the viewer's own actionable context — the pending task
+`process_task` should target plus the node-level configuration the client
+needs to build the action UI without re-deriving engine semantics. It is
+`null` when the viewer holds no pending task on this instance:
+
+| `myTask` field | Meaning |
+| --- | --- |
+| `taskId` / `nodeId` | the pending task and its node |
+| `isOpinionRequired` | mirrors the node config: approve/reject must carry a non-empty opinion when set |
+| `addAssigneeTypes` | positions the node allows for dynamic assignee addition (`before` / `after` / `parallel`); empty when adding is not allowed |
+| `rollbackTargets` | valid rollback destinations (`{nodeId, name}`), resolved from the node's rollback config and the instance's visit trail exactly like the rollback command validates them; empty when rollback is not allowed |
+| `removableAssignees` | peer tasks the viewer may remove (`{taskId, assignee, status}` with `status` being `pending` / `waiting`), resolved exactly like the remove-assignee command authorizes them: still-actionable peers of the viewer's own visit, excluding the viewer; empty when removal is disallowed |
+
+`instance.labels` (v0.39) carries the flow's host-owned selection metadata,
+read from the mutable flow at query time — display identity like
+`flowName` / `flowIcon`, not a version-pinned snapshot. The admin detail's
+`instance` object carries the same field.
 
 `availableActions` is a query-layer UI hint. For the applicant it includes
 `withdraw` when the instance can transition to `withdrawn`, and `resubmit` when
@@ -200,7 +242,7 @@ Admin responses use the DTOs from `approval/admin`:
 | `admin.Instance` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `applicant` (`UserInfo`), `status`, `currentNodeName`, `createdAt`, `finishedAt` |
 | `admin.Task` | `taskId`, `instanceId`, `instanceTitle`, `flowName`, `nodeName`, `assignee` (`UserInfo`), `status`, `createdAt`, `deadline`, `finishedAt` |
 | `admin.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph` |
-| `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
+| `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `labels`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
 | `admin.ActionLog` | `logId`, `action`, `nodeId`, `taskId`, `operator`, `transferTo`, `rollbackToNodeId`, `addedAssignees`, `removedAssignees`, `ccUsers`, `opinion`, `attachments`, `createdAt` |
 | `admin.Metrics` | `tenantId`, `capturedAt`, `instanceCounts`, `taskCounts`, `timeoutTaskCount`, `avgCompletionSeconds`, `pendingBindingFailures`, `businessProjectionCounts`, `pendingBusinessProjections` |
 | `admin.BusinessProjection` | `projectionId`, `tenantId`, `flowId`, `flowVersionId`, `ownerInstanceId`, `appliedOwnerInstanceId`, `businessTable`, `recordKey`, `consistency`, `desiredStatus`, `desiredStartedAt`, `desiredFinishedAt`, `desiredRevision`, `appliedRevision`, `status`, `attemptCount`, `nextAttemptAt`, `leaseUntil`, `lastError`, `appliedAt`, `updatedAt` |
@@ -209,14 +251,16 @@ Self-service responses use the DTOs from `approval/my`:
 
 | DTO | JSON fields |
 | --- | --- |
-| `my.AvailableFlow` | `flowId`, `flowCode`, `flowName`, `flowIcon`, `description`, `categoryId`, `categoryName` |
+| `my.AvailableFlow` | `flowId`, `flowCode`, `flowName`, `flowIcon`, `description`, `labels`, `categoryId`, `categoryName` |
+| `my.StartForm` | `flowId`, `flowCode`, `flowName`, `flowIcon`, `description`, `versionId`, `version`, `formSchema` (host designer document, verbatim) |
 | `my.InitiatedInstance` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `status`, `currentNodeName`, `createdAt`, `finishedAt` |
 | `my.PendingTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `createdAt`, `deadline`, `isTimeout` |
 | `my.CompletedTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `status`, `finishedAt` |
 | `my.CCRecord` | `ccRecordId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `isRead`, `createdAt` |
 | `my.PendingCounts` | `pendingTaskCount`, `unreadCcCount` |
-| `my.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph`, `availableActions`, `fieldPermissions` |
-| `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
+| `my.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph`, `availableActions`, `fieldPermissions`, `myTask` |
+| `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `labels`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
+| `my.ViewerTask` | `taskId`, `nodeId`, `isOpinionRequired`, `addAssigneeTypes`, `rollbackTargets` (`{nodeId, name}`), `removableAssignees` (`{taskId, assignee, status}`) |
 
 ## Error Surface
 
@@ -252,7 +296,7 @@ surface rather than importing the internal Go symbols.
 | `40012` | `ErrCodeInvalidBindingMode` | `ErrInvalidBindingMode` | `approval_invalid_binding_mode` | flow binding mode is out of enum |
 | `40013` | `ErrCodeInvalidInitiatorKind` | `ErrInvalidInitiatorKind` | `approval_invalid_initiator_kind` | flow initiator kind is out of enum |
 | `40014` | `ErrCodeInvalidStorageMode` | `ErrInvalidStorageMode` | `approval_invalid_storage_mode` | deploy requested a storage mode other than `json` or `table` |
-| `40015` | `ErrCodeFlowBindingLocked` | `ErrFlowBindingLocked` | `approval_flow_binding_locked` | retained as a stable error surface; version-pinned binding snapshots mean current flow commands no longer return it |
+| `40015` | — | — | — | retired in v0.39 (former flow-binding lock); the code is never reassigned |
 | `40016` | `ErrCodeBindingColumnsConflict` | `ErrBindingColumnsConflict` | `approval_binding_columns_conflict` | two business-binding fields name the same column |
 | `40017` | `ErrCodeBindingUnexpected` | `ErrBindingUnexpected` | `approval_binding_unexpected` | business binding supplied on a standalone flow |
 | `40018` | `ErrCodeBindingSchemaInvalid` | `ErrBindingSchemaInvalid` | `approval_binding_schema_invalid` | configured binding table or columns do not exist in the primary database |

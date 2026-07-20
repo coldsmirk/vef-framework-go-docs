@@ -23,6 +23,8 @@ The public `api` package exposes strategy helpers:
 - `api.BearerAuth()`
 - `api.SignatureAuth()`
 - `api.IPAuth(...)` (see [Signature helpers](./authentication-reference#signature-helpers) below for how it resolves whitelists)
+- `api.APIKeyAuth(...)` (v0.39)
+- `api.HTTPBasicAuth()` (v0.39)
 
 In practice, you normally control this through operation settings:
 
@@ -56,6 +58,97 @@ It expects these headers:
 - `X-Signature`
 
 The strategy delegates verification to the security module's signature authenticator.
+
+## API Key Authentication (v0.39)
+
+`api.APIKeyAuth()` authenticates machine-to-machine callers by a static
+secret key, read from the `X-API-Key` header by default; pass one header
+name (`api.APIKeyAuth("X-Custom-Key")`) to read a custom header.
+
+The presented key is resolved through the registered `security.APIKeyLoader`.
+The framework ships a configuration-backed loader over
+`vef.security.api_keys` (constant-time comparison across all configured
+keys):
+
+```toml
+[vef.security.api_keys.reporting]
+key = "high-entropy-random-string"
+roles = ["reporting"]
+```
+
+Applications may provide their own `security.APIKeyLoader` to load keys from
+a database or config center:
+
+```go
+type APIKeyLoader interface {
+    // LoadByKey resolves the presented key to its Principal, or nil when no
+    // key matches. An error signals an infrastructure fault, not a rejection.
+    LoadByKey(ctx context.Context, key string) (*security.Principal, error)
+}
+```
+
+Implementations that scan candidate keys must compare in constant time;
+implementations that index by key should only serve high-entropy random keys,
+where lookup timing reveals nothing.
+
+A missing or unmatched key is rejected uniformly with
+`security.ErrAPIKeyInvalid` (HTTP 401). The configuration-backed loader
+resolves matches to an external-app principal named after the entry
+(`api_key:<name>`) carrying the configured roles.
+
+## HTTP Basic Authentication (v0.39)
+
+`api.HTTPBasicAuth()` authenticates RFC 7617 `Authorization: Basic`
+credentials. These are machine-to-machine service accounts — store
+high-entropy random secrets, not user passwords.
+
+The framework ships a configuration-backed loader over
+`vef.security.basic_accounts` (the map key is the username):
+
+```toml
+[vef.security.basic_accounts.metrics-scraper]
+password = "high-entropy-random-string"
+roles = ["metrics"]
+```
+
+Applications may provide their own `security.BasicAccountLoader`; the loader
+returns the stored secret and the framework performs the constant-time
+comparison, so every implementation shares the same fail-closed semantics:
+
+```go
+type BasicAccountLoader interface {
+    // LoadByUsername retrieves a service account by username, returning the
+    // Principal and its stored secret. A nil Principal or empty secret means
+    // the account is unknown; an error signals an infrastructure fault.
+    LoadByUsername(ctx context.Context, username string) (*security.Principal, string, error)
+}
+```
+
+Malformed headers, unknown accounts, and wrong passwords are all rejected
+uniformly with `security.ErrBasicCredentialsInvalid` (HTTP 401), so callers
+cannot distinguish which part failed.
+
+## Reserved Identities (v0.39)
+
+Certain identities attribute work the framework performs outside any request
+— they are audit authors, never callers. `security.Principal.IsReserved()`
+reports them: the `system` principal type and the `orm.OperatorSystem` /
+`orm.OperatorCronJob` operator IDs.
+
+Since v0.39 the framework enforces this invariant fail-closed at every
+boundary:
+
+- authenticators (including custom `security.Authenticator` implementations
+  and challenge providers) that resolve to a nil or reserved principal are
+  rejected at the authentication boundary;
+- token issuance and the challenge flow refuse to mint tokens for reserved
+  identities (`security_reserved_principal_forbidden`, HTTP 401).
+
+The built-in password login additionally refuses `anonymous` as a login
+identifier (it denotes the absence of an identity, which only the public
+strategy may produce). Custom `UserLoader`, `APIKeyLoader`, and similar
+implementations must never return principals whose ID collides with the
+reserved operator IDs.
 
 ## Public Operations
 

@@ -37,7 +37,7 @@ path = "./analytics.db"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `type` | `postgres \| mysql \| sqlite` | 数据库类型（`oracle` 和 `sqlserver` 常量已定义但尚未实现） |
+| `type` | `postgres \| mysql \| sqlite \| sqlserver \| oracle` | 数据库类型（`sqlserver` 与 `oracle` 自 v0.39 起支持） |
 | `host` | `string` | 数据库网络地址 |
 | `port` | `uint16` | 数据库端口 |
 | `user` | `string` | 数据库用户名 |
@@ -50,6 +50,17 @@ path = "./analytics.db"
 | `ssl_root_cert` | `string` | `verify-ca` / `verify-full` 模式下可选的 PEM 路径 |
 
 `vef.data_sources` 下除 `primary` 之外的每一项，都会在应用开始处理请求之前，以其在 map 中的键名注册进 `datasource.Registry`。完整字段列表见 [Configuration Reference](../reference/configuration-reference)。
+
+v0.39 新增方言说明：
+
+- `sqlserver`（驱动 `microsoft/go-mssqldb`）：默认端口 `1433`；`database`
+  为空时落在登录账号的默认目录上。任何 TLS `ssl_mode` 都会强制开启 TDS
+  加密；`verify-ca`/`verify-full` 语义（自定义 PEM 根证书、主机名固定）与
+  Postgres/MySQL 一致。
+- `oracle`（驱动 `sijms/go-ora`）：默认端口 `1521`；`database` 填**服务名**
+  且必填；`schema` 不映射——Oracle 按连接用户自身的 schema 解析未限定名。
+  `verify-ca` 以 `verify-full` 语义（更强的校验）提供，驱动不支持 PEM
+  `ssl_root_cert`，配置了会快速失败。
 
 ## 注入 Registry
 

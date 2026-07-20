@@ -6,6 +6,10 @@ sidebar_position: 2
 
 VEF 将 `github.com/coldsmirk/vef-framework-go/cron` 暴露为 `gocron` 之上的类型化包装。框架 DI 模块会自动提供 `cron.Scheduler`；需要自定义装配时，可以把自己的 `gocron.Scheduler` 传给 `cron.NewScheduler`。
 
+本页介绍**内存调度器**：任务在代码中定义、按进程调度、重启即失。若需要
+数据库持久化的调度——集群内单次触发、错触策略、运行流水账与管理 API——见
+[持久化调度](./cron-store)；二者同属 `cron` 包，可在一个应用中并存。
+
 ## 公开 API 面
 
 该包没有 exported fields。公开 top-level API 如下：
@@ -156,7 +160,7 @@ func RegisterCleanupJob(scheduler cron.Scheduler) error {
 
 ## 实践场景
 
-以下场景适合使用 cron：
+以下场景适合使用内存调度器：
 
 - 周期性清理
 - 轮询与同步任务
@@ -165,6 +169,9 @@ func RegisterCleanupJob(scheduler cron.Scheduler) error {
 
 如果任务本身业务逻辑很重，应把逻辑放进 service，让 scheduler 只负责编排。
 
+当调度必须跨重启存活、在多副本间恰好执行一次、可被运维在线编辑或需要可审计
+的运行流水账时，请改用[持久化调度](./cron-store)。
+
 ## 下一步
 
-继续阅读 [事务](../data-access/transactions)，如果定时任务需要显式事务控制，就会接到那一层。
+阅读[持久化调度](./cron-store)了解持久化调度引擎；如果定时任务需要显式事务控制，请继续阅读[事务](../data-access/transactions)。

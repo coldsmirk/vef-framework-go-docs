@@ -106,6 +106,8 @@ Runtime note:
 | `login_rate_limit` | `int` | login endpoint rate limit; default `6` |
 | `refresh_rate_limit` | `int` | refresh endpoint rate limit; default `1` |
 | `ip_whitelists` | `map[string][]string` | named source-IP whitelists (IP or CIDR entries) consumed by the built-in `ip` auth strategy; TOML keys are lowercased, and the no-arg `api.IPAuth()` targets the `default` key |
+| `api_keys` | `map[string]{key, roles}` | static API keys served by the default `security.APIKeyLoader` for the `api_key` auth strategy (v0.39); each entry carries the secret `key` (high-entropy random string) and the `roles` granted to the authenticated principal. TOML keys are lowercased |
+| `basic_accounts` | `map[string]{password, roles}` | static service accounts served by the default `security.BasicAccountLoader` for the `http_basic` auth strategy (v0.39); the map key is the username. These are machine-to-machine credentials, not user passwords |
 | `lockout.*` | — | brute-force lockout on the login endpoint: `enabled` default `true`, `max_failures` default `10`, `window` default `15m`, `lock_duration` default `15m`, `strategy` (`lock` \| `backoff`) default `lock`, `backoff_base` default `1s`, `backoff_max` default `15m`, `key` (`user` \| `ip` \| `user_ip`) default `user_ip` |
 | `password_policy.*` | — | password strength rules; every field is opt-in (a zero value disables the rule): `min_length`, `max_length`, `require_upper`, `require_lower`, `require_digit`, `require_symbol`, `min_char_classes`, `disallow_username`, `blocklist`, `history_depth` (reuse prevention; requires an app-provided `security.PasswordHistoryStore`), `max_age` (expiry; requires an app-provided `security.PasswordMetadataLoader`) |
 | `token_type` | `jwt_token \| opaque_token` | login token mechanism; default `jwt_token`. Session control (concurrency limits, force-offline, renewal) is only available with `opaque_token` |
@@ -203,6 +205,64 @@ Runtime note:
 | `business_binding.batch_size` | `int` | projections claimed per scan, default `100` (v0.38) |
 
 > Outbox-related fields moved to `[vef.event.transports.outbox]` in v0.21; see [Event Bus](../infrastructure/event-bus).
+
+## `vef.cron` (v0.39)
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `store.enabled` | `bool` | turns the durable schedule store on; default `false` (schedules are not loaded, no tables are touched, the in-memory scheduler is unaffected) |
+| `store.auto_migrate` | `bool` | runs the cron DDL migration (`crn_schedule`, `crn_fire_request`, `crn_run`) at startup |
+| `store.poll_interval` | `duration` | bound on how long a node waits before re-reading the schedule table; default `5s`. Visibility latency of schedules created on other nodes, not fire precision |
+| `store.batch_size` | `int` | schedules claimed per poll tick; default `32` |
+| `store.max_concurrent` | `int` | runs executing concurrently per node; default `16` |
+| `store.misfire_threshold` | `duration` | how late a fire may start before the schedule's misfire policy applies; default `1m` |
+| `store.heartbeat_interval` | `duration` | executor liveness cadence on running runs; default `10s` |
+| `store.abandoned_after` | `duration` | stale-heartbeat window before the recovery sweep marks a run abandoned; default `1m`, must be at least twice `heartbeat_interval` |
+| `store.run_timeout` | `duration` | default per-run bound when the schedule sets none; default `0` (unbounded) |
+| `store.run_retention` | `duration` | prunes terminal journal rows older than this window (hourly sweep); default `0` (keep forever) |
+
+Validation rejects negative durations and an `abandoned_after` tighter than
+twice the heartbeat interval at startup. See
+[Durable Schedules](../infrastructure/cron-store).
+
+## `vef.integration` (v0.39)
+
+Read by the optional integration module (`vef.IntegrationModule`).
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `auto_migrate` | `bool` | runs the integration DDL migration (`itg_*` tables) at startup |
+| `secret_key` | `string` | base64-encoded key encrypting sensitive auth parameters and data-source passwords at rest, sized for the algorithm (AES: 16/24/32 bytes; SM4: 16 bytes). Unset stores them in plaintext and logs a startup warning |
+| `secret_algorithm` | `aes \| sm4` | cipher for `secret_key`: `aes` (AES-GCM, default) or `sm4` (SM4-GCM). Values sealed with one algorithm are not readable under the other |
+| `run_timeout` | `duration` | cap per adapter script execution, wire calls included; default `30s` |
+| `max_response_body` | `int64` | cap per HTTP response body read by adapter scripts; default 8 MiB |
+| `log.mode` | `off \| errors \| all` | which invocations are recorded to `itg_invocation_log`; default `errors` |
+| `log.capture_limit` | `int` | byte cap per captured payload (input, output, wire bodies); default `4096` |
+| `log.mask_fields` | `[]string` | JSON field names (case-insensitive) masked in captures, on top of the always-masked credential headers |
+| `log.retention` | `duration` | prunes invocation-log rows older than this window (hourly sweep); default `0` (keep forever) |
+| `inbound.rate_limit.max` | `int` | inbound deliveries admitted per window per (system, client IP); default `120` |
+| `inbound.rate_limit.period` | `duration` | sliding-window length; default `1m`. The limiter is in process memory — each node enforces independently |
+
+See [Integration Engine](../integration/overview).
+
+## `vef.push` (v0.39)
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | `bool` | turns the WebSocket push endpoint on; default `false`. `push.Notifier` stays available while disabled, with deliveries silently dropped |
+| `path` | `string` | endpoint path; default `/ws` |
+| `allowed_origins` | `[]string` | browser-origin whitelist for the handshake; empty allows every origin (the handshake is token-authenticated, so this is defense in depth) |
+| `ping_interval` | `duration` | server heartbeat period; a connection missing two consecutive pongs is dropped; default `30s` |
+| `write_timeout` | `duration` | bound per outbound frame write; default `10s` |
+| `send_buffer` | `int` | per-connection outbound queue length; a client too slow to drain is disconnected; default `32` |
+| `max_connections_per_user` | `int` | concurrent sockets per user per node; `0` is unlimited |
+| `session_recheck_interval` | `duration` | opaque-token session revalidation cadence; default `60s` |
+
+Runtime note:
+
+- with Redis enabled, pushes and revocation kicks relay across nodes via
+  pub/sub on `vef:push:relay:<redis-db>:<app-name>`; the relay refuses to
+  start without `vef.app.name`. See [Server Push](../infrastructure/push)
 
 ## `vef.event`
 
