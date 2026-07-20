@@ -4,89 +4,186 @@ sidebar_position: 2
 
 # RPC Resources
 
-When enabled, the module registers these RPC resources. They are not public
-operations: callers must be authenticated, and permissions below are enforced
-when a `RequiredPermission` is shown.
+When the approval module is enabled, the framework registers the six RPC
+resources below. All of them are mounted under `/api`, using the standard
+envelope (`resource`, `action`, `version`, `params`, `meta`) documented in
+[API](../building-apis/api.md). None of the operations are public: callers must
+be authenticated, and permissions are enforced wherever a `RequiredPermission`
+is listed. The generated [Runtime API Index](../reference/runtime-api-index.md)
+contains the exhaustive JSON field ledger for every request and response DTO.
 
-RPC calls use the standard envelope documented in [API](../building-apis/api.md): `resource`,
-`action`, `version`, `params`, and `meta`. Fields listed below as `params.*`
-are decoded from `params`; fields listed as `meta.*` are decoded from `meta`.
-The generated [Runtime API Index](../reference/runtime-api-index.md) contains the
-exhaustive JSON field ledger for every request and response DTO.
+Conventions used on this page:
+
+- Command-style operations (`approval/flow`, `approval/instance`,
+  `approval/my`, `approval/admin`) declare params structs embedding `api.P`,
+  so their fields decode from the request's `params` object.
+- CRUD read operations (`approval/category`, `approval/delegation`) declare
+  search structs embedding `crud.Sortable` — a `meta` struct — so their filter
+  fields decode from the request's `meta` object, next to `meta.page` /
+  `meta.size` (`page.Pageable`) and `meta.sort`.
+- Paged responses use `page.Page[T]`: `page`, `size`, `total`, `items`.
+- Persisted models carry the standard audited-model columns (`id`,
+  `createdAt`, `createdBy`, `updatedAt`, `updatedBy`) in responses; they are
+  omitted from the field tables below.
+- Enum vocabularies (`InstanceStatus`, `TaskStatus`, node semantics) are
+  defined in [Instance Runtime](./runtime.md) and
+  [Flow Design](./flow-design.md).
 
 ## `approval/category`
 
-| Action | Permission | Params | Notes |
+Flow category management (`apv_flow_category`). Reads are tenant-scoped:
+super-admin callers see all tenants, everyone else is confined to their own
+tenant and fails closed without one.
+
+| Action | Permission | Input | Output |
 | --- | --- | --- | --- |
-| `find_tree` | `approval.category.query` | `CategorySearch` | Tenant-scoped tree query |
-| `create` | `approval.category.create` | `CategoryParams` | Non-super-admin tenant is stamped from caller |
-| `update` | `approval.category.update` | `CategoryParams` | Non-super-admin can only mutate own tenant |
-| `delete` | `approval.category.delete` | Primary-key params | Non-super-admin can only delete own tenant |
+| `find_tree` | `approval.category.query` | `CategorySearch` (meta) | nested `FlowCategory[]` (children populated) |
+| `create` | `approval.category.create` | `CategoryParams` | created `FlowCategory` |
+| `update` | `approval.category.update` | `CategoryParams` | updated `FlowCategory` |
+| `delete` | `approval.category.delete` | primary-key params (`params.id`) | success |
 
-The `find_tree_options` operation was removed in v0.39 (it was unused);
-build option lists from `find_tree` instead.
+The `find_tree_options` operation was removed in v0.39 (it was unused); build
+option lists from `find_tree` instead.
 
-| Action | Request fields |
-| --- | --- |
-| `find_tree` | `meta.name`, `meta.isActive`, `meta.sort` |
-| `create` | `params.id`, `params.tenantId` required, `params.code` required, `params.name` required, `params.icon`, `params.parentId`, `params.sortOrder`, `params.isActive`, `params.remark` |
-| `update` | `params.id`, `params.tenantId` required, `params.code` required, `params.name` required, `params.icon`, `params.parentId`, `params.sortOrder`, `params.isActive`, `params.remark` |
-| `delete` | `params.id` required |
+`CategorySearch` (query filters, decoded from `meta`):
+
+| Field | Type | Match | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | contains | filter by category name fragment |
+| `isActive` | `bool` | equals | filter by active flag; omit to match both |
+| `sort` | `OrderSpec[]` | — | sort specifications (`crud.Sortable`) |
+
+`CategoryParams` (create/update, decoded from `params`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | update only | primary key of the row to update |
+| `tenantId` | `string` | Yes | owning tenant. On create, non-super-admin callers have this stamped from their own tenant (the submitted value is ignored); on update/delete the caller must be authorized for the row's tenant |
+| `code` | `string` | Yes | category business code |
+| `name` | `string` | Yes | display name |
+| `icon` | `string` | No | display icon identifier |
+| `parentId` | `string` | No | parent category id; `null` makes it a root |
+| `sortOrder` | `int` | No | ordering weight among siblings |
+| `isActive` | `bool` | No | inactive categories stay queryable but hosts typically hide them from pickers |
+| `remark` | `string` | No | free-text remark |
+
+`FlowCategory` (response model):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tenantId` | `string` | owning tenant |
+| `code` | `string` | category business code |
+| `name` | `string` | display name |
+| `icon` | `string` \| `null` | display icon identifier |
+| `parentId` | `string` \| `null` | parent category id |
+| `sortOrder` | `int` | ordering weight |
+| `isActive` | `bool` | active flag |
+| `remark` | `string` \| `null` | free-text remark |
+| `children` | `FlowCategory[]` | child categories; populated by `find_tree`, absent elsewhere |
 
 ## `approval/delegation`
 
-| Action | Permission | Params | Notes |
-| --- | --- | --- | --- |
-| `find_page` | `approval.delegation.query` | `DelegationSearch` + pageable meta | Non-super-admin sees own delegations |
-| `create` | `approval.delegation.create` | `DelegationParams` | Non-super-admin delegator is stamped from caller |
-| `update` | `approval.delegation.update` | `DelegationParams` | Non-super-admin cannot reassign ownership |
-| `delete` | `approval.delegation.delete` | Primary-key params | Owner-scoped for non-super-admin |
+Approval delegation management (`apv_delegation`). Ownership is enforced:
+non-super-admin callers only see, create, update, and delete delegations where
+they are the delegator — on create the `delegatorId` is stamped from the
+caller, and on update the original delegator is pinned so the record cannot be
+reassigned to another user.
 
-| Action | Request fields |
-| --- | --- |
-| `find_page` | `meta.delegatorId`, `meta.delegateeId`, `meta.isActive`, `meta.sort`, `meta.page`, `meta.size` |
-| `create` | `params.id`, `params.delegatorId` required, `params.delegateeId` required, `params.flowCategoryId`, `params.flowId`, `params.startTime`, `params.endTime`, `params.isActive`, `params.reason` |
-| `update` | `params.id`, `params.delegatorId` required, `params.delegateeId` required, `params.flowCategoryId`, `params.flowId`, `params.startTime`, `params.endTime`, `params.isActive`, `params.reason` |
-| `delete` | `params.id` required |
+| Action | Permission | Input | Output |
+| --- | --- | --- | --- |
+| `find_page` | `approval.delegation.query` | `DelegationSearch` + pageable meta | `page.Page[Delegation]` |
+| `create` | `approval.delegation.create` | `DelegationParams` | created `Delegation` |
+| `update` | `approval.delegation.update` | `DelegationParams` | updated `Delegation` |
+| `delete` | `approval.delegation.delete` | primary-key params (`params.id`) | success |
+
+`DelegationSearch` (query filters, decoded from `meta`):
+
+| Field | Type | Match | Description |
+| --- | --- | --- | --- |
+| `delegatorId` | `string` | equals | filter by delegator (super-admin only — others are always scoped to themselves) |
+| `delegateeId` | `string` | equals | filter by delegatee |
+| `isActive` | `bool` | equals | filter by active flag |
+| `sort` | `OrderSpec[]` | — | sort specifications |
+
+`DelegationParams` (create/update, decoded from `params`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | update only | primary key of the row to update |
+| `delegatorId` | `string` | Yes | user delegating their tasks. Non-super-admin callers have this stamped from the principal on create and pinned to the original value on update |
+| `delegateeId` | `string` | Yes | user receiving the delegated tasks |
+| `flowCategoryId` | `string` | No | restrict the delegation to one flow category; `null` covers all categories |
+| `flowId` | `string` | No | restrict the delegation to one flow; `null` covers all flows |
+| `startTime` | `DateTime` | Yes | delegation window start |
+| `endTime` | `DateTime` | Yes | delegation window end |
+| `isActive` | `bool` | No | inactive delegations are ignored by assignee resolution |
+| `reason` | `string` | No | free-text reason shown in delegated tasks |
+
+`Delegation` (response model): same business fields as the params —
+`delegatorId`, `delegateeId`, `flowCategoryId`, `flowId`, `startTime`,
+`endTime`, `isActive`, `reason` — plus the audited-model columns. Tasks that
+arrive via delegation carry the delegator as a separate person snapshot (see
+`NodeParticipant.delegator` below).
 
 ## `approval/flow`
 
-| Action | Permission | Params | Notes |
+Flow definition management: the mutable flow row, its immutable deployed
+versions, and the designer-facing graph reads.
+
+| Action | Permission | Input | Output | Audit |
+| --- | --- | --- | --- | --- |
+| `create` | `approval.flow.create` | `CreateFlowParams` | created `Flow` | Yes |
+| `deploy` | `approval.flow.deploy` | `DeployFlowParams` | created `FlowVersion` (draft) | Yes |
+| `publish_version` | `approval.flow.publish` | `PublishVersionParams` | success | Yes |
+| `update` | `approval.flow.update` | `UpdateFlowParams` | updated `Flow` | Yes |
+| `toggle_active` | `approval.flow.update` | `ToggleActiveParams` | success | Yes |
+| `get_graph` | `approval.flow.query` | `GetGraphParams` | `FlowGraph` | — |
+| `find_flows` | `approval.flow.query` | `FindFlowsParams` | `page.Page[Flow]` | — |
+| `find_versions` | `approval.flow.query` | `FindVersionsParams` | `FlowVersionSummary[]` | — |
+| `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | `FlowInitiator[]` | — |
+
+`CreateFlowParams` (`create`):
+
+| Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `create` | `approval.flow.create` | `CreateFlowParams` | Audited |
-| `deploy` | `approval.flow.deploy` | `DeployFlowParams` | Audited |
-| `publish_version` | `approval.flow.publish` | `PublishVersionParams` | Audited |
-| `update` | `approval.flow.update` | `UpdateFlowParams` | Audited (params type renamed from `UpdateParams` in v0.39) |
-| `toggle_active` | `approval.flow.update` | `ToggleActiveParams` | Audited |
-| `get_graph` | `approval.flow.query` | `GetGraphParams` | Reads the latest published graph, or an explicit version via `versionId` (v0.39) |
-| `find_flows` | `approval.flow.query` | `FindFlowsParams` | Paged query |
-| `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | Lists initiator configuration |
-| `find_versions` | `approval.flow.query` | `FindVersionsParams` | Lists version summaries for one flow (slimmed in v0.39) |
+| `tenantId` | `string` | Yes | owning tenant; empty coalesces to `"default"`, and the caller must be authorized for the resulting tenant |
+| `code` | `string` | Yes | unique flow business code; immutable after creation (`start` targets it) |
+| `name` | `string` | Yes | display name |
+| `categoryId` | `string` | Yes | owning `FlowCategory` id |
+| `icon` | `string` | No | display icon identifier |
+| `description` | `string` | No | free-text description |
+| `labels` | `object` (string→string) | No | host-owned selection metadata (v0.39); validated by the shared label rule — see the note below |
+| `bindingMode` | `string` | Yes | `standalone` (form data lives in approval tables) or `business` (links an existing business row) |
+| `businessBinding` | `BusinessBindingConfig` | business mode | write-back target description (below); rejected on standalone flows (`ErrBindingUnexpected`) |
+| `adminUserIds` | `string[]` | No | flow administrators (used by `transfer_admin` empty-assignee handling and admin visibility) |
+| `isAllInitiationAllowed` | `bool` | No | `true` lets every user initiate; `false` restricts initiation to `initiators` |
+| `instanceTitleTemplate` | `string` | No | Go `text/template` for instance titles, e.g. `{{.applicantName}}的请假申请`; bindings: `flowName`, `flowCode`, `instanceNo`, `formData`, `applicantId`, `applicantName` (plus nested `flow.name` / `flow.code`, `applicant.id` / `applicant.name`). Empty falls back to `flowName-instanceNo`; parse failure raises `ErrInvalidTitleTemplate` |
+| `initiators` | `CreateInitiatorParams[]` | No | who may initiate when `isAllInitiationAllowed` is `false` (below) |
 
-| Action | Request fields |
-| --- | --- |
-| `create` | `params.tenantId` required, `params.code` required, `params.name` required, `params.categoryId` required, `params.bindingMode` required, `params.icon`, `params.description`, `params.labels`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.instanceTitleTemplate`, `params.initiators` |
-| `deploy` | `params.flowId` required, `params.description`, `params.flowDefinition` required, `params.formSchema`, `params.storageMode` |
-| `publish_version` | `params.versionId` required |
-| `update` | `params.flowId` required, `params.name` required, `params.bindingMode` required, `params.instanceTitleTemplate` required, `params.icon`, `params.description`, `params.labels`, `params.businessBinding`, `params.adminUserIds`, `params.isAllInitiationAllowed`, `params.initiators` |
-| `toggle_active` | `params.flowId` required, `params.isActive` |
-| `get_graph` | `params.flowId` required, `params.tenantId`, `params.versionId` (explicit version — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version) |
-| `find_flows` | `params.tenantId`, `params.categoryId`, `params.keyword`, `params.isActive`, `params.labels` (equality on every pair), `params.page`, `params.pageSize` |
-| `find_initiators` | `params.flowId` required, `params.tenantId` |
-| `find_versions` | `params.flowId` required, `params.tenantId` |
+`CreateInitiatorParams` entries:
 
-`params.initiators` entries use `kind` (`user`, `role`, or `department`) and
-`ids`. `params.formSchema` is the optional host-owned form-designer document,
-passed through opaque (see
-[Form Schema and Derived Fields](./flow-design.md#form-schema-and-derived-fields));
-flows without forms omit it. For business binding, `params.businessBinding` is
-an `approval.BusinessBindingConfig` object (`tableName`, `keyColumns`,
-`statusColumn`, `instanceIdColumn` required, optional `startedAtColumn` /
-`finishedAtColumn` / `statusMapping`); all identifiers are validated by
-`ValidateBusinessIdentifier`, and the key must match a non-null primary or
-unique key on the live table. Deployed versions snapshot their binding, so
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `kind` | `string` | Yes | `user`, `role`, or `department` |
+| `ids` | `string[]` | Yes | ids of the selected users / roles / departments |
+
+`BusinessBindingConfig`:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tableName` | `string` | Yes | business table receiving approval state; validated as a SQL-safe identifier (`ErrInvalidBusinessIdentifier`) and checked to exist (`ErrBindingSchemaInvalid`) |
+| `keyColumns` | `string[]` | Yes | columns locating the bound row; must exactly match a non-null primary or unique key (`ErrBindingKeyNotUnique`) |
+| `statusColumn` | `string` | Yes | column receiving the (mapped) instance status |
+| `instanceIdColumn` | `string` | Yes | column receiving the owning instance id; used as a compare-and-set fence so a stale instance cannot overwrite a newer approval round |
+| `startedAtColumn` | `string` | No | column receiving the instance start time |
+| `finishedAtColumn` | `string` | No | column receiving the instance finish time |
+| `statusMapping` | `object` (InstanceStatus→string) | No | translates instance statuses into host vocabulary; missing entries fall back to the status string itself (`ErrBindingStatusMappingInvalid` for unknown keys or blank values) |
+
+Two binding fields naming the same column fail with
+`ErrBindingColumnsConflict`. Deployed versions snapshot their binding, so
 editing a flow's binding never affects instances already running under
-earlier versions.
+earlier versions. See [Integration](./integration.md) for the write-back
+lifecycle.
 
 `params.labels` (v0.39) is host-owned selection metadata on the flow —
 equality-filterable in `find_flows` and `my.find_available_flows` (every
@@ -96,171 +193,613 @@ rule: alphanumeric keys with inner `-`/`_` (no dots), ≤ 63 characters;
 values ≤ 256 characters, empty values legal. On `update`, labels are
 replaced wholesale — omitting them clears the flow's labels.
 
-Since v0.39, `find_versions` returns `FlowVersionSummary` entries — `id`,
-`flowId`, `version`, `status`, `description`, `storageMode`, `publishedAt`,
-`publishedBy`, `createdAt`, `createdBy` — without the graph documents. Fetch
-a specific version's graph explicitly through `get_graph` with
-`params.versionId`.
+`DeployFlowParams` (`deploy` — creates a new draft version):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flowId` | `string` | Yes | flow to deploy under |
+| `description` | `string` | No | version description shown in version lists |
+| `storageMode` | `string` | No | `json` (default; form data stays in `apv_instance.form_data`) or `table` (a dedicated physical projection table is generated at publish) |
+| `flowDefinition` | `FlowDefinition` | Yes | the designer graph document — nodes, edges, and per-node `data`; validated at deploy (`ErrInvalidFlowDesign`). See [Flow Design](./flow-design.md) for the wire shape |
+| `formSchema` | JSON document | No | host-owned form designer document, passed through opaque and stored verbatim; the flat field list the engine consumes is derived from it at deploy (see [Form Schema and Derived Fields](./flow-design.md#form-schema-and-derived-fields)) |
+
+`PublishVersionParams` (`publish_version` — makes a draft the live version and
+archives the previous one):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `versionId` | `string` | Yes | draft version to publish (`ErrVersionNotDraft` otherwise) |
+
+`UpdateFlowParams` (`update` — mutates the flow row only; deployed versions
+are immutable):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flowId` | `string` | Yes | flow to update |
+| `name` | `string` | Yes | display name |
+| `icon` | `string` | No | display icon identifier |
+| `description` | `string` | No | free-text description |
+| `labels` | `object` (string→string) | No | replaced wholesale; omitting clears |
+| `bindingMode` | `string` | Yes | binding mode (see `create`); changing it only affects future deployments |
+| `businessBinding` | `BusinessBindingConfig` | business mode | write-back target (see `create`) |
+| `adminUserIds` | `string[]` | No | flow administrators |
+| `isAllInitiationAllowed` | `bool` | No | initiation openness |
+| `instanceTitleTemplate` | `string` | Yes | instance title template |
+| `initiators` | `CreateInitiatorParams[]` | No | initiator configuration; replaced wholesale |
+
+`ToggleActiveParams` (`toggle_active`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flowId` | `string` | Yes | flow to toggle |
+| `isActive` | `bool` | No | target state; inactive flows refuse initiation (`ErrFlowNotActive`) while running instances continue |
+
+`GetGraphParams` (`get_graph`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flowId` | `string` | Yes | flow whose graph to load |
+| `tenantId` | `string` | No | optional pre-filter; the actual cross-tenant gate is the caller's tenant authority |
+| `versionId` | `string` | No | explicit version to load (v0.39) — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version |
+
+`get_graph` responds with a `FlowGraph`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `flow` | `Flow` | the mutable flow row (fields below) |
+| `version` | `FlowVersion` | the resolved version, including `flowSchema` (the deployed `FlowDefinition`), `formSchema` (host document, verbatim), and `formFields` (the derived flat field list) |
+| `nodes` | `FlowNode[]` | persisted node rows of that version — one row per node with all resolved node configuration (kind, execution type, approval method, pass rule, rollback / add-assignee / CC toggles, timeout config, branches). See [Flow Design](./flow-design.md) for each field's semantics |
+| `edges` | `FlowEdge[]` | persisted edge rows: `key`, `sourceNodeId` / `sourceNodeKey`, `targetNodeId` / `targetNodeKey`, `sourceHandle` (condition-branch anchor) |
+
+`FindFlowsParams` (`find_flows`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | No | tenant filter; non-super-admin callers are constrained to their own tenant regardless |
+| `categoryId` | `string` | No | filter by category |
+| `keyword` | `string` | No | contains match against the flow name |
+| `isActive` | `bool` | No | filter by active flag |
+| `labels` | `object` (string→string) | No | label equality filter — every submitted pair must match (v0.39) |
+| `page` | `int` | No | page number (1-based) |
+| `pageSize` | `int` | No | page size |
+
+`find_flows` responds with `page.Page[Flow]`. `Flow` (response model):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tenantId` | `string` | owning tenant |
+| `categoryId` | `string` | owning category |
+| `code` | `string` | unique flow business code (immutable) |
+| `name` | `string` | display name |
+| `icon` | `string` \| `null` | display icon identifier |
+| `description` | `string` \| `null` | free-text description |
+| `labels` | `object` \| absent | host-owned selection metadata (v0.39) |
+| `bindingMode` | `string` | `standalone` or `business` |
+| `businessBinding` | `BusinessBindingConfig` \| absent | current write-back configuration (mutable copy; versions snapshot their own) |
+| `adminUserIds` | `string[]` | flow administrators |
+| `isAllInitiationAllowed` | `bool` | initiation openness |
+| `instanceTitleTemplate` | `string` | instance title template |
+| `isActive` | `bool` | active flag |
+| `currentVersion` | `int` | latest published version number; `0` before the first publish |
+
+`FindVersionsParams` / `FindInitiatorsParams` (`find_versions`,
+`find_initiators`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flowId` | `string` | Yes | flow to inspect |
+| `tenantId` | `string` | No | optional pre-filter (cross-tenant gate is the caller's authority) |
+
+Since v0.39, `find_versions` returns `FlowVersionSummary` entries — the
+version list without the graph documents (`flowSchema` / `formSchema` /
+`formFields`), which a list never renders. Fetch one version's full definition
+through `get_graph` with `params.versionId`.
+
+| `FlowVersionSummary` field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | version id |
+| `flowId` | `string` | owning flow |
+| `version` | `int` | monotonically increasing version number |
+| `status` | `string` | `draft`, `published`, or `archived` |
+| `description` | `string` \| `null` | version description |
+| `storageMode` | `string` | `json` or `table` |
+| `publishedAt` | `DateTime` \| `null` | publish time |
+| `publishedBy` | `string` \| `null` | publisher user id |
+| `createdAt` | `DateTime` | deploy time |
+| `createdBy` | `string` | deployer user id |
+
+`find_initiators` returns `FlowInitiator[]`: each entry carries `flowId`,
+`kind` (`user` / `role` / `department`), and `ids` (the configured id list).
 
 ## `approval/instance`
 
-| Action | Permission | Params | Notes |
-| --- | --- | --- | --- |
-| `start` | `approval.instance.start` | `StartParams` | Audited |
-| `process_task` | `approval.task.process` | `ProcessTaskParams` | Audited; `action` must be `approve`, `reject`, `transfer`, `rollback`, or `handle` |
-| `withdraw` | `approval.instance.withdraw` | `WithdrawParams` | Audited |
-| `resubmit` | `approval.instance.resubmit` | `ResubmitParams` | Audited; accepts returned or withdrawn instances |
-| `add_cc` | `approval.instance.cc` | `AddCCParams` | Audited |
-| `mark_cc_read` | `approval.instance.cc` | `MarkCCReadParams` | Read receipt, not audited |
-| `add_assignee` | `approval.task.add_assignee` | `AddAssigneeParams` | Audited; `addType` is `before`, `after`, or `parallel` |
-| `remove_assignee` | `approval.task.remove_assignee` | `RemoveAssigneeParams` | Audited |
-| `urge_task` | `approval.task.urge` | `UrgeTaskParams` | Extra rate limit: max `10` per `1m` |
+Instance lifecycle commands. Every state change is recorded in the action log;
+the operations marked audited additionally capture framework-level IP / UA /
+request-id audit entries.
 
-| Action | Request fields |
-| --- | --- |
-| `start` | `params.tenantId` required, `params.flowCode` required, `params.businessRef` max 512 chars, `params.formData` |
-| `process_task` | `params.taskId` required, `params.action` required (`approve`, `reject`, `transfer`, `rollback`, or `handle`), `params.opinion` max 2000 chars, `params.formData`, `params.attachments` max 20 entries, each max 512 chars, `params.transferToId`, `params.targetNodeId` |
-| `withdraw` | `params.instanceId` required, `params.reason` max 2000 chars |
-| `resubmit` | `params.instanceId` required, `params.formData` |
-| `add_cc` | `params.instanceId` required, `params.ccUserIds` required, 1-50 IDs |
-| `mark_cc_read` | `params.instanceId` required |
-| `add_assignee` | `params.taskId` required, `params.userIds` required, 1-50 IDs, `params.addType` required (`before`, `after`, or `parallel`) |
-| `remove_assignee` | `params.taskId` required |
-| `urge_task` | `params.taskId` required, `params.message` max 500 chars |
+| Action | Permission | Input | Output | Audit |
+| --- | --- | --- | --- | --- |
+| `start` | `approval.instance.start` | `StartParams` | created `Instance` | Yes |
+| `process_task` | `approval.task.process` | `ProcessTaskParams` | success | Yes |
+| `withdraw` | `approval.instance.withdraw` | `WithdrawParams` | success | Yes |
+| `resubmit` | `approval.instance.resubmit` | `ResubmitParams` | success | Yes |
+| `add_cc` | `approval.instance.cc` | `AddCCParams` | success | Yes |
+| `mark_cc_read` | `approval.instance.cc` | `MarkCCReadParams` | success | — |
+| `add_assignee` | `approval.task.add_assignee` | `AddAssigneeParams` | success | Yes |
+| `remove_assignee` | `approval.task.remove_assignee` | `RemoveAssigneeParams` | success | Yes |
+| `urge_task` | `approval.task.urge` | `UrgeTaskParams` | success | rate-limited: max `10` per `1m` |
+
+`process_task` deliberately bundles approve / reject / transfer / rollback /
+handle under one permission (`approval.task.process`): the designer's
+node-level toggles (`isTransferAllowed`, `isRollbackAllowed`, …) already
+govern which actions a node offers at runtime.
+
+`StartParams` (`start`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `tenantId` | `string` | Yes | tenant to start under; empty coalesces to `"default"`, and the caller must be authorized for the flow's tenant |
+| `flowCode` | `string` | Yes | business code of the flow to start; resolves the latest published version (`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`) |
+| `businessRef` | `string` (≤ 512) | business mode | opaque reference to the bound business row; required on business-bound flows unless a registered `BusinessRefProvider` supplies it (`ErrBusinessRefRequired`). Default shapes: single key verbatim, composite key as a JSON object |
+| `formData` | `object` | No | form values keyed by field key; validated against the published version's derived field list (`40401` family), rejected above 64 KiB, and stripped of fields the applicant may not edit |
+
+The applicant identity and the condition-routing globals are resolved
+server-side from the authenticated principal (`PrincipalDepartmentResolver`,
+`InstanceGlobalsResolver`) — they are never accepted from the request body,
+where an applicant could forge them to steer the flow.
+
+`start` responds with the created `Instance`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tenantId` | `string` | owning tenant |
+| `flowId` / `flowCode` / `flowVersionId` | `string` | the flow and the immutable version snapshot the instance runs under |
+| `title` | `string` | rendered from the flow's `instanceTitleTemplate` |
+| `instanceNo` | `string` | human-readable instance number |
+| `applicantId` / `applicantName` | `string` | applicant snapshot taken at start |
+| `applicantDepartmentId` / `applicantDepartmentName` | `string` \| `null` | applicant department snapshot |
+| `status` | `string` | `running`, `approved`, `rejected`, `withdrawn`, `returned`, or `terminated` |
+| `currentNodeId` | `string` \| `null` | node the instance currently sits on |
+| `finishedAt` | `DateTime` \| `null` | set when the instance reaches a final status |
+| `businessRef` | `string` \| `null` | opaque business reference (business-bound flows) |
+| `formData` | `object` | submitted form data (post-validation) |
+| `globals` | `object` | host-supplied global-variable snapshot taken at start; condition evaluation reads it, so routing stays deterministic |
+| `businessProjectionId` | `string` \| absent | durable write-back state claimed at start (business-bound flows) |
+
+`ProcessTaskParams` (`process_task`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taskId` | `string` | Yes | pending task to act on; the caller must be its assignee (`ErrNotAssignee`, `ErrTaskNotPending`) |
+| `action` | `string` | Yes | `approve`, `reject`, `transfer`, `rollback`, or `handle` (handle nodes finish with `handle`; same semantics as approve) |
+| `opinion` | `string` (≤ 2000) | conditional | decision comment; required when the node sets `isOpinionRequired` (`ErrOpinionRequired`) |
+| `formData` | `object` | No | form updates written with the action, filtered by the node's field permissions |
+| `attachments` | `string[]` (≤ 20 × ≤ 512) | No | attachment references stored on the action log |
+| `transferToId` | `string` | `transfer` | target user; must be non-empty and different from the operator (`ErrInvalidTransferTarget`); allowed only when the node sets `isTransferAllowed` (`ErrTransferNotAllowed`) |
+| `targetNodeId` | `string` | `rollback` | rollback destination node; must be one of the node's valid targets per its `rollbackType` and the instance's visit trail (`ErrInvalidRollbackTarget`, `ErrRollbackNotAllowed`). Valid targets are served in `my.get_instance_detail` → `myTask.rollbackTargets` |
+
+`WithdrawParams` (`withdraw` — applicant pulls a running instance back):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `instanceId` | `string` | Yes | instance to withdraw; caller must be the applicant (`ErrNotApplicant`), state must allow it (`ErrWithdrawNotAllowed`) |
+| `reason` | `string` (≤ 2000) | No | withdraw reason recorded in the action log |
+
+`ResubmitParams` (`resubmit` — restart a returned or withdrawn instance):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `instanceId` | `string` | Yes | instance to resubmit (`ErrResubmitNotAllowed` outside `returned` / `withdrawn`) |
+| `formData` | `object` | No | replacement form data; validated like `start` |
+
+`AddCCParams` / `MarkCCReadParams` (`add_cc`, `mark_cc_read`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `instanceId` | `string` | Yes | target instance |
+| `ccUserIds` | `string[]` (1–50) | `add_cc` only | users to CC; allowed only when the current node sets `isManualCcAllowed` (`ErrManualCcNotAllowed`) |
+
+`mark_cc_read` stamps the read receipt on all of the caller's unread CC
+records for the instance — a self-service read receipt, hence no audit.
+
+`AddAssigneeParams` (`add_assignee` — dynamic assignee insertion):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taskId` | `string` | Yes | the caller's own pending task |
+| `userIds` | `string[]` (1–50) | Yes | users to add |
+| `addType` | `string` | Yes | `before` (new assignee first, original waits), `after` (new assignee after the original completes), or `parallel` (joins the current group). Must be one of the node's `addAssigneeTypes` (`ErrAddAssigneeNotAllowed` / `ErrInvalidAddAssigneeType`) |
+
+`RemoveAssigneeParams` (`remove_assignee`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taskId` | `string` | Yes | peer task to cancel; must be a still-actionable peer of the caller's own visit, not the last active assignee (`ErrLastAssigneeRemoval`), and the node must allow removal (`ErrRemoveAssigneeNotAllowed`). Eligible peers are served in `myTask.removableAssignees` |
+
+`UrgeTaskParams` (`urge_task`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `taskId` | `string` | Yes | pending task to urge |
+| `message` | `string` (≤ 500) | No | urge message delivered with the notification |
+
+Urges honor the node's `urgeCooldownMinutes` per task (`40601` when urged too
+frequently; non-positive config defaults to 30 minutes), and the operation
+carries an extra rate limit of 10 calls per minute per caller.
 
 ## `approval/my`
 
-Self-service queries do not declare `RequiredPermission`, but they still require
-the authenticated principal.
+Self-service queries for the current user. The operations declare no
+`RequiredPermission` — any authenticated principal may call them; every query
+is keyed to the caller's identity server-side.
 
-| Action | Params | Output |
+| Action | Input | Output |
 | --- | --- | --- |
-| `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[my.AvailableFlow]` |
-| `get_start_form` | `GetStartFormParams` | `my.StartForm` (v0.39) |
-| `find_initiated` | `FindInitiatedParams` | `page.Page[my.InitiatedInstance]` |
-| `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[my.PendingTask]` |
-| `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[my.CompletedTask]` |
-| `find_cc_records` | `FindCCRecordsParams` | `page.Page[my.CCRecord]` |
-| `get_pending_counts` | `GetPendingCountsParams` | `my.PendingCounts` |
-| `get_instance_detail` | `GetInstanceDetailParams` | `my.InstanceDetail` |
+| `find_available_flows` | `FindAvailableFlowsParams` | `page.Page[AvailableFlow]` |
+| `get_start_form` | `GetStartFormParams` | `StartForm` (v0.39) |
+| `find_initiated` | `FindInitiatedParams` | `page.Page[InitiatedInstance]` |
+| `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[PendingTask]` |
+| `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[CompletedTask]` |
+| `find_cc_records` | `FindCCRecordsParams` | `page.Page[CCRecord]` |
+| `get_pending_counts` | `GetPendingCountsParams` | `PendingCounts` |
+| `get_instance_detail` | `GetInstanceDetailParams` | `InstanceDetail` |
 
-| Action | Request fields |
-| --- | --- |
-| `find_available_flows` | `params.tenantId`, `params.keyword`, `params.labels` (equality on every pair, v0.39), `params.page`, `params.pageSize` |
-| `get_start_form` | `params.tenantId` required, `params.flowCode` required |
-| `find_initiated` | `params.tenantId`, `params.status`, `params.keyword`, `params.page`, `params.pageSize` |
-| `find_pending_tasks` | `params.tenantId`, `params.page`, `params.pageSize` |
-| `find_completed_tasks` | `params.tenantId`, `params.page`, `params.pageSize` |
-| `find_cc_records` | `params.tenantId`, `params.isRead`, `params.page`, `params.pageSize` |
-| `get_pending_counts` | `params.tenantId` |
-| `get_instance_detail` | `params.instanceId` required |
+Request parameters (all decoded from `params`):
 
-`get_start_form` (v0.39) is the pre-submission form loader: it returns the
-identity fields needed to render the initiation header plus the published
-version's host form-designer document, verbatim. Loading it is gated exactly
-like starting the instance — active flow, initiation permission, published
-version — so a rendered form always implies a startable flow.
+| Action | Field | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `find_available_flows` | `tenantId` | `string` | No | tenant filter |
+| | `keyword` | `string` | No | contains match against the flow name |
+| | `labels` | `object` | No | label equality filter — every pair must match (v0.39) |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `get_start_form` | `tenantId` | `string` | Yes | tenant of the flow |
+| | `flowCode` | `string` | Yes | flow to load the start form for |
+| `find_initiated` | `tenantId` | `string` | No | tenant filter |
+| | `status` | `string` | No | instance status filter (`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`) |
+| | `keyword` | `string` | No | contains match against the instance title |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `find_pending_tasks` | `tenantId` | `string` | No | tenant filter |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `find_completed_tasks` | `tenantId` | `string` | No | tenant filter |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `find_cc_records` | `tenantId` | `string` | No | tenant filter |
+| | `isRead` | `bool` | No | read-state filter |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `get_pending_counts` | `tenantId` | `string` | No | tenant filter |
+| `get_instance_detail` | `instanceId` | `string` | Yes | instance to load; the caller must be a participant — applicant, assignee, or CC recipient (`ErrAccessDenied`) |
 
-The `my.InstanceDetail` JSON payload includes `instance`, `formSchema`,
-`timeline`, `flowGraph`, `availableActions`, `fieldPermissions`, and `myTask`.
-`instance.formData` carries the submitted form data, `instance.businessRef` is
-the opaque business reference when the flow is business-bound, and
-`formSchema` is the version-pinned host form-designer document returned
-verbatim — the framework stores it as semantically equal JSON and never
-interprets it. `fieldPermissions` (v0.38) is the viewer-scoped field
-interactivity projection, materialized for every top-level form field
-(`visible` / `editable` / `hidden` / `required`); the client applies it
-verbatim, and `instance.formData` is already stripped of the fields the viewer
-may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)).
+Response DTOs (`approval/my` package):
 
-`myTask` (v0.39) is the viewer's own actionable context — the pending task
-`process_task` should target plus the node-level configuration the client
-needs to build the action UI without re-deriving engine semantics. It is
-`null` when the viewer holds no pending task on this instance:
+`AvailableFlow` — one flow the caller may initiate:
 
-| `myTask` field | Meaning |
-| --- | --- |
-| `taskId` / `nodeId` | the pending task and its node |
-| `isOpinionRequired` | mirrors the node config: approve/reject must carry a non-empty opinion when set |
-| `addAssigneeTypes` | positions the node allows for dynamic assignee addition (`before` / `after` / `parallel`); empty when adding is not allowed |
-| `rollbackTargets` | valid rollback destinations (`{nodeId, name}`), resolved from the node's rollback config and the instance's visit trail exactly like the rollback command validates them; empty when rollback is not allowed |
-| `removableAssignees` | peer tasks the viewer may remove (`{taskId, assignee, status}` with `status` being `pending` / `waiting`), resolved exactly like the remove-assignee command authorizes them: still-actionable peers of the viewer's own visit, excluding the viewer; empty when removal is disallowed |
+| Field | Type | Description |
+| --- | --- | --- |
+| `flowId` / `flowCode` / `flowName` | `string` | flow identity |
+| `flowIcon` | `string` \| absent | display icon |
+| `description` | `string` \| absent | flow description |
+| `labels` | `object` \| absent | host-owned selection metadata (v0.39) |
+| `categoryId` / `categoryName` | `string` | owning category identity |
 
-`instance.labels` (v0.39) carries the flow's host-owned selection metadata,
-read from the mutable flow at query time — display identity like
-`flowName` / `flowIcon`, not a version-pinned snapshot. The admin detail's
-`instance` object carries the same field.
+`StartForm` (v0.39) — the pre-submission view of a flow. Loading it is gated
+exactly like starting the instance (active flow, initiation permission,
+published version), so a rendered form always implies a startable flow:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `flowId` / `flowCode` / `flowName` | `string` | flow identity for the initiation header |
+| `flowIcon` | `string` \| absent | display icon |
+| `description` | `string` \| absent | flow description |
+| `versionId` | `string` | published version the form belongs to |
+| `version` | `int` | published version number |
+| `formSchema` | JSON document \| absent | host form-designer document, verbatim |
+
+`InitiatedInstance` — one instance the caller submitted:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `instanceId` / `instanceNo` / `title` | `string` | instance identity |
+| `flowName` | `string` | flow display name |
+| `flowIcon` | `string` \| absent | flow icon |
+| `status` | `string` | instance status |
+| `currentNodeName` | `string` \| absent | name of the node currently in progress |
+| `createdAt` | `DateTime` | submission time |
+| `finishedAt` | `DateTime` \| absent | completion time |
+
+`PendingTask` — one task awaiting the caller's action:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `taskId` | `string` | task to submit `process_task` against |
+| `instanceId` / `instanceTitle` / `instanceNo` | `string` | owning instance identity |
+| `flowName` / `flowIcon` | `string` | flow display identity |
+| `applicant` | `UserInfo` | applicant snapshot |
+| `nodeName` | `string` | node the task belongs to |
+| `createdAt` | `DateTime` | task creation time |
+| `deadline` | `DateTime` \| absent | timeout deadline when the node configures one |
+| `isTimeout` | `bool` | whether the task is past its deadline |
+
+`CompletedTask` — one task the caller already processed: same identity fields
+as `PendingTask` plus `status` (the outcome — `approved`, `rejected`,
+`handled`, `transferred`, `rolled_back`, …) and `finishedAt`; without
+`deadline` / `isTimeout`.
+
+`CCRecord` — one CC notification addressed to the caller:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ccRecordId` | `string` | CC record id |
+| `instanceId` / `instanceTitle` / `instanceNo` | `string` | owning instance identity |
+| `flowName` / `flowIcon` | `string` | flow display identity |
+| `applicant` | `UserInfo` | applicant snapshot |
+| `nodeName` | `string` \| absent | node that produced the CC; absent for instance-level CCs |
+| `isRead` | `bool` | read receipt state |
+| `createdAt` | `DateTime` | delivery time |
+
+`PendingCounts` — badge counts: `pendingTaskCount` (tasks awaiting action) and
+`unreadCcCount` (unread CC records).
+
+`InstanceDetail` — the self-service detail view. Each top-level field is one
+renderable concern:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `instance` | `InstanceInfo` | runtime state (below) |
+| `formSchema` | JSON document \| absent | version-pinned host form-designer document, verbatim — the schema the instance was submitted under |
+| `timeline` | `TimelineEntry[]` | node-by-node account of the path actually taken (below) |
+| `flowGraph` | `InstanceFlowGraph` | React Flow–ready read-only graph annotated with progress (below) |
+| `availableActions` | `string[]` | viewer-specific action hints (below) |
+| `fieldPermissions` | `object` (field→permission) | viewer-scoped field interactivity (v0.38): `visible` / `editable` / `hidden` / `required`, materialized for every top-level form field; the client applies it verbatim, and `instance.formData` is already stripped of fields the viewer may not see (see [Node Field Permissions](./flow-design.md#node-field-permissions)) |
+| `myTask` | `ViewerTask` \| `null` | the viewer's own actionable context (v0.39, below) |
+
+`InstanceInfo`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `instanceId` / `instanceNo` / `title` | `string` | instance identity |
+| `flowName` / `flowIcon` | `string` | flow display identity, read from the mutable flow at query time |
+| `labels` | `object` \| absent | the flow's host-owned selection metadata (v0.39) — display identity like `flowName`, not a version-pinned snapshot |
+| `applicant` | `UserInfo` | applicant snapshot |
+| `status` | `string` | instance status |
+| `currentNodeId` / `currentNodeName` | `string` \| absent | node currently in progress |
+| `businessRef` | `string` \| absent | opaque business reference (business-bound flows) |
+| `formData` | `object` \| absent | form data, stripped of fields the viewer may not see |
+| `createdAt` / `finishedAt` | `DateTime` | lifecycle timestamps |
+
+`ViewerTask` (v0.39) — the pending task `process_task` should target plus the
+node-level configuration the client needs to build the action UI without
+re-deriving engine semantics. `null` when the viewer holds no pending task on
+this instance:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `taskId` | `string` | the pending task |
+| `nodeId` | `string` | its node |
+| `isOpinionRequired` | `bool` | mirrors the node config: approve / reject must carry a non-empty opinion when set |
+| `addAssigneeTypes` | `string[]` | positions the node allows for dynamic assignee addition (`before` / `after` / `parallel`); empty when adding is not allowed |
+| `rollbackTargets` | `{nodeId, name}[]` | valid rollback destinations, resolved from the node's rollback config and the instance's visit trail exactly like the rollback command validates them; empty when rollback is not allowed |
+| `removableAssignees` | `{taskId, assignee, status}[]` | peer tasks the viewer may remove (`status` is `pending` / `waiting`), resolved exactly like the remove-assignee command authorizes them: still-actionable peers of the viewer's own visit, excluding the viewer; empty when removal is disallowed |
 
 `availableActions` is a query-layer UI hint. For the applicant it includes
-`withdraw` when the instance can transition to `withdrawn`, and `resubmit` when
-the instance is returned or withdrawn. For pending tasks it includes `handle` for handle
-nodes, otherwise `approve`, then `reject`, plus `transfer`, `rollback`,
-`add_assignee`, or `add_cc` when the current node allows them. If the instance
-has any pending task, it also includes `urge`. Command handlers still perform
-their own validation.
+`withdraw` when the instance can transition to `withdrawn`, and `resubmit`
+when the instance is returned or withdrawn. For pending tasks it includes
+`handle` for handle nodes, otherwise `approve`, then `reject`, plus
+`transfer`, `rollback`, `add_assignee`, or `add_cc` when the current node
+allows them. If the instance has any pending task, it also includes `urge`.
+Command handlers still perform their own validation.
 
 ## `approval/admin`
 
-| Action | Permission | Params | Notes |
-| --- | --- | --- | --- |
-| `find_instances` | `approval.instance.query` | `AdminFindInstancesParams` | Tenant-filtered for non-super-admin |
-| `find_tasks` | `approval.task.query` | `AdminFindTasksParams` | Tenant-filtered for non-super-admin |
-| `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | Full admin detail |
-| `find_action_logs` | `approval.action_log.query` | `AdminFindActionLogsParams` | Requires `instanceId` |
-| `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | Aggregated metrics |
-| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | Durable binding convergence state (v0.38) |
-| `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | Audited |
-| `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | Audited |
-| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | Audited; immediately retries one eventual projection (v0.38) |
+Admin-level management and observability. For every list and metrics query,
+non-super-admin callers ignore a submitted `tenantId` override and are
+filtered to their own tenant; super-admin callers may pass `tenantId` to
+filter one tenant or omit it for cross-tenant visibility.
 
-| Action | Request fields |
-| --- | --- |
-| `find_instances` | `params.tenantId`, `params.applicantId`, `params.status`, `params.flowId`, `params.keyword`, `params.page`, `params.pageSize` |
-| `find_tasks` | `params.tenantId`, `params.assigneeId`, `params.instanceId`, `params.status`, `params.page`, `params.pageSize` |
-| `get_instance_detail` | `params.instanceId` required |
-| `find_action_logs` | `params.instanceId` required, `params.tenantId`, `params.page`, `params.pageSize` |
-| `get_metrics` | `params.tenantId` |
-| `find_business_projections` | `params.tenantId`, `params.status` (`pending`, `processing`, `applied`, `failed`), `params.page`, `params.pageSize` |
-| `terminate_instance` | `params.instanceId` required, `params.reason` max 2000 chars |
-| `reassign_task` | `params.taskId` required, `params.newAssigneeId` required, `params.reason` max 2000 chars |
-| `retry_business_projection` | `params.projectionId` required |
+| Action | Permission | Input | Output | Audit |
+| --- | --- | --- | --- | --- |
+| `find_instances` | `approval.instance.query` | `AdminFindInstancesParams` | `page.Page[Instance]` | — |
+| `find_tasks` | `approval.task.query` | `AdminFindTasksParams` | `page.Page[Task]` | — |
+| `get_instance_detail` | `approval.instance.detail` | `AdminGetInstanceDetailParams` | `InstanceDetail` | — |
+| `find_action_logs` | `approval.action_log.query` | `AdminFindActionLogsParams` | `page.Page[ActionLog]` | — |
+| `get_metrics` | `approval.metrics.query` | `AdminGetMetricsParams` | `Metrics` | — |
+| `find_business_projections` | `approval.binding.query` | `AdminFindBusinessProjectionsParams` | `page.Page[BusinessProjection]` (v0.38) | — |
+| `terminate_instance` | `approval.instance.terminate` | `AdminTerminateInstanceParams` | success | Yes |
+| `reassign_task` | `approval.task.reassign` | `AdminReassignTaskParams` | success | Yes |
+| `retry_business_projection` | `approval.binding.retry` | `AdminRetryBusinessProjectionParams` | success (v0.38) | Yes |
 
-For admin list and metrics queries, non-super-admin callers ignore a submitted
-`tenantId` override and are filtered to their own tenant. Super-admin callers
-may pass `tenantId` to filter one tenant or omit it for cross-tenant visibility.
+Request parameters (all decoded from `params`):
 
-Admin list/detail DTOs keep tenant scope on the wire as `tenantId`. The raw
-audit trail is still available through `find_action_logs`; detail responses
-carry timeline and flow-graph projections for rendering.
+| Action | Field | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `find_instances` | `tenantId` | `string` | No | tenant filter (super-admin only, see above) |
+| | `applicantId` | `string` | No | filter by applicant |
+| | `status` | `string` | No | instance status filter |
+| | `flowId` | `string` | No | filter by flow |
+| | `keyword` | `string` | No | contains match against the instance title |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `find_tasks` | `tenantId` | `string` | No | tenant filter |
+| | `assigneeId` | `string` | No | filter by assignee |
+| | `instanceId` | `string` | No | filter by owning instance |
+| | `status` | `string` | No | task status filter (`waiting` / `pending` / `approved` / `rejected` / `handled` / `transferred` / `rolled_back` / `canceled` / `removed` / `skipped`) |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `get_instance_detail` | `instanceId` | `string` | Yes | instance to load |
+| `find_action_logs` | `instanceId` | `string` | Yes | instance whose audit trail to page through |
+| | `tenantId` | `string` | No | tenant filter |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `get_metrics` | `tenantId` | `string` | No | tenant scope (super-admin may omit for cross-tenant) |
+| `find_business_projections` | `tenantId` | `string` | No | tenant filter |
+| | `status` | `string` | No | projection status filter: `pending`, `processing`, `applied`, `failed` |
+| | `page` / `pageSize` | `int` | No | pagination |
+| `terminate_instance` | `instanceId` | `string` | Yes | running instance to force-terminate (`ErrTerminateNotAllowed` outside running states) |
+| | `reason` | `string` (≤ 2000) | No | termination reason recorded in the action log |
+| `reassign_task` | `taskId` | `string` | Yes | pending task to reassign |
+| | `newAssigneeId` | `string` | Yes | replacement assignee (`ErrInvalidTransferTarget` when invalid) |
+| | `reason` | `string` (≤ 2000) | No | reassignment reason |
+| `retry_business_projection` | `projectionId` | `string` | Yes | projection to retry immediately (`ErrBindingProjectionNotFound` when missing) |
 
-## Response DTO Fields
+Response DTOs (`approval/admin` package):
 
-Admin responses use the DTOs from `approval/admin`:
+`Instance` — one instance in the admin list:
 
-| DTO | JSON fields |
-| --- | --- |
-| `admin.Instance` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `applicant` (`UserInfo`), `status`, `currentNodeName`, `createdAt`, `finishedAt` |
-| `admin.Task` | `taskId`, `instanceId`, `instanceTitle`, `flowName`, `nodeName`, `assignee` (`UserInfo`), `status`, `createdAt`, `deadline`, `finishedAt` |
-| `admin.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph` |
-| `admin.InstanceDetailInfo` | `instanceId`, `instanceNo`, `title`, `tenantId`, `flowId`, `flowName`, `flowVersionId`, `labels`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
-| `admin.ActionLog` | `logId`, `action`, `nodeId`, `taskId`, `operator`, `transferTo`, `rollbackToNodeId`, `addedAssignees`, `removedAssignees`, `ccUsers`, `opinion`, `attachments`, `createdAt` |
-| `admin.Metrics` | `tenantId`, `capturedAt`, `instanceCounts`, `taskCounts`, `timeoutTaskCount`, `avgCompletionSeconds`, `pendingBindingFailures`, `businessProjectionCounts`, `pendingBusinessProjections` |
-| `admin.BusinessProjection` | `projectionId`, `tenantId`, `flowId`, `flowVersionId`, `ownerInstanceId`, `appliedOwnerInstanceId`, `businessTable`, `recordKey`, `consistency`, `desiredStatus`, `desiredStartedAt`, `desiredFinishedAt`, `desiredRevision`, `appliedRevision`, `status`, `attemptCount`, `nextAttemptAt`, `leaseUntil`, `lastError`, `appliedAt`, `updatedAt` |
+| Field | Type | Description |
+| --- | --- | --- |
+| `instanceId` / `instanceNo` / `title` | `string` | instance identity |
+| `tenantId` | `string` | owning tenant |
+| `flowId` / `flowName` | `string` | flow identity |
+| `applicant` | `UserInfo` | applicant snapshot |
+| `status` | `string` | instance status |
+| `currentNodeName` | `string` \| absent | node currently in progress |
+| `createdAt` / `finishedAt` | `DateTime` | lifecycle timestamps |
 
-Self-service responses use the DTOs from `approval/my`:
+`Task` — one task in the admin list:
 
-| DTO | JSON fields |
-| --- | --- |
-| `my.AvailableFlow` | `flowId`, `flowCode`, `flowName`, `flowIcon`, `description`, `labels`, `categoryId`, `categoryName` |
-| `my.StartForm` | `flowId`, `flowCode`, `flowName`, `flowIcon`, `description`, `versionId`, `version`, `formSchema` (host designer document, verbatim) |
-| `my.InitiatedInstance` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `status`, `currentNodeName`, `createdAt`, `finishedAt` |
-| `my.PendingTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `createdAt`, `deadline`, `isTimeout` |
-| `my.CompletedTask` | `taskId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `status`, `finishedAt` |
-| `my.CCRecord` | `ccRecordId`, `instanceId`, `instanceTitle`, `instanceNo`, `flowName`, `flowIcon`, `applicant` (`UserInfo`), `nodeName`, `isRead`, `createdAt` |
-| `my.PendingCounts` | `pendingTaskCount`, `unreadCcCount` |
-| `my.InstanceDetail` | `instance`, `formSchema` (host designer document, verbatim), `timeline`, `flowGraph`, `availableActions`, `fieldPermissions`, `myTask` |
-| `my.InstanceInfo` | `instanceId`, `instanceNo`, `title`, `flowName`, `flowIcon`, `labels`, `applicant`, `status`, `currentNodeId`, `currentNodeName`, `businessRef`, `formData`, `createdAt`, `finishedAt` |
-| `my.ViewerTask` | `taskId`, `nodeId`, `isOpinionRequired`, `addAssigneeTypes`, `rollbackTargets` (`{nodeId, name}`), `removableAssignees` (`{taskId, assignee, status}`) |
+| Field | Type | Description |
+| --- | --- | --- |
+| `taskId` | `string` | task id |
+| `instanceId` / `instanceTitle` | `string` | owning instance identity |
+| `flowName` | `string` | flow display name |
+| `nodeName` | `string` | node the task belongs to |
+| `assignee` | `UserInfo` | assignee snapshot |
+| `status` | `string` | task status |
+| `createdAt` | `DateTime` | creation time |
+| `deadline` | `DateTime` \| absent | timeout deadline |
+| `finishedAt` | `DateTime` \| absent | completion time |
+
+`InstanceDetail` — the admin counterpart of `my.get_instance_detail`, without
+the viewer-specific fields (`availableActions` / `fieldPermissions` /
+`myTask`): `instance` (`InstanceDetailInfo`), `formSchema` (verbatim host
+document), `timeline` (`TimelineEntry[]`), and `flowGraph`
+(`InstanceFlowGraph`). `InstanceDetailInfo` matches `my.InstanceInfo` plus
+`tenantId`, `flowId`, and `flowVersionId`, and its `formData` is unfiltered.
+
+`ActionLog` — one audit entry. Person references are uniform `UserInfo`
+snapshots captured at action time:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `logId` | `string` | log entry id |
+| `action` | `string` | `ActionType` string: `submit`, `approve`, `handle`, `reject`, `transfer`, `withdraw`, `cancel`, `rollback`, `add_assignee`, `remove_assignee`, `execute`, `resubmit`, `reassign`, `terminate`, `add_cc` |
+| `nodeId` | `string` \| absent | node the action happened at; absent for instance-level actions |
+| `taskId` | `string` \| absent | task the action targeted |
+| `operator` | `UserInfo` | acting user snapshot |
+| `transferTo` | `UserInfo` \| absent | transfer / reassignment recipient |
+| `rollbackToNodeId` | `string` \| absent | rollback destination |
+| `addedAssignees` / `removedAssignees` | `UserInfo[]` \| absent | dynamic assignee changes |
+| `ccUsers` | `UserInfo[]` \| absent | manually CC'd users |
+| `opinion` | `string` \| absent | action comment / reason |
+| `attachments` | `string[]` \| absent | attachment references |
+| `createdAt` | `DateTime` | action time |
+
+`Metrics` — aggregated engine health for dashboards and ops alerting:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tenantId` | `string` | tenant scope of the snapshot; empty for a cross-tenant snapshot (super-admin only) |
+| `capturedAt` | `DateTime` | when the metrics were materialized |
+| `instanceCounts` | `object` (status→int) | instance counts keyed by `InstanceStatus` string |
+| `taskCounts` | `object` (status→int) | task counts keyed by `TaskStatus` string |
+| `timeoutTaskCount` | `int` | pending tasks past their deadline |
+| `avgCompletionSeconds` | `float` | average end-to-end duration (`createdAt` → `finishedAt`) over all finalized instances; `-1` means "no completed instances yet" |
+| `pendingBindingFailures` | `int` | projection targets whose latest write attempt failed and is scheduled for retry |
+| `businessProjectionCounts` | `object` (status→int) | durable projection rows by convergence status (`pending` / `processing` / `applied` / `failed`) |
+| `pendingBusinessProjections` | `int` | eventual projections whose desired revision has not been applied yet |
+
+`BusinessProjection` — the operator-facing convergence state for one bound
+business record (see [Integration](./integration.md) for the write-back
+model):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `projectionId` | `string` | projection row id |
+| `tenantId` | `string` | owning tenant |
+| `flowId` / `flowVersionId` | `string` | flow and version that own the desired state |
+| `ownerInstanceId` | `string` | instance whose lifecycle produced the desired state |
+| `appliedOwnerInstanceId` | `string` \| absent | instance whose state was last successfully written to the business row |
+| `businessTable` | `string` | target business table |
+| `recordKey` | JSON object | key-column values locating the bound row |
+| `consistency` | `string` | binding consistency mode from configuration (`transactional` / `eventual`) |
+| `desiredStatus` | `string` | instance status awaiting write-back |
+| `desiredStartedAt` / `desiredFinishedAt` | `DateTime` | lifecycle timestamps awaiting write-back |
+| `desiredRevision` / `appliedRevision` | `int` | monotonic revisions; the projection has converged when they are equal |
+| `status` | `string` | convergence state: `pending`, `processing`, `applied`, `failed` |
+| `attemptCount` | `int` | write attempts so far |
+| `nextAttemptAt` | `DateTime` \| absent | next scheduled retry |
+| `leaseUntil` | `DateTime` \| absent | worker lease expiry while `processing` |
+| `lastError` | `string` \| absent | last write failure message |
+| `appliedAt` | `DateTime` \| absent | when the desired state was last applied |
+| `updatedAt` | `DateTime` | last state change |
+
+## Shared Projection Types
+
+The detail views (`my.get_instance_detail`, `admin.get_instance_detail`) share
+these types from the public `approval` package.
+
+`UserInfo` — the uniform person snapshot used everywhere a person appears:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | user id |
+| `name` | `string` | display name at action time |
+| `departmentId` / `departmentName` | `string` \| absent | department snapshot at action time |
+
+`TimelineEntry` — one step of the instance timeline: the chronological,
+node-by-node account of the path an instance actually took. Because condition
+branches are exclusive, the traversed path is always a single line; a node
+re-entered after a rollback produces a second entry. Entries end at the node
+currently in progress — unreached nodes are not predicted:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `kind` | `string` | `start`, `approval`, `handle`, `cc` for node visits; `withdraw`, `terminate` for instance-level milestones. Structural kinds (`condition` / `end`) never appear |
+| `nodeId` | `string` \| absent | visited node; absent on milestone entries |
+| `name` | `string` | node display name (or milestone action name) |
+| `status` | `string` | node-visit status: `active`, `passed`, `rejected`, `returned`, `canceled` |
+| `executionType` | `string` | node execution type (`manual` / `auto_pass` / `auto_reject`) |
+| `approvalMethod` | `string` | `sequential` / `parallel` (approval nodes) |
+| `passRule` | `string` | `all` / `any` / `ratio` (approval nodes) |
+| `passRatio` | `decimal` \| absent | ratio threshold when `passRule` is `ratio` |
+| `participants` | `NodeParticipant[]` | one entry per task at approval / handle nodes (below) |
+| `ccRecipients` | `CCRecipient[]` | delivered carbon copies: `user` (`UserInfo`) plus `readAt` read receipt |
+| `activities` | `Activity[]` | side actions at the node (below); milestone entries hold a single activity describing who closed the instance and why |
+| `startedAt` / `finishedAt` | `DateTime` | visit span; `finishedAt` absent while in progress |
+
+`NodeParticipant` — one assignee's involvement during a single visit:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `taskId` | `string` | task identity (what task operations target) |
+| `user` | `UserInfo` | assignee snapshot |
+| `delegator` | `UserInfo` \| absent | present when the task arrived via delegation |
+| `status` | `string` | task status verbatim |
+| `deadline` | `DateTime` \| absent | task deadline |
+| `isTimeout` | `bool` | task was decided or escalated by the timeout scanner |
+| `opinion` / `attachments` / `actionTime` | — | outcome details fused from the action log that finished the task |
+| `transferTo` | `UserInfo` \| absent | transfer recipient when the task was transferred |
+
+`Activity` — a side action recorded at a node: `action` carries the
+`ActionType` string (`transfer`, `rollback`, `add_assignee`,
+`remove_assignee`, `add_cc`, `reassign`, `execute`, `submit`, `resubmit`,
+`withdraw`, `terminate`) plus `urge` for urge records. `operator` is the
+acting user; `opinion` holds the action's free text (a transfer reason, a
+withdraw reason, an urge message); `target` names the counterpart of a
+directed action (the urged assignee); `transferTo`, `rollbackToNodeId` /
+`rollbackToNodeName`, `addedAssignees`, `removedAssignees`, `ccUsers`, and
+`attachments` carry the action-specific details, and `createdAt` the action
+time. Decisions themselves (approve / handle / reject) are not repeated as
+activities — they live on the participant that made them.
+
+`InstanceFlowGraph` — a React Flow–ready, read-only projection of the
+instance's pinned flow definition annotated with runtime progress. `nodes`
+and `edges` map directly onto React Flow's shape, except the node kind stays
+in `kind` (React Flow's `type` belongs to the client):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `nodes[].id` | `string` | React Flow identity — the design-time node key that positions and edges reference |
+| `nodes[].nodeId` | `string` | persistent flow-node id — the value `actionLog.nodeId` / `rollbackToNodeId` carry and the `process_task` rollback API expects as `targetNodeId` |
+| `nodes[].kind` | `string` | node kind (`start` / `approval` / `handle` / `condition` / `cc` / `end`) |
+| `nodes[].position` | `{x, y}` | designer coordinates |
+| `nodes[].data` | `FlowGraphNodeData` | node label, approval semantics, progress `status` (`pending` / `active` / `passed` / `rejected` / `returned` / `canceled`), plus `participants` / `ccRecipients` / `activities` aggregated across the node's visits in traversal order, and the `startedAt` / `finishedAt` span |
+| `edges[]` | `{id, source, target, sourceHandle}` | React Flow edges connecting nodes by their ids |
 
 ## Error Surface
 

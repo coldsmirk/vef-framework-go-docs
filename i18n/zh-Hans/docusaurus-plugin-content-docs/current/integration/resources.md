@@ -11,8 +11,9 @@ sidebar_position: 5
 
 本页使用的约定：
 
-- CRUD 读操作从 `params` 解码其查询结构体；`find_page` 额外从 `meta.page`
-  与 `meta.size` 读取分页（`page.Pageable`），可排序资源读取 `meta.sort`。
+- CRUD 读操作的查询结构体嵌入 `crud.Sortable`（一个 `meta` 结构体），因此
+  过滤字段从请求的 `meta` 对象解码；`find_page` 额外从 `meta.page` 与
+  `meta.size` 读取分页（`page.Pageable`），`meta.sort` 携带排序声明。
 - `find_page` 的响应是 `page.Page[T]`：`page`、`size`、`total`、`items`。
 - 变更操作从 `params` 解码。标记必填的字段由校验强制；其余为可选。
 - 所有定义模型的响应都携带标准审计字段（`id`、`createdAt`、`createdBy`、

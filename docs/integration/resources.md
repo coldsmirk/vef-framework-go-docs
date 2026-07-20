@@ -13,9 +13,10 @@ declares the permission listed in its table.
 
 Conventions used on this page:
 
-- CRUD read operations decode their search struct from `params`;
-  `find_page` additionally reads `meta.page` and `meta.size`
-  (`page.Pageable`), and sortable resources read `meta.sort`.
+- CRUD read operations declare search structs embedding `crud.Sortable` — a
+  `meta` struct — so their filter fields decode from the request's `meta`
+  object; `find_page` additionally reads `meta.page` and `meta.size`
+  (`page.Pageable`), and `meta.sort` carries sort specs.
 - `find_page` responds with `page.Page[T]`: `page`, `size`, `total`,
   `items`.
 - Mutations decode from `params`. Fields marked required are enforced by
