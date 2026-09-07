@@ -257,10 +257,10 @@ schema 产出零字段（没有表单的流程）；parser 报错会中止部署
 请求的 deadline——执行 I/O 的宿主 parser 必须遵守它。
 
 派生字段会在部署时校验（key 唯一、kind 已知、pattern 可编译、边界一致、
-明细表单层）。每个 `FormFieldDefinition` 条目使用
+明细表单层、选项来源自洽）。每个 `FormFieldDefinition` 条目使用
 `key`、`kind`、`label`、`placeholder`、`defaultValue`、`isRequired`、
-`options`、`validation`、`props`、`sortOrder`、`columnType`、`scale` 和
-`columns`。每个 option 使用 `label` 和 `value`。`columns` 定义 table 字段
+`options`、`optionSource`、`validation`、`props`、`sortOrder`、`columnType`、
+`scale` 和 `columns`。每个 option 使用 `label` 和 `value`。`columns` 定义 table 字段
 （`kind` 为 `table`）的行结构：每一列本身也是一个 `FormFieldDefinition`，且不能再声明
 自己的 `columns`——明细表格只能是单层。table 字段自身的 `validation.minLength` /
 `maxLength` 用于约束行数，`isRequired` 表示至少要有一行。
@@ -276,6 +276,195 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 存在于选项中。`upload` 字段接受非空白字符串、非空 `[]string`，或非空且每项都是非空白
 字符串的数组。`validation.message` 只作为 `pattern` 不匹配时的自定义错误信息；
 其他校验失败使用模块 i18n 消息。
+
+#### 选项来源：枚举出来的，还是远程的
+
+选择类字段的选项只会以两种形状之一出现，绝不会同时出现：
+
+- `options`（`[]FieldOption`）——部署时选项可以被枚举，投影就直接把它写出来。
+  静态来源无论是内联配置在字段上，还是通过表单全局的 `ref` 引用到的，都会被
+  枚举出来。
+- `optionSource`（`*FieldOptionSource`）——选项**无法**被枚举，投影于是输出
+  消费方自行拉取所需的描述符。只有远程来源会走到这个形状。
+
+两者都没有的字段就是自由输入：没有任何东西约束它的取值。
+
+投影结果是**解引用之后**的。设计器里的 `ref` 会先针对表单全局来源解析，再写入
+字段，所以消费方永远不需要自己去追 `dataSourceId`。指向不存在来源的 `ref` 既不
+产出 `options` 也不产出 `optionSource`——和完全没有配置来源的字段一样。
+
+`FieldOptionSource` 的结构：
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `kind` | `OptionSourceKind` | 来源分类；目前只会输出 `OptionSourceRemote`（`remote`） |
+| `request` | `*RemoteOptionRequest` | 返回选项记录的那个操作 |
+| `mapping` | `*RemoteOptionMapping` | 如何从每条记录里读出 label 和 value；`nil` 表示用默认值 |
+
+设计器自身的来源联合类型还有 `static` 和 `ref`，但两者都活不过投影，所以
+`OptionSourceKind` 的词汇表刻意比设计器的更窄。
+
+`RemoteOptionRequest` 用框架自己的 resource/action 寻址方式定位那个操作：
+`resource`、`action`、`version`（为空表示默认版本）和 `params`。
+`RemoteOptionMapping` 指出记录里的键名——`labelKey`（默认 `label`）、
+`valueKey`（默认 `value`）、`disabledKey` 和 `descriptionKey`；留空的条目回落到
+各自的默认值。
+
+**框架从不解析选项来源**：表单数据校验只读 `options`，而没有 options 的
+`select` 字段接受任意提交值——所以 `optionSource` 在服务端不约束任何东西。它的
+存在是为了那些必须把**已存储的值**渲染成 label 的消费方：业务列表页展示一个存下来
+的 select 值时需要的是 label 而不是原始编码，而静态那一半早就由 `options` 覆盖了。
+
+部署校验同样覆盖选项来源，顶层字段和明细表格列一视同仁：`kind` 不在词汇表内的
+`optionSource`，或者 `request` 缺失、`resource` / `action` 为空白的远程来源，都会
+让部署失败。这两种情况在别处都不会失败——框架从不解析来源——于是版本会干干净净地
+部署上去，然后在每一个回放它的消费方那里渲染成原始值。
+
+明细表格的列自带这一份：`columns` 里的条目本身就是完整的 `FormFieldDefinition`，
+所以 `table` 字段内部的 `select` 列拥有和顶层字段一样的 `options` /
+`optionSource` 组合。
+
+#### 远程请求参数
+
+`RemoteOptionRequest.Params` 是 `map[string]DynamicParam`，且**不求值**地携带。
+每个参数只会是两种 kind 之一：
+
+| `DynamicParamKind` | Wire value | 载荷 | 含义 |
+| --- | --- | --- | --- |
+| `DynamicParamLiteral` | `literal` | `value` | 设计器填写的固定值，每次求值都一样 |
+| `DynamicParamExpression` | `expression` | `source` | 表单运行时在发起请求前针对当前表单值求值的表达式——级联选择就是靠它 |
+
+后端手里没有表单值可以拿来对表达式求值，因此它只存源文本，求值这一步归回放请求的
+消费方所有。`value` 刻意不带 `omitempty`：字面量的 `false`、`0`、`""` 都是设计器
+选定的值，丢掉它会静默改变请求。
+
+**翻译整列之前，先问 `HasBoundParams()`。**
+`(*RemoteOptionRequest).HasBoundParams()` 报告是否存在表达式参数。消费方在假定
+"一次查询就能覆盖整列"之前，必须先问这个问题：
+
+- **`false`**——请求对每一行的解析结果都相同，所以**一次**调用就能为整列建好
+  value → label 映射。
+- **`true`**——选项集是**按行**的（参数依赖该行自己的表单值），列表页要么逐行求值
+  并发起请求，要么让这一列不翻译。
+
+该方法对 nil 安全：nil receiver 返回 `false`。
+
+#### 在宿主里把存储值翻译成 label
+
+注入 `approval.FormSchemaParser`——只要启用了 `vef.ApprovalModule`，它就能在
+root scope 解析出来——然后解析版本的表单 schema：
+
+```go
+package options
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+
+    "github.com/coldsmirk/vef-framework-go/approval"
+)
+
+// OptionLabelPlan says how a list view should turn each selection field's
+// stored value into a display label.
+type OptionLabelPlan struct {
+    // Static maps a field key to its value-to-label table, built from the
+    // options the definition already carries.
+    Static map[string]map[string]string
+    // Remote maps a field key to the request a consumer replays ONCE to build
+    // that table itself. Only fields whose request has no bound parameters.
+    Remote map[string]*approval.RemoteOptionRequest
+    // PerRow lists the field keys whose option set depends on the row's own
+    // form values, so one lookup cannot translate the whole column.
+    PerRow []string
+}
+
+type OptionLabelService struct {
+    parser approval.FormSchemaParser
+}
+
+func NewOptionLabelService(parser approval.FormSchemaParser) *OptionLabelService {
+    return &OptionLabelService{parser: parser}
+}
+
+func (s *OptionLabelService) Plan(ctx context.Context, schema json.RawMessage) (*OptionLabelPlan, error) {
+    fields, err := s.parser.ParseFormFields(ctx, schema)
+    if err != nil {
+        return nil, err
+    }
+
+    plan := &OptionLabelPlan{
+        Static: make(map[string]map[string]string),
+        Remote: make(map[string]*approval.RemoteOptionRequest),
+    }
+
+    for _, field := range fields {
+        switch {
+        case field.Options != nil:
+            // Enumerated at deploy: translate locally, no lookup at all.
+            labels := make(map[string]string, len(field.Options))
+            for _, option := range field.Options {
+                labels[fmt.Sprint(option.Value)] = option.Label
+            }
+
+            plan.Static[field.Key] = labels
+
+        case field.OptionSource != nil:
+            request := field.OptionSource.Request
+            if request.HasBoundParams() {
+                plan.PerRow = append(plan.PerRow, field.Key)
+
+                continue
+            }
+
+            plan.Remote[field.Key] = request
+
+        default:
+            // Free-form field: the stored value is already what to display.
+        }
+    }
+
+    return plan, nil
+}
+
+// labelKey and valueKey apply RemoteOptionMapping's defaults.
+func labelKey(mapping *approval.RemoteOptionMapping) string {
+    if mapping == nil || mapping.LabelKey == "" {
+        return "label"
+    }
+
+    return mapping.LabelKey
+}
+
+func valueKey(mapping *approval.RemoteOptionMapping) string {
+    if mapping == nil || mapping.ValueKey == "" {
+        return "value"
+    }
+
+    return mapping.ValueKey
+}
+```
+
+值按字符串形态（`fmt.Sprint`）比较——框架自己的 `select` 校验就是这么做的——所以
+`1` 和 `"1"` 命中同一个选项。
+
+解析并不是唯一入口。同一份扁平列表已经持久化在 `apv_flow_version.form_fields`
+上，并由流程版本详情响应以 `formFields` 返回，所以手里已经有那一行的宿主直接读
+`FlowVersion.FormFields` 即可。只有当手里只有 schema 文档时才需要解析——实例详情
+响应原样返回宿主文档 `formSchema`，从不返回派生字段。
+
+对于成功部署的版本，`OptionSource.Request` 是可以信赖的：上面那条"缺操作即拒绝"
+的校验会挡掉没有 request 的远程来源，所以在活下来的字段上它永远不是 `nil`。
+
+#### 上传字段
+
+内置 parser 会把设计器的 `upload` 组件投影为 `upload` 字段 kind。
+
+上传字段的 `columnType` 由它的**文件数量**推断，而不是由 `maxLength` 推断：
+`maxCount > 1` 得到 `json`（值是一组存储 key 的数组——和 `checkbox-group` 的形状
+相同），其余情况得到 `text`（单个存储 key）。`maxLength` 约束的是*字符串*长度，
+而上传字段的界限是它接受多少个文件，在这里读它就会按错误的量纲给列定尺寸。字段上
+显式声明的 `columnType` 依然优先，这一点和所有 kind 一致。
 
 ## 流程校验
 
@@ -305,10 +494,12 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 
 公开包暴露的流程设计和持久化模型包括 `FlowCategory`、`Flow`、`FlowVersion`、
 `FlowNode`、`FlowEdge`、`FlowInitiator`、`FlowNodeAssignee`、`FlowNodeCC`、
-`FormFieldDefinition`、`FormSnapshot`、`ActionLog`、
+`FormFieldDefinition`、`FieldOption`、`FieldOptionSource`、
+`RemoteOptionRequest`、`RemoteOptionMapping`、`DynamicParam`、
+`FormSnapshot`、`ActionLog`、
 `UserInfo` 和 `UrgeRecord`（没有结构化的 `FormDefinition`
-包装——宿主文档是 opaque 的，框架侧只有 `FormFieldDefinition` 这一种
-形状）。流程版本状态使用 `VersionStatus`：
+包装——宿主文档是 opaque 的，框架侧的表单形状只有 `FormFieldDefinition`
+及它内嵌的那些类型）。流程版本状态使用 `VersionStatus`：
 `VersionDraft`（`draft`）、`VersionPublished`（`published`）、
 `VersionArchived`（`archived`）。
 
@@ -327,6 +518,8 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 | `FieldKind` | `input`、`textarea`、`select`、`number`、`date`、`upload`、`table` |
 | `ColumnDataType` | `string`、`text`、`integer`、`decimal`、`boolean`、`date`、`datetime`、`json` |
 | `Permission` | `visible`、`editable`、`hidden`、`required` |
+| `OptionSourceKind` | `remote` |
+| `DynamicParamKind` | `literal`、`expression` |
 
 ---
 

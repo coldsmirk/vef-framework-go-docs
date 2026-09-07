@@ -290,14 +290,14 @@ yields no fields (a flow without a form); parser errors abort the deploy. The
 must honor it.
 
 The derived fields are validated at deploy (unique keys, known kinds,
-compilable patterns, coherent bounds, single-level tables). Each
-`FormFieldDefinition` entry uses
+compilable patterns, coherent bounds, single-level tables, coherent option
+sources). Each `FormFieldDefinition` entry uses
 `key`, `kind`, `label`, `placeholder`, `defaultValue`, `isRequired`,
-`options`, `validation`, `props`, `sortOrder`, `columnType`, `scale`, and
-`columns`. Each option uses `label` and `value`. `columns` defines the row
-shape of a table field (`kind` is `table`): each entry is itself a
-`FormFieldDefinition` and must not declare its own `columns` — detail tables
-are single-level. On the table field itself, `validation.minLength` /
+`options`, `optionSource`, `validation`, `props`, `sortOrder`, `columnType`,
+`scale`, and `columns`. Each option uses `label` and `value`. `columns`
+defines the row shape of a table field (`kind` is `table`): each entry is
+itself a `FormFieldDefinition` and must not declare its own `columns` —
+detail tables are single-level. On the table field itself, `validation.minLength` /
 `maxLength` bound the row count and `isRequired` means at least one row.
 
 `validation` supports `minLength`, `maxLength`, `min`, `max`, `pattern`, and
@@ -313,6 +313,212 @@ values against `options` when options are present. `upload` fields accept a
 non-blank string, a non-empty `[]string`, or a non-empty array of non-blank
 strings. `validation.message` is used as the custom error message for
 `pattern` mismatches; other validation failures use the module i18n messages.
+
+#### Selection Options: Enumerated or Remote
+
+A selection field carries its options in exactly one of two shapes, never in
+both:
+
+- `options` (`[]FieldOption`) — the option list was enumerable at deploy, so
+  the projection wrote it out. A static source is enumerated whether it was
+  configured inline on the field or reached through a form-global `ref`.
+- `optionSource` (`*FieldOptionSource`) — the options could **not** be
+  enumerated, so the projection emits the descriptor a consumer needs to fetch
+  them itself. Only remote sources reach this shape.
+
+A field with neither is free-form: nothing constrains its value.
+
+The projection is **post-dereference**. A designer `ref` is resolved against
+the form-global sources before the field is written, so a consumer never has to
+chase a `dataSourceId`. A `ref` that points at nothing yields neither `options`
+nor `optionSource` — exactly like a field with no source at all.
+
+`FieldOptionSource` is:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `kind` | `OptionSourceKind` | classifies the source; `OptionSourceRemote` (`remote`) is the only value emitted |
+| `request` | `*RemoteOptionRequest` | the operation returning the option records |
+| `mapping` | `*RemoteOptionMapping` | how to read a label and a value out of each record; `nil` means the defaults |
+
+The designer's own source union also has `static` and `ref`, but neither
+survives projection, so `OptionSourceKind` is deliberately narrower than it.
+
+`RemoteOptionRequest` addresses the operation in the framework's own
+resource/action addressing: `resource`, `action`, `version` (empty means the
+default), and `params`. `RemoteOptionMapping` names the record keys —
+`labelKey` (default `label`), `valueKey` (default `value`), `disabledKey`, and
+`descriptionKey`; an empty entry falls back to its default.
+
+**The framework never resolves an option source.** Form-data validation reads
+`options` only, and a `select` field with no options accepts any submitted
+value — so an `optionSource` constrains nothing on the server. It exists for
+consumers that must render a *stored* value as its label: a business list view
+showing a stored select value needs the label, not the raw code, and the static
+case was already covered by `options`.
+
+Deploy validation covers option sources at the top level and inside a detail
+table alike: an `optionSource` whose `kind` is outside the vocabulary, or a
+remote one whose `request` is absent or names a blank `resource` / `action`,
+fails the deploy. Neither would fail anywhere else — the framework never
+resolves the source — so the version would deploy cleanly and then render as a
+raw value in every consumer that replayed it.
+
+Detail-table columns carry their own: `columns` entries are full
+`FormFieldDefinition` values, so a `select` column inside a `table` field has
+the same `options` / `optionSource` pair a top-level field has.
+
+#### Remote Request Parameters
+
+`RemoteOptionRequest.Params` is a `map[string]DynamicParam`, carried
+**unevaluated**. Each parameter is one of two kinds:
+
+| `DynamicParamKind` | Wire value | Payload | Meaning |
+| --- | --- | --- | --- |
+| `DynamicParamLiteral` | `literal` | `value` | a fixed value the designer typed, identical for every evaluation |
+| `DynamicParamExpression` | `expression` | `source` | an expression the form runtime evaluates against the live form values before issuing the request — what makes a cascading select work |
+
+The backend holds no form values to evaluate an expression against, so it
+stores the source text and a consumer replaying the request owns that step.
+`value` is deliberately not `omitempty`: a literal `false`, `0`, or `""` is a
+value the designer chose, and dropping it would silently change the request.
+
+**Ask `HasBoundParams()` before translating a column.**
+`(*RemoteOptionRequest).HasBoundParams()` reports whether any parameter is an
+expression. It is the question a consumer must ask before assuming one lookup
+covers a whole column:
+
+- **`false`** — the request resolves identically for every row, so **one** call
+  builds a value-to-label map for the entire column.
+- **`true`** — the option set is **per row** (its parameters depend on that
+  row's own form values), so a list view must either evaluate and issue the
+  request per row, or leave that column untranslated.
+
+The method is nil-safe: a nil receiver reports `false`.
+
+#### Translating Stored Values in a Host
+
+Inject `approval.FormSchemaParser` — it resolves at root scope whenever
+`vef.ApprovalModule` is enabled — and parse the version's form schema:
+
+```go
+package options
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+
+    "github.com/coldsmirk/vef-framework-go/approval"
+)
+
+// OptionLabelPlan says how a list view should turn each selection field's
+// stored value into a display label.
+type OptionLabelPlan struct {
+    // Static maps a field key to its value-to-label table, built from the
+    // options the definition already carries.
+    Static map[string]map[string]string
+    // Remote maps a field key to the request a consumer replays ONCE to build
+    // that table itself. Only fields whose request has no bound parameters.
+    Remote map[string]*approval.RemoteOptionRequest
+    // PerRow lists the field keys whose option set depends on the row's own
+    // form values, so one lookup cannot translate the whole column.
+    PerRow []string
+}
+
+type OptionLabelService struct {
+    parser approval.FormSchemaParser
+}
+
+func NewOptionLabelService(parser approval.FormSchemaParser) *OptionLabelService {
+    return &OptionLabelService{parser: parser}
+}
+
+func (s *OptionLabelService) Plan(ctx context.Context, schema json.RawMessage) (*OptionLabelPlan, error) {
+    fields, err := s.parser.ParseFormFields(ctx, schema)
+    if err != nil {
+        return nil, err
+    }
+
+    plan := &OptionLabelPlan{
+        Static: make(map[string]map[string]string),
+        Remote: make(map[string]*approval.RemoteOptionRequest),
+    }
+
+    for _, field := range fields {
+        switch {
+        case field.Options != nil:
+            // Enumerated at deploy: translate locally, no lookup at all.
+            labels := make(map[string]string, len(field.Options))
+            for _, option := range field.Options {
+                labels[fmt.Sprint(option.Value)] = option.Label
+            }
+
+            plan.Static[field.Key] = labels
+
+        case field.OptionSource != nil:
+            request := field.OptionSource.Request
+            if request.HasBoundParams() {
+                plan.PerRow = append(plan.PerRow, field.Key)
+
+                continue
+            }
+
+            plan.Remote[field.Key] = request
+
+        default:
+            // Free-form field: the stored value is already what to display.
+        }
+    }
+
+    return plan, nil
+}
+
+// labelKey and valueKey apply RemoteOptionMapping's defaults.
+func labelKey(mapping *approval.RemoteOptionMapping) string {
+    if mapping == nil || mapping.LabelKey == "" {
+        return "label"
+    }
+
+    return mapping.LabelKey
+}
+
+func valueKey(mapping *approval.RemoteOptionMapping) string {
+    if mapping == nil || mapping.ValueKey == "" {
+        return "value"
+    }
+
+    return mapping.ValueKey
+}
+```
+
+Values are compared by their string form (`fmt.Sprint`), which is what the
+framework's own `select` validation does, so `1` and `"1"` address the same
+option.
+
+Parsing is not the only way in. The same flat list is persisted on
+`apv_flow_version.form_fields` and returned as `formFields` by the flow-version
+detail response, so a host holding that row reads `FlowVersion.FormFields`
+directly. Parse when all it has is the schema document — the instance-detail
+responses return the host document verbatim as `formSchema` and never the
+derived fields.
+
+`OptionSource.Request` can be relied on for a version that deployed: the
+missing-operation check above rejects a remote source without one, so it is
+never `nil` on fields that survived deploy.
+
+#### Upload Fields
+
+The built-in parser projects the designer's `upload` widget onto the `upload`
+field kind.
+
+An upload field's `columnType` is inferred from its **file count**, not from
+`maxLength`: `maxCount > 1` yields `json` (the value is an array of storage
+keys — the same shape `checkbox-group` carries), and anything else yields
+`text` (a single storage key). `maxLength` bounds a *string's* length, while an
+upload's bound is how many files it accepts, so reading it here would size the
+column off the wrong quantity. An explicit `columnType` on the field still
+wins, as it does for every kind.
 
 ## Flow Validation
 
@@ -348,10 +554,12 @@ inspecting the schema themselves.
 
 Flow design and persistence models exposed by the public package include
 `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`,
-`FlowNodeAssignee`, `FlowNodeCC`, `FormFieldDefinition`,
-`FormSnapshot`, `ActionLog`, `UserInfo`, and `UrgeRecord` (there is no
-structured `FormDefinition` wrapper — the host document is opaque
-and only `FormFieldDefinition` is a framework shape). Flow-version
+`FlowNodeAssignee`, `FlowNodeCC`, `FormFieldDefinition`, `FieldOption`,
+`FieldOptionSource`, `RemoteOptionRequest`, `RemoteOptionMapping`,
+`DynamicParam`, `FormSnapshot`, `ActionLog`, `UserInfo`, and `UrgeRecord`
+(there is no structured `FormDefinition` wrapper — the host document is opaque,
+and `FormFieldDefinition` with the shapes it nests is the only framework form
+shape). Flow-version
 status uses `VersionStatus`: `VersionDraft` (`draft`), `VersionPublished`
 (`published`), and `VersionArchived` (`archived`).
 
@@ -371,6 +579,8 @@ Additional flow-designer enums:
 | `FieldKind` | `input`, `textarea`, `select`, `number`, `date`, `upload`, `table` |
 | `ColumnDataType` | `string`, `text`, `integer`, `decimal`, `boolean`, `date`, `datetime`, `json` |
 | `Permission` | `visible`, `editable`, `hidden`, `required` |
+| `OptionSourceKind` | `remote` |
+| `DynamicParamKind` | `literal`, `expression` |
 
 ---
 
