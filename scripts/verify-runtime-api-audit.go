@@ -82,6 +82,7 @@ type configField struct {
 	TypeName string
 	TypeExpr string
 	Source   string
+	MapKeyed bool
 }
 
 type stringOccurrence struct {
@@ -746,13 +747,15 @@ func configFields(sf sourceFile, st *ast.StructType) []configField {
 		if !ok || tag == "" || tag == "-" {
 			continue
 		}
+		typeName, mapKeyed := configValueType(field.Type)
 		for _, name := range field.Names {
 			fields = append(fields, configField{
 				Name:     name.Name,
 				Key:      tag,
-				TypeName: namedType(field.Type),
+				TypeName: typeName,
 				TypeExpr: exprString(sf.Fset, field.Type),
 				Source:   fmt.Sprintf("%s:%d", sf.Path, sf.Fset.Position(field.Pos()).Line),
+				MapKeyed: mapKeyed,
 			})
 		}
 	}
@@ -930,11 +933,10 @@ func (x *extractor) extractConfigKeys() {
 	for typeName, root := range roots {
 		x.walkConfig(typeName, root, nil)
 	}
-	x.walkConfig("DataSourceConfig", "vef.data_sources.<name>", []string{"internal/config/data_sources.go:20", "config/data_sources.go:22"})
-	// API keys and basic accounts are map[string]T config values: their entry
-	// structs are unreachable from the struct-field walk, so they root here.
-	x.walkConfig("APIKeyConfig", "vef.security.api_keys.<name>", []string{"config/security.go:38"})
-	x.walkConfig("BasicAccountConfig", "vef.security.basic_accounts.<name>", []string{"config/security.go:44"})
+	// Data sources are read as one map in internal/config, which the struct
+	// walk does not cover, so this root stays explicit. Every other
+	// map[string]T config value is reached through its own declaring field.
+	x.walkConfig("DataSourceConfig", "vef.data_sources.<name>", []string{"internal/config/data_sources.go:20", "config/data_sources.go:51"})
 }
 
 func (x *extractor) walkConfig(typeName, prefix string, inheritedEvidence []string) {
@@ -949,7 +951,11 @@ func (x *extractor) walkConfig(typeName, prefix string, inheritedEvidence []stri
 		x.add("config key", key, field.TypeExpr, evidence, "Go field: "+typeName+"."+field.Name)
 
 		if _, ok := x.configTypes[field.TypeName]; ok {
-			x.walkConfig(field.TypeName, key, evidence)
+			entryPrefix := key
+			if field.MapKeyed {
+				entryPrefix += ".<name>"
+			}
+			x.walkConfig(field.TypeName, entryPrefix, evidence)
 		}
 	}
 }
@@ -1164,11 +1170,19 @@ func (x *extractor) verifyJSONFieldCoverage() []string {
 }
 
 func isJSONFieldCoverageExcluded(path string) bool {
-	if path == "cmd/vef-cli/cmd/modelschema/testdata/models/sample.go" {
+	switch path {
+	case "cmd/vef-cli/cmd/modelschema/testdata/models/sample.go":
 		return true
+	// The API manifest is a user-facing artifact, but it is described in prose
+	// on the CLI Tools page rather than indexed here: the index keys a JSON
+	// wire field by its bare Go type name, and this file's Manifest, Resource,
+	// Operation, Type, Field and RateLimit collide with public types of the
+	// same name, which the docs cross-check then resolves to the wrong struct.
+	case "internal/apiexport/manifest.go":
+		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 func (x *extractor) verifyEnvLookupCoverage() []string {
@@ -2198,6 +2212,7 @@ func cliFlagHelperKind(fun string) (cliFlagHelper, bool) {
 		strings.HasSuffix(fun, ".IntP"):
 		return cliFlagHelper{minArgs: 4, nameArg: 0, shortArg: 1, defaultArg: 2, usageArg: 3}, true
 	case strings.HasSuffix(fun, ".String"),
+		strings.HasSuffix(fun, ".StringSlice"),
 		strings.HasSuffix(fun, ".Bool"),
 		strings.HasSuffix(fun, ".Int"):
 		return cliFlagHelper{minArgs: 3, nameArg: 0, shortArg: -1, defaultArg: 1, usageArg: 2}, true
@@ -2220,7 +2235,7 @@ func isCLIFlagDefinitionCall(fun string) bool {
 
 func isCLIFlagReader(method string) bool {
 	switch method {
-	case "GetString", "GetBool", "GetInt", "Changed", "Lookup", "Visit", "VisitAll",
+	case "GetString", "GetStringSlice", "GetBool", "GetInt", "Changed", "Lookup", "Visit", "VisitAll",
 		"PrintDefaults", "FlagUsages", "FlagUsagesWrapped", "SortFlags":
 		return true
 	default:
@@ -3063,6 +3078,19 @@ func namedType(expr ast.Expr) string {
 	default:
 		return ""
 	}
+}
+
+// configValueType resolves the named type a config field walks into and
+// reports whether the field is a map whose entries the TOML author names, as
+// vef.security.api_keys.<name> does. namedType alone cannot see through a map,
+// so those structs used to be rooted by hand against a source line that went
+// stale whenever anything above it moved.
+func configValueType(expr ast.Expr) (string, bool) {
+	if mapType, ok := expr.(*ast.MapType); ok {
+		return namedType(mapType.Value), true
+	}
+
+	return namedType(expr), false
 }
 
 func receiverTypeName(expr ast.Expr) string {

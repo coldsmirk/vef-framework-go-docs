@@ -18,18 +18,18 @@ import (
 const (
 	schemaPackage = "github.com/coldsmirk/vef-framework-go/schema"
 
-	schemaFingerprint = "46442b02ef84d6f100f772104554c4800758aa43f31e5dbed40a2cef57326132"
+	schemaFingerprint = "5cc002cb7cc66f4d04291bdb3ecd731b69ee340c2f6eca5e394c9bdd07f9bc76"
 	schemaTopLevel    = 13
-	schemaFields      = 40
+	schemaFields      = 41
 	schemaMethods     = 3
-	schemaEntries     = 56
+	schemaEntries     = 57
 
-	schemaGroupedEntries              = 43
-	schemaGroupedFields               = 40
+	schemaGroupedEntries              = 44
+	schemaGroupedFields               = 41
 	schemaGroupedMethods              = 3
 	schemaGroupedReceivers            = 10
-	schemaGroupedSignatureFingerprint = "27c1f5477aced51fd74bac742637e380308d3f8815dcedc4f2cedf2e69018ea3"
-	schemaGroupedReceiverFingerprint  = "4dcac829309823f40c980ea30b832a0d75642bb8e6178ab88c8ab7301b370bde"
+	schemaGroupedSignatureFingerprint = "307dd4c4e57505abcadf05c48b7008a2822e797aebacbcad9d2a36963c414467"
+	schemaGroupedReceiverFingerprint  = "188549af2ccb0f668ebdb290f9d33d89f2661c27c60521809987cb9996b9efa4"
 
 	englishSchemaPath   = "docs/infrastructure/schema.md"
 	chineseSchemaPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/infrastructure/schema.md"
@@ -555,7 +555,7 @@ func verifySourceTerms(sourceRoot string) []string {
 			path: "internal/schema/service.go",
 			terms: []string{
 				"primary := dataSources.Primary()",
-				"NewInspector(db, primary.Kind, primary.Schema)",
+				"NewInspector(s.db, s.kind, s.schema)",
 				"convertTable(table)",
 				"IsAutoIncrement: hasAutoIncrement(col)",
 				"referentialActionToString",

@@ -55,8 +55,8 @@ func main() {
 	}
 
 	constValues := exportedStringConstValues(versionDir)
-	if got := constValues["VEFVersion"]; got != "v0.47.3" {
-		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.47.3"))
+	if got := constValues["VEFVersion"]; got != "v0.51.0" {
+		failures = append(failures, fmt.Sprintf("VEFVersion value drifted: got %q, want %q", got, "v0.51.0"))
 	}
 
 	for _, doc := range []corpus{publicIndex, chinesePublicIndex} {
@@ -81,7 +81,7 @@ func main() {
 	failures = append(failures, missingTerms(source, []string{
 		"package version",
 		"VEFVersion is the current version of the VEF Framework (semver format).",
-		"const VEFVersion = \"v0.47.3\"",
+		"const VEFVersion = \"v0.51.0\"",
 	})...)
 	failures = append(failures, runPackageTests(sourceRoot)...)
 
@@ -244,7 +244,7 @@ func publicDocSurfaceTerms() []string {
 func publicIndexTerms() []string {
 	return []string{
 		"## github.com/coldsmirk/vef-framework-go/version",
-		"CONST VEFVersion : untyped string = \"v0.47.3\"",
+		"CONST VEFVersion : untyped string = \"v0.51.0\"",
 	}
 }
 

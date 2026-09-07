@@ -36,24 +36,25 @@ func main() {
 
 	expectedFuncs := []string{
 		"DB", "DataPermApplier", "Logger", "Principal",
-		"RequestID", "RequestIP", "RequestMethod", "RequestPath",
+		"RequestID", "RequestIP", "RequestMethod", "RequestPath", "RequestUserAgent",
 		"SetDB", "SetDataPermApplier", "SetLogger", "SetPrincipal",
-		"SetRequestID", "SetRequestIP", "SetRequestMethod", "SetRequestPath",
+		"SetRequestID", "SetRequestIP", "SetRequestMethod", "SetRequestPath", "SetRequestUserAgent",
 	}
 	expectedConsts := []string{
 		"KeyRequest", "KeyRequestID", "KeyRequestIP", "KeyPrincipal", "KeyLogger",
-		"KeyDB", "KeyDataPermApplier", "KeyRequestMethod", "KeyRequestPath",
+		"KeyDB", "KeyDataPermApplier", "KeyRequestMethod", "KeyRequestPath", "KeyRequestUserAgent",
 	}
 	expectedConstValues := map[string]int64{
-		"KeyRequest":         0,
-		"KeyRequestID":       1,
-		"KeyRequestIP":       2,
-		"KeyPrincipal":       3,
-		"KeyLogger":          4,
-		"KeyDB":              5,
-		"KeyDataPermApplier": 6,
-		"KeyRequestMethod":   7,
-		"KeyRequestPath":     8,
+		"KeyRequest":          0,
+		"KeyRequestID":        1,
+		"KeyRequestIP":        2,
+		"KeyPrincipal":        3,
+		"KeyLogger":           4,
+		"KeyDB":               5,
+		"KeyDataPermApplier":  6,
+		"KeyRequestMethod":    7,
+		"KeyRequestPath":      8,
+		"KeyRequestUserAgent": 9,
 	}
 
 	var failures []string
@@ -108,6 +109,7 @@ func main() {
 		"`KeyRequest = 0`", "`KeyRequestID = 1`", "`KeyRequestIP = 2`",
 		"`KeyPrincipal = 3`", "`KeyLogger = 4`", "`KeyDB = 5`",
 		"`KeyDataPermApplier = 6`", "`KeyRequestMethod = 7`", "`KeyRequestPath = 8`",
+		"`KeyRequestUserAgent = 9`",
 		"cannot distinguish \"unset\" from \"explicitly set to an empty string\"",
 		"`Logger` and `DB` first return a correctly typed context value",
 		"Fallbacks are scanned left to right",
@@ -127,6 +129,7 @@ func main() {
 		"`KeyRequest = 0`", "`KeyRequestID = 1`", "`KeyRequestIP = 2`",
 		"`KeyPrincipal = 3`", "`KeyLogger = 4`", "`KeyDB = 5`",
 		"`KeyDataPermApplier = 6`", "`KeyRequestMethod = 7`", "`KeyRequestPath = 8`",
+		"`KeyRequestUserAgent = 9`",
 		"无法区分“未设置”和“显式设置为空字符串”",
 		"`Logger` 和 `DB` 会先返回 context 中类型正确的值",
 		"fallbacks 按从左到右扫描",
@@ -214,6 +217,11 @@ func main() {
 			terms: []string{
 				"method := contextx.RequestMethod(ctx)",
 				"path := contextx.RequestPath(ctx)",
+			},
+		},
+		{
+			path: "internal/security/external_app.go",
+			terms: []string{
 				"requestIP := contextx.RequestIP(ctx)",
 				"return security.ErrIPNotAllowed",
 			},
@@ -385,7 +393,7 @@ func publicDocSurfaceTerms() []string {
 	return []string{
 		"`KeyRequest`", "`KeyRequestID`", "`KeyRequestIP`",
 		"`KeyPrincipal`", "`KeyLogger`", "`KeyDB`",
-		"`KeyDataPermApplier`", "`KeyRequestMethod`", "`KeyRequestPath`",
+		"`KeyDataPermApplier`", "`KeyRequestMethod`", "`KeyRequestPath`", "`KeyRequestUserAgent`",
 		"`RequestID`", "`contextx.RequestID(ctx context.Context) string`",
 		"`SetRequestID`", "`contextx.SetRequestID(ctx context.Context, requestID string) context.Context`",
 		"`RequestIP`", "`contextx.RequestIP(ctx context.Context) string`",
@@ -393,6 +401,8 @@ func publicDocSurfaceTerms() []string {
 		"`RequestMethod`", "`contextx.RequestMethod(ctx context.Context) string`",
 		"`SetRequestMethod`", "`contextx.SetRequestMethod(ctx context.Context, method string) context.Context`",
 		"`RequestPath`", "`contextx.RequestPath(ctx context.Context) string`",
+		"`RequestUserAgent`", "`contextx.RequestUserAgent(ctx context.Context) string`",
+		"`SetRequestUserAgent`", "`contextx.SetRequestUserAgent(ctx context.Context, userAgent string) context.Context`",
 		"`SetRequestPath`", "`contextx.SetRequestPath(ctx context.Context, path string) context.Context`",
 		"`Principal`", "`contextx.Principal(ctx context.Context) *security.Principal`",
 		"`SetPrincipal`", "`contextx.SetPrincipal(ctx context.Context, principal *security.Principal) context.Context`",

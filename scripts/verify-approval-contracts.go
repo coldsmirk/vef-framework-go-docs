@@ -177,11 +177,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    398,
-		fields:      868,
-		methods:     133,
-		entries:     1399,
-		fingerprint: "06af8ca1167b6b49500e4ac210e17e0956894e672126786a09bb23c0cdf2055b",
+		topLevel:    549,
+		fields:      985,
+		methods:     161,
+		entries:     1695,
+		fingerprint: "9a4dd40aee111f048e91c361940d8fc6e9f14ab20726eb3680af09fa531cd4c9",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -217,12 +217,12 @@ var approvalPackages = []expectedPackage{
 var approvalGroupedSurfaces = []groupedSurface{
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
-		entryCount:           1001,
-		fieldCount:           868,
-		methodCount:          133,
-		receiverCount:        126,
-		signatureFingerprint: "614a42010a8cba0fcc4e6ba6c76b39a8652481b2b31ede573f7baa2d313d16b7",
-		receiverFingerprint:  "9724856f05a718eb9082a1e42699047f349674db67249aea3802953eebd3f6a0",
+		entryCount:           1146,
+		fieldCount:           985,
+		methodCount:          161,
+		receiverCount:        155,
+		signatureFingerprint: "ff552a9e84bc3debf579752fa5d72d3d0a2a0117fa224f54a21f0dc6eec3703e",
+		receiverFingerprint:  "edf0b50aaad7ddde595c5dcf10cc5a4543c66abb9a02668cecd0375ecb3e7404",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
@@ -287,7 +287,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Approval contract docs verified: 3 public packages, 1059 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
+	fmt.Printf("Approval contract docs verified: 3 public packages, 1326 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
 }
 
 func verifyPackageSurfaces(m manifest, contracts contractLedger, live map[string]liveInventoryEntry) []string {
@@ -441,8 +441,8 @@ func verifyGroupedApprovalSurfaces(audit auditLedger, docs []corpus) []string {
 		receiverRows := receiverRows(receiverCountsByPackage[surface.pkg])
 		failures = append(failures, verifyGroupedSurfaceFingerprint(surface.pkg+" receiver families", receiverRows, surface.receiverCount, surface.receiverFingerprint)...)
 	}
-	if totalGrouped != 1181 {
-		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1181", totalGrouped))
+	if totalGrouped != 1326 {
+		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1326", totalGrouped))
 	}
 
 	return failures
@@ -834,7 +834,8 @@ func verifyFlowAndFormWireShapes(sourceRoot string, docs []corpus) []string {
 		"approval/flow_definition.go": {"FlowDefinition", "NodeDefinition", "Position", "EdgeDefinition"},
 		"approval/node_data.go":       {"BaseNodeData", "TaskNodeData", "ApprovalNodeData", "CCNodeData", "ConditionNodeData"},
 		"approval/form_field.go":      {"FormFieldDefinition", "FieldOption", "ValidationRule"},
-		"approval/assignee.go":        {"AssigneeDefinition", "CCDefinition"},
+		"approval/assignee.go":        {"AssigneeDefinition"},
+		"approval/cc.go":              {"CCDefinition"},
 		"approval/condition.go":       {"Condition", "ConditionGroup", "ConditionBranch"},
 	}
 	fieldsByType := map[string][]string{}
@@ -940,7 +941,7 @@ func eventTypeConstants(constsByName map[string]stringConst) []stringConst {
 }
 
 func verifyErrors(sourceRoot string, docs []corpus) []string {
-	codeValues := extractIntConstants(sourceRoot, "internal/approval/shared/errors.go")
+	codeValues := extractIntConstants(sourceRoot, "approval/api_errors.go")
 	errorContracts := extractErrorContracts(sourceRoot, codeValues)
 	messageKeys := extractMessageKeys(sourceRoot)
 
@@ -994,7 +995,7 @@ func verifyResubmitAndAvailableActions(sourceRoot string, docs []corpus) []strin
 	var failures []string
 	for _, term := range []string{
 		"engine.InstanceStateMachine.CanTransition(instance.Status, approval.InstanceRunning)",
-		"shared.ErrResubmitNotAllowed",
+		"approval.ErrResubmitNotAllowed",
 		"approval.ActionResubmit",
 		"NewInstanceResubmittedEvent",
 	} {
@@ -1299,7 +1300,7 @@ func extractIntConstants(sourceRoot, relPath string) map[string]int {
 }
 
 func extractErrorContracts(sourceRoot string, codeValues map[string]int) []errorContract {
-	file := parseGoFile(filepath.Join(sourceRoot, "internal/approval/shared/api_errors.go"))
+	file := parseGoFile(filepath.Join(sourceRoot, "approval/api_errors.go"))
 	var result []errorContract
 	for _, decl := range file.Decls {
 		gen, ok := decl.(*ast.GenDecl)

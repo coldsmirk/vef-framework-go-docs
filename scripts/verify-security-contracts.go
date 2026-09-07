@@ -16,12 +16,12 @@ const (
 	auditLedgerPath = "scripts/api-audit-ledger.json"
 	securityPackage = "github.com/coldsmirk/vef-framework-go/security"
 
-	securityGroupedEntryCount           = 247
-	securityGroupedFieldCount           = 106
-	securityGroupedMethodCount          = 141
-	securityGroupedReceiverCount        = 91
-	securityGroupedSignatureFingerprint = "b5b6b663eec48fc9e152baead5a110ad68cab88b9758a31a756be43378266705"
-	securityGroupedReceiverFingerprint  = "e6f59d982d795addce669ba8051c61ec71278e8cb9a8a6701877ab5affea691d"
+	securityGroupedEntryCount           = 262
+	securityGroupedFieldCount           = 114
+	securityGroupedMethodCount          = 148
+	securityGroupedReceiverCount        = 97
+	securityGroupedSignatureFingerprint = "a29ea8c7f78e30d39f47b5e7ddf3891620dc0b805869b107e042bbcd77138770"
+	securityGroupedReceiverFingerprint  = "aae5485c5d8a089332b135de435dd074297587c07c7379dec7f11bfe94eec76e"
 )
 
 type corpus struct {
@@ -87,7 +87,7 @@ func main() {
 		panic(fmt.Errorf("security contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("Security contract docs verified: 247 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
+	fmt.Printf("Security contract docs verified: 262 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
 		len(authDocs), len(authzDocs), len(dataPermDocs))
 }
 
@@ -470,7 +470,9 @@ func authChecks() []check {
 				"nonceTTLBuffer                     = 1 * time.Minute",
 				"nonceStore:         NewMemoryNonceStore()",
 				"return nil, ErrSignatureSecretRequired",
-				"return fmt.Appendf(nil, \"app_id=%s&method=%s&nonce=%s&path=%s&timestamp=%d\"",
+				"payload = fmt.Appendf(payload, \"%s=%s\", key, params[key])",
+				"params[encodeSignatureComponent(key)] = encodeSignatureComponent(value)",
+				"return fmt.Errorf(\"%w: %q\", ErrSignatureBoundKeyReserved, key)",
 				"if s.nonceStore == nil",
 				"2*s.timestampTolerance + nonceTTLBuffer",
 			},
@@ -512,15 +514,23 @@ func authChecks() []check {
 			},
 		},
 		{
+			sourcePath: "internal/security/external_app.go",
+			sourceTerms: []string{
+				"details, ok := principal.Details.(*security.ExternalAppConfig)",
+				"return security.ErrExternalAppDisabled",
+				"requestIP := contextx.RequestIP(ctx)",
+				"return security.ErrIPNotAllowed",
+			},
+			docTerms: []string{
+				"`ExternalAppConfig.IPWhitelist`",
+			},
+		},
+		{
 			sourcePath: "internal/security/signature_authenticator.go",
 			sourceTerms: []string{
 				"const AuthTypeSignature = \"signature\"",
 				"contextx.RequestMethod(ctx)",
 				"contextx.RequestPath(ctx)",
-				"details, ok := principal.Details.(*security.ExternalAppConfig)",
-				"return security.ErrExternalAppDisabled",
-				"requestIP := contextx.RequestIP(ctx)",
-				"return security.ErrIPNotAllowed",
 				"return security.ErrSignatureInvalid",
 			},
 			docTerms: []string{

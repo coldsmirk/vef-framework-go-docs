@@ -40,6 +40,7 @@ func main() {
 		methods: []string{
 			"Page.HasNext",
 			"Page.HasPrevious",
+			"Page.Map",
 			"Page.TotalPages",
 			"Pageable.Normalize",
 			"Pageable.Offset",
@@ -320,6 +321,8 @@ func publicDocSurfaceTerms(surface packageSurface) []string {
 			terms = append(terms, "`Page.HasNext`", "`func (page Page[T]) HasNext() bool`")
 		case "Page.HasPrevious":
 			terms = append(terms, "`Page.HasPrevious`", "`func (page Page[T]) HasPrevious() bool`")
+		case "Page.Map":
+			terms = append(terms, "`Page.Map`", "`func (page Page[T]) Map[R any](convert func(T) R) Page[R]`")
 		case "Page.TotalPages":
 			terms = append(terms, "`Page.TotalPages`", "`func (page Page[T]) TotalPages() int`")
 		case "Pageable.Normalize":

@@ -111,7 +111,7 @@ func main() {
 			path: "fiberx/ip.go",
 			terms: []string{
 				"func GetIP(ctx fiber.Ctx) string",
-				"return ctx.IP()",
+				"return strings.Clone(ctx.IP())",
 				"trusted proxies (vef.app.trusted_proxies)",
 				"X-Forwarded-For",
 			},
