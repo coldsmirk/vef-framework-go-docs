@@ -217,6 +217,82 @@ consumer group 默认取命令类型的身份（`vef:cmd:<相对模块路径包>
 
 投递继承事件路由的语义：在 at-least-once 传输上命令 handler 必须幂等——需要独立去重键时把 `Envelope.ID` 复制进命令。与收敛到最新期望状态、可能跳过中间状态的最终一致业务投影不同,每一次实例迁移都会派发自己的命令，因此 `BindCommand` 是"绑定到特定生命周期时刻的副作用"的通道。
 
+## 主体解析注册表
+
+谁可以审批、谁会被抄送、谁可以发起流程，是三张**开放注册表**，且由同一份描述符驱动。`approval.AssigneeKind`、`CCKind`、`InitiatorKind` 只带着内置常量，并没有 `IsValid`：可部署的种类，恰好就是那些注册了 resolver 的种类。
+
+宿主实现公开契约并注册即可新增一种：
+
+| 契约 | 动作方法 | 注册方式 |
+| --- | --- | --- |
+| `approval.AssigneeResolver` | `Resolve(ctx, *AssigneeResolveContext) ([]ResolvedAssignee, error)` | `vef.ProvideApprovalAssigneeResolver(...)` |
+| `approval.CCResolver` | `Resolve(ctx, *CCResolveContext) ([]string, error)` | `vef.ProvideApprovalCCResolver(...)` |
+| `approval.InitiatorResolver` | `Permits(ctx, *InitiatorResolveContext) (bool, error)` | `vef.ProvideApprovalInitiatorResolver(...)` |
+
+三者都还要实现 `Describe() KindDescriptor[K]`。种类与内置项相同的 resolver 会**就地替换**它，并保留设计器里的选项顺序；其他种类则按 kind 升序追加。这个排序是有承重作用的，不是整洁强迫症：fx value group 的到达顺序是随机的，按到达顺序追加会让设计器的下拉框每次重启都重新洗牌。这也是为什么两个宿主 resolver 争夺同一个种类会在启动时被拒绝，而不是"后者胜出"——在随机顺序的 group 里，"后者"是每次启动抛一次硬币决定谁真正在派活。
+
+### 一份描述符同时驱动设计器输入与校验
+
+```go
+type KindDescriptor[K ~string] struct {
+    Kind      K             `json:"kind"`
+    Label     string        `json:"label"`
+    Selection SelectionMode `json:"selection"`
+}
+```
+
+`approval.SelectionMode` 一次性回答了过去要靠硬编码 switch 分别回答的两个问题——这种种类的规则，设计器该渲染哪种输入；保存时校验又该要求哪个配套字段：
+
+| 模式 | 设计器收集 | 校验要求 |
+| --- | --- | --- |
+| `approval.SelectionNone` | 什么都不收 | 无 |
+| `approval.SelectionUser` | 用户 ID | 至少一个 ID |
+| `approval.SelectionRole` | 角色 ID | 至少一个 ID |
+| `approval.SelectionDepartment` | 部门 ID | 至少一个 ID |
+| `approval.SelectionFormField` | 一个表单字段名 | 该表单字段 |
+| `approval.SelectionCustom` | 从宿主提供的目录中挑选 ID，按 kind 解析选择器 | 至少一个 ID |
+
+绝大多数"组织性"规则想要的正是 `SelectionNone` 这种形态——"申请人的护士长"、"科主任"——完全从运行时上下文解析出来。`SelectionCustom` 则是专家组那种形态，设计器按种类自身的名字去解析对应的选择器，因此多个自定义种类可以并存而不冲突。
+
+有两条约束是在启动时强制的，而不是留到以后才被发现：描述符有问题（kind 或 label 为空、selection 不在枚举内）会导致注册失败；**发起人**种类永远不允许是 `SelectionFormField`——发起权限是在实例存在之前检查的，因而也在表单存在之前。
+
+### resolver 能看到什么
+
+审批人解析与抄送解析逐字段共用 `approval.NodeResolveContext`，所以为其中一侧写的种类，原封不动就能用在另一侧：
+
+```go
+type NodeResolveContext struct {
+    Instance     *Instance          // 申请人快照、租户、流程编码、Globals
+    Node         *FlowNode          // Key 是设计器指定、跨部署稳定的标识
+    FormData     FormData           // 解析时刻的表单数据，而不是数据库行里的那份
+    UserResolver UserInfoResolver   // 为裸 ID 补全姓名与部门
+}
+```
+
+`approval.AssigneeResolveContext` 与 `approval.CCResolveContext` 内嵌它，再加上正在解析的那一条规则——`Kind`、`IDs`、`FormField`。这些模型属于框架，请当作只读。抄送侧刻意**看不到** `CCTiming`：一条规则是在进入时、通过时还是驳回时触发，是引擎的决定，在 resolver 被咨询之前就已经做出；能读到它的 resolver 反而可能与该决定矛盾。
+
+`approval.InitiatorResolveContext` 刻意小得多——只有 `FlowID`、`TenantID`、`Applicant`、`Kind`、`IDs`。这里没有实例也没有表单数据，因为谁可以发起某个流程，是人和流程的属性，绝不是他填了什么的属性。需要看表单的规则应该放进条件分支，那里表单才是真实存在的。另外要注意：申请人的显示**姓名**并不保证有值——发起表单查询会在不解析姓名的情况下检查权限，所以请基于 ID 和部门做判断。
+
+### 三侧的失败语义并不相同
+
+- 审批人 resolver 返回**空**是合法答案——接下来由节点的 `EmptyAssigneeAction` 决定，可选审批环节正是这么表达的。返回 *error* 则会让整个审批动作失败，而不是悄悄丢掉审批人。
+- 抄送保持**尽力而为**：无法解析的规则会被记日志并跳过，绝不回滚触发它的那次审批。
+- 未注册的**发起人**种类是一个响亮的错误。把它当成"拒绝"，读起来会像权限 bug，而它其实是配置问题；同时发起权限本身是失败关闭的。
+
+### 把目录交给设计器
+
+`approval/flow.list_kind_options` 返回 `approval.KindOptions`——当前运行的应用真正接受的全部审批人、抄送、发起人种类，直接读自启动时注册的 resolver 集合，label 每次调用现算，因此会跟随 `VEF_I18N_LANGUAGE`。
+
+```go
+type KindOptions struct {
+    Assignees  []KindDescriptor[AssigneeKind]  `json:"assignees"`
+    CCs        []KindDescriptor[CCKind]        `json:"ccs"`
+    Initiators []KindDescriptor[InitiatorKind] `json:"initiators"`
+}
+```
+
+它之所以存在，是因为设计器的选项和服务端的校验过去是两份各自手工维护、可能互相打架的列表。请把服务端返回的列表喂给 React 设计器（`EditorPlugins.assigneeKinds` / `ccKinds`、`BasicStep.initiatorKinds`、`FlowValidationContext`）：不传就会回落到内置目录，从而把宿主种类静默地报成未知类型。
+
 ## 业务标识符校验
 
 当 `Flow.BindingMode == BindingBusiness` 时，流程会携带 SQL 标识符（`BusinessBindingConfig.TableName`、每个 `KeyColumns` 条目、`StatusColumn`、`InstanceIDColumn` 以及可选的时间戳列），引擎拥有的投影会把它们直接拼到 `UPDATE` 模板里。为防止 SQL 注入，框架按 `^[A-Za-z_][A-Za-z0-9_]{0,62}$` 白名单校验：
@@ -256,18 +332,19 @@ type Delegation struct {
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `UrgeRecord`, `DefaultTenantID` |
 | node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
 | conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `AggregateKind`, `AggregateSum`, `AggregateCount`, `AggregateAvg`, `Aggregator` |
-| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
-| CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCRecord`（`CCRecord.VisitID` 将记录限定在某一次节点 traversal 内，与 `Task.VisitID` 相呼应） |
+| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel`, `AssigneeResolver`, `AssigneeResolveContext`, `InitiatorResolver`, `InitiatorResolveContext`, `KindDescriptor`, `KindOptions`, `SelectionMode`, `SelectionNone`, `SelectionUser`, `SelectionRole`, `SelectionDepartment`, `SelectionFormField`, `SelectionCustom`, `NodeResolveContext` |
+| CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCResolver`, `CCResolveContext`, `CCRecord`（`CCRecord.VisitID` 将记录限定在某一次节点 traversal 内，与 `Task.VisitID` 相呼应） |
 | business binding & projection | `BusinessBindingConfig`, `BusinessRecordKey`, `BusinessProjection`（模型，表 `apv_business_projection`）, `BindingProjectionStatus`（`BindingProjectionPending` / `Processing` / `Applied` / `Failed`）, `BindingTrigger`, `BindingTriggerStarted`, `BindingTriggerCompleted`, `BindingTriggerReturned`, `BindingTriggerWithdrawn`, `BindingTriggerResubmitted` |
 | instance subscriptions | `SubscribeInstance`, `BindCommand`, `InstanceEvent`, `InstanceFilter`, `InstanceSubscribeOption`, `ForFlows`, `ForTenants`, `WithGroup`, `WithConcurrency`, `NewFilteredLifecycleHook`, `ErrAnonymousSubscriberGroup`, `ErrDerivedGroupConflict`, `ErrNonCommandAction`, `ErrUnnamedCommandType` |
-| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
+| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `SameApplicantExclude`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
 | rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
 | action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
 | pass rules | `PassRule`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
 | progress views | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` |
 | events | 所有 `New...Event` 构造器、`DomainEvent`、`InstanceEventBase`、`TaskEventBase`、`FlowEventBase`、`NewInstanceEventBase`、`NewTaskEventBase`、`NewFlowEventBase`、`PayloadOccurredAt`、`AllEventTypes`、`TaskActivationReason`、`TaskActivationAssigned`、`TaskActivationQueueAdvanced`、`TaskActivationTransferred`、`TaskActivationReassigned` 和 `EventType...` 常量 |
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
-| DI helpers（`vef` 包） | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
+| DI helpers（`vef` 包） | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser`, `ProvideApprovalAssigneeResolver`, `ProvideApprovalCCResolver`, `ProvideApprovalInitiatorResolver`, `ProvideApprovalGlobalsResolver` |
+| programmatic control | `Service`, `ErrDBRequired`, `StartInstanceInput`, `WithdrawInstanceInput`, `ResubmitInstanceInput`, `TerminateInstanceInput`, `ApproveTaskInput`, `RejectTaskInput`, `TransferTaskInput`, `RollbackTaskInput`, `ReassignTaskInput`, `AddAssigneeInput`, `RemoveAssigneeInput`, `AddCCInput`, `MarkCCReadInput`, `UrgeTaskInput`, `RetryBusinessProjectionInput` —— 参见[编程式流程控制](./service.md) |
 | admin DTOs | `approval/admin` 包：`Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
 | user DTOs | `approval/my` 包：`PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`, `ViewerTask`, `RollbackTarget`, `RemovableAssignee` |
 

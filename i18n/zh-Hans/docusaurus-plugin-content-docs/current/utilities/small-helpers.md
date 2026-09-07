@@ -32,6 +32,7 @@ sidebar_position: 10
 | `Page.TotalPages` | `func (page Page[T]) TotalPages() int` |
 | `Page.HasNext` | `func (page Page[T]) HasNext() bool` |
 | `Page.HasPrevious` | `func (page Page[T]) HasPrevious() bool` |
+| `Page.Map` | `func (page Page[T]) Map[R any](convert func(T) R) Page[R]` |
 
 行为契约：
 
@@ -50,6 +51,9 @@ sidebar_position: 10
 - `TotalPages()` 在 `Size == 0` 时返回 `0`；否则按 `Total / Size` 向上取整
 - `HasNext()` 判断 `Page < TotalPages()`
 - `HasPrevious()` 在 `Page > 1` 时返回 true
+- `Map(convert)` 原样带走 `Page`、`Size`、`Total`，只转换 items——这是几乎每个
+  列表接口的最后一步；与 `New` 一样它绝不产出 nil 切片，因此空页仍序列化为
+  `[]` 而不是 `null`
 - 这个 helper 不会校验负数 total、手工构造后的负数 size，或 `Normalize`
   之外不一致的 `Page` 值
 

@@ -128,6 +128,7 @@ The full structure of one table.
 | `name` | `string` | column name |
 | `type` | `string` | raw database type |
 | `nullable` | `bool` | whether the column is nullable |
+| `maxLength` | `int` | a character column's declared bound; omitted when the column is unbounded or not a character type |
 | `default` | `string` | default expression exactly as the database reports it; omitted when the column has no default |
 | `comment` | `string` | column comment; omitted when empty |
 | `isPrimaryKey` | `bool` | whether the column participates in the primary key; omitted when `false` |
@@ -136,6 +137,8 @@ The full structure of one table.
 `isAutoIncrement` is detected for MySQL `AUTO_INCREMENT`, SQLite
 `AUTOINCREMENT`, PostgreSQL identity columns, and PostgreSQL `serial`,
 `bigserial`, or `smallserial` raw types.
+
+Read a character column's bound from `Column.MaxLength`, never by parsing `Column.Type`: `type` is the dialect's own spelling and does not consistently carry the bound — PostgreSQL names the type `character varying` and holds the length elsewhere, while MySQL spells it `varchar(128)`.
 
 #### `schema.PrimaryKey`
 

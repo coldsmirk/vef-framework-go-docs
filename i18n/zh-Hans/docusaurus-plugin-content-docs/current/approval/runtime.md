@@ -101,9 +101,18 @@ sidebar_position: 4
 | `RollbackType` | `RollbackNone`（`none`）、`RollbackPrevious`（`previous`）、`RollbackStart`（`start`）、`RollbackAny`（`any`）、`RollbackSpecified`（`specified`） |
 | `RollbackDataStrategy` | `RollbackDataClear`（`clear`，重置表单）、`RollbackDataKeep`（`keep`，恢复目标节点进入时捕获的表单快照；节点多次进入时取最新一份）|
 
-同一申请人处理使用 `SameApplicantAction`，取值包括
-`SameApplicantSelfApprove`（`self_approve`）、`SameApplicantAutoPass`
-（`auto_pass`）、`SameApplicantTransferSuperior`（`transfer_superior`）。
+同一申请人处理使用 `SameApplicantAction`，并且策略是**按席位**生效的：只要申请人在
+节点解析出的审批人集合中占有一个席位就会触发，而不仅限于他是唯一审批人的情况。
+
+| 常量 | Wire value | 行为 |
+| --- | --- | --- |
+| `SameApplicantSelfApprove` | `self_approve` | 申请人像其他审批人一样审批自己的任务。 |
+| `SameApplicantAutoPass` | `auto_pass` | 自动清掉申请人自己的那条任务——在节点进入时，或串行队列轮到他那个席位时。 |
+| `SameApplicantTransferSuperior` | `transfer_superior` | 只把申请人的席位交给他的上级，其他席位不受影响。 |
+| `SameApplicantExclude` | `exclude` | 避嫌：移除申请人的席位，由剩下的审批人决定，通过规则也只在剩余集合上计算。若排除后集合为空，则原样回落到 `EmptyAssigneeAction`。 |
+
+此后由人显式创建的任务——加签插入、转办、改派、超时自动转交——一律豁免：既然有人
+明确决定要把申请人卷进来，就应当压过节点策略。
 连续审批人处理使用 `ConsecutiveApproverAction`，取值包括
 `ConsecutiveApproverNone`（`none`）与 `ConsecutiveApproverAutoPass`
 （`auto_pass`）。

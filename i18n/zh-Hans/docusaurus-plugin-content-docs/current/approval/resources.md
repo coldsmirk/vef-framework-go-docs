@@ -132,6 +132,7 @@ closed）。
 | `find_flows` | `approval.flow.query` | `FindFlowsParams` | `page.Page[Flow]` | — |
 | `find_versions` | `approval.flow.query` | `FindVersionsParams` | `FlowVersionSummary[]` | — |
 | `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | `FlowInitiator[]` | — |
+| `list_kind_options` | `approval.flow.query` | 无 | `KindOptions` | — |
 
 `CreateFlowParams`（`create`）：
 
@@ -297,6 +298,12 @@ closed）。
 
 `find_initiators` 返回 `FlowInitiator[]`：每条携带 `flowId`、`kind`
 （`user` / `role` / `department`）与 `ids`（配置的 id 列表）。
+
+`list_kind_options` 返回 `approval.KindOptions`——当前运行的应用真正接受的审批人、
+抄送、发起人种类，每一项都带着要显示的 label 和说明设计器该收集什么的 `selection`
+模式。它直接读自启动时注册的 resolver，label 每次调用现算，因此会跟随
+`VEF_I18N_LANGUAGE`。请把它喂给流程设计器，而不要用手工维护的列表：不传就会回落到
+内置目录，从而把宿主注册的种类静默地报成未知类型。参见[事件与集成](./integration.md#主体解析注册表)。
 
 ## `approval/instance`
 

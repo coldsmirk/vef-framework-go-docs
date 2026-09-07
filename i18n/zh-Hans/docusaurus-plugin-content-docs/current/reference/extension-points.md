@@ -14,9 +14,9 @@ helper 名称前缀不足以判断实际 wiring 方式，要看具体机制：
 
 | 机制 | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
+| `fx.Provide` + `fx.ResultTags` 追加到 group | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideAuthenticator`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalAssigneeResolver`, `ProvideApprovalCCResolver`, `ProvideApprovalInitiatorResolver`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
 | 带 group tag 的 `fx.Supply` | `SupplySPAConfigs` |
-| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
+| `fx.Decorate` 替换默认实现 | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser`, `ProvideApprovalGlobalsResolver` |
 | 普通 `fx.Supply` 值 | `SupplyMCPServerInfo` |
 
 替换型 helper 是单服务 override，不是 append-only extension point。除非你明确希望后面的 FX option 替换前面的实现，否则同一个默认服务只注册一个替代实现。
@@ -34,6 +34,24 @@ Helpers：
 - `vef.ProvideMiddleware(...)`
 
 `ProvideAuthStrategy` 会把自定义 `api.AuthStrategy` 追加到认证策略 group。资源或操作通过 `api.AuthConfig.Strategy` 选择其 `Name()` 返回的策略名；内置策略是 `none`、`bearer`、`signature`、`ip`、`api_key` 和 `http_basic`。
+
+## `app.Middleware` 契约
+
+`vef.ProvideMiddleware(...)` 会追加进 `vef:app:middlewares`，构造函数必须返回**公开的** `app.Middleware`：
+
+```go
+type Middleware interface {
+    Name() string
+    Order() int
+    Apply(router fiber.Router)
+}
+```
+
+负数 order 注册在路由处理器之前，正数注册在之后，各自按升序排列；默认的零值归入"之前"这一组。
+
+这个契约放在公开包里，理由适用于这里的每一个扩展点：fx 按**精确类型**匹配 group，类型对不上的 provider 会被静默丢弃而不报错——应用照常启动，扩展只是永远不会运行。结构上等价也救不了：方法集相同的两个具名接口是两个不同的类型。在做这次拆分之前，`ProvideMiddleware` 对每一个真实宿主都是不可用的，而故障表现是"一条路由莫名其妙没注册上"。
+
+注册了真实路由的中间件要自己负责认证：API 认证中间件只在操作分发内部运行，因此在 `/api` 之外调用 `contextx.Principal(ctx)` 永远返回 nil。请自行分发 `security.AuthManager`。
 
 ## 最小模块示例
 
@@ -68,6 +86,11 @@ Helper：
 Helper：
 
 - `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideAuthenticator(...)`——把一个 `security.Authenticator` 追加进
+  `security.AuthManager` 聚合的认证器 group。认证器通过 `Supports(authType)`
+  认领某个登录 `type`；内置类型有 `password`、当前配置的令牌机制
+  （`jwt_token` 或 `opaque_token`）、`refresh`、`signature`，以及在信任登录
+  开启时的 `trust_code`
 - `vef.ProvideSessionRevocationListener(...)`——追加
   `security.SessionRevocationListener`，观察登出、并发登录驱逐与管理员
   踢出；见[会话管理](../security/session-management)
@@ -265,6 +288,30 @@ Helpers：
 `ProvideApprovalAggregator` 为审批字段条件注册自定义的 detail-table aggregator，与内置的 sum / count / avg 并存。constructor 必须返回 `approval.Aggregator`；条件求值器按其 `AggregateKind` 选用。如果内置聚合类型未注册对应实现，启动会失败。
 
 `ProvideApprovalFormSchemaParser` 替换框架默认的 `approval.FormSchemaParser`（内置实现是 vef-framework-react 表单编辑器解析器）。这个替换是整体覆盖，不是追加：每一次部署的表单 schema 都会经过它，因此它必须理解宿主提交的每一种设计器文档。解析只在流程部署时运行一次；更早部署的版本仍保留部署时持久化的 `form_fields`。
+
+## 审批主体解析种类
+
+- `vef:approval:assignee_resolvers`
+- `vef:approval:cc_resolvers`
+- `vef:approval:initiator_resolvers`
+
+Helper：
+
+- `vef.ProvideApprovalAssigneeResolver(...)`
+- `vef.ProvideApprovalCCResolver(...)`
+- `vef.ProvideApprovalInitiatorResolver(...)`
+
+谁可以审批、谁会被抄送、谁可以发起流程是三张开放注册表：可部署的种类，恰好就是注册了 resolver 的那些。种类与内置项相同的 resolver 会**就地替换**它并保留设计器的选项顺序；其他种类按 kind 升序追加——因为 fx value group 的到达顺序是随机的，按到达顺序追加会让设计器的下拉框每次重启都重新洗牌。两个宿主 resolver 争夺同一个种类会在启动时失败，而不是"后者胜出"。
+
+每个 resolver 的 `Describe()` 返回的 `approval.KindDescriptor` 同时驱动设计器的输入与保存时的校验——参见[事件与集成](../approval/integration#主体解析注册表)。
+
+## 审批条件全局变量
+
+Helper：
+
+- `vef.ProvideApprovalGlobalsResolver(...)`
+
+替换默认的空实现 `approval.InstanceGlobalsResolver`，它的结果在**实例启动时于服务端解析**，并快照到 `Instance.Globals` 上。globals 会左右条件分支，所以它刻意不属于 start-instance 的请求载荷：能够自行提供 globals 的申请人，就能左右自己的审批走向。这个 helper 通过 `fx.Decorate` 组合，因此需要 `orm.DB` 或任何其他依赖的 resolver，把它声明成构造函数参数即可。
 
 ## 审批业务绑定
 

@@ -33,6 +33,7 @@ Public surface:
 | `Page.TotalPages` | `func (page Page[T]) TotalPages() int` |
 | `Page.HasNext` | `func (page Page[T]) HasNext() bool` |
 | `Page.HasPrevious` | `func (page Page[T]) HasPrevious() bool` |
+| `Page.Map` | `func (page Page[T]) Map[R any](convert func(T) R) Page[R]` |
 
 Behavior contract:
 
@@ -53,6 +54,10 @@ Behavior contract:
   division of `Total / Size`
 - `HasNext()` compares `Page < TotalPages()`
 - `HasPrevious()` returns true when `Page > 1`
+- `Map(convert)` carries `Page`, `Size` and `Total` across unchanged and only
+  converts the items, which is the last step of nearly every list endpoint;
+  like `New` it never produces a nil slice, so an empty page still serializes
+  as `[]` rather than `null`
 - the helper does not validate negative totals, negative sizes after manual
   construction, or inconsistent `Page` values outside `Normalize`
 

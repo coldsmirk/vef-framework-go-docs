@@ -62,8 +62,9 @@ The exported key constants use an unexported key type. Application code can pass
 | `KeyDataPermApplier` | `security.DataPermissionApplier` | `DataPermApplier`, `SetDataPermApplier` |
 | `KeyRequestMethod` | `string` | `RequestMethod`, `SetRequestMethod` |
 | `KeyRequestPath` | `string` | `RequestPath`, `SetRequestPath` |
+| `KeyRequestUserAgent` | `string` | `RequestUserAgent`, `SetRequestUserAgent` |
 
-The constant values are stable in this order: `KeyRequest = 0`, `KeyRequestID = 1`, `KeyRequestIP = 2`, `KeyPrincipal = 3`, `KeyLogger = 4`, `KeyDB = 5`, `KeyDataPermApplier = 6`, `KeyRequestMethod = 7`, and `KeyRequestPath = 8`.
+The constant values are stable in this order: `KeyRequest = 0`, `KeyRequestID = 1`, `KeyRequestIP = 2`, `KeyPrincipal = 3`, `KeyLogger = 4`, `KeyDB = 5`, `KeyDataPermApplier = 6`, `KeyRequestMethod = 7`, `KeyRequestPath = 8`, and `KeyRequestUserAgent = 9`.
 
 #### Functions
 
@@ -77,6 +78,8 @@ The constant values are stable in this order: `KeyRequest = 0`, `KeyRequestID = 
 | `SetRequestMethod` | `contextx.SetRequestMethod(ctx context.Context, method string) context.Context` | Stores `method`. |
 | `RequestPath` | `contextx.RequestPath(ctx context.Context) string` | Returns `""`. |
 | `SetRequestPath` | `contextx.SetRequestPath(ctx context.Context, path string) context.Context` | Stores `path`. |
+| `RequestUserAgent` | `contextx.RequestUserAgent(ctx context.Context) string` | Returns `""`. |
+| `SetRequestUserAgent` | `contextx.SetRequestUserAgent(ctx context.Context, userAgent string) context.Context` | Stores `userAgent`. |
 | `Principal` | `contextx.Principal(ctx context.Context) *security.Principal` | Returns `nil`. |
 | `SetPrincipal` | `contextx.SetPrincipal(ctx context.Context, principal *security.Principal) context.Context` | Stores `principal`. |
 | `Logger` | `contextx.Logger(ctx context.Context, fallbacks ...logx.Logger) logx.Logger` | Uses fallbacks, then returns `nil`. |
@@ -85,6 +88,8 @@ The constant values are stable in this order: `KeyRequest = 0`, `KeyRequestID = 
 | `SetDB` | `contextx.SetDB(ctx context.Context, db orm.DB) context.Context` | Stores `db`. |
 | `DataPermApplier` | `contextx.DataPermApplier(ctx context.Context) security.DataPermissionApplier` | Returns `nil`. |
 | `SetDataPermApplier` | `contextx.SetDataPermApplier(ctx context.Context, applier security.DataPermissionApplier) context.Context` | Stores `applier`. |
+
+The API auth middleware is what records `KeyRequestUserAgent`, so it carries a value only inside API operation dispatch. That is where it is read: trust-code login compares it against the browser the [trust-login](../security/trust-login) gateway redirected, which is why the accessor exists at all rather than each caller reading the header itself.
 
 String getters return the zero value `""` when the value is unset or stored with the wrong type. They cannot distinguish "unset" from "explicitly set to an empty string".
 

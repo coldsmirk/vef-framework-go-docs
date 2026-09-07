@@ -14,9 +14,9 @@ The helper name prefix is not enough to tell how the value is wired. Use the mec
 
 | Mechanism | Helpers |
 | --- | --- |
-| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
+| `fx.Provide` + `fx.ResultTags` group append | `ProvideAPIResource`, `ProvideAuthStrategy`, `ProvideAuthenticator`, `ProvideMiddleware`, `ProvideSPAConfig`, `ProvideCQRSBehavior`, `ProvideChallengeProvider`, `ProvideMCPTools`, `ProvideMCPResources`, `ProvideMCPResourceTemplates`, `ProvideMCPPrompts`, `ProvideEventTransport`, `ProvideEventPublishMiddleware`, `ProvideEventConsumeMiddleware`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalAssigneeResolver`, `ProvideApprovalCCResolver`, `ProvideApprovalInitiatorResolver`, `ProvideDataSourceProvider`, `ProvideJSLib`, `ProvideCronJobHandler`, `ProvideIntegrationOutboundAuthScheme`, `ProvideIntegrationInboundAuthScheme`, `ProvideIntegrationInboundHandler`, `ProvideSessionRevocationListener` |
 | `fx.Supply` with group tags | `SupplySPAConfigs` |
-| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser` |
+| `fx.Decorate` replacement | `SupplyFileACL`, `SupplyURLKeyMapper`, `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideEventMetricsRecorder`, `ProvideEventErrorSink`, `ProvideApprovalFormSchemaParser`, `ProvideApprovalGlobalsResolver` |
 | plain `fx.Supply` value | `SupplyMCPServerInfo` |
 
 Replacement helpers are single-service overrides, not append-only extension
@@ -39,6 +39,34 @@ Helpers:
 group. The strategy is selected by the name returned from `Name()` through
 `api.AuthConfig.Strategy`; built-in strategies are `none`, `bearer`,
 `signature`, `ip`, `api_key`, and `http_basic`.
+
+## The `app.Middleware` contract
+
+`vef.ProvideMiddleware(...)` appends into `vef:app:middlewares`, and the
+constructor must return the **public** `app.Middleware`:
+
+```go
+type Middleware interface {
+    Name() string
+    Order() int
+    Apply(router fiber.Router)
+}
+```
+
+Negative orders register before the route handlers and positive orders after,
+each sorted ascending; the zero default registers in the before group.
+
+The contract lives in a public package for a reason that applies to every
+extension point here: fx matches a group by **exact type**, and a provider whose
+type does not match is dropped without an error — the application boots and the
+extension simply never runs. Structural identity does not help, since two named
+interfaces with the same method set are different types. Before that split,
+`ProvideMiddleware` was unusable by every real host, and the failure looked like
+a route that silently refused to register.
+
+A middleware that registers a real route owns its own authentication: the API
+auth middleware runs inside operation dispatch only, so `contextx.Principal(ctx)`
+outside `/api` returns nil forever. Dispatch `security.AuthManager` yourself.
 
 ## Minimal module example
 
@@ -73,6 +101,11 @@ Helper:
 Helpers:
 
 - `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideAuthenticator(...)` — appends a `security.Authenticator` into the
+  authenticator group the `security.AuthManager` aggregates. The authenticator
+  claims a login `type` through `Supports(authType)`; the built-in types are
+  `password`, the configured token mechanism (`jwt_token` or `opaque_token`),
+  `refresh`, `signature`, and — while trust login is enabled — `trust_code`
 - `vef.ProvideSessionRevocationListener(...)` — appends a
   `security.SessionRevocationListener` observing logout, concurrent-login
   eviction, and administrative kicks; see
@@ -308,6 +341,44 @@ parser). The replacement is wholesale, not additive: every deployed form
 schema goes through it, so it must understand every designer document the host
 submits. Parsing runs once at flow deploy; versions deployed earlier keep the
 `form_fields` they were persisted with.
+
+## Approval principal-resolution kinds
+
+- `vef:approval:assignee_resolvers`
+- `vef:approval:cc_resolvers`
+- `vef:approval:initiator_resolvers`
+
+Helpers:
+
+- `vef.ProvideApprovalAssigneeResolver(...)`
+- `vef.ProvideApprovalCCResolver(...)`
+- `vef.ProvideApprovalInitiatorResolver(...)`
+
+Who may approve, who gets copied, and who may start a flow are three open
+registries: the deployable kinds are exactly those with a registered resolver.
+A resolver whose kind matches a built-in **replaces it in place**, keeping the
+designer's option order; any other kind is appended in ascending kind order,
+because an fx value group arrives randomized and appending in arrival order
+would reshuffle the designer's dropdown on every restart. Two host resolvers
+claiming one kind fail at boot rather than resolving last-wins.
+
+Each resolver's `Describe()` returns the `approval.KindDescriptor` that drives
+both the designer's input and save-time validation — see
+[Events & Integration](../approval/integration#principal-resolution-registries).
+
+## Approval condition globals
+
+Helper:
+
+- `vef.ProvideApprovalGlobalsResolver(...)`
+
+Replaces the default no-op `approval.InstanceGlobalsResolver`, whose result is
+resolved **server-side at instance start** and snapshotted onto
+`Instance.Globals`. Globals steer condition branches, so they are deliberately
+not part of the start-instance request payload: an applicant able to supply
+them could steer their own approval. The helper composes through `fx.Decorate`,
+so a resolver that needs `orm.DB` or any other dependency declares it as a
+constructor parameter.
 
 ## Approval business binding
 

@@ -141,6 +141,7 @@ versions, and the designer-facing graph reads.
 | `find_flows` | `approval.flow.query` | `FindFlowsParams` | `page.Page[Flow]` | — |
 | `find_versions` | `approval.flow.query` | `FindVersionsParams` | `FlowVersionSummary[]` | — |
 | `find_initiators` | `approval.flow.query` | `FindInitiatorsParams` | `FlowInitiator[]` | — |
+| `list_kind_options` | `approval.flow.query` | none | `KindOptions` | — |
 
 `CreateFlowParams` (`create`):
 
@@ -311,6 +312,15 @@ through `get_graph` with `params.versionId`.
 
 `find_initiators` returns `FlowInitiator[]`: each entry carries `flowId`,
 `kind` (`user` / `role` / `department`), and `ids` (the configured id list).
+
+`list_kind_options` returns `approval.KindOptions` — the assignee, CC and
+initiator kinds the running application actually accepts, each with the label to
+show and the `selection` mode that says what the designer must collect. It is
+read off the boot-registered resolvers, with labels resolved per call so they
+follow `VEF_I18N_LANGUAGE`. Feed it to the flow designer instead of a
+hand-maintained list: omitting it falls back to the built-in catalogs, which
+silently reports a host-registered kind as an unknown type. See
+[Events & Integration](./integration.md#principal-resolution-registries).
 
 ## `approval/instance`
 

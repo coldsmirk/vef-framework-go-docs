@@ -62,8 +62,9 @@ Handler factory（在启动期构建 `fiber.Handler` 的函数，例如 `func (r
 | `KeyDataPermApplier` | `security.DataPermissionApplier` | `DataPermApplier`, `SetDataPermApplier` |
 | `KeyRequestMethod` | `string` | `RequestMethod`, `SetRequestMethod` |
 | `KeyRequestPath` | `string` | `RequestPath`, `SetRequestPath` |
+| `KeyRequestUserAgent` | `string` | `RequestUserAgent`, `SetRequestUserAgent` |
 
-这些 constant 的值按顺序固定为：`KeyRequest = 0`、`KeyRequestID = 1`、`KeyRequestIP = 2`、`KeyPrincipal = 3`、`KeyLogger = 4`、`KeyDB = 5`、`KeyDataPermApplier = 6`、`KeyRequestMethod = 7`、`KeyRequestPath = 8`。
+这些 constant 的值按顺序固定为：`KeyRequest = 0`、`KeyRequestID = 1`、`KeyRequestIP = 2`、`KeyPrincipal = 3`、`KeyLogger = 4`、`KeyDB = 5`、`KeyDataPermApplier = 6`、`KeyRequestMethod = 7`、`KeyRequestPath = 8`、`KeyRequestUserAgent = 9`。
 
 #### Functions
 
@@ -77,6 +78,8 @@ Handler factory（在启动期构建 `fiber.Handler` 的函数，例如 `func (r
 | `SetRequestMethod` | `contextx.SetRequestMethod(ctx context.Context, method string) context.Context` | 存储 `method`。 |
 | `RequestPath` | `contextx.RequestPath(ctx context.Context) string` | 返回 `""`。 |
 | `SetRequestPath` | `contextx.SetRequestPath(ctx context.Context, path string) context.Context` | 存储 `path`。 |
+| `RequestUserAgent` | `contextx.RequestUserAgent(ctx context.Context) string` | 返回 `""`。 |
+| `SetRequestUserAgent` | `contextx.SetRequestUserAgent(ctx context.Context, userAgent string) context.Context` | 存储 `userAgent`。 |
 | `Principal` | `contextx.Principal(ctx context.Context) *security.Principal` | 返回 `nil`。 |
 | `SetPrincipal` | `contextx.SetPrincipal(ctx context.Context, principal *security.Principal) context.Context` | 存储 `principal`。 |
 | `Logger` | `contextx.Logger(ctx context.Context, fallbacks ...logx.Logger) logx.Logger` | 使用 fallbacks，然后返回 `nil`。 |
@@ -85,6 +88,8 @@ Handler factory（在启动期构建 `fiber.Handler` 的函数，例如 `func (r
 | `SetDB` | `contextx.SetDB(ctx context.Context, db orm.DB) context.Context` | 存储 `db`。 |
 | `DataPermApplier` | `contextx.DataPermApplier(ctx context.Context) security.DataPermissionApplier` | 返回 `nil`。 |
 | `SetDataPermApplier` | `contextx.SetDataPermApplier(ctx context.Context, applier security.DataPermissionApplier) context.Context` | 存储 `applier`。 |
+
+写入 `KeyRequestUserAgent` 的是 API 认证中间件，因此它只在 API 操作分发过程中才有值。读它的也正是那一处：trust code 登录用它比对 [信任登录](../security/trust-login) 网关重定向的那个浏览器——这个访问器之所以存在，而不是让每个调用方自己去读请求头，原因就在这里。
 
 string getters 在值未设置或存储类型不匹配时返回 zero value `""`。它们无法区分“未设置”和“显式设置为空字符串”。
 

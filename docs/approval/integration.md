@@ -222,6 +222,125 @@ The consumer group defaults to the command type's identity (`vef:cmd:<module-rel
 
 Delivery inherits the event route's semantics: on an at-least-once transport the command handler must be idempotent — copy `Envelope.ID` into the command when it needs its own dedupe key. Unlike the eventual business projection — which converges on the latest desired state and may skip intermediate statuses — every instance transition dispatches its own command, making `BindCommand` the lane for side effects tied to a specific lifecycle moment.
 
+## Principal Resolution Registries
+
+Who may approve, who gets copied, and who may start a flow are three **open
+registries**, all driven by the same descriptor. `approval.AssigneeKind`,
+`CCKind` and `InitiatorKind` carry the built-in constants but no `IsValid`: the
+deployable kinds are exactly those with a registered resolver.
+
+A host adds one by implementing the public contract and registering it:
+
+| Contract | Verb | Registration |
+| --- | --- | --- |
+| `approval.AssigneeResolver` | `Resolve(ctx, *AssigneeResolveContext) ([]ResolvedAssignee, error)` | `vef.ProvideApprovalAssigneeResolver(...)` |
+| `approval.CCResolver` | `Resolve(ctx, *CCResolveContext) ([]string, error)` | `vef.ProvideApprovalCCResolver(...)` |
+| `approval.InitiatorResolver` | `Permits(ctx, *InitiatorResolveContext) (bool, error)` | `vef.ProvideApprovalInitiatorResolver(...)` |
+
+Each also implements `Describe() KindDescriptor[K]`. A resolver whose kind
+matches a built-in **replaces it in place**, keeping the designer's option
+order; any other kind is appended in ascending kind order. That sort is
+load-bearing rather than tidiness: an fx value group arrives randomized, so
+appending in arrival order would reshuffle the designer's dropdown on every
+restart. It is also why two host resolvers claiming one kind are refused at
+boot instead of resolving last-wins — with a randomized group, "last" would be
+a per-boot coin flip over which resolver actually assigns work.
+
+### One descriptor drives designer input and validation
+
+```go
+type KindDescriptor[K ~string] struct {
+    Kind      K             `json:"kind"`
+    Label     string        `json:"label"`
+    Selection SelectionMode `json:"selection"`
+}
+```
+
+`approval.SelectionMode` is the single answer to two questions that used to be
+answered by hard-coded switches — which input the designer renders for a rule
+of this kind, and which companion field save-time validation requires:
+
+| Mode | Designer collects | Validation requires |
+| --- | --- | --- |
+| `approval.SelectionNone` | nothing | nothing |
+| `approval.SelectionUser` | user IDs | at least one ID |
+| `approval.SelectionRole` | role IDs | at least one ID |
+| `approval.SelectionDepartment` | department IDs | at least one ID |
+| `approval.SelectionFormField` | one form field name | the form field |
+| `approval.SelectionCustom` | IDs from a host-supplied catalog, resolved by kind | at least one ID |
+
+`SelectionNone` is the shape most "organizational" rules want — "the
+applicant's head nurse", "科主任" — resolved entirely from the runtime context.
+`SelectionCustom` is the expert-panel shape, whose picker the designer resolves
+by the kind's own name so several custom kinds coexist without colliding.
+
+Two constraints are enforced at boot rather than discovered later: a faulty
+descriptor (blank kind or label, out-of-enum mode) fails registration, and an
+**initiator** kind may never be `SelectionFormField` — initiation is checked
+before an instance, and therefore before a form, exists.
+
+### What a resolver sees
+
+Assignee and CC resolution share `approval.NodeResolveContext` verbatim, so a
+kind written for one side works unchanged on the other:
+
+```go
+type NodeResolveContext struct {
+    Instance     *Instance          // applicant snapshot, tenant, flow code, Globals
+    Node         *FlowNode          // Key is the designer-assigned, deploy-stable identifier
+    FormData     FormData           // as it stands at resolution time, not as the row holds it
+    UserResolver UserInfoResolver   // fill in names and departments for bare IDs
+}
+```
+
+`approval.AssigneeResolveContext` and `approval.CCResolveContext` embed it and
+add the one rule being resolved — `Kind`, `IDs`, and `FormField`. The models
+are the framework's: treat them as read-only. CC deliberately does **not** see
+`CCTiming`; whether a rule fires on entry, on approval or on rejection is the
+engine's decision, made before the resolver is consulted, and a resolver that
+read it could contradict that decision.
+
+`approval.InitiatorResolveContext` is deliberately smaller — `FlowID`,
+`TenantID`, `Applicant`, `Kind`, `IDs`. There is no instance and no form data,
+because who may start a flow is a property of the person and the flow, never of
+what they typed. A rule that needs the form belongs in a condition branch,
+where the form is real. Note too that the applicant's display **name** is not
+guaranteed: the start-form lookup checks permission without resolving one, so
+decide on the ID and the department.
+
+### Failure semantics differ by side
+
+- An assignee resolver returning **no one** is a valid answer — the node's
+  `EmptyAssigneeAction` then decides, which is how an optional approver step is
+  expressed. Returning an *error* fails the approval action rather than
+  silently dropping approvers.
+- CC stays **best-effort**: an unresolvable rule is logged and skipped, never
+  rolling back the approval that triggered it.
+- An unregistered **initiator** kind is a loud error. Treating it as "denied"
+  would read as a permission bug instead of the configuration one it is, and
+  initiation permission fails closed.
+
+### Serving the catalog to the designer
+
+`approval/flow.list_kind_options` returns `approval.KindOptions` — every
+assignee, CC and initiator kind the running application actually accepts, read
+straight off the boot-registered resolvers with labels resolved per call so
+they follow `VEF_I18N_LANGUAGE`.
+
+```go
+type KindOptions struct {
+    Assignees  []KindDescriptor[AssigneeKind]  `json:"assignees"`
+    CCs        []KindDescriptor[CCKind]        `json:"ccs"`
+    Initiators []KindDescriptor[InitiatorKind] `json:"initiators"`
+}
+```
+
+It exists because the designer's options and the server's validation used to be
+two hand-maintained lists that could disagree. Feed the served list to the
+React designer (`EditorPlugins.assigneeKinds` / `ccKinds`,
+`BasicStep.initiatorKinds`, `FlowValidationContext`): omitting it falls back to
+the built-in catalogs, which silently reports a host kind as an unknown type.
+
 ## Business Identifier Validation
 
 `Flow.BindingMode == BindingBusiness` flows carry SQL identifiers (`BusinessBindingConfig.TableName`, every `KeyColumns` entry, `StatusColumn`, `InstanceIDColumn`, and the optional timestamp columns) that the engine-owned projection interpolates directly into an `UPDATE` template. To prevent SQL injection, the framework whitelists identifiers against `^[A-Za-z_][A-Za-z0-9_]{0,62}$`:
@@ -261,18 +380,19 @@ type Delegation struct {
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `UrgeRecord`, `DefaultTenantID` |
 | node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
 | conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `AggregateKind`, `AggregateSum`, `AggregateCount`, `AggregateAvg`, `Aggregator` |
-| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel` |
-| CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCRecord` (`CCRecord.VisitID` scopes the record to one node traversal, mirroring `Task.VisitID`) |
+| initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel`, `AssigneeResolver`, `AssigneeResolveContext`, `InitiatorResolver`, `InitiatorResolveContext`, `KindDescriptor`, `KindOptions`, `SelectionMode`, `SelectionNone`, `SelectionUser`, `SelectionRole`, `SelectionDepartment`, `SelectionFormField`, `SelectionCustom`, `NodeResolveContext` |
+| CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCResolver`, `CCResolveContext`, `CCRecord` (`CCRecord.VisitID` scopes the record to one node traversal, mirroring `Task.VisitID`) |
 | business binding & projection | `BusinessBindingConfig`, `BusinessRecordKey`, `BusinessProjection` (model, table `apv_business_projection`), `BindingProjectionStatus` (`BindingProjectionPending` / `Processing` / `Applied` / `Failed`), `BindingTrigger`, `BindingTriggerStarted`, `BindingTriggerCompleted`, `BindingTriggerReturned`, `BindingTriggerWithdrawn`, `BindingTriggerResubmitted` |
 | instance subscriptions | `SubscribeInstance`, `BindCommand`, `InstanceEvent`, `InstanceFilter`, `InstanceSubscribeOption`, `ForFlows`, `ForTenants`, `WithGroup`, `WithConcurrency`, `NewFilteredLifecycleHook`, `ErrAnonymousSubscriberGroup`, `ErrDerivedGroupConflict`, `ErrNonCommandAction`, `ErrUnnamedCommandType` |
-| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
+| node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `SameApplicantExclude`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
 | rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
 | action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
 | pass rules | `PassRule`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
 | progress views | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` |
 | events | all `New...Event` constructors, `DomainEvent`, `InstanceEventBase`, `TaskEventBase`, `FlowEventBase`, `NewInstanceEventBase`, `NewTaskEventBase`, `NewFlowEventBase`, `PayloadOccurredAt`, `AllEventTypes`, `TaskActivationReason`, `TaskActivationAssigned`, `TaskActivationQueueAdvanced`, `TaskActivationTransferred`, `TaskActivationReassigned`, and the `EventType...` constants |
 | extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
-| DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser` |
+| DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser`, `ProvideApprovalAssigneeResolver`, `ProvideApprovalCCResolver`, `ProvideApprovalInitiatorResolver`, `ProvideApprovalGlobalsResolver` |
+| programmatic control | `Service`, `ErrDBRequired`, `StartInstanceInput`, `WithdrawInstanceInput`, `ResubmitInstanceInput`, `TerminateInstanceInput`, `ApproveTaskInput`, `RejectTaskInput`, `TransferTaskInput`, `RollbackTaskInput`, `ReassignTaskInput`, `AddAssigneeInput`, `RemoveAssigneeInput`, `AddCCInput`, `MarkCCReadInput`, `UrgeTaskInput`, `RetryBusinessProjectionInput` — see [Programmatic Flow Control](./service.md) |
 | admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |
 | user DTOs | package `approval/my`: `PendingTask`, `CompletedTask`, `CCRecord`, `InitiatedInstance`, `AvailableFlow`, `InstanceDetail`, `InstanceInfo`, `PendingCounts`, `StartForm`, `ViewerTask`, `RollbackTarget`, `RemovableAssignee` |
 

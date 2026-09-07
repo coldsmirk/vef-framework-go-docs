@@ -109,7 +109,8 @@ sentinel 没有导出。`decimal.MustFromAny` 会在任何转换错误上 panic�
 
 因为 `decimal.Decimal` 是 type alias，method set 继承自
 `shopspring/decimal.Decimal`。下表按用途对全部 70 个 exported methods
-进行了分组。
+进行了分组；每个方法的精确签名都列在 [public API index](../reference/public-api-index) 中，
+那份索引是从源码树生成的，不在本页维护。
 
 | Family | Methods |
 | --- | --- |

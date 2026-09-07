@@ -101,9 +101,20 @@ The runtime state machine declares only these valid task transitions:
 | `RollbackType` | `RollbackNone` (`none`), `RollbackPrevious` (`previous`), `RollbackStart` (`start`), `RollbackAny` (`any`), `RollbackSpecified` (`specified`) |
 | `RollbackDataStrategy` | `RollbackDataClear` (`clear`, reset form), `RollbackDataKeep` (`keep`, restore the form snapshot captured when the target node was entered — the latest one if the node was entered more than once) |
 
-Same-applicant handling uses `SameApplicantAction` with
-`SameApplicantSelfApprove` (`self_approve`), `SameApplicantAutoPass`
-(`auto_pass`), and `SameApplicantTransferSuperior` (`transfer_superior`).
+Same-applicant handling uses `SameApplicantAction`, and the policy is
+**per seat**: it applies whenever the applicant holds a seat in the node's
+resolved assignee set, not only when they are its sole approver.
+
+| Constant | Wire value | Behavior |
+| --- | --- | --- |
+| `SameApplicantSelfApprove` | `self_approve` | The applicant approves their own task like any other approver. |
+| `SameApplicantAutoPass` | `auto_pass` | The applicant's own task is cleared automatically — at node entry, or when a sequential queue reaches their seat. |
+| `SameApplicantTransferSuperior` | `transfer_superior` | Only the applicant's seat is handed to their superior; the other seats are untouched. |
+| `SameApplicantExclude` | `exclude` | 避嫌: the applicant's seat is removed and only the remaining assignees decide, with pass rules counted over the remaining set. An exclusion that empties the set falls back to `EmptyAssigneeAction` verbatim. |
+
+Tasks a human creates afterwards — an add-assignee splice, a transfer, a
+reassignment, a timeout auto-transfer — are exempt: an explicit decision to
+involve the applicant overrides the node policy.
 Consecutive-approver handling uses `ConsecutiveApproverAction` with
 `ConsecutiveApproverNone` (`none`) and `ConsecutiveApproverAutoPass`
 (`auto_pass`).

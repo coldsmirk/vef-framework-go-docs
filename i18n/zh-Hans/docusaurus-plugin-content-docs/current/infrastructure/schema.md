@@ -121,6 +121,7 @@ principal」计数，每个节点在进程内存中独立执行。
 | `name` | `string` | 列名 |
 | `type` | `string` | 原始数据库类型 |
 | `nullable` | `bool` | 是否可空 |
+| `maxLength` | `int` | 字符列声明的长度上限；列无上限或不是字符类型时省略 |
 | `default` | `string` | 数据库上报的默认表达式原文；列没有默认值时省略 |
 | `comment` | `string` | 列注释；为空时省略 |
 | `isPrimaryKey` | `bool` | 是否属于主键；为 `false` 时省略 |
@@ -129,6 +130,8 @@ principal」计数，每个节点在进程内存中独立执行。
 `isAutoIncrement` 会识别 MySQL `AUTO_INCREMENT`、SQLite `AUTOINCREMENT`、
 PostgreSQL identity column，以及 PostgreSQL `serial`、`bigserial`、
 `smallserial` raw type。
+
+字符列的长度上限要从 `Column.MaxLength` 读，绝不要去解析 `Column.Type`：`type` 是各方言自己的写法，并不总是带着这个上限——PostgreSQL 把类型叫作 `character varying`，长度放在别处，而 MySQL 写的是 `varchar(128)`。
 
 #### `schema.PrimaryKey`
 

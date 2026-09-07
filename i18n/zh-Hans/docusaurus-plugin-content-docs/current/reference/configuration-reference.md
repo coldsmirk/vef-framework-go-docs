@@ -110,12 +110,14 @@ path = "./analytics.db"
 | `password_policy.*` | — | 密码强度规则；每个字段都是可选项（零值表示不启用该规则）：`min_length`、`max_length`、`require_upper`、`require_lower`、`require_digit`、`require_symbol`、`min_char_classes`、`disallow_username`、`blocklist`、`history_depth`（防重用，需要应用自行实现 `security.PasswordHistoryStore`）、`max_age`（过期策略，需要应用自行实现 `security.PasswordMetadataLoader`）。 |
 | `token_type` | `jwt_token \| opaque_token` | 登录 token 机制；默认 `jwt_token`。会话控制（并发数限制、强制下线、续期）只在 `opaque_token` 下可用。 |
 | `session.*` | — | opaque token 的会话调优项，在 `jwt_token` 下不生效：`max_concurrent` 默认 `0`（不限制；并发登录场景下是 best-effort 强制）、`on_exceed`（`reject` \| `evict_oldest`）默认 `evict_oldest`、`idle_ttl` 默认 `30m`、`max_lifetime` 默认 `168h`（7 天）、`sliding` 默认 `true`。 |
+| `trust_login.*` | — | 信任登录 SSO 网关，默认关闭：`enabled`、`path` 默认 `/sso/trust`、`code_ttl` 默认 `60s`、`bind_user_agent` 默认开启、`bind_client_ip` 默认关闭、`apps.<appId>.redirect_urls`（参与的每个 app 必填）、`rate_limit.max` 默认 `120` / `rate_limit.period` 默认 `1m`。参见[信任登录](../security/trust-login) |
 
 说明：
 
 - 内置 JWT token generator 签发的 access token 固定 `30m` 过期；`vef.security.token_expires` 控制的是 refresh token，不是 access token。
 - 锁定功能默认开启（`max_failures = 10`）；触发后返回 `security.ErrAccountLocked`（HTTP 429），guard 存储出错时按 fail open 处理。
 - 只有注册了 `security.PasswordHistoryStore` 时，`history_depth > 0` 才会把历史密码校验组合进密码策略；只有应用同时接入 `security.PasswordMetadataLoader` 和 `security.NewExpiryPasswordChangeChecker` 时，`max_age` 才会生效。
+- 除非设置 `vef.security.trust_login.enabled`，否则信任登录处于关闭状态；开启后，不在 `apps` 中的 app 一律拒绝，哪怕它已经能用同一个 app ID 调用 API。
 
 ## `vef.redis`
 
@@ -330,6 +332,10 @@ path = "./analytics.db"
 | `config.DefaultSessionMaxLifetime` | `CONST` | `time.Duration = 604800000000000` |
 | `config.DefaultSweepBatchSize` | `CONST` | `int = 200` |
 | `config.DefaultSweepInterval` | `CONST` | `time.Duration = 300000000000` |
+| `config.DefaultTrustLoginCodeTTL` | `CONST` | `time.Duration = 60000000000` |
+| `config.DefaultTrustLoginPath` | `CONST` | `untyped string = "/sso/trust"` |
+| `config.DefaultTrustLoginRateLimitMax` | `CONST` | `untyped int = 120` |
+| `config.DefaultTrustLoginRateLimitPeriod` | `CONST` | `time.Duration = 60000000000` |
 | `config.EnvConfigPath` | `CONST` | `untyped string = "VEF_CONFIG_PATH"` |
 | `config.EnvI18NLanguage` | `CONST` | `untyped string = "VEF_I18N_LANGUAGE"` |
 | `config.EnvPrefix` | `CONST` | `untyped string = "VEF"` |
@@ -348,6 +354,10 @@ path = "./analytics.db"
 | `config.ErrInvalidLockoutStrategy` | `VAR` | `error` |
 | `config.ErrInvalidSessionOnExceed` | `VAR` | `error` |
 | `config.ErrInvalidTokenType` | `VAR` | `error` |
+| `config.ErrTrustLoginAppsRequired` | `VAR` | `error` |
+| `config.ErrTrustLoginPathInvalid` | `VAR` | `error` |
+| `config.ErrTrustLoginRedirectInvalid` | `VAR` | `error` |
+| `config.ErrTrustLoginRedirectsEmpty` | `VAR` | `error` |
 | `config.EventConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventConfig` |
 | `config.EventInboxConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventInboxConfig` |
 | `config.EventMemoryTransportConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig` |
@@ -407,6 +417,9 @@ path = "./analytics.db"
 | `config.TokenType` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TokenType` |
 | `config.TokenTypeJWT` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "jwt_token"` |
 | `config.TokenTypeOpaque` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "opaque_token"` |
+| `config.TrustLoginAppConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginAppConfig` |
+| `config.TrustLoginConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginConfig` |
+| `config.TrustLoginRateLimitConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginRateLimitConfig` |
 
 ### Exported Fields
 
@@ -575,12 +588,13 @@ path = "./analytics.db"
 | `config.SecurityConfig.LoginRateLimit` | `int [field_order=4 tag="config:\"login_rate_limit\""]` |
 | `config.SecurityConfig.RefreshRateLimit` | `int [field_order=5 tag="config:\"refresh_rate_limit\""]` |
 | `config.SecurityConfig.IPWhitelists` | `map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]` |
-| `config.SecurityConfig.Lockout` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig [field_order=7 tag="config:\"lockout\""]` |
-| `config.SecurityConfig.PasswordPolicy` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig [field_order=8 tag="config:\"password_policy\""]` |
-| `config.SecurityConfig.TokenType` | `github.com/coldsmirk/vef-framework-go/config.TokenType [field_order=9 tag="config:\"token_type\""]` |
-| `config.SecurityConfig.Session` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig [field_order=10 tag="config:\"session\""]` |
-| `config.SecurityConfig.APIKeys` | `map[string]github.com/coldsmirk/vef-framework-go/config.APIKeyConfig [field_order=11 tag="config:\"api_keys\""]` |
-| `config.SecurityConfig.BasicAccounts` | `map[string]github.com/coldsmirk/vef-framework-go/config.BasicAccountConfig [field_order=12 tag="config:\"basic_accounts\""]` |
+| `config.SecurityConfig.Lockout` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig [field_order=9 tag="config:\"lockout\""]` |
+| `config.SecurityConfig.PasswordPolicy` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig [field_order=10 tag="config:\"password_policy\""]` |
+| `config.SecurityConfig.TokenType` | `github.com/coldsmirk/vef-framework-go/config.TokenType [field_order=11 tag="config:\"token_type\""]` |
+| `config.SecurityConfig.Session` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig [field_order=12 tag="config:\"session\""]` |
+| `config.SecurityConfig.APIKeys` | `map[string]github.com/coldsmirk/vef-framework-go/config.APIKeyConfig [field_order=7 tag="config:\"api_keys\""]` |
+| `config.SecurityConfig.BasicAccounts` | `map[string]github.com/coldsmirk/vef-framework-go/config.BasicAccountConfig [field_order=8 tag="config:\"basic_accounts\""]` |
+| `config.SecurityConfig.TrustLogin` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginConfig [field_order=13 tag="config:\"trust_login\""]` |
 | `config.APIKeyConfig.Key` | `string [field_order=1 tag="config:\"key\""]` |
 | `config.APIKeyConfig.Roles` | `[]string [field_order=2 tag="config:\"roles\""]` |
 | `config.BasicAccountConfig.Password` | `string [field_order=1 tag="config:\"password\""]` |
@@ -590,6 +604,16 @@ path = "./analytics.db"
 | `config.SessionConfig.IdleTTL` | `time.Duration [field_order=3 tag="config:\"idle_ttl\""]` |
 | `config.SessionConfig.MaxLifetime` | `time.Duration [field_order=4 tag="config:\"max_lifetime\""]` |
 | `config.SessionConfig.Sliding` | `*bool [field_order=5 tag="config:\"sliding\""]` |
+| `config.TrustLoginConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
+| `config.TrustLoginConfig.Path` | `string [field_order=2 tag="config:\"path\""]` |
+| `config.TrustLoginConfig.CodeTTL` | `time.Duration [field_order=3 tag="config:\"code_ttl\""]` |
+| `config.TrustLoginConfig.BindUserAgent` | `*bool [field_order=4 tag="config:\"bind_user_agent\""]` |
+| `config.TrustLoginConfig.BindClientIP` | `bool [field_order=5 tag="config:\"bind_client_ip\""]` |
+| `config.TrustLoginConfig.Apps` | `map[string]github.com/coldsmirk/vef-framework-go/config.TrustLoginAppConfig [field_order=6 tag="config:\"apps\""]` |
+| `config.TrustLoginConfig.RateLimit` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginRateLimitConfig [field_order=7 tag="config:\"rate_limit\""]` |
+| `config.TrustLoginRateLimitConfig.Max` | `int [field_order=1 tag="config:\"max\""]` |
+| `config.TrustLoginRateLimitConfig.Period` | `time.Duration [field_order=2 tag="config:\"period\""]` |
+| `config.TrustLoginAppConfig.RedirectURLs` | `[]string [field_order=1 tag="config:\"redirect_urls\""]` |
 | `config.StorageConfig.Provider` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]` |
 | `config.StorageConfig.AutoMigrate` | `bool [field_order=2 tag="config:\"auto_migrate\""]` |
 | `config.StorageConfig.MinIO` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig [field_order=3 tag="config:\"minio\""]` |
@@ -663,6 +687,12 @@ path = "./analytics.db"
 | `config.LockoutConfig.Validate` | `func() error` |
 | `config.SecurityConfig.EffectiveTokenType` | `func() github.com/coldsmirk/vef-framework-go/config.TokenType` |
 | `config.SecurityConfig.Validate` | `func() error` |
+| `config.TrustLoginConfig.EffectivePath` | `func() string` |
+| `config.TrustLoginConfig.EffectiveCodeTTL` | `func() time.Duration` |
+| `config.TrustLoginConfig.IsUserAgentBound` | `func() bool` |
+| `config.TrustLoginConfig.Validate` | `func() error` |
+| `config.TrustLoginRateLimitConfig.EffectiveMax` | `func() int` |
+| `config.TrustLoginRateLimitConfig.EffectivePeriod` | `func() time.Duration` |
 | `config.SessionConfig.EffectiveOnExceed` | `func() github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy` |
 | `config.SessionConfig.EffectiveIdleTTL` | `func() time.Duration` |
 | `config.SessionConfig.EffectiveMaxLifetime` | `func() time.Duration` |

@@ -111,7 +111,9 @@ panics on any conversion error.
 
 Since `decimal.Decimal` is a type alias, the method set is inherited from
 `shopspring/decimal.Decimal`. The table below groups all 70 exported methods
-by purpose.
+by purpose; every exact signature is listed in the
+[public API index](../reference/public-api-index), which is generated from the
+source tree rather than maintained here.
 
 | Family | Methods |
 | --- | --- |

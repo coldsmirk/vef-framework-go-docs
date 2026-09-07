@@ -4,7 +4,12 @@ sidebar_position: 3
 
 # CLI 工具
 
-VEF 提供了一个 CLI，但目前的范围比完整的项目脚手架工具要窄。
+VEF 提供的 CLI 有两类性质不同的命令，这个划分是与你之间的约定，不是命名上的修饰：
+
+- **`new`** 只写一次文件，然后就把它交给你。文件里没有「生成文件」标记，永远不会被重新生成，你可以随意编辑。
+- **`generate-*` 与 `export-api`** 永远拥有自己的产物，每次运行都会覆盖它。
+
+判断一条新命令属于哪一类，只需要问一个问题：*会有人想去改它吗？* 会 ⇒ `new`；不会 ⇒ 一个带着 `// Code generated ... DO NOT EDIT.` 的派生产物。
 
 ## 当前有哪些命令
 
@@ -12,42 +17,84 @@ VEF 提供了一个 CLI，但目前的范围比完整的项目脚手架工具要
 `Version: ...`；当构建时间元数据可用时还会打印 `Built: ...`，dirty VCS
 构建会在版本号后追加 `-dirty`。
 
-CLI 当前注册了这些子命令：
+CLI 注册了这些子命令：
 
-- `create`
+- `new`——`project`、`resource`、`service`
 - `generate-build-info`
 - `generate-model-schema`
+- `export-api`
 
 ## 最小命令示例
 
 ```bash
 vef-cli --version
+vef-cli new project acme-server
+vef-cli new resource --table hr_employee --module hr
+vef-cli new service --name Payroll --module hr --deps bus:event.Bus
 vef-cli generate-build-info -o internal/vef/build_info.go -p vef
 vef-cli generate-model-schema -i models -o schemas -p schemas
+vef-cli export-api --app ./cmd/server -o api-manifest.json
 ```
 
 应用代码应该通过这些命令来使用 CLI，而不是直接 import
 `cmd/vef-cli/cmd/*` 下的实现包。
 
-## 重要现状说明
+## `new`
 
-`vef-cli create` 作为命令存在，但目前**尚未实现**。
+### `new project <name>`
 
-不要把它当作一个可用的项目生成器来使用。
-
-该命令会返回这个错误：
-
-```text
-vef-cli create is not implemented yet, please generate the project manually
-```
-
-因为计划中的命令形态已经存在，命令仍然定义了这些 flags：
+写出框架自己的目录约定：`cmd/server` 下的入口、`configs` 下的运行时配置、`internal` 下的业务模块，以及一份记录代码生成约定、供其他 `new` 命令读取的 `vef.yml`。它会把框架版本钉在 CLI 自身的版本上——工具是对着它自己构建时的 API 生成代码的，这个版本不可能过期——并在收尾前运行 `generate-build-info`，因为 `internal/vef/module.go` 引用了生成出来的 `BuildInfo`。
 
 | Flag | 默认值 | 用途 |
 | --- | --- | --- |
-| `--name`, `-n` | 必填 | 项目名称 |
-| `--path`, `-p` | `.` | 项目将要创建到的目录路径 |
-| `--module`, `-m` | 空 | Go module 路径 |
+| `--name`, `-N` | 位置参数 | 项目名称 |
+| `--module`, `-m` | 项目名称 | Go module 路径 |
+| `--path`, `-p` | `./<name>` | 创建项目的目录 |
+| `--with-example` | `true` | 生成一个起步业务模块 |
+| `--skip-tidy` | `false` | 跳过 `go mod tidy` |
+| `--skip-git` | `false` | 跳过 `git init` |
+| `--dry-run` | `false` | 只打印将写入什么，不动文件系统 |
+
+Dockerfile、git hook 和 CI 流水线是刻意排除掉的：它们编码的是部署与团队决策，框架对此没有意见。
+
+### `new resource`
+
+从一张真实的数据库表生成 model、payload 和 API 资源——**外加两处注册**：model 注册表的 `var` 块，以及模块的 fx option 列表。这两处注册是价值的一半：漏掉任何一处，得到的都是一个能编译、但一律返回 404 的应用。模块不存在时会被创建，并接入 `cmd/server/main.go` 的 `vef.Run` 调用；最后这一步是尽力而为的，因为入口文件的形态是约定而非契约，所以自行改过接线方式的项目会收到一行 `TODO`，而不是一条失败的命令。
+
+| Flag | 默认值 | 用途 |
+| --- | --- | --- |
+| `--table`, `-t` | 必填 | 用来推导实体的数据库表 |
+| `--module`, `-m` | 必填 | 生成到哪个业务模块，可以是多级 |
+| `--entity` | 去掉模块前缀后的表名 | 实体名覆盖，snake_case |
+| `--alias` | 表名各单词的首字母 | 表别名覆盖 |
+| `--ops` | 项目配置的集合 | 要内嵌的 CRUD 操作 |
+| `--search` | 所有标量列 | 形如 `column:operator` 的检索条件；`none` 生成空的检索载荷 |
+| `--source` | primary | 要检查的数据源 |
+| `--config` | `<project>/configs/application.toml` | `application.toml` 的路径 |
+| `--force` | `false` | 覆盖已存在的生成文件 |
+| `--dry-run`, `-n` | `false` | 只打印将写入什么，不动文件系统 |
+
+表是通过框架自己的 schema 服务检查的，因此列注释会变成 `label` tag，可空会变成指针加 `omitempty`，声明的字符长度上限会变成 `max=N`，带有框架审计列的表会内嵌对应的 `orm` mixin 而不是重新声明这些字段。mixin 的匹配检查列的**类型**，而不只是名字——`orm.Model` 声明的是 `ID string`，而 ORM 会往任何零值字符串主键里写一个生成的 XID，所以仅凭名字去匹配一个 `BIGINT` 自增列，会在每次创建时把一个 20 字符的字符串塞进数字列里。
+
+`find_tree` 会被拒绝而不是生成：`crud.NewFindTree` 需要一个任何生成器都无法提供的建树函数。
+
+### `new service`
+
+符合约定的骨架——一个只装注入依赖的结构体，方法签名为 `(ctx, db orm.DB, …)`——并注册到它所属的模块。框架依赖类型会自行解析所需的 import。
+
+| Flag | 默认值 | 用途 |
+| --- | --- | --- |
+| `--name`, `-n` | 必填 | PascalCase 的服务名，带不带 `Service` 后缀都可以 |
+| `--module`, `-m` | 必填 | 生成到哪个业务模块，可以是多级 |
+| `--deps` | 无 | 形如 `field:Type` 的注入依赖，例如 `bus:event.Bus` |
+| `--force` | `false` | 服务文件已存在时覆盖它 |
+| `--dry-run` | `false` | 只打印将写入什么，不动文件系统 |
+
+### 约定来自 `vef.yml`
+
+项目根目录的 `vef.yml` 记录 `module_root`，以及 `resource` 下的 `name` / `permission` 模板（占位符 `{module}`、`{domain}`、`{entity}`、`{action}`）、`ops`、`audit` 和 `audit_user_model`。每个键都有默认值，所以这个文件是可选的；`new project` 会写一份出来，让约定是看得见的，而不是隐含的。
+
+对已有代码重复运行生成器，会报告哪些东西已经存在，而不是覆盖它们，除非 `--force` 另有指示。每条命令都会先把全部改动规划出来，因此 `--dry-run` 能展示完整结果，而规划中途失败也不会留下写了一半的文件。
 
 ## `generate-build-info`
 
@@ -141,6 +188,74 @@ schemas.User.Name(true) // "name"
 accessor 会加上 `Col` 前缀，例如 `ColTable`。生成的 struct 字段标识符如果
 会撞上 Go 关键字，会加上 `__` 前缀。
 
+## `export-api`
+
+`export-api` 把应用的 API 接口面描述成数据。清单是由**应用自己**产出的：命令会带着 `VEF_EXPORT_API` 运行你的 main 包，所以它报告的是这个二进制真正注册了什么——资源名、action、认证策略、权限令牌、审计开关、生效的超时与限流，以及每个请求载荷的完整形状——而不是源码扫描猜出来的东西。
+
+| Flag | 默认值 | 用途 |
+| --- | --- | --- |
+| `--app` | `./cmd/server` | 要描述的应用的 main 包 |
+| `--output`, `-o` | `api-manifest.json` | 写入清单的文件，`-` 表示标准输出 |
+| `--check` | `false` | 已有文件不一致时失败，而不是重写它 |
+
+```bash
+vef-cli export-api --app ./cmd/server -o api-manifest.json
+vef-cli export-api --app ./cmd/server -o api-manifest.json --check
+```
+
+输出是排过序的，也不带时间戳，因此它就是拿来**提交进仓库**的：它的 diff 就是你 API 契约的 diff，而 `--check` 是让两者保持同步的 CI 闸门。有两条规则让这条命令可组合，而且都是踩过坑才有的：进度信息一律走 stderr 而不是 stdout，因此 `-o -` 可以直接管道给 `jq`；`--check` 与 `-o -` 同时使用会被拒绝而不是被忽略，因为那样写出来的 CI 任务什么都没比较，却在任何漂移下都返回 0。
+
+### 清单的形状
+
+```json
+{
+  "framework": "v0.51.0",
+  "resources": [
+    {
+      "name": "security/auth",
+      "kind": "rpc",
+      "version": "v1",
+      "operations": [
+        {
+          "action": "login",
+          "auth": "none",
+          "timeoutMs": 30000,
+          "rateLimit": { "max": 6, "periodMs": 300000 },
+          "params": "github.com/…/security.LoginParams"
+        }
+      ]
+    }
+  ],
+  "types": {
+    "github.com/…/security.LoginParams": {
+      "fields": [
+        { "name": "type", "type": "string", "validate": "required" }
+      ]
+    }
+  }
+}
+```
+
+字段带有 `name`（取自 json tag）、`type`，以及可选的 `optional` / `label` / `validate`；`permission` 与 `audit` 只在设置过时才出现在 operation 上。具名结构体会渲染成它在 `types` 中占据的键，因此一张载荷关系图只描述一次，之后按名字引用。
+
+返回类型是刻意缺席的：crud handler 只返回 `error`，响应是通过 context 写出去的，所以模型类型根本不出现在签名里。补上这个缺口只需要在 `api.OperationSpec` 上追加一个字段，那是计划中的下一步而非疏漏——同一个缺口也吞掉了 `delete` / `delete_many`，它们的 handler 接收的是无类型的参数袋。
+
+### 从你自己的入口导出
+
+当 `vef.EnvExportAPI`（`VEF_EXPORT_API`）环境变量指定了目标时，`vef.Run` 会转交给 `vef.ExportAPI`，因此宿主不需要第二个入口。想在进程内拿到清单时直接调用它：
+
+```go
+if err := vef.ExportAPI(os.Stdout, options...); err != nil {
+    return err
+}
+```
+
+用环境变量而不是命令行 flag，是因为 `Run` 并不拥有进程的 flag set——宿主的 `main` 可能已经定义了自己的。
+
+**什么都不会启动，也什么都不会连接。** 资源在构造期就完成注册，数据源是懒打开的，而调用 crud handler 工厂的挂载动作发生在之后——这正是让导出能安全跑在容器构建或 CI 任务里的原因。它是给「跑完就退出」的进程用的：有少数构造函数会自己起 goroutine 而不是注册生命周期钩子（会话存储和登录守卫背后的内存缓存各跑一个 GC ticker），而由于依赖图从未启动，也就从未停止，所以在长期运行的进程里反复调用 `ExportAPI` 会让它们不断累积。
+
+接口面是通过 `api.EngineInspector` 读取的，这是一个**可选**接口（`Operations() []*api.Operation`，按标识符排序），框架自己的 engine 实现了它。做成 inspector 而不是 `api.Engine` 上的方法——与 `event.StreamInspector` 及其同类一致——是为了让新增内省能力不破坏任何自行实现 `Engine` 的宿主。没有实现它的 engine 会得到 `vef.ErrEngineNotInspectable`，这意味着有东西替换掉了框架自己的实现。
+
 ## 常见的 `go:generate` 用法
 
 在真实的 VEF 应用里，这些命令通常直接写在 `module.go` 上方：
@@ -159,14 +274,16 @@ package vef
 
 这样可以让 schema 辅助代码和构建元数据在物理位置上贴近使用它们的模块。
 
-## 现阶段的合理预期
+## 每条命令各归其位
 
-目前，这个 CLI 最好被当作：
+| 命令 | 拥有产物吗？ | 用来做什么 |
+| --- | --- | --- |
+| `new project` / `new resource` / `new service` | 不拥有——写一次，之后归你 | 起一个项目、加一个 CRUD 资源或一个服务 |
+| `generate-build-info` | 拥有——会被重新生成 | 通过 `sys/monitor` 暴露的构建元数据 |
+| `generate-model-schema` | 拥有——会被重新生成 | 从 model 派生的 schema 辅助代码 |
+| `export-api` | 拥有——会被重新生成 | 提交进仓库的 API 清单及其 CI 漂移闸门 |
 
-- 生成构建元数据的辅助工具
-- 生成 model schema 的辅助工具
-
-它**还不**适合作为「一条命令搭好整个项目」这类 onboarding 文档的基础。
+把这条线模糊掉，生成器就会变成一条没人敢运行的命令。
 
 ## 下一步
 

@@ -112,12 +112,14 @@ Runtime note:
 | `password_policy.*` | — | password strength rules; every field is opt-in (a zero value disables the rule): `min_length`, `max_length`, `require_upper`, `require_lower`, `require_digit`, `require_symbol`, `min_char_classes`, `disallow_username`, `blocklist`, `history_depth` (reuse prevention; requires an app-provided `security.PasswordHistoryStore`), `max_age` (expiry; requires an app-provided `security.PasswordMetadataLoader`) |
 | `token_type` | `jwt_token \| opaque_token` | login token mechanism; default `jwt_token`. Session control (concurrency limits, force-offline, renewal) is only available with `opaque_token` |
 | `session.*` | — | opaque-token session tuning, no effect under `jwt_token`: `max_concurrent` default `0` (unlimited; enforcement is best-effort under concurrent logins), `on_exceed` (`reject` \| `evict_oldest`) default `evict_oldest`, `idle_ttl` default `30m`, `max_lifetime` default `168h` (7 days), `sliding` default `true` |
+| `trust_login.*` | — | trust-login SSO gateway, off by default: `enabled`, `path` default `/sso/trust`, `code_ttl` default `60s`, `bind_user_agent` default on, `bind_client_ip` default off, `apps.<appId>.redirect_urls` (required per participating app), `rate_limit.max` default `120` / `rate_limit.period` default `1m`. See [Trust Login](../security/trust-login) |
 
 Runtime note:
 
 - access tokens issued by the built-in JWT token generator expire after `30m`; `vef.security.token_expires` controls refresh tokens, not access tokens
 - lockout is on by default (`max_failures = 10`); a trip returns `security.ErrAccountLocked` (HTTP 429) and guard-store errors fail open
 - `history_depth > 0` composes a history validator into the password policy only when a `security.PasswordHistoryStore` is registered; `max_age` only takes effect when the app wires a `security.PasswordMetadataLoader` and `security.NewExpiryPasswordChangeChecker`
+- trust login is off unless `vef.security.trust_login.enabled` is set; when on, an app absent from `apps` is refused even if it can already call the API with the same app ID
 
 ## `vef.redis`
 
@@ -334,6 +336,10 @@ Runtime note:
 | `config.DefaultSessionMaxLifetime` | `CONST` | `time.Duration = 604800000000000` |
 | `config.DefaultSweepBatchSize` | `CONST` | `int = 200` |
 | `config.DefaultSweepInterval` | `CONST` | `time.Duration = 300000000000` |
+| `config.DefaultTrustLoginCodeTTL` | `CONST` | `time.Duration = 60000000000` |
+| `config.DefaultTrustLoginPath` | `CONST` | `untyped string = "/sso/trust"` |
+| `config.DefaultTrustLoginRateLimitMax` | `CONST` | `untyped int = 120` |
+| `config.DefaultTrustLoginRateLimitPeriod` | `CONST` | `time.Duration = 60000000000` |
 | `config.EnvConfigPath` | `CONST` | `untyped string = "VEF_CONFIG_PATH"` |
 | `config.EnvI18NLanguage` | `CONST` | `untyped string = "VEF_I18N_LANGUAGE"` |
 | `config.EnvPrefix` | `CONST` | `untyped string = "VEF"` |
@@ -352,6 +358,10 @@ Runtime note:
 | `config.ErrInvalidLockoutStrategy` | `VAR` | `error` |
 | `config.ErrInvalidSessionOnExceed` | `VAR` | `error` |
 | `config.ErrInvalidTokenType` | `VAR` | `error` |
+| `config.ErrTrustLoginAppsRequired` | `VAR` | `error` |
+| `config.ErrTrustLoginPathInvalid` | `VAR` | `error` |
+| `config.ErrTrustLoginRedirectInvalid` | `VAR` | `error` |
+| `config.ErrTrustLoginRedirectsEmpty` | `VAR` | `error` |
 | `config.EventConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventConfig` |
 | `config.EventInboxConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventInboxConfig` |
 | `config.EventMemoryTransportConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.EventMemoryTransportConfig` |
@@ -411,6 +421,9 @@ Runtime note:
 | `config.TokenType` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TokenType` |
 | `config.TokenTypeJWT` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "jwt_token"` |
 | `config.TokenTypeOpaque` | `CONST` | `github.com/coldsmirk/vef-framework-go/config.TokenType = "opaque_token"` |
+| `config.TrustLoginAppConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginAppConfig` |
+| `config.TrustLoginConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginConfig` |
+| `config.TrustLoginRateLimitConfig` | `TYPE` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginRateLimitConfig` |
 
 ### Exported Fields
 
@@ -579,12 +592,13 @@ Runtime note:
 | `config.SecurityConfig.LoginRateLimit` | `int [field_order=4 tag="config:\"login_rate_limit\""]` |
 | `config.SecurityConfig.RefreshRateLimit` | `int [field_order=5 tag="config:\"refresh_rate_limit\""]` |
 | `config.SecurityConfig.IPWhitelists` | `map[string][]string [field_order=6 tag="config:\"ip_whitelists\""]` |
-| `config.SecurityConfig.Lockout` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig [field_order=7 tag="config:\"lockout\""]` |
-| `config.SecurityConfig.PasswordPolicy` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig [field_order=8 tag="config:\"password_policy\""]` |
-| `config.SecurityConfig.TokenType` | `github.com/coldsmirk/vef-framework-go/config.TokenType [field_order=9 tag="config:\"token_type\""]` |
-| `config.SecurityConfig.Session` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig [field_order=10 tag="config:\"session\""]` |
-| `config.SecurityConfig.APIKeys` | `map[string]github.com/coldsmirk/vef-framework-go/config.APIKeyConfig [field_order=11 tag="config:\"api_keys\""]` |
-| `config.SecurityConfig.BasicAccounts` | `map[string]github.com/coldsmirk/vef-framework-go/config.BasicAccountConfig [field_order=12 tag="config:\"basic_accounts\""]` |
+| `config.SecurityConfig.Lockout` | `github.com/coldsmirk/vef-framework-go/config.LockoutConfig [field_order=9 tag="config:\"lockout\""]` |
+| `config.SecurityConfig.PasswordPolicy` | `github.com/coldsmirk/vef-framework-go/config.PasswordPolicyConfig [field_order=10 tag="config:\"password_policy\""]` |
+| `config.SecurityConfig.TokenType` | `github.com/coldsmirk/vef-framework-go/config.TokenType [field_order=11 tag="config:\"token_type\""]` |
+| `config.SecurityConfig.Session` | `github.com/coldsmirk/vef-framework-go/config.SessionConfig [field_order=12 tag="config:\"session\""]` |
+| `config.SecurityConfig.APIKeys` | `map[string]github.com/coldsmirk/vef-framework-go/config.APIKeyConfig [field_order=7 tag="config:\"api_keys\""]` |
+| `config.SecurityConfig.BasicAccounts` | `map[string]github.com/coldsmirk/vef-framework-go/config.BasicAccountConfig [field_order=8 tag="config:\"basic_accounts\""]` |
+| `config.SecurityConfig.TrustLogin` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginConfig [field_order=13 tag="config:\"trust_login\""]` |
 | `config.APIKeyConfig.Key` | `string [field_order=1 tag="config:\"key\""]` |
 | `config.APIKeyConfig.Roles` | `[]string [field_order=2 tag="config:\"roles\""]` |
 | `config.BasicAccountConfig.Password` | `string [field_order=1 tag="config:\"password\""]` |
@@ -594,6 +608,16 @@ Runtime note:
 | `config.SessionConfig.IdleTTL` | `time.Duration [field_order=3 tag="config:\"idle_ttl\""]` |
 | `config.SessionConfig.MaxLifetime` | `time.Duration [field_order=4 tag="config:\"max_lifetime\""]` |
 | `config.SessionConfig.Sliding` | `*bool [field_order=5 tag="config:\"sliding\""]` |
+| `config.TrustLoginConfig.Enabled` | `bool [field_order=1 tag="config:\"enabled\""]` |
+| `config.TrustLoginConfig.Path` | `string [field_order=2 tag="config:\"path\""]` |
+| `config.TrustLoginConfig.CodeTTL` | `time.Duration [field_order=3 tag="config:\"code_ttl\""]` |
+| `config.TrustLoginConfig.BindUserAgent` | `*bool [field_order=4 tag="config:\"bind_user_agent\""]` |
+| `config.TrustLoginConfig.BindClientIP` | `bool [field_order=5 tag="config:\"bind_client_ip\""]` |
+| `config.TrustLoginConfig.Apps` | `map[string]github.com/coldsmirk/vef-framework-go/config.TrustLoginAppConfig [field_order=6 tag="config:\"apps\""]` |
+| `config.TrustLoginConfig.RateLimit` | `github.com/coldsmirk/vef-framework-go/config.TrustLoginRateLimitConfig [field_order=7 tag="config:\"rate_limit\""]` |
+| `config.TrustLoginRateLimitConfig.Max` | `int [field_order=1 tag="config:\"max\""]` |
+| `config.TrustLoginRateLimitConfig.Period` | `time.Duration [field_order=2 tag="config:\"period\""]` |
+| `config.TrustLoginAppConfig.RedirectURLs` | `[]string [field_order=1 tag="config:\"redirect_urls\""]` |
 | `config.StorageConfig.Provider` | `github.com/coldsmirk/vef-framework-go/config.StorageProvider [field_order=1 tag="config:\"provider\""]` |
 | `config.StorageConfig.AutoMigrate` | `bool [field_order=2 tag="config:\"auto_migrate\""]` |
 | `config.StorageConfig.MinIO` | `github.com/coldsmirk/vef-framework-go/config.MinIOConfig [field_order=3 tag="config:\"minio\""]` |
@@ -667,6 +691,12 @@ Runtime note:
 | `config.PushConfig.EffectiveSessionRecheckInterval` | `func() time.Duration` |
 | `config.SecurityConfig.EffectiveTokenType` | `func() github.com/coldsmirk/vef-framework-go/config.TokenType` |
 | `config.SecurityConfig.Validate` | `func() error` |
+| `config.TrustLoginConfig.EffectivePath` | `func() string` |
+| `config.TrustLoginConfig.EffectiveCodeTTL` | `func() time.Duration` |
+| `config.TrustLoginConfig.IsUserAgentBound` | `func() bool` |
+| `config.TrustLoginConfig.Validate` | `func() error` |
+| `config.TrustLoginRateLimitConfig.EffectiveMax` | `func() int` |
+| `config.TrustLoginRateLimitConfig.EffectivePeriod` | `func() time.Duration` |
 | `config.SessionConfig.EffectiveOnExceed` | `func() github.com/coldsmirk/vef-framework-go/config.SessionExceedPolicy` |
 | `config.SessionConfig.EffectiveIdleTTL` | `func() time.Duration` |
 | `config.SessionConfig.EffectiveMaxLifetime` | `func() time.Duration` |
