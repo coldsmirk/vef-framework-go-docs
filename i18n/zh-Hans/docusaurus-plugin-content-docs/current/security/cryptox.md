@@ -141,7 +141,7 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 变体：`cryptox.NewSM4FromHex`、`cryptox.NewSM4FromBase64`。
 
-:::caution SM4 默认使用 GCM
+:::caution[SM4 默认使用 GCM]
 `NewSM4` 默认使用 **GCM**（与 AES 对齐），而不是 CBC。要解密以 CBC 模式
 产生的 SM4 密文，需要显式构造
 `cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)`。

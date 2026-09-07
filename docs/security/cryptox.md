@@ -145,7 +145,7 @@ plaintext, err := cipher.Decrypt(encrypted)
 
 Variants: `cryptox.NewSM4FromHex`, `cryptox.NewSM4FromBase64`.
 
-:::caution SM4 defaults to GCM
+:::caution[SM4 defaults to GCM]
 `NewSM4` defaults to **GCM** (matching AES), not CBC. To decrypt SM4
 ciphertext that was produced in CBC mode, construct the cipher with
 `cryptox.WithSM4Mode(cryptox.Sm4ModeCbc)` explicitly.
