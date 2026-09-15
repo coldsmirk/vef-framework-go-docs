@@ -397,6 +397,7 @@ TYPE Engine : github.com/coldsmirk/vef-framework-go/api.Engine
 TYPE EngineInspector : github.com/coldsmirk/vef-framework-go/api.EngineInspector
   METHOD Operations : func() []*github.com/coldsmirk/vef-framework-go/api.Operation
 VAR ErrBodyDecodeFailed : github.com/coldsmirk/vef-framework-go/result.Error
+VAR ErrBodyEncodingRequired : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrBodyTooLarge : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrEmptyActionName : error
 VAR ErrEmptyResourceName : error
@@ -2612,8 +2613,19 @@ TYPE ServiceRequest : github.com/coldsmirk/vef-framework-go/cmd/vef-cli/cmd/scaf
   FIELD Force : bool [field_order=4 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/config
+TYPE APIBodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding
+CONST APIBodyEncodingAESGCMBase64 : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = "aes-gcm+base64"
+TYPE APIBodyEncodingConfig : github.com/coldsmirk/vef-framework-go/config.APIBodyEncodingConfig
+  FIELD Enabled : bool [field_order=1 tag="config:\"enabled\""]
+  FIELD Encoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding [field_order=2 tag="config:\"encoding\""]
+  FIELD Key : string [field_order=3 tag="config:\"key\""]
+  METHOD EffectiveEncoding : func() github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding
+  METHOD Validate : func() error
+CONST APIBodyEncodingSM4GCMBase64 : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = "sm4-gcm+base64"
 TYPE APIConfig : github.com/coldsmirk/vef-framework-go/config.APIConfig
-  FIELD RateLimit : github.com/coldsmirk/vef-framework-go/config.APIRateLimitConfig [field_order=1 tag="config:\"rate_limit\""]
+  FIELD BodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncodingConfig [field_order=1 tag="config:\"body_encoding\""]
+  FIELD RateLimit : github.com/coldsmirk/vef-framework-go/config.APIRateLimitConfig [field_order=2 tag="config:\"rate_limit\""]
+  METHOD Validate : func() error
 TYPE APIKeyConfig : github.com/coldsmirk/vef-framework-go/config.APIKeyConfig
   FIELD Key : string [field_order=1 tag="config:\"key\""]
   FIELD Roles : []string [field_order=2 tag="config:\"roles\""]
@@ -2696,6 +2708,7 @@ TYPE DataSourceConfig : github.com/coldsmirk/vef-framework-go/config.DataSourceC
 TYPE DataSourcesConfig : github.com/coldsmirk/vef-framework-go/config.DataSourcesConfig
   FIELD Map : map[string]github.com/coldsmirk/vef-framework-go/config.DataSourceConfig [field_order=1 tag=""]
   METHOD Primary : func() github.com/coldsmirk/vef-framework-go/config.DataSourceConfig
+CONST DefaultAPIBodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = "aes-gcm+base64"
 CONST DefaultAPIRateLimitMax : untyped int = 100
 CONST DefaultAPIRateLimitPeriod : time.Duration = 300000000000
 CONST DefaultClaimTTL : time.Duration = 86400000000000
@@ -2734,6 +2747,8 @@ CONST EnvLogLevel : untyped string = "VEF_LOG_LEVEL"
 CONST EnvPrefix : untyped string = "VEF"
 VAR ErrCronStoreAbandonedTooSoon : error
 VAR ErrInboxRetentionTooShort : error
+VAR ErrInvalidAPIBodyEncoding : error
+VAR ErrInvalidAPIBodyEncodingKey : error
 VAR ErrInvalidApprovalBindingConsistency : error
 VAR ErrInvalidApprovalBusinessBindingWorkerConfig : error
 VAR ErrInvalidApprovalFormDataMaxBytes : error
@@ -2746,6 +2761,7 @@ VAR ErrInvalidLockoutKey : error
 VAR ErrInvalidLockoutStrategy : error
 VAR ErrInvalidSessionOnExceed : error
 VAR ErrInvalidTokenType : error
+VAR ErrMissingAPIBodyEncodingKey : error
 VAR ErrTrustLoginAppsRequired : error
 VAR ErrTrustLoginPathInvalid : error
 VAR ErrTrustLoginRedirectInvalid : error
@@ -8494,5 +8510,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.51.0"
+CONST VEFVersion : untyped string = "v0.52.0"
 ```

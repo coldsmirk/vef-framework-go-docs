@@ -115,11 +115,11 @@
    "disposition": "has-semantic-contracts",
    "summary": "Resource, operation, request, auth, router, and handler-extension APIs. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
    "reviewed_surface": {
-    "top_level": 81,
-    "fields": 44,
-    "methods": 40,
-    "entry_count": 165,
-    "fingerprint": "46897217e8131247ebd62293c7b7ba1422d5f79fce2db68f73280a7239f4bf9e",
+   "top_level": 82,
+   "fields": 44,
+   "methods": 40,
+   "entry_count": 166,
+   "fingerprint": "78a0595389579d3f14124b43ba12627e357ea16e878bdb71abcb546fb80d5d0c",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -455,11 +455,11 @@
    "disposition": "has-semantic-contracts",
    "summary": "All config structs, config keys, Effective methods, validation, and runtime defaults. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
    "reviewed_surface": {
-    "top_level": 133,
-    "fields": 205,
-    "methods": 72,
-    "entry_count": 410,
-    "fingerprint": "ec32c62213811d34ebb0851e811a1d8c3416fcf3ff8e94f574bf16a7761873d4",
+   "top_level": 141,
+   "fields": 209,
+   "methods": 75,
+   "entry_count": 425,
+   "fingerprint": "246b24917c452c0687f9a8a42d877e758b549b180991d31416de34fd40bf9ab3",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -472,6 +472,7 @@
     "docs/getting-started/configuration.md"
    ],
    "source_evidence": [
+    "config/api.go:14",
     "config/app.go:4",
     "config/approval.go:9",
     "config/cors.go:4",
@@ -2203,7 +2204,7 @@
     "fields": 0,
     "methods": 0,
     "entry_count": 1,
-    "fingerprint": "b6dbfc8f6c4d64fafbc4079041bb6b078ab67d42c890a7c424f901d786cc6234",
+   "fingerprint": "bc6d797f98cf6747ee1960957ca158aedc3eefda094b96442e83e6aea6588680",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -2486,7 +2487,7 @@
    "package": "github.com/coldsmirk/vef-framework-go/api",
    "kind": "string-contract",
    "contract": "resource/action naming and request wire contract",
-   "summary": "Resource names, RPC/REST action strings, request versioning, params/meta decoding, REST X-Meta headers, and Bearer token locations are public API contracts for all framework resources.",
+   "summary": "Resource names, RPC/REST action strings, request versioning, params/meta decoding, REST X-Meta headers, Bearer token locations, and request-body transport errors are public API contracts for all framework resources.",
    "disposition": "documented:semantic-contract",
    "coverage": [
     "docs/building-apis/api.md",
@@ -2495,6 +2496,7 @@
     "docs/building-apis/custom-handlers.md"
    ],
    "source_evidence": [
+    "api/api_errors.go:26",
     "api/resource.go:20",
     "api/request.go:10",
     "api/auth.go:7",
@@ -2502,6 +2504,8 @@
     "api/version.go:8",
     "api/operation.go:7",
     "api/api_errors.go:13",
+    "internal/middleware/body_encoding.go:51",
+    "internal/middleware/protected_body_codec.go:15",
     "internal/api/engine.go:79",
     "internal/api/router/rest.go:107",
     "internal/api/router/rpc.go:132",
@@ -2537,6 +2541,10 @@
     "HeaderXTimestamp",
     "HeaderXNonce",
     "HeaderXSignature",
+    "HeaderXBodyEncoding",
+    "ErrBodyEncodingRequired",
+    "aes-gcm+base64",
+    "sm4-gcm+base64",
     "result.ErrCodeBadRequest",
     "1400",
     "400"
@@ -2910,6 +2918,7 @@
     "docs/getting-started/configuration.md"
    ],
    "source_evidence": [
+    "config/api.go:14",
     "config/app.go:4",
     "config/approval.go:9",
     "config/cors.go:4",
@@ -2922,7 +2931,15 @@
     "config/security.go:5",
     "config/storage.go:6"
    ],
-   "terms": [
+  "terms": [
+    "vef.api.body_encoding",
+    "APIBodyEncoding",
+    "APIBodyEncodingAESGCMBase64",
+    "APIBodyEncodingSM4GCMBase64",
+    "DefaultAPIBodyEncoding",
+    "ErrInvalidAPIBodyEncoding",
+    "ErrMissingAPIBodyEncodingKey",
+    "ErrInvalidAPIBodyEncodingKey",
     "vef.app",
     "body_limit",
     "trusted_proxies",

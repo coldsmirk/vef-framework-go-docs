@@ -53,6 +53,19 @@ period = "5m"  # 默认值
 限流器在进程内存中按操作 × 客户端（IP + principal）以滑动窗口计数，
 因此多节点部署下每个节点独立执行该限制。
 
+Protected API body transport 是可选功能。启用后，`/api` 的 JSON body 会使用
+配置的认证编码：
+
+```toml
+[vef.api.body_encoding]
+enabled = true
+encoding = "aes-gcm+base64" # 或 "sm4-gcm+base64"
+key = "<standard-base64-key>"
+```
+
+key 使用 standard base64，并且必须与客户端一致。AES key 可以是 16、24 或
+32 字节，SM4 key 必须是 16 字节。这个传输层不能替代 HTTPS。
+
 ### `vef.data_sources`
 
 数据库配置：

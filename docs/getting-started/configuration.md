@@ -54,6 +54,19 @@ The limiter counts requests per operation × client (IP + principal) in a
 sliding window held in process memory, so in a multi-node deployment each
 node enforces the limit independently.
 
+Protected API body transport is optional. When enabled, JSON bodies on `/api`
+use the configured authenticated encoding:
+
+```toml
+[vef.api.body_encoding]
+enabled = true
+encoding = "aes-gcm+base64" # or "sm4-gcm+base64"
+key = "<standard-base64-key>"
+```
+
+The key is standard base64 and must match the client. AES keys may be 16, 24,
+or 32 bytes; SM4 keys must be 16 bytes. This layer does not replace HTTPS.
+
 ### `vef.data_sources`
 
 Database connection settings:

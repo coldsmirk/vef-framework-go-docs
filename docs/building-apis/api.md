@@ -23,7 +23,7 @@ API groups covered in this guide:
 | request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
 | auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`, `api.HTTPBasicAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler extension | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
-| audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.HeaderXBodyEncoding`, `api.VersionV1`..`api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, `api.ErrUnsupportedBodyEncoding`, `api.ErrBodyDecodeFailed`, `api.ErrBodyTooLarge` |
+| audit, headers, versions, errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.HeaderXBodyEncoding`, `api.VersionV1`..`api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, `api.ErrBodyEncodingRequired`, `api.ErrUnsupportedBodyEncoding`, `api.ErrBodyDecodeFailed`, `api.ErrBodyTooLarge` |
 
 ## Architecture
 
@@ -458,6 +458,7 @@ registers each resolved operation in `Route`.
 | `ErrInvalidActionName` | Action doesn't match kind-specific rules |
 | `ErrInvalidParamsType` | Params.Decode target is not a pointer to struct |
 | `ErrInvalidMetaType` | Meta.Decode target is not a pointer to struct |
+| `ErrBodyEncodingRequired` | Protected body transport is enabled, but a JSON request body was sent without `X-Body-Encoding` |
 | `ErrUnsupportedBodyEncoding` | The `X-Body-Encoding` header value is not supported |
 | `ErrBodyDecodeFailed` | The encoded body could not be decoded (malformed base64 or corrupt gzip) |
 | `ErrBodyTooLarge` | The decoded body exceeds the configured body limit |

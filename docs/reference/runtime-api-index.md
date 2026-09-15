@@ -17,8 +17,8 @@ Regenerate and verify this page whenever the framework runtime surface changes:
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `3f78077729b29b70de64b7ded9129dd26eb28637a62ca889085547192742ddb0`
-Entries: `3234`
+Fingerprint: `c69b05d13e4563dcd0dc53d61f9e007b9e1afad4306b436b725052f91a53f03b`
+Entries: `3243`
 
 ## Coverage Evidence
 
@@ -44,21 +44,21 @@ Entries: `3234`
 | `auth type` | 6 | Tier 2 scoped AST constants | `extractAuthTypes` | AST scan of internal/security AuthType* constants that are sent through Authentication.Type. | None in known built-in authenticators. |
 | `built-in resource` | 19 | Tier 2 scoped AST resources | `extractBuiltInResources` | AST scan of NewRPCResource/NewRESTResource calls in built-in runtime resource packages. | None in scanned built-in resource directories. |
 | `built-in resource action` | 97 | Tier 2 scoped AST operations | `extractBuiltInResources` | AST scan of explicit OperationSpec values and CRUD builder defaults inside built-in runtime resource packages. | None in scanned built-in resource directories. |
-| `config default` | 86 | Tier 3 mixed static extraction | `extractConfigDefaults` | AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed. | Defaults outside Effective*/ApplyDefaults/DefaultConfig and curated reviewed call sites require explicit review. |
+| `config default` | 87 | Tier 3 mixed static extraction | `extractConfigDefaults` | AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed. | Defaults outside Effective*/ApplyDefaults/DefaultConfig and curated reviewed call sites require explicit review. |
 | `config enum` | 8 | Tier 2 scoped AST constants | `extractProtocolConstants` | AST scan of storage and datasource enum constants used in configuration values. | None in current config enum files. |
-| `config key` | 204 | Tier 2 config-tag AST | `extractConfigKeys` | AST walk of config structs rooted at known vef.* config roots plus vef.data_sources.&lt;name&gt;; verifier fails if a config/ struct with config tags is unreachable. | None for config/ structs with config tags. |
+| `config key` | 208 | Tier 2 config-tag AST | `extractConfigKeys` | AST walk of config structs rooted at known vef.* config roots plus vef.data_sources.&lt;name&gt;; verifier fails if a config/ struct with config tags is unreachable. | None for config/ structs with config tags. |
 | `config reserved name` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of reserved configuration-name constants. | None. |
 | `environment variable` | 6 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of Env* constants plus boundary checks for os.Getenv/os.LookupEnv call sites. | None for string-literal or const-backed environment lookups. |
 | `event topic` | 36 | Tier 2 event constant/method scan | `extractProtocolConstants, extractMoldGrammar` | AST scan of EventType*/eventType* constants, EventType() return values, and built-in subscription/route-inspection topic call sites. | None for framework-owned non-test event topics. |
 | `event transport contract` | 6 | Tier 2 scoped AST constants | `extractEventTransportContracts` | AST/source-derived extraction of outbox DLQ headers, topic prefix, retry backoff, and persisted-error bounds. | None for current built-in event transports. |
 | `i18n key indirection` | 4 | Tier 2 AST call scan | `extractI18NMessageKeys` | AST scan of dynamic i18n.T call sites whose key source is another audited surface such as label_i18n tags, validator rules, or Fiber error mappings. | None for current dynamic i18n.T call sites. |
-| `i18n message key` | 279 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
+| `i18n message key` | 280 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
 | `meta tag grammar` | 7 | Tier 2 AST constants | `extractStructTagGrammars` | Catalog of storage meta tag name, dive value, file-reference kinds, and attribute grammar delimiters. | None for the current parser constants and tag parsing rules. |
 | `mold tag grammar` | 9 | Tier 2 parser grammar scan | `extractMoldGrammar` | AST scan of the default mold tag name and restricted parser token constants, with boundary verification for parser token coverage. | None for current mold parser token constants. |
 | `mold transformer tag` | 2 | Tier 2 transformer scan | `extractMoldGrammar` | AST scan of built-in FieldTransformer Tag() methods. | None for current built-in mold transformer Tag() methods. |
 | `result error code` | 178 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
 | `result message key` | 43 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of ErrMessage* constants. | Inline i18n keys are covered by the i18n message key category. |
-| `runtime enum value` | 378 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
+| `runtime enum value` | 381 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
 | `search tag grammar` | 38 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of search tag name, attributes, params, ignore marker, and operator/type tokens. | None for constants in search/constants.go. |
 | `tabular tag grammar` | 10 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of tabular tag name, attributes, and ignore marker. | None for constants in tabular/constants.go. |
 | `validator label tag` | 2 | Tier 2 validator tag scan | `extractValidatorRules` | AST scan of validator struct-tag key constants used by Field.Tag.Get. | None for current validator label tag lookups. |
@@ -186,7 +186,7 @@ Entries: `3234`
 | --- | --- | --- | --- |
 | `HeaderXAPIKey` | `X-API-Key` |  | `api/header.go:9` |
 | `HeaderXAppID` | `X-App-ID` |  | `api/header.go:5` |
-| `HeaderXBodyEncoding` | `X-Body-Encoding` |  | `api/header.go:15` |
+| `HeaderXBodyEncoding` | `X-Body-Encoding` |  | `api/header.go:13` |
 | `HeaderXMetaPrefix` | `X-Meta-` |  | `api/header.go:10` |
 | `HeaderXNonce` | `X-Nonce` |  | `api/header.go:7` |
 | `HeaderXSignature` | `X-Signature` |  | `api/header.go:8` |
@@ -2099,8 +2099,9 @@ Entries: `3234`
 
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
-| `vef.api.rate_limit.max` | `100 (100)` |  | `config/api.go:34` |
-| `vef.api.rate_limit.period` | `5 * time.Minute` |  | `config/api.go:39` |
+| `vef.api.body_encoding.encoding` | `APIBodyEncodingAESGCMBase64 (aes-gcm+base64)` |  | `config/api.go:67` |
+| `vef.api.rate_limit.max` | `100 (100)` |  | `config/api.go:131` |
+| `vef.api.rate_limit.period` | `5 * time.Minute` |  | `config/api.go:136` |
 | `vef.approval.business_binding.batch_size` | `100` |  | `config/approval.go:57` |
 | `vef.approval.business_binding.consistency` | `"synchronous" (synchronous)` |  | `config/approval.go:43` |
 | `vef.approval.business_binding.scan_interval` | `10 * time.Second` |  | `config/approval.go:52` |
@@ -2203,9 +2204,13 @@ Entries: `3234`
 
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
-| `vef.api.rate_limit` | `APIRateLimitConfig` | Go field: APIConfig.RateLimit | `config/api.go:17` |
-| `vef.api.rate_limit.max` | `int` | Go field: APIRateLimitConfig.Max | `config/api.go:17`, `config/api.go:27` |
-| `vef.api.rate_limit.period` | `time.Duration` | Go field: APIRateLimitConfig.Period | `config/api.go:17`, `config/api.go:30` |
+| `vef.api.body_encoding` | `APIBodyEncodingConfig` | Go field: APIConfig.BodyEncoding | `config/api.go:46` |
+| `vef.api.body_encoding.enabled` | `bool` | Go field: APIBodyEncodingConfig.Enabled | `config/api.go:46`, `config/api.go:59` |
+| `vef.api.body_encoding.encoding` | `APIBodyEncoding` | Go field: APIBodyEncodingConfig.Encoding | `config/api.go:46`, `config/api.go:61` |
+| `vef.api.body_encoding.key` | `string` | Go field: APIBodyEncodingConfig.Key | `config/api.go:46`, `config/api.go:63` |
+| `vef.api.rate_limit` | `APIRateLimitConfig` | Go field: APIConfig.RateLimit | `config/api.go:49` |
+| `vef.api.rate_limit.max` | `int` | Go field: APIRateLimitConfig.Max | `config/api.go:124`, `config/api.go:49` |
+| `vef.api.rate_limit.period` | `time.Duration` | Go field: APIRateLimitConfig.Period | `config/api.go:127`, `config/api.go:49` |
 | `vef.app.body_limit` | `string` | Go field: AppConfig.BodyLimit | `config/app.go:7` |
 | `vef.app.name` | `string` | Go field: AppConfig.Name | `config/app.go:5` |
 | `vef.app.port` | `uint16` | Go field: AppConfig.Port | `config/app.go:6` |
@@ -2491,9 +2496,10 @@ Entries: `3234`
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
 | `access_denied` | `access_denied` | i18n.T call | `result/errors.go:20` |
-| `api_body_decode_failed` | `api_body_decode_failed` | i18n.T call | `api/api_errors.go:36` |
-| `api_body_encoding_unsupported` | `api_body_encoding_unsupported` | i18n.T call | `api/api_errors.go:29` |
-| `api_body_too_large` | `api_body_too_large` | i18n.T call | `api/api_errors.go:44` |
+| `api_body_decode_failed` | `api_body_decode_failed` | i18n.T call | `api/api_errors.go:43` |
+| `api_body_encoding_required` | `api_body_encoding_required` | i18n.T call | `api/api_errors.go:29` |
+| `api_body_encoding_unsupported` | `api_body_encoding_unsupported` | i18n.T call | `api/api_errors.go:36` |
+| `api_body_too_large` | `api_body_too_large` | i18n.T call | `api/api_errors.go:51` |
 | `api_request_action` | `api_request_action` | label_i18n struct tag | `api/request.go:17` |
 | `api_request_meta_invalid_json` | `api_request_meta_invalid_json` | i18n.T call | `api/api_errors.go:22` |
 | `api_request_params_invalid_json` | `api_request_params_invalid_json` | i18n.T call | `api/api_errors.go:17` |
@@ -3038,6 +3044,8 @@ Entries: `3234`
 
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
+| `APIBodyEncodingAESGCMBase64 (APIBodyEncoding)` | `aes-gcm+base64` |  | `config/api.go:25` |
+| `APIBodyEncodingSM4GCMBase64 (APIBodyEncoding)` | `sm4-gcm+base64` |  | `config/api.go:27` |
 | `AcquireResultAcquired (AcquireResult)` | `acquired` |  | `event/inbox/inbox.go:29` |
 | `AcquireResultCompleted (AcquireResult)` | `completed` |  | `event/inbox/inbox.go:32` |
 | `AcquireResultInProgress (AcquireResult)` | `in_progress` |  | `event/inbox/inbox.go:36` |
@@ -3132,6 +3140,7 @@ Entries: `3234`
 | `ContainsIgnoreCase (Operator)` | `iContains` |  | `search/constants.go:29` |
 | `DataSourceModeReadOnly (DataSourceMode)` | `read_only` |  | `integration/models.go:80` |
 | `DataSourceModeReadWrite (DataSourceMode)` | `read_write` |  | `integration/models.go:83` |
+| `DefaultAPIBodyEncoding (APIBodyEncoding)` | `aes-gcm+base64` |  | `config/api.go:16` |
 | `DeleteReasonAborted (DeleteReason)` | `aborted` |  | `storage/delete_enqueuer.go:30` |
 | `DeleteReasonClaimExpired (DeleteReason)` | `claim_expired` |  | `storage/delete_enqueuer.go:26` |
 | `DeleteReasonDeleted (DeleteReason)` | `deleted` |  | `storage/delete_enqueuer.go:21` |

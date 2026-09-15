@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3234,
-  "fingerprint": "3f78077729b29b70de64b7ded9129dd26eb28637a62ca889085547192742ddb0",
+  "entry_count": 3243,
+  "fingerprint": "c69b05d13e4563dcd0dc53d61f9e007b9e1afad4306b436b725052f91a53f03b",
   "coverage": [
     {
       "category": "API default",
@@ -166,7 +166,7 @@
     },
     {
       "category": "config default",
-      "entry_count": 86,
+      "entry_count": 87,
       "tier": "Tier 3 mixed static extraction",
       "extractor": "extractConfigDefaults",
       "method": "AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed.",
@@ -182,7 +182,7 @@
     },
     {
       "category": "config key",
-      "entry_count": 204,
+      "entry_count": 208,
       "tier": "Tier 2 config-tag AST",
       "extractor": "extractConfigKeys",
       "method": "AST walk of config structs rooted at known vef.* config roots plus vef.data_sources.<name>; verifier fails if a config/ struct with config tags is unreachable.",
@@ -230,7 +230,7 @@
     },
     {
       "category": "i18n message key",
-      "entry_count": 279,
+      "entry_count": 280,
       "tier": "Tier 2 AST call/tag scan",
       "extractor": "extractI18NMessageKeys",
       "method": "AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags.",
@@ -278,7 +278,7 @@
     },
     {
       "category": "runtime enum value",
-      "entry_count": 378,
+      "entry_count": 381,
       "tier": "Tier 2 typed string constants",
       "extractor": "extractRuntimeEnumValues",
       "method": "AST scan of typed string constants in public packages plus runtime internal DTO/transport packages.",
@@ -2096,12 +2096,12 @@
       ]
     },
     {
-      "id": "0785347caa68a931482e2b1c",
+      "id": "079ea2c00674f83138f846c3",
       "category": "HTTP header",
       "name": "HeaderXBodyEncoding",
       "value": "X-Body-Encoding",
       "source_evidence": [
-        "api/header.go:15"
+        "api/header.go:13"
       ],
       "terms": [
         "HTTP",
@@ -46355,12 +46355,29 @@
       ]
     },
     {
-      "id": "0c60824e9368260a734da6ec",
+      "id": "d90b398d8ff7f2e7b3b3679f",
+      "category": "config default",
+      "name": "vef.api.body_encoding.encoding",
+      "value": "APIBodyEncodingAESGCMBase64 (aes-gcm+base64)",
+      "source_evidence": [
+        "config/api.go:67"
+      ],
+      "terms": [
+        "APIBodyEncodingAESGCMBase64",
+        "aes-gcm",
+        "base64",
+        "config",
+        "default",
+        "vef.api.body_encoding.encoding"
+      ]
+    },
+    {
+      "id": "fab567dc399a80603eff2d87",
       "category": "config default",
       "name": "vef.api.rate_limit.max",
       "value": "100 (100)",
       "source_evidence": [
-        "config/api.go:34"
+        "config/api.go:131"
       ],
       "terms": [
         "100",
@@ -46370,12 +46387,12 @@
       ]
     },
     {
-      "id": "de69dd7df31ab578434a29e9",
+      "id": "2b71574f07ddcba1472edaf6",
       "category": "config default",
       "name": "vef.api.rate_limit.period",
       "value": "5 * time.Minute",
       "source_evidence": [
-        "config/api.go:39"
+        "config/api.go:136"
       ],
       "terms": [
         "5",
@@ -47821,7 +47838,94 @@
       ]
     },
     {
-      "id": "c1d73b099ba32f9d53f6c119",
+      "id": "f954587c3bbed5d116401b62",
+      "category": "config key",
+      "name": "vef.api.body_encoding",
+      "value": "APIBodyEncodingConfig",
+      "details": [
+        "Go field: APIConfig.BodyEncoding"
+      ],
+      "source_evidence": [
+        "config/api.go:46"
+      ],
+      "terms": [
+        "APIBodyEncodingConfig",
+        "APIConfig.BodyEncoding",
+        "Go",
+        "config",
+        "field:",
+        "key",
+        "vef.api.body_encoding"
+      ]
+    },
+    {
+      "id": "542f640d58d4f6636fbe56e4",
+      "category": "config key",
+      "name": "vef.api.body_encoding.enabled",
+      "value": "bool",
+      "details": [
+        "Go field: APIBodyEncodingConfig.Enabled"
+      ],
+      "source_evidence": [
+        "config/api.go:46",
+        "config/api.go:59"
+      ],
+      "terms": [
+        "APIBodyEncodingConfig.Enabled",
+        "Go",
+        "bool",
+        "config",
+        "field:",
+        "key",
+        "vef.api.body_encoding.enabled"
+      ]
+    },
+    {
+      "id": "7a35210c7c088d1feb47c0cd",
+      "category": "config key",
+      "name": "vef.api.body_encoding.encoding",
+      "value": "APIBodyEncoding",
+      "details": [
+        "Go field: APIBodyEncodingConfig.Encoding"
+      ],
+      "source_evidence": [
+        "config/api.go:46",
+        "config/api.go:61"
+      ],
+      "terms": [
+        "APIBodyEncoding",
+        "APIBodyEncodingConfig.Encoding",
+        "Go",
+        "config",
+        "field:",
+        "key",
+        "vef.api.body_encoding.encoding"
+      ]
+    },
+    {
+      "id": "da215aaeffbb9d239a60b455",
+      "category": "config key",
+      "name": "vef.api.body_encoding.key",
+      "value": "string",
+      "details": [
+        "Go field: APIBodyEncodingConfig.Key"
+      ],
+      "source_evidence": [
+        "config/api.go:46",
+        "config/api.go:63"
+      ],
+      "terms": [
+        "APIBodyEncodingConfig.Key",
+        "Go",
+        "config",
+        "field:",
+        "key",
+        "string",
+        "vef.api.body_encoding.key"
+      ]
+    },
+    {
+      "id": "4bf9f0bf09e5f5c1d04043a7",
       "category": "config key",
       "name": "vef.api.rate_limit",
       "value": "APIRateLimitConfig",
@@ -47829,7 +47933,7 @@
         "Go field: APIConfig.RateLimit"
       ],
       "source_evidence": [
-        "config/api.go:17"
+        "config/api.go:49"
       ],
       "terms": [
         "APIConfig.RateLimit",
@@ -47842,7 +47946,7 @@
       ]
     },
     {
-      "id": "07a25646b13db88e3e223187",
+      "id": "f8f6e1cd071c0f37027de168",
       "category": "config key",
       "name": "vef.api.rate_limit.max",
       "value": "int",
@@ -47850,8 +47954,8 @@
         "Go field: APIRateLimitConfig.Max"
       ],
       "source_evidence": [
-        "config/api.go:17",
-        "config/api.go:27"
+        "config/api.go:124",
+        "config/api.go:49"
       ],
       "terms": [
         "APIRateLimitConfig.Max",
@@ -47864,7 +47968,7 @@
       ]
     },
     {
-      "id": "b2b7344514aef45715e938b9",
+      "id": "9ea3589529eb2b598f696acd",
       "category": "config key",
       "name": "vef.api.rate_limit.period",
       "value": "time.Duration",
@@ -47872,8 +47976,8 @@
         "Go field: APIRateLimitConfig.Period"
       ],
       "source_evidence": [
-        "config/api.go:17",
-        "config/api.go:30"
+        "config/api.go:127",
+        "config/api.go:49"
       ],
       "terms": [
         "APIRateLimitConfig.Period",
@@ -53223,7 +53327,7 @@
       ]
     },
     {
-      "id": "546bccc39e5e1edfdbd4f5c8",
+      "id": "2e4bdff882bfa25b08bbfb95",
       "category": "i18n message key",
       "name": "api_body_decode_failed",
       "value": "api_body_decode_failed",
@@ -53231,7 +53335,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "api/api_errors.go:36"
+        "api/api_errors.go:43"
       ],
       "terms": [
         "api_body_decode_failed",
@@ -53243,7 +53347,27 @@
       ]
     },
     {
-      "id": "b89e2f85bef6ef04e3cb9553",
+      "id": "4dea270843d02d675d84fa28",
+      "category": "i18n message key",
+      "name": "api_body_encoding_required",
+      "value": "api_body_encoding_required",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "api/api_errors.go:29"
+      ],
+      "terms": [
+        "api_body_encoding_required",
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message"
+      ]
+    },
+    {
+      "id": "c97dc5ae452e69e618b627a8",
       "category": "i18n message key",
       "name": "api_body_encoding_unsupported",
       "value": "api_body_encoding_unsupported",
@@ -53251,7 +53375,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "api/api_errors.go:29"
+        "api/api_errors.go:36"
       ],
       "terms": [
         "api_body_encoding_unsupported",
@@ -53263,7 +53387,7 @@
       ]
     },
     {
-      "id": "7a99cc46b1936bb586c122b9",
+      "id": "11128febf53ac6cb85eee350",
       "category": "i18n message key",
       "name": "api_body_too_large",
       "value": "api_body_too_large",
@@ -53271,7 +53395,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "api/api_errors.go:44"
+        "api/api_errors.go:51"
       ],
       "terms": [
         "api_body_too_large",
@@ -62619,6 +62743,42 @@
       ]
     },
     {
+      "id": "6b6bfccef59956d36f7e205d",
+      "category": "runtime enum value",
+      "name": "APIBodyEncodingAESGCMBase64 (APIBodyEncoding)",
+      "value": "aes-gcm+base64",
+      "source_evidence": [
+        "config/api.go:25"
+      ],
+      "terms": [
+        "APIBodyEncoding",
+        "APIBodyEncodingAESGCMBase64",
+        "aes-gcm",
+        "base64",
+        "enum",
+        "runtime",
+        "value"
+      ]
+    },
+    {
+      "id": "e556b421c172318c95411a6e",
+      "category": "runtime enum value",
+      "name": "APIBodyEncodingSM4GCMBase64 (APIBodyEncoding)",
+      "value": "sm4-gcm+base64",
+      "source_evidence": [
+        "config/api.go:27"
+      ],
+      "terms": [
+        "APIBodyEncoding",
+        "APIBodyEncodingSM4GCMBase64",
+        "base64",
+        "enum",
+        "runtime",
+        "sm4-gcm",
+        "value"
+      ]
+    },
+    {
       "id": "0ab5cb8162c3f1504da83549",
       "category": "runtime enum value",
       "name": "AcquireResultAcquired (AcquireResult)",
@@ -64212,6 +64372,24 @@
         "DataSourceModeReadWrite",
         "enum",
         "read_write",
+        "runtime",
+        "value"
+      ]
+    },
+    {
+      "id": "bcf37ca2691d76af723f6808",
+      "category": "runtime enum value",
+      "name": "DefaultAPIBodyEncoding (APIBodyEncoding)",
+      "value": "aes-gcm+base64",
+      "source_evidence": [
+        "config/api.go:16"
+      ],
+      "terms": [
+        "APIBodyEncoding",
+        "DefaultAPIBodyEncoding",
+        "aes-gcm",
+        "base64",
+        "enum",
         "runtime",
         "value"
       ]

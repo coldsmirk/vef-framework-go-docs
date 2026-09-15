@@ -479,7 +479,7 @@ func main() {
 		panic(fmt.Errorf("api contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("API contract docs verified: 81 top-level public symbols, 40 public methods, 44 public fields, %d source/runtime files, 8 doc mirrors\n", len(sourceChecks))
+	fmt.Printf("API contract docs verified: 82 top-level public symbols, 40 public methods, 44 public fields, %d source/runtime files, 8 doc mirrors\n", len(sourceChecks))
 }
 
 func readAuditLedger(path string) auditLedger {
@@ -523,8 +523,8 @@ func apiLedgerEntries(ledger auditLedger) map[string]auditLedgerEntry {
 		entries[key] = entry
 	}
 
-	if len(entries) != 165 {
-		panic(fmt.Sprintf("expected 165 API audit ledger entries, got %d", len(entries)))
+	if len(entries) != 166 {
+		panic(fmt.Sprintf("expected 166 API audit ledger entries, got %d", len(entries)))
 	}
 
 	return entries
@@ -538,7 +538,7 @@ func verifyContractReview(ledger contractLedger) []string {
 
 		surface := review.ReviewedSurface
 		var failures []string
-		if surface.TopLevel != 81 {
+		if surface.TopLevel != 82 {
 			failures = append(failures, fmt.Sprintf("contract review top_level mismatch: got %d", surface.TopLevel))
 		}
 		if surface.Fields != 44 {
@@ -547,10 +547,10 @@ func verifyContractReview(ledger contractLedger) []string {
 		if surface.Methods != 40 {
 			failures = append(failures, fmt.Sprintf("contract review methods mismatch: got %d", surface.Methods))
 		}
-		if surface.EntryCount != 165 {
+		if surface.EntryCount != 166 {
 			failures = append(failures, fmt.Sprintf("contract review entry_count mismatch: got %d", surface.EntryCount))
 		}
-		if surface.Fingerprint != "46897217e8131247ebd62293c7b7ba1422d5f79fce2db68f73280a7239f4bf9e" {
+		if surface.Fingerprint != "78a0595389579d3f14124b43ba12627e357ea16e878bdb71abcb546fb80d5d0c" {
 			failures = append(failures, "contract review fingerprint mismatch: got "+surface.Fingerprint)
 		}
 

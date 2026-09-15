@@ -17,17 +17,17 @@ import (
 
 const (
 	configPackage                     = "github.com/coldsmirk/vef-framework-go/config"
-	configFingerprint                 = "ec32c62213811d34ebb0851e811a1d8c3416fcf3ff8e94f574bf16a7761873d4"
-	configTopLevel                    = 133
-	configFields                      = 205
-	configMethods                     = 72
-	configEntries                     = 410
-	configGroupedEntries              = 277
-	configGroupedFields               = 205
-	configGroupedMethods              = 72
-	configGroupedReceivers            = 40
-	configGroupedSignatureFingerprint = "faf3f9966a0d9f3d46c17005d8b4d9c9acecc394171cc2ccf6d43377bba53010"
-	configGroupedReceiverFingerprint  = "f52b7bbf421f1f1dc72eee13963b98e86175ad65f2aabcf97d69a403a90f6d1f"
+	configFingerprint                 = "246b24917c452c0687f9a8a42d877e758b549b180991d31416de34fd40bf9ab3"
+	configTopLevel                    = 141
+	configFields                      = 209
+	configMethods                     = 75
+	configEntries                     = 425
+	configGroupedEntries              = 284
+	configGroupedFields               = 209
+	configGroupedMethods              = 75
+	configGroupedReceivers            = 41
+	configGroupedSignatureFingerprint = "9fa34930c41b2ceddcba47e14a918be8a848c7a6fc0d4284ea9a03b41678795f"
+	configGroupedReceiverFingerprint  = "a699664dbab28718454f4997bd2ba11268d52bd3d153945ffa2efd2d0582f96d"
 
 	englishReferencePath = "docs/reference/configuration-reference.md"
 	chineseReferencePath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/configuration-reference.md"
@@ -1100,6 +1100,7 @@ func inlineCodeParts(line string) []string {
 
 func configSourceEvidence(sourceRoot string) []string {
 	evidence := []string{
+		"config/api.go:14",
 		"config/app.go:4",
 		"config/approval.go:9",
 		"config/cors.go:4",

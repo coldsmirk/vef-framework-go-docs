@@ -98,7 +98,7 @@ func main() {
 - compression（`-1000`）
 - headers（`-900`）
 - CORS（`-800`）
-- body-encoding（`-750`，将客户端可选的 `X-Body-Encoding` 请求体解码回原始 JSON，作用域 `/api`）
+- body-encoding（`-750`，解码客户端可选的 `X-Body-Encoding` 请求体；启用时执行并应用 protected 双向 body 传输，作用域 `/api`）
 - content type（`-700`，JSON/multipart 检查，作用域 `/api`）
 - request ID（`-650`）
 - request logger 绑定（`-600`）

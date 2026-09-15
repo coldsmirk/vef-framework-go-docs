@@ -22,7 +22,7 @@ surface 背后的受支持行为和运行时 contract。
 | request model | `api.Identifier`, `api.Request`, `api.Params`, `api.Meta`, `api.P`, `api.M` |
 | auth | `api.AuthConfig`, `api.Public()`, `api.BearerAuth()`, `api.SignatureAuth()`, `api.IPAuth(...)`, `api.APIKeyAuth(...)`, `api.HTTPBasicAuth()`, `api.AuthStrategy`, `api.AuthStrategyRegistry` |
 | handler 扩展 | `api.HandlerResolver`, `api.HandlerAdapter`, `api.HandlerParamResolver`, `api.FactoryParamResolver` |
-| audit、headers、versions、errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.HeaderXBodyEncoding`, `api.VersionV1`..`api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, `api.ErrUnsupportedBodyEncoding`, `api.ErrBodyDecodeFailed`, `api.ErrBodyTooLarge` |
+| audit、headers、versions、errors | `api.AuditEvent`, `api.SubscribeAuditEvent`, `api.HeaderXMetaPrefix`, `api.HeaderXTimestamp`, `api.HeaderXNonce`, `api.HeaderXSignature`, `api.HeaderXAppID`, `api.HeaderXBodyEncoding`, `api.VersionV1`..`api.VersionV9`, `api.ErrInvalidRequestParams`, `api.ErrInvalidRequestMeta`, `api.ErrInvalidParamsType`, `api.ErrInvalidMetaType`, `api.ErrBodyEncodingRequired`, `api.ErrUnsupportedBodyEncoding`, `api.ErrBodyDecodeFailed`, `api.ErrBodyTooLarge` |
 
 ## 架构
 
@@ -443,6 +443,7 @@ func (r *UserResource) Create(ctx fiber.Ctx, params UserParams, db orm.DB) error
 | `ErrInvalidActionName` | Action 不符合类型特定规则 |
 | `ErrInvalidParamsType` | Params.Decode 目标不是指向结构体的指针 |
 | `ErrInvalidMetaType` | Meta.Decode 目标不是指向结构体的指针 |
+| `ErrBodyEncodingRequired` | 已启用 protected body transport，但 JSON 请求 body 未携带 `X-Body-Encoding` |
 | `ErrUnsupportedBodyEncoding` | `X-Body-Encoding` 头的值不被支持 |
 | `ErrBodyDecodeFailed` | 编码后的 body 无法解码（base64 格式错误或 gzip 损坏） |
 | `ErrBodyTooLarge` | 解码后的 body 超过配置的 body 限制 |

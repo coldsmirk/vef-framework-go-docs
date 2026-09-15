@@ -99,7 +99,7 @@ From the current middleware module, the common order is:
 - compression (`-1000`)
 - headers (`-900`)
 - CORS (`-800`)
-- body-encoding (`-750`, decodes an opt-in `X-Body-Encoding` request body back to raw JSON before the guard/parse, scoped to `/api`)
+- body-encoding (`-750`, decodes an opt-in `X-Body-Encoding` request body, or enforces and applies protected bidirectional body transport when enabled, before the guard/parse, scoped to `/api`)
 - content type (`-700`, JSON/multipart guard, scoped to `/api`)
 - request ID (`-650`)
 - request logger binding (`-600`)

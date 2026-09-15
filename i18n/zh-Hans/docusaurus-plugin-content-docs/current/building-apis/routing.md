@@ -307,12 +307,47 @@ X-Body-Encoding: gzip+base64
 
 原生的 `Content-Encoding`（如 `gzip`、`br`、`deflate`、`zstd`）由 Fiber 自身解压；这个中间件只覆盖 Fiber 不认识的 base64 形式。
 
+### Protected body transport
+
+设置 `vef.api.body_encoding.enabled = true` 后，`/api` 表面上的 JSON body
+会启用带认证的非明文传输：
+
+```toml
+[vef.api.body_encoding]
+enabled = true
+encoding = "aes-gcm+base64" # 或 "sm4-gcm+base64"
+key = "<standard-base64-key>"
+```
+
+两种编码都使用 GCM，wire body 是裸 standard Base64 文本，没有 JSON 外壳。
+解码前的字节布局是 `Base64(12 字节随机 nonce || ciphertext || 16 字节 tag)`。
+每条请求和响应都会生成新的 nonce。
+
+启用 protected transport 后：
+
+- JSON 请求必须把 `X-Body-Encoding` 设置为配置值，并把编码后的文本作为
+  raw request body 发送，而不是作为 JSON string 发送。
+- JSON 响应，包括传输层和下游错误信封，都使用同一编码，并通过
+  `X-Body-Encoding` 返回标记；CORS 会 expose 这个头，让浏览器可以读取。
+- 明文 JSON 以及较弱的 `base64` / `gzip+base64` 请求会被拒绝，不能把
+  protected 模式降级。
+- multipart 与二进制 body 保持原生格式，非 `/api` 响应不受影响。
+- 解码后的请求 body 仍然受 `vef.app.body_limit` 限制。
+- protected `/api` 响应会跳过 HTTP compression，因为 ciphertext 本身已是
+  高熵内容。
+
+AES key 可以是 16、24 或 32 字节，SM4 key 必须是 16 字节。standard-base64
+key 必须与客户端一致。这个传输层不能替代 HTTPS：浏览器代码持有的对称
+key 是可以被提取的。API `signature` 认证与它正交，因为签名覆盖
+`appID+method+path+timestamp+nonce`，不包含请求 body。
+
 解码发生在 content-type 检查和调度器之前，且仅在 `/api` 路径上生效。存储、内容哈希缓存和审计看到的都是原始 body。body 限制（`vef.app.body_limit`）作用于解码后的大小，防止解压炸弹超出限制。
 
 失败模式：
 
 | 情况 | 结果 |
 | --- | --- |
+| 启用 protected transport 后，JSON 请求未携带标记 | `api.ErrBodyEncodingRequired`（HTTP 400） |
 | 不支持的 `X-Body-Encoding` 值 | `api.ErrUnsupportedBodyEncoding`（HTTP 400） |
 | base64 格式错误或 gzip 流损坏 | `api.ErrBodyDecodeFailed`（HTTP 400） |
 | 解码后的 body 超过配置限制 | `api.ErrBodyTooLarge`（HTTP 413） |

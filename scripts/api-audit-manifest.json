@@ -51,10 +51,10 @@
         "docs/advanced/cli-tools.md"
       ],
       "notes": "Resource, operation, request, auth, router, and handler-extension APIs.",
-      "top_level": 81,
+      "top_level": 82,
       "fields": 44,
       "methods": 40,
-      "fingerprint": "46897217e8131247ebd62293c7b7ba1422d5f79fce2db68f73280a7239f4bf9e"
+      "fingerprint": "78a0595389579d3f14124b43ba12627e357ea16e878bdb71abcb546fb80d5d0c"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/app",
@@ -193,10 +193,10 @@
         "docs/getting-started/configuration.md"
       ],
       "notes": "All config structs, config keys, Effective methods, validation, and runtime defaults.",
-      "top_level": 133,
-      "fields": 205,
-      "methods": 72,
-      "fingerprint": "ec32c62213811d34ebb0851e811a1d8c3416fcf3ff8e94f574bf16a7761873d4"
+      "top_level": 141,
+      "fields": 209,
+      "methods": 75,
+      "fingerprint": "246b24917c452c0687f9a8a42d877e758b549b180991d31416de34fd40bf9ab3"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/contextx",
@@ -944,7 +944,7 @@
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "b6dbfc8f6c4d64fafbc4079041bb6b078ab67d42c890a7c424f901d786cc6234"
+      "fingerprint": "bc6d797f98cf6747ee1960957ca158aedc3eefda094b96442e83e6aea6588680"
     }
   ]
 }

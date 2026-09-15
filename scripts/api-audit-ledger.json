@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8318,
-  "fingerprint": "8e1fcad0d8537ea850e6281618c42458384931ba3e93ef68d74a2d5376a7e7c3",
+  "entry_count": 8334,
+  "fingerprint": "7343d2ea9b353343a4a38e469357c2121147194d3b13fac626ed44a119fc3fd1",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -5235,6 +5235,21 @@
       "kind": "top",
       "symbol": "ErrBodyDecodeFailed",
       "signature": "ErrBodyDecodeFailed : github.com/coldsmirk/vef-framework-go/result.Error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/building-apis/api.md",
+        "docs/building-apis/custom-handlers.md",
+        "docs/building-apis/params-and-meta.md",
+        "docs/building-apis/routing.md",
+        "docs/advanced/cli-tools.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/api#top:ErrBodyEncodingRequired",
+      "package": "github.com/coldsmirk/vef-framework-go/api",
+      "kind": "top",
+      "symbol": "ErrBodyEncodingRequired",
+      "signature": "ErrBodyEncodingRequired : github.com/coldsmirk/vef-framework-go/result.Error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/building-apis/api.md",
@@ -39355,11 +39370,59 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/config#field:APIBodyEncodingConfig.Enabled",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "field",
+      "symbol": "APIBodyEncodingConfig.Enabled",
+      "signature": "Enabled : bool [field_order=1 tag=\"config:\\\"enabled\\\"\"]",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#field:APIBodyEncodingConfig.Encoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "field",
+      "symbol": "APIBodyEncodingConfig.Encoding",
+      "signature": "Encoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding [field_order=2 tag=\"config:\\\"encoding\\\"\"]",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#field:APIBodyEncodingConfig.Key",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "field",
+      "symbol": "APIBodyEncodingConfig.Key",
+      "signature": "Key : string [field_order=3 tag=\"config:\\\"key\\\"\"]",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#field:APIConfig.BodyEncoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "field",
+      "symbol": "APIConfig.BodyEncoding",
+      "signature": "BodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncodingConfig [field_order=1 tag=\"config:\\\"body_encoding\\\"\"]",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/config#field:APIConfig.RateLimit",
       "package": "github.com/coldsmirk/vef-framework-go/config",
       "kind": "field",
       "symbol": "APIConfig.RateLimit",
-      "signature": "RateLimit : github.com/coldsmirk/vef-framework-go/config.APIRateLimitConfig [field_order=1 tag=\"config:\\\"rate_limit\\\"\"]",
+      "signature": "RateLimit : github.com/coldsmirk/vef-framework-go/config.APIRateLimitConfig [field_order=2 tag=\"config:\\\"rate_limit\\\"\"]",
       "disposition": "grouped:configuration-fields",
       "coverage": [
         "docs/reference/configuration-reference.md",
@@ -41815,6 +41878,42 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/config#method:APIBodyEncodingConfig.EffectiveEncoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "method",
+      "symbol": "APIBodyEncodingConfig.EffectiveEncoding",
+      "signature": "EffectiveEncoding : func() github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#method:APIBodyEncodingConfig.Validate",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "method",
+      "symbol": "APIBodyEncodingConfig.Validate",
+      "signature": "Validate : func() error",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#method:APIConfig.Validate",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "method",
+      "symbol": "APIConfig.Validate",
+      "signature": "Validate : func() error",
+      "disposition": "grouped:configuration-fields",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/config#method:APIRateLimitConfig.EffectiveMax",
       "package": "github.com/coldsmirk/vef-framework-go/config",
       "kind": "method",
@@ -42679,6 +42778,54 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:APIBodyEncoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "APIBodyEncoding",
+      "signature": "APIBodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:APIBodyEncodingAESGCMBase64",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "APIBodyEncodingAESGCMBase64",
+      "signature": "APIBodyEncodingAESGCMBase64 : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = \"aes-gcm+base64\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:APIBodyEncodingConfig",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "APIBodyEncodingConfig",
+      "signature": "APIBodyEncodingConfig : github.com/coldsmirk/vef-framework-go/config.APIBodyEncodingConfig",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:APIBodyEncodingSM4GCMBase64",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "APIBodyEncodingSM4GCMBase64",
+      "signature": "APIBodyEncodingSM4GCMBase64 : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = \"sm4-gcm+base64\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/config#top:APIConfig",
       "package": "github.com/coldsmirk/vef-framework-go/config",
       "kind": "top",
@@ -42876,6 +43023,18 @@
       "kind": "top",
       "symbol": "DataSourcesConfig",
       "signature": "DataSourcesConfig : github.com/coldsmirk/vef-framework-go/config.DataSourcesConfig",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:DefaultAPIBodyEncoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "DefaultAPIBodyEncoding",
+      "signature": "DefaultAPIBodyEncoding : github.com/coldsmirk/vef-framework-go/config.APIBodyEncoding = \"aes-gcm+base64\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/reference/configuration-reference.md",
@@ -43339,6 +43498,30 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:ErrInvalidAPIBodyEncoding",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "ErrInvalidAPIBodyEncoding",
+      "signature": "ErrInvalidAPIBodyEncoding : error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:ErrInvalidAPIBodyEncodingKey",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "ErrInvalidAPIBodyEncodingKey",
+      "signature": "ErrInvalidAPIBodyEncodingKey : error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/config#top:ErrInvalidApprovalBindingConsistency",
       "package": "github.com/coldsmirk/vef-framework-go/config",
       "kind": "top",
@@ -43476,6 +43659,18 @@
       "kind": "top",
       "symbol": "ErrInvalidTokenType",
       "signature": "ErrInvalidTokenType : error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/reference/configuration-reference.md",
+        "docs/getting-started/configuration.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/config#top:ErrMissingAPIBodyEncodingKey",
+      "package": "github.com/coldsmirk/vef-framework-go/config",
+      "kind": "top",
+      "symbol": "ErrMissingAPIBodyEncodingKey",
+      "signature": "ErrMissingAPIBodyEncodingKey : error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/reference/configuration-reference.md",
@@ -120109,7 +120304,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.51.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.52.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"

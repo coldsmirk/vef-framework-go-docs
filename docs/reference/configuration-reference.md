@@ -47,12 +47,35 @@ Common environment keys include:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
+| `body_encoding.enabled` | `bool` | require protected JSON request and response bodies on the `/api` surface; default `false` |
+| `body_encoding.encoding` | `APIBodyEncoding` | protected wire format, `aes-gcm+base64` or `sm4-gcm+base64`; default `DefaultAPIBodyEncoding` (`aes-gcm+base64`) |
+| `body_encoding.key` | `string` | standard-base64 symmetric key shared with the client; AES accepts 16/24/32 bytes and SM4 accepts 16 bytes |
 | `rate_limit.max` | `int` | default per-operation rate limit applied to operations that declare no `OperationSpec.RateLimit` of their own; default `100` |
 | `rate_limit.period` | `duration` | window for the default rate limit; default `5m` |
 
 The limit is keyed per operation × client (resource, version, action, client
 IP, principal ID) and counted per node. Per-endpoint `OperationSpec.RateLimit`
 overrides still win; see [API](../building-apis/api#rate-limiting).
+
+`config.APIConfig.BodyEncoding` holds `config.APIBodyEncodingConfig`, whose
+`config.APIBodyEncodingConfig.Enabled`, `config.APIBodyEncodingConfig.Encoding`,
+and `config.APIBodyEncodingConfig.Key` fields map to the TOML keys above.
+`config.APIConfig.Validate()` delegates to
+`config.APIBodyEncodingConfig.Validate()`; their audited method symbols are
+`config.APIConfig.Validate` and `config.APIBodyEncodingConfig.Validate`.
+
+`config.APIBodyEncoding` is the Go type for `body_encoding.encoding`;
+`config.APIBodyEncodingAESGCMBase64` and
+`config.APIBodyEncodingSM4GCMBase64` are its supported constants.
+`config.APIBodyEncodingConfig.EffectiveEncoding()` resolves an empty encoding
+to `config.DefaultAPIBodyEncoding`; the audited method symbol is
+`config.APIBodyEncodingConfig.EffectiveEncoding`. `Validate()` returns
+`config.ErrInvalidAPIBodyEncoding` for an
+unsupported encoding, `config.ErrMissingAPIBodyEncodingKey` when a key is
+absent, and `config.ErrInvalidAPIBodyEncodingKey` for malformed base64 or an
+invalid key size. Protected transport keeps multipart and binary bodies
+unchanged and does not replace HTTPS; see
+[Routing](../building-apis/routing#request-body-transport-encoding).
 
 ## `vef.data_sources`
 

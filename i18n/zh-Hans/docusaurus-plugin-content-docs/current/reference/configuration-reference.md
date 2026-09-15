@@ -47,12 +47,34 @@ type = "sqlite"
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
+| `body_encoding.enabled` | `bool` | 要求 `/api` 表面上的 JSON 请求与响应 body 使用 protected transport；默认 `false` |
+| `body_encoding.encoding` | `APIBodyEncoding` | protected wire format，可选 `aes-gcm+base64` 或 `sm4-gcm+base64`；默认 `DefaultAPIBodyEncoding`（`aes-gcm+base64`） |
+| `body_encoding.key` | `string` | 与客户端共享的 standard-base64 对称 key；AES 接受 16/24/32 字节，SM4 接受 16 字节 |
 | `rate_limit.max` | `int` | 未声明自己 `OperationSpec.RateLimit` 的操作使用的默认限流；默认 `100`。 |
 | `rate_limit.period` | `duration` | 默认限流的时间窗口；默认 `5m`。 |
 
 限流按操作 × 客户端计数（resource、version、action、客户端 IP、principal
 ID），且按节点独立统计。每个端点自己的 `OperationSpec.RateLimit` 仍然优先；
 见 [API](../building-apis/api#限流)。
+
+`config.APIConfig.BodyEncoding` 持有 `config.APIBodyEncodingConfig`，其
+`config.APIBodyEncodingConfig.Enabled`、`config.APIBodyEncodingConfig.Encoding`
+与 `config.APIBodyEncodingConfig.Key` 字段对应上面的 TOML key。
+`config.APIConfig.Validate()` 会委托给
+`config.APIBodyEncodingConfig.Validate()`；被审计的方法符号是
+`config.APIConfig.Validate` 与 `config.APIBodyEncodingConfig.Validate`。
+
+`config.APIBodyEncoding` 是 `body_encoding.encoding` 的 Go 类型；
+`config.APIBodyEncodingAESGCMBase64` 与
+`config.APIBodyEncodingSM4GCMBase64` 是支持的常量。
+`config.APIBodyEncodingConfig.EffectiveEncoding()` 会把空编码解析为
+`config.DefaultAPIBodyEncoding`。
+被审计的方法符号是 `config.APIBodyEncodingConfig.EffectiveEncoding`。
+`Validate()` 在编码不受支持时返回 `config.ErrInvalidAPIBodyEncoding`，
+缺少 key 时返回 `config.ErrMissingAPIBodyEncodingKey`，base64 畸形或 key
+长度不合法时返回 `config.ErrInvalidAPIBodyEncodingKey`。Protected transport
+不会改变 multipart 与二进制 body，也不能替代 HTTPS；参见
+[Routing](../building-apis/routing#请求-body-传输编码)。
 
 ## `vef.data_sources`
 

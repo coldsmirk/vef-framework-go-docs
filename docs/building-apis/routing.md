@@ -321,6 +321,44 @@ Native `Content-Encoding` values such as `gzip`, `br`, `deflate`, and `zstd` are
 decompressed by Fiber itself; this middleware covers only the base64 forms Fiber
 does not know.
 
+### Protected body transport
+
+Set `vef.api.body_encoding.enabled = true` to require authenticated,
+non-plaintext JSON bodies on the `/api` surface:
+
+```toml
+[vef.api.body_encoding]
+enabled = true
+encoding = "aes-gcm+base64" # or "sm4-gcm+base64"
+key = "<standard-base64-key>"
+```
+
+Both encodings use GCM and transport standard padded Base64 as the raw body,
+with no JSON wrapper. The wire bytes are
+`Base64(12-byte random nonce || ciphertext || 16-byte tag)`. Every request and
+response gets a fresh nonce.
+
+When protected transport is enabled:
+
+- JSON requests must set `X-Body-Encoding` to the configured value and send the
+  encoded text as the raw request body — not as a JSON string.
+- JSON responses, including transport and downstream error envelopes, use the
+  same encoding and return the marker in `X-Body-Encoding`. CORS exposes the
+  header so browsers can read it.
+- Plaintext JSON and weaker `base64` / `gzip+base64` requests are rejected;
+  they cannot downgrade protected mode.
+- Multipart and binary bodies keep their native formats, and non-`/api`
+  responses remain untouched.
+- The decoded request body is still bounded by `vef.app.body_limit`.
+- HTTP compression is skipped for protected `/api` responses because the
+  ciphertext is already high entropy.
+
+AES accepts a 16-, 24-, or 32-byte key; SM4 accepts a 16-byte key. The
+standard-base64 key must match the client. This transport does not replace
+HTTPS: a symmetric key held by browser code is extractable. API `signature`
+authentication is orthogonal because it signs `appID+method+path+timestamp+nonce`,
+not the request body.
+
 Decoding happens before the content-type guard and dispatcher run, on `/api`
 paths only. Storage, content-hash caches, and audit all see the raw body. The
 body-limit guard (`vef.app.body_limit`) is applied to the decoded size, so a
@@ -330,6 +368,7 @@ Failure modes:
 
 | Case | Result |
 | --- | --- |
+| JSON request without the marker while protected transport is enabled | `api.ErrBodyEncodingRequired` (HTTP 400) |
 | Unsupported `X-Body-Encoding` value | `api.ErrUnsupportedBodyEncoding` (HTTP 400) |
 | Malformed base64 or corrupt gzip stream | `api.ErrBodyDecodeFailed` (HTTP 400) |
 | Decoded body larger than the configured limit | `api.ErrBodyTooLarge` (HTTP 413) |
