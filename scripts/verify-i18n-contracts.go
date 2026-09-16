@@ -28,7 +28,7 @@ const (
 	localesFieldCount    = 0
 	localesMethodCount   = 0
 	localesEntryCount    = 1
-	localeMessageCount   = 268
+	localeMessageCount   = 269
 )
 
 type corpus struct {
@@ -377,6 +377,7 @@ func verifyLocaleCatalogs(sourceRoot string) []string {
 		"api_request_action",
 		"api_request_version",
 		"unsupported_media_type",
+		"api_body_encoding_required",
 	} {
 		if _, ok := en[key]; !ok {
 			failures = append(failures, "en locale missing required key "+key)
