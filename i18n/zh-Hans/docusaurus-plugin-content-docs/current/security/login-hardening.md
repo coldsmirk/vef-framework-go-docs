@@ -78,13 +78,17 @@ type LoginDecision struct {
 ```
 
 `AuthResource.Login` 会在认证前调用 `Check`，认证失败时调用
-`RecordFailure`，凭据一旦通过验证（在任何第二因素挑战之前，因为撞库尝试所
-用的凭据此时已经验证成功）就调用 `RecordSuccess`。失败次数按
-`LockoutPolicy.Key` 维度累积，认证成功后清零。
+`RecordFailure`。`RecordSuccess` 只在登录整体完成、token 签发的地方调用——
+凭据通过验证时不调用，中间某一步挑战通过时也不调用——因为一次登录的凭据
+猜测与挑战猜测计入同一个计数器（见下文），过早清零会让知道密码的人只要重新
+登录一次，就把第二因素的猜测次数重置掉。失败次数按 `LockoutPolicy.Key`
+维度累积，登录整体完成后清零。
 
 同一个 guard 也覆盖 `resolve_challenge`：第二因素猜测失败会
 计入同一个锁定 key，锁定触发后两个端点同时被拦——攻击者即使走到挑战环节，
-也无法在锁定预算之外暴力猜测。
+也无法在锁定预算之外暴力猜测。唯一的豁免是 `trust_code` 登录的 `login` 这一步：
+它的一次性 code 再怎么猜也逼近不了；这次登录后续的挑战步骤与其他登录一样计数
+（见[信任登录：限流](./trust-login#限流)）。
 
 保留身份的拒绝（参见[认证：保留身份](./authentication#保留身份)）会记录
 审计事件，但**不计入**锁定计数，因为凭据本身可能是对的，错误在于认证器
@@ -309,20 +313,46 @@ max_age = "2160h" # 90 天
 ```
 
 `ExpiryPasswordChangeChecker` 实现了 `security.PasswordChangeChecker`，这个
-接口同样用于其他强制改密场景（比如首次登录）。可以用
-`NewCompositePasswordChangeChecker` 把多个原因组合在一起，它会返回第一个
-命中的原因：
+接口同样用于其他强制改密场景（比如首次登录）：
+
+```go
+type PasswordChangeChecker interface {
+	Check(ctx context.Context, login *LoginContext) (*PasswordChangeChallengeData, error)
+}
+```
+
+checker 决定强制改密是否适用，因此拿到的是整次登录，并从 `login.Principal` 读取
+用户（见[认证：登录上下文](./authentication#登录上下文)）。例如一个基于应用用户服务
+的首次登录 checker：
+
+```go
+type firstLoginChecker struct {
+	users *UserService
+}
+
+func (c *firstLoginChecker) Check(ctx context.Context, login *security.LoginContext) (*security.PasswordChangeChallengeData, error) {
+	mustChange, err := c.users.MustChangePassword(ctx, login.Principal.ID)
+	if err != nil || !mustChange {
+		return nil, err
+	}
+
+	return &security.PasswordChangeChallengeData{Reason: security.PasswordChangeReasonFirstLogin}, nil
+}
+```
+
+可以用 `NewCompositePasswordChangeChecker` 把多个原因组合在一起，它会按顺序把
+同一次登录交给每个 checker，并返回第一个命中的原因：
 
 ```go
 checker := security.NewCompositePasswordChangeChecker(
-	firstLoginChecker,
+	&firstLoginChecker{users: users},
 	security.NewExpiryPasswordChangeChecker(myMetadataLoader, 90*24*time.Hour),
 )
 ```
 
 把组合后的 checker、你的 `PasswordChanger`，以及（可选的）
 `PasswordValidator` 一起传给 `NewPasswordChangeChallengeProvider`，再将其注
-册为一个登录挑战提供者：
+册为一个限定于密码登录的登录挑战提供者：
 
 ```go
 vef.ProvideChallengeProvider(func(
@@ -330,11 +360,20 @@ vef.ProvideChallengeProvider(func(
 	changer security.PasswordChanger,
 	validator security.PasswordValidator,
 ) security.ChallengeProvider {
-	return security.NewPasswordChangeChallengeProvider(checker, changer, validator)
+	return security.NewFilteredChallengeProvider(
+		security.NewPasswordChangeChallengeProvider(checker, changer, validator),
+		security.ForAuthTypes(security.AuthTypePassword),
+	)
 })
 ```
 
-一旦 checker 命中，`security/auth.login` 就会返回一个 `password_change`
+`ForAuthTypes(security.AuthTypePassword)` 让这个挑战只落在与它相关的登录上。
+强制改密针对的是密码，而只有 `password` 登录提交过密码：不加限定的话，信任登录
+交接或宿主自定义的登录方式都会被拦下来，去更换一个它根本没有用过的密码。与某一种
+凭据绑定的挑战适合这样的允许列表；第二因素更适合用排除列表限定——见
+[认证：按登录方式限定挑战](./authentication#按登录方式限定挑战)。
+
+一旦 checker 在密码登录上命中，`security/auth.login` 就会返回一个 `password_change`
 挑战（`Reason: "expired"`）而不是令牌；客户端通过 `resolve_challenge` 把新
 密码作为响应提交上来完成解决。该 provider 会先用传入的 `PasswordValidator`
 校验新密码——因此强度和历史规则在这里同样适用——校验通过后再调用

@@ -45,9 +45,9 @@ sidebar_position: 2
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `type` | `string` | 是 | 登录方式/认证类型。目前仅支持 `password`，即账号密码登录 |
+| `type` | `string` | 是 | 登录方式：`password`、信任登录开启时的 `trust_code`，或已注册 `security.Authenticator` 支持的类型。挑战可以借助 `security.NewFilteredChallengeProvider` 按它限定 |
 | `principal` | `string` | 是 | 登录标识，通常就是用户名 |
-| `credentials` | `string` | 是 | 登录凭证。在 `type = "password"` 时就是明文密码 |
+| `credentials` | `any` | 是 | 登录凭证。在 `type = "password"` 时就是明文密码；宿主自定义登录方式可以接收任意 JSON 值 |
 
 最小请求示例：
 
@@ -74,7 +74,7 @@ sidebar_position: 2
 
 | 参数名 | 类型 | 必填 | 含义 |
 | --- | --- | --- | --- |
-| `challengeToken` | `string` | 是 | 前一步 `login` 或 `resolve_challenge` 返回的 challenge 状态 token |
+| `challengeToken` | `string` | 是 | 前一步 `login` 或 `resolve_challenge` 返回的 challenge 状态 token，在步骤之间携带这次登录——登录方式、标识、principal，以及已解决与待解决的挑战 |
 | `type` | `string` | 是 | 当前要处理的挑战类型，例如 `totp` 或其他 provider 自定义类型 |
 | `response` | `any` | 是 | 对应挑战 provider 消费的响应载荷 |
 

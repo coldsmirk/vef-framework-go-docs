@@ -45,9 +45,9 @@ Authentication resource provided by the security module.
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `type` | `string` | Yes | Login type. The built-in login flow currently supports `password` only |
+| `type` | `string` | Yes | Login mechanism: `password`, `trust_code` while trust login is enabled, or a type a registered `security.Authenticator` supports. Challenges can be scoped by it with `security.NewFilteredChallengeProvider` |
 | `principal` | `string` | Yes | Login identifier, typically the username |
-| `credentials` | `string` | Yes | Login credential. For `type = "password"`, this is the plaintext password |
+| `credentials` | `any` | Yes | Login credential. For `type = "password"`, this is the plaintext password; a host mechanism may take any JSON value |
 
 Minimal request example:
 
@@ -74,7 +74,7 @@ Minimal request example:
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `challengeToken` | `string` | Yes | Challenge-state token returned by a previous `login` or `resolve_challenge` call |
+| `challengeToken` | `string` | Yes | Challenge-state token returned by a previous `login` or `resolve_challenge` call; it carries the login — mechanism, identifier, principal, and resolved and pending challenges — between steps |
 | `type` | `string` | Yes | Challenge type currently being resolved, such as `totp` or another provider-specific challenge identifier |
 | `response` | `any` | Yes | Challenge response payload consumed by the matching `security.ChallengeProvider` |
 

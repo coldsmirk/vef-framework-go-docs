@@ -29,14 +29,25 @@ Trust login therefore splits the handoff into two legs, and both are required:
    the code. The `TrustCodeAuthenticator` redeems the code and returns the
    parked principal.
 
-Because the second leg is a normal login, the handoff inherits the **full login
-pipeline** unchanged: the challenge chain (department selection, forced
-`password_change`), token issuance under whichever `token_type` is configured,
-session concurrency and eviction, and the login audit event. There is
-deliberately **no "skip challenges" switch** — department selection is a
-required business input and a forced password change is policy; skipping either
-would be a hole, and skipping a second factor is a per-provider decision rather
-than a blanket one.
+Because the second leg is a normal login, the handoff inherits the login
+pipeline — token issuance under whichever `token_type` is configured, session
+concurrency and eviction, and the login audit event, with
+`authType: "trust_code"` — except the `login` step's brute-force guard (see
+[Throttling](#throttling)). It also meets the **challenge chain**: every
+provider not filtered away from `security.AuthTypeTrustCode` is evaluated,
+because the external system authenticated the user but did not satisfy your
+application's own login policy.
+
+There is deliberately **no "skip challenges" switch**. Department selection is
+a required business input, normally registered unfiltered, so a handoff meets
+it like any other login. Whether any other challenge applies to a handoff is a
+per-provider decision made at registration with
+`security.NewFilteredChallengeProvider`: a forced `password_change` scoped with
+`ForAuthTypes(security.AuthTypePassword)` never reaches a handoff, which
+presented no password, and a second factor the initiating system already
+enforces can be registered with `ExceptAuthTypes(security.AuthTypeTrustCode)`.
+See
+[Authentication: Scoping challenges to login mechanisms](./authentication#scoping-challenges-to-login-mechanisms).
 
 The signed URL on its own is therefore harmless to keep: it mints a code, and
 the code is what logs anyone in. The code is single-use, seconds-lived, and
@@ -252,13 +263,19 @@ generous: a whole organization behind one NAT legitimately signs in through the
 same address at the start of a shift. It bounds a flood; it does not police
 logins.
 
-The exchange is **exempt from the brute-force login guard**, unlike every other
-login type. A code is `GenerateOpaqueToken` randomness, single-use and
-seconds-lived, so no number of attempts approaches it — while the identity it
-presents is the initiating system's app ID rather than a person. Counting
-failures would put every user of that system into one lockout bucket that
-anyone able to POST a wrong code could fill. Its real throttles are the gateway
-rate limit above, the code's single use, and `vef.security.login_rate_limit`.
+The exchange's `login` step is **exempt from the brute-force login guard**,
+unlike every other login type. A code is `GenerateOpaqueToken` randomness,
+single-use and seconds-lived, so no number of attempts approaches it — while
+the identity it presents is the initiating system's app ID rather than a
+person. Counting failures would put every user of that system into one lockout
+bucket that anyone able to POST a wrong code could fill. Its real throttles are
+the gateway rate limit above, the code's single use, and
+`vef.security.login_rate_limit`.
+
+The exemption covers the code and nothing after it. A challenge the handoff
+meets is answered through `resolve_challenge`, and a wrong answer there counts
+toward the lockout and is audited, because a challenge answer, unlike the code,
+is guessable.
 
 ## Checklist for the initiating system
 

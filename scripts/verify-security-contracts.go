@@ -16,12 +16,12 @@ const (
 	auditLedgerPath = "scripts/api-audit-ledger.json"
 	securityPackage = "github.com/coldsmirk/vef-framework-go/security"
 
-	securityGroupedEntryCount           = 262
-	securityGroupedFieldCount           = 114
-	securityGroupedMethodCount          = 148
-	securityGroupedReceiverCount        = 97
-	securityGroupedSignatureFingerprint = "a29ea8c7f78e30d39f47b5e7ddf3891620dc0b805869b107e042bbcd77138770"
-	securityGroupedReceiverFingerprint  = "aae5485c5d8a089332b135de435dd074297587c07c7379dec7f11bfe94eec76e"
+	securityGroupedEntryCount           = 273
+	securityGroupedFieldCount           = 124
+	securityGroupedMethodCount          = 149
+	securityGroupedReceiverCount        = 99
+	securityGroupedSignatureFingerprint = "68d6228d652e62ea06b523f0cea2393a0086a45003b68e3dd9608c5fe04afa61"
+	securityGroupedReceiverFingerprint  = "90db563959becc7c9646b60560b9dc5be236c0cdfed712f0b44567b255a1c8e5"
 )
 
 type corpus struct {
@@ -74,6 +74,14 @@ func main() {
 		readCorpus("English data permission docs", filepath.Join(docsRoot, "docs/security/data-permissions.md")),
 		readCorpus("Chinese data permission docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/security/data-permissions.md")),
 	}
+	trustLoginDocs := []corpus{
+		readCorpus("English trust login docs", filepath.Join(docsRoot, "docs/security/trust-login.md")),
+		readCorpus("Chinese trust login docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/security/trust-login.md")),
+	}
+	loginHardeningDocs := []corpus{
+		readCorpus("English login hardening docs", filepath.Join(docsRoot, "docs/security/login-hardening.md")),
+		readCorpus("Chinese login hardening docs", filepath.Join(docsRoot, "i18n/zh-Hans/docusaurus-plugin-content-docs/current/security/login-hardening.md")),
+	}
 	audit := loadJSON[auditLedger](filepath.Join(docsRoot, auditLedgerPath))
 
 	var failures []string
@@ -81,14 +89,16 @@ func main() {
 	failures = append(failures, runChecks(sourceRoot, authDocs, authChecks())...)
 	failures = append(failures, runChecks(sourceRoot, authzDocs, authzChecks())...)
 	failures = append(failures, runChecks(sourceRoot, dataPermDocs, dataPermChecks())...)
+	failures = append(failures, runChecks(sourceRoot, trustLoginDocs, trustLoginChecks())...)
+	failures = append(failures, runChecks(sourceRoot, loginHardeningDocs, loginHardeningChecks())...)
 
 	sort.Strings(failures)
 	if len(failures) > 0 {
 		panic(fmt.Errorf("security contract verification failed:\n%s", strings.Join(failures, "\n")))
 	}
 
-	fmt.Printf("Security contract docs verified: 262 grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs\n",
-		len(authDocs), len(authzDocs), len(dataPermDocs))
+	fmt.Printf("Security contract docs verified: %d grouped field/method entries, %d auth docs, %d authorization docs, %d data-permission docs, %d trust-login docs, %d login-hardening docs\n",
+		securityGroupedEntryCount, len(authDocs), len(authzDocs), len(dataPermDocs), len(trustLoginDocs), len(loginHardeningDocs))
 }
 
 func verifyGroupedSecuritySurface(audit auditLedger) []string {
@@ -351,6 +361,11 @@ func authChecks() []check {
 				"ClaimChallengePrincipalType = \"ptp\"",
 				"ClaimChallengeResolved      = \"rsd\"",
 				"ClaimChallengePrincipalName = \"pnm\"",
+				"ClaimChallengeUsername = \"unm\"",
+				"ClaimChallengeAuthType = \"atp\"",
+				"WithClaim(ClaimChallengeAuthType, state.AuthType)",
+				"authType := cast.ToString(claimsAccessor.Claim(ClaimChallengeAuthType))",
+				"if authType == \"\" {\n\t\treturn nil, ErrTokenInvalid",
 				"WithType(TokenTypeChallenge)",
 				"WithSubject(principal.ID)",
 				"claimsAccessor.Type() != TokenTypeChallenge",
@@ -361,6 +376,9 @@ func authChecks() []check {
 				"`ptp`",
 				"`rsd`",
 				"`pnm`",
+				"`unm`",
+				"`atp`",
+				"`ClaimChallengeAuthType`",
 				"`typ: \"challenge\"`",
 			},
 			englishDocTerms: []string{
@@ -368,6 +386,124 @@ func authChecks() []check {
 			},
 			chineseDocTerms: []string{
 				"subject 只保存 principal ID",
+			},
+		},
+		{
+			sourcePath: "security/constants.go",
+			sourceTerms: []string{
+				"AuthTypePassword  = \"password\"",
+				"AuthTypeTrustCode = \"trust_code\"",
+			},
+			docTerms: []string{
+				"`AuthTypePassword`",
+				"`AuthTypeTrustCode`",
+				"`trust_code`",
+			},
+		},
+		{
+			sourcePath: "security/challenge.go",
+			sourceTerms: []string{
+				"type LoginContext struct",
+				"type ChallengeState struct {\n\tLoginContext",
+				"Generate(ctx context.Context, state *ChallengeState) (string, error)",
+				"Parse(ctx context.Context, token string) (*ChallengeState, error)",
+				"Evaluate(ctx context.Context, login *LoginContext) (*LoginChallenge, error)",
+				"Resolve(ctx context.Context, login *LoginContext, response any) (*Principal, error)",
+			},
+			docTerms: []string{
+				"`LoginContext`",
+				"`ChallengeState`",
+				"`Generate(ctx, state)`",
+				"`Parse(ctx, token)`",
+				"`Evaluate(ctx, login)`",
+				"`Resolve(ctx, login, response)`",
+				"`login.Principal`",
+			},
+		},
+		{
+			sourcePath: "security/challenge_filter.go",
+			sourceTerms: []string{
+				"func ForAuthTypes(authTypes ...string) LoginFilter",
+				"func ExceptAuthTypes(authTypes ...string) LoginFilter",
+				"if len(f.AuthTypes) > 0 && !slices.Contains(f.AuthTypes, login.AuthType)",
+				"return !slices.Contains(f.ExcludedAuthTypes, login.AuthType)",
+				"func NewFilteredChallengeProvider(provider ChallengeProvider, filters ...LoginFilter) ChallengeProvider",
+				"if len(filters) == 0 {\n\t\treturn provider\n\t}",
+				"if !filter.Matches(login) {\n\t\t\treturn nil, nil\n\t\t}",
+			},
+			docTerms: []string{
+				"`NewFilteredChallengeProvider`",
+				"`LoginFilter`",
+				"`AuthTypes`",
+				"`ExcludedAuthTypes`",
+				"`LoginFilter.Matches(login)`",
+				"`ForAuthTypes(security.AuthTypePassword)`",
+				"`ExceptAuthTypes(...)`",
+			},
+			englishDocTerms: []string{
+				"an empty dimension is unconstrained",
+				"must all match (AND)",
+			},
+			chineseDocTerms: []string{
+				"空维度不做约束",
+				"必须全部匹配（AND）",
+			},
+		},
+		{
+			sourcePath: "security/password_change.go",
+			sourceTerms: []string{
+				"Check(ctx context.Context, login *LoginContext) (*PasswordChangeChallengeData, error)",
+				"p.validator.Validate(ctx, login.Principal, newPassword)",
+				"p.changer.ChangePassword(ctx, login.Principal, newPassword)",
+			},
+			docTerms: []string{
+				"`PasswordChangeChecker.Check`",
+				"`Check(ctx, login *LoginContext) (*PasswordChangeChallengeData, error)`",
+				"`ChangePassword(ctx, principal *Principal, newPassword string) error`",
+			},
+		},
+		{
+			sourcePath: "security/otp.go",
+			sourceTerms: []string{
+				"Evaluate(ctx context.Context, login *LoginContext) (*OTPChallengeData, error)",
+				"p.config.Sender.Send(ctx, login.Principal)",
+				"p.config.Verifier.Verify(ctx, login.Principal, code)",
+			},
+			docTerms: []string{
+				"`OTPEvaluator.Evaluate`",
+				"`Evaluate(ctx, login *LoginContext) (*OTPChallengeData, error)`",
+				"`Send(ctx, principal *Principal) error`",
+			},
+		},
+		{
+			sourcePath: "security/department_selection.go",
+			sourceTerms: []string{
+				"LoadDepartments(ctx context.Context, login *LoginContext) (*DepartmentSelectionChallengeData, error)",
+				"p.selector.SelectDepartment(ctx, login.Principal, departmentID)",
+			},
+			docTerms: []string{
+				"`DepartmentLoader.LoadDepartments`",
+				"`LoadDepartments(ctx, login *LoginContext) (*DepartmentSelectionChallengeData, error)`",
+				"`SelectDepartment(ctx, principal *Principal, departmentID string) (*Principal, error)`",
+			},
+		},
+		{
+			sourcePath: "internal/security/auth_resource.go",
+			sourceTerms: []string{
+				"if err != nil || state.AuthType == \"\" {\n\t\treturn security.ErrChallengeTokenInvalid",
+				"provider.Evaluate(ctx, &state.LoginContext)",
+				"provider.Resolve(ctx.Context(), &state.LoginContext, params.Response)",
+				"audit := security.LoginEventParams{AuthType: state.AuthType, Username: state.Username, ChallengeType: params.Type}",
+			},
+			docTerms: []string{
+				"`ErrChallengeTokenInvalid`",
+				"`challengeType`",
+			},
+			englishDocTerms: []string{
+				"state without an `AuthType`",
+			},
+			chineseDocTerms: []string{
+				"没有 `AuthType` 的",
 			},
 		},
 		{
@@ -685,6 +821,7 @@ func authzChecks() []check {
 				"`json:\"isOk\"`",
 				"`json:\"failReason\"`",
 				"`json:\"errorCode\"`",
+				"`json:\"challengeType\"`",
 				"func SubscribeLoginEvent(",
 			},
 			docTerms: []string{
@@ -698,7 +835,14 @@ func authzChecks() []check {
 				"`isOk`",
 				"`failReason`",
 				"`errorCode`",
+				"`challengeType`",
 				"`SubscribeLoginEvent`",
+			},
+			englishDocTerms: []string{
+				"filter on a non-empty `challengeType`",
+			},
+			chineseDocTerms: []string{
+				"按非空的 `challengeType` 过滤",
 			},
 		},
 		{
@@ -819,6 +963,75 @@ func dataPermChecks() []check {
 				"`DepartmentLoader`",
 				"`DepartmentSelector`",
 				"`DepartmentSelectionChallengeProvider`",
+			},
+		},
+	}
+}
+
+// loginHardeningChecks pins the two claims the login-hardening pages make about
+// the login context: the checker hook that reads it, and the filter that scopes
+// the forced-change challenge to password logins. Without them the pages could
+// keep documenting the pre-LoginContext signature and every verifier would pass.
+func loginHardeningChecks() []check {
+	return []check{
+		{
+			sourcePath: "security/password_change.go",
+			sourceTerms: []string{
+				"Check(ctx context.Context, login *LoginContext) (*PasswordChangeChallengeData, error)",
+			},
+			docTerms: []string{
+				"Check(ctx context.Context, login *LoginContext) (*PasswordChangeChallengeData, error)",
+			},
+		},
+		{
+			sourcePath: "security/challenge_filter.go",
+			sourceTerms: []string{
+				"func ForAuthTypes(authTypes ...string) LoginFilter {",
+			},
+			docTerms: []string{
+				"security.ForAuthTypes(security.AuthTypePassword)",
+				"security.NewFilteredChallengeProvider(",
+			},
+		},
+	}
+}
+
+func trustLoginChecks() []check {
+	return []check{
+		{
+			sourcePath: "internal/security/auth_resource.go",
+			sourceTerms: []string{
+				"var unguessableAuthTypes = collections.NewHashSetFrom(security.AuthTypeTrustCode)",
+				"guarded := !unguessableAuthTypes.Contains(params.Type)",
+			},
+			docTerms: []string{
+				"`security.AuthTypeTrustCode`",
+				"`security.NewFilteredChallengeProvider`",
+				"`resolve_challenge`",
+				"`vef.security.login_rate_limit`",
+			},
+			englishDocTerms: []string{
+				"The exemption covers the code and nothing after it",
+				"no \"skip challenges\" switch",
+			},
+			chineseDocTerms: []string{
+				"这项豁免只覆盖 code 本身",
+				"没有“跳过挑战”的开关",
+			},
+		},
+		{
+			// The exemption stops at the code: a challenge answer is guessable, so a
+			// trust-code login's resolve steps stay counted. The test that fences
+			// that is what the pages' claim rests on.
+			sourcePath: "internal/security/auth_resource_test.go",
+			sourceTerms: []string{
+				"func TestTrustCodeChallengeLockout(",
+			},
+			englishDocTerms: []string{
+				"a wrong answer there counts",
+			},
+			chineseDocTerms: []string{
+				"那里答错会计入锁定并被审计",
 			},
 		},
 	}

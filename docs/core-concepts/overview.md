@@ -118,7 +118,7 @@ The same pattern is used for other extension points:
 vef.ProvideMiddleware(NewAuditTrailMiddleware)
 vef.ProvideAuthStrategy(NewAPIKeyStrategy)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
-vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
+vef.ProvideChallengeProvider(NewTOTPChallenge)
 vef.ProvideMCPTools(NewToolProvider)
 vef.ProvideMCPResources(NewResourceProvider)
 vef.ProvideMCPResourceTemplates(NewTemplateProvider)
@@ -131,6 +131,13 @@ vef.ProvideDataSourceProvider(NewTenantDataSourceProvider)
 ```
 
 Each helper hides the FX group tag so that application code stays easier to read.
+
+A constructor passed to a group helper must return the contract type the group
+is declared with — for `vef.ProvideChallengeProvider`, `security.ChallengeProvider`
+rather than the concrete `*security.OTPChallengeProvider` that
+`security.NewTOTPChallengeProvider` returns. fx keys a group by type, so a
+member of any other type is dropped without an error: the application boots and
+the extension never runs.
 
 Some extension helpers replace framework defaults instead of adding group
 members:

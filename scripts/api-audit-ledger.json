@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8334,
-  "fingerprint": "7343d2ea9b353343a4a38e469357c2121147194d3b13fac626ed44a119fc3fd1",
+  "entry_count": 8353,
+  "fingerprint": "b729d44d03121c44bd7e2c197edbc2c15f522dce6c4bc2134b8b80ec0aa5998c",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -101986,11 +101986,49 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:ChallengeState.AuthType",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "ChallengeState.AuthType",
+      "signature": "AuthType : string [promoted_from=LoginContext depth=1 field_order=1 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:ChallengeState.LoginContext",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "ChallengeState.LoginContext",
+      "signature": "LoginContext : github.com/coldsmirk/vef-framework-go/security.LoginContext [field_order=1 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#field:ChallengeState.Pending",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
       "symbol": "ChallengeState.Pending",
-      "signature": "Pending : []string [field_order=3 tag=\"\"]",
+      "signature": "Pending : []string [field_order=2 tag=\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -102009,7 +102047,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
       "symbol": "ChallengeState.Principal",
-      "signature": "Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [field_order=1 tag=\"\"]",
+      "signature": "Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [promoted_from=LoginContext depth=1 field_order=3 tag=\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -102028,7 +102066,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
       "symbol": "ChallengeState.Resolved",
-      "signature": "Resolved : []string [field_order=4 tag=\"\"]",
+      "signature": "Resolved : []string [promoted_from=LoginContext depth=1 field_order=4 tag=\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -102047,7 +102085,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
       "symbol": "ChallengeState.Username",
-      "signature": "Username : string [field_order=2 tag=\"\"]",
+      "signature": "Username : string [promoted_from=LoginContext depth=1 field_order=2 tag=\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -102480,6 +102518,82 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginContext.AuthType",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginContext.AuthType",
+      "signature": "AuthType : string [field_order=1 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginContext.Principal",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginContext.Principal",
+      "signature": "Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [field_order=3 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginContext.Resolved",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginContext.Resolved",
+      "signature": "Resolved : []string [field_order=4 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginContext.Username",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginContext.Username",
+      "signature": "Username : string [field_order=2 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginDecision.Allowed",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
@@ -102523,6 +102637,25 @@
       "kind": "field",
       "symbol": "LoginEvent.AuthType",
       "signature": "AuthType : string [field_order=1 tag=\"json:\\\"authType\\\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginEvent.ChallengeType",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginEvent.ChallengeType",
+      "signature": "ChallengeType : string [field_order=10 tag=\"json:\\\"challengeType\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -102708,6 +102841,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginEventParams.ChallengeType",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginEventParams.ChallengeType",
+      "signature": "ChallengeType : string [field_order=10 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginEventParams.ErrorCode",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
@@ -102846,6 +102998,44 @@
       "kind": "field",
       "symbol": "LoginEventParams.Username",
       "signature": "Username : string [field_order=3 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginFilter.AuthTypes",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginFilter.AuthTypes",
+      "signature": "AuthTypes : []string [field_order=1 tag=\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:LoginFilter.ExcludedAuthTypes",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "LoginFilter.ExcludedAuthTypes",
+      "signature": "ExcludedAuthTypes : []string [field_order=2 tag=\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104251,7 +104441,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "ChallengeProvider.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104289,7 +104479,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "ChallengeProvider.Resolve",
-      "signature": "Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104327,7 +104517,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "ChallengeTokenStore.Generate",
-      "signature": "Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)",
+      "signature": "Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104517,7 +104707,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "DepartmentLoader.LoadDepartments",
-      "signature": "LoadDepartments : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeData, error)",
+      "signature": "LoadDepartments : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeData, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104536,7 +104726,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "DepartmentSelectionChallengeProvider.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104574,7 +104764,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "DepartmentSelectionChallengeProvider.Resolve",
-      "signature": "Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104631,7 +104821,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "ExpiryPasswordChangeChecker.Check",
-      "signature": "Check : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)",
+      "signature": "Check : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -104764,7 +104954,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "JWTChallengeTokenStore.Generate",
-      "signature": "Generate : func(_ context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)",
+      "signature": "Generate : func(_ context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105159,6 +105349,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:LoginFilter.Matches",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "LoginFilter.Matches",
+      "signature": "Matches : func(login *github.com/coldsmirk/vef-framework-go/security.LoginContext) bool",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#method:LoginGuard.Check",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
@@ -105220,7 +105429,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "MemoryChallengeTokenStore.Generate",
-      "signature": "Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)",
+      "signature": "Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105524,7 +105733,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "OTPChallengeProvider.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105562,7 +105771,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "OTPChallengeProvider.Resolve",
-      "signature": "Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105695,7 +105904,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "OTPEvaluator.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105714,7 +105923,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "PasswordChangeChallengeProvider.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105752,7 +105961,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "PasswordChangeChallengeProvider.Resolve",
-      "signature": "Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105790,7 +105999,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "PasswordChangeChecker.Check",
-      "signature": "Check : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)",
+      "signature": "Check : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -106037,7 +106246,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "RedisChallengeTokenStore.Generate",
-      "signature": "Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)",
+      "signature": "Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -106683,7 +106892,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "TOTPEvaluator.Evaluate",
-      "signature": "Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -106964,6 +107173,44 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:AuthTypePassword",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "AuthTypePassword",
+      "signature": "AuthTypePassword : untyped string = \"password\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:AuthTypeTrustCode",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "AuthTypeTrustCode",
+      "signature": "AuthTypeTrustCode : untyped string = \"trust_code\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#top:Authentication",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "top",
@@ -107197,6 +107444,25 @@
       "kind": "top",
       "symbol": "ChallengeTypeTOTP",
       "signature": "ChallengeTypeTOTP : untyped string = \"totp\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:ClaimChallengeAuthType",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "ClaimChallengeAuthType",
+      "signature": "ClaimChallengeAuthType : untyped string = \"atp\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/security/authentication.md",
@@ -109567,6 +109833,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:ExceptAuthTypes",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "ExceptAuthTypes",
+      "signature": "ExceptAuthTypes : func(authTypes ...string) github.com/coldsmirk/vef-framework-go/security.LoginFilter",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#top:ExpiryPasswordChangeChecker",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "top",
@@ -109610,6 +109895,25 @@
       "kind": "top",
       "symbol": "ExternalAppLoader",
       "signature": "ExternalAppLoader : github.com/coldsmirk/vef-framework-go/security.ExternalAppLoader",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:ForAuthTypes",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "ForAuthTypes",
+      "signature": "ForAuthTypes : func(authTypes ...string) github.com/coldsmirk/vef-framework-go/security.LoginFilter",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/security/authentication.md",
@@ -110118,6 +110422,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:LoginContext",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "LoginContext",
+      "signature": "LoginContext : github.com/coldsmirk/vef-framework-go/security.LoginContext",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#top:LoginDecision",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "top",
@@ -110161,6 +110484,25 @@
       "kind": "top",
       "symbol": "LoginEventParams",
       "signature": "LoginEventParams : github.com/coldsmirk/vef-framework-go/security.LoginEventParams",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:LoginFilter",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "LoginFilter",
+      "signature": "LoginFilter : github.com/coldsmirk/vef-framework-go/security.LoginFilter",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/security/authentication.md",
@@ -110560,6 +110902,25 @@
       "kind": "top",
       "symbol": "NewExternalApp",
       "signature": "NewExternalApp : func(id string, name string, roles ...string) *github.com/coldsmirk/vef-framework-go/security.Principal",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:NewFilteredChallengeProvider",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "NewFilteredChallengeProvider",
+      "signature": "NewFilteredChallengeProvider : func(provider github.com/coldsmirk/vef-framework-go/security.ChallengeProvider, filters ...github.com/coldsmirk/vef-framework-go/security.LoginFilter) github.com/coldsmirk/vef-framework-go/security.ChallengeProvider",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/security/authentication.md",

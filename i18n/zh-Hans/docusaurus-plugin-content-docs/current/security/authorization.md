@@ -64,8 +64,21 @@ highest priority scope。
 
 `LoginEvent` 的 event type 是 `vef.security.login`。它的 JSON 字段是
 `authType`、`userId`、`username`、`loginIp`、`userAgent`、`traceId`、`isOk`、
-`failReason` 和 `errorCode`。`SubscribeLoginEvent` 会注册 typed handler，并返回
-unsubscribe function。
+`failReason`、`errorCode` 和 `challengeType`。`SubscribeLoginEvent` 会注册
+typed handler，并返回 unsubscribe function。
+
+一次登录可能发布多个事件：`login` 完成认证，之后每一步 `resolve_challenge`
+解决一个挑战，其中任何一步都可能成功或失败。同一次登录的每个事件报告的都是
+这次登录：
+
+| 字段 | `login` 发布的事件 | `resolve_challenge` 发布的事件 |
+| --- | --- | --- |
+| `authType` | 提交的 `type`——登录方式，如 `password` 或 `trust_code` | 同一个登录方式，由 challenge token 携带 |
+| `username` | 提交的 `principal` | 同一个标识，由 challenge token 携带 |
+| `challengeType` | 空 | 该步骤正在解决的挑战类型，如 `totp` |
+
+审计挑战步骤时请按非空的 `challengeType` 过滤；`authType` 从不表示挑战类型。
+`userId` 在成功时填充，`failReason` 与 `errorCode` 在失败时填充。
 
 `UserInfo` 是 `security/auth.get_user_info` 返回的结构。`Gender` 的取值包括
 `GenderMale` (`male`)、`GenderFemale` (`female`)、`GenderUnknown` (`unknown`)。

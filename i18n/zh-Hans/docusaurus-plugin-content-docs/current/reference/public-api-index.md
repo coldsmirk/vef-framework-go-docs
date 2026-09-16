@@ -7295,6 +7295,8 @@ CONST AuthSchemeBearer : untyped string = "Bearer"
 TYPE AuthTokens : github.com/coldsmirk/vef-framework-go/security.AuthTokens
   FIELD AccessToken : string [field_order=1 tag="json:\"accessToken\""]
   FIELD RefreshToken : string [field_order=2 tag="json:\"refreshToken,omitempty\""]
+CONST AuthTypePassword : untyped string = "password"
+CONST AuthTypeTrustCode : untyped string = "trust_code"
 TYPE Authentication : github.com/coldsmirk/vef-framework-go/security.Authentication
   FIELD Type : string [field_order=1 tag="json:\"type\""]
   FIELD Principal : string [field_order=2 tag="json:\"principal\""]
@@ -7307,24 +7309,27 @@ TYPE BasicAccountLoader : github.com/coldsmirk/vef-framework-go/security.BasicAc
 TYPE CachedRolePermissionsLoader : github.com/coldsmirk/vef-framework-go/security.CachedRolePermissionsLoader
   METHOD LoadPermissions : func(ctx context.Context, role string) (map[string]github.com/coldsmirk/vef-framework-go/security.DataScope, error)
 TYPE ChallengeProvider : github.com/coldsmirk/vef-framework-go/security.ChallengeProvider
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
   METHOD Order : func() int
-  METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Type : func() string
 TYPE ChallengeState : github.com/coldsmirk/vef-framework-go/security.ChallengeState
-  FIELD Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [field_order=1 tag=""]
-  FIELD Username : string [field_order=2 tag=""]
-  FIELD Pending : []string [field_order=3 tag=""]
-  FIELD Resolved : []string [field_order=4 tag=""]
+  FIELD LoginContext : github.com/coldsmirk/vef-framework-go/security.LoginContext [field_order=1 tag=""]
+  FIELD Pending : []string [field_order=2 tag=""]
+  FIELD AuthType : string [promoted_from=LoginContext depth=1 field_order=1 tag=""]
+  FIELD Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [promoted_from=LoginContext depth=1 field_order=3 tag=""]
+  FIELD Resolved : []string [promoted_from=LoginContext depth=1 field_order=4 tag=""]
+  FIELD Username : string [promoted_from=LoginContext depth=1 field_order=2 tag=""]
 CONST ChallengeTokenExpires : time.Duration = 300000000000
 TYPE ChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.ChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 CONST ChallengeTypeDepartmentSelection : untyped string = "department_selection"
 CONST ChallengeTypeEmail : untyped string = "email_otp"
 CONST ChallengeTypePasswordChange : untyped string = "password_change"
 CONST ChallengeTypeSMS : untyped string = "sms_otp"
 CONST ChallengeTypeTOTP : untyped string = "totp"
+CONST ClaimChallengeAuthType : untyped string = "atp"
 CONST ClaimChallengePending : untyped string = "pnd"
 CONST ClaimChallengePrincipalName : untyped string = "pnm"
 CONST ClaimChallengePrincipalType : untyped string = "ptp"
@@ -7346,7 +7351,7 @@ TYPE DeliveredCodeSender : github.com/coldsmirk/vef-framework-go/security.Delive
 TYPE DeliveredCodeVerifier : github.com/coldsmirk/vef-framework-go/security.DeliveredCodeVerifier
   METHOD Verify : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, code string) (bool, error)
 TYPE DepartmentLoader : github.com/coldsmirk/vef-framework-go/security.DepartmentLoader
-  METHOD LoadDepartments : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeData, error)
+  METHOD LoadDepartments : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeData, error)
 TYPE DepartmentOption : github.com/coldsmirk/vef-framework-go/security.DepartmentOption
   FIELD ID : string [field_order=1 tag="json:\"id\""]
   FIELD Name : string [field_order=2 tag="json:\"name\""]
@@ -7355,9 +7360,9 @@ TYPE DepartmentSelectionChallengeData : github.com/coldsmirk/vef-framework-go/se
   FIELD Departments : []github.com/coldsmirk/vef-framework-go/security.DepartmentOption [field_order=1 tag="json:\"departments\""]
   FIELD Meta : map[string]any [field_order=2 tag="json:\"meta,omitempty\""]
 TYPE DepartmentSelectionChallengeProvider : github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeProvider
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
   METHOD Order : func() int
-  METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Type : func() string
 TYPE DepartmentSelector : github.com/coldsmirk/vef-framework-go/security.DepartmentSelector
   METHOD SelectDepartment : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, departmentID string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
@@ -7468,13 +7473,15 @@ VAR ErrTrustRedirectNotAllowed : github.com/coldsmirk/vef-framework-go/result.Er
 VAR ErrTrustUserNotResolved : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrUnauthenticated : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrUserDetailsNotStruct : error
+FUNC ExceptAuthTypes : func(authTypes ...string) github.com/coldsmirk/vef-framework-go/security.LoginFilter
 TYPE ExpiryPasswordChangeChecker : github.com/coldsmirk/vef-framework-go/security.ExpiryPasswordChangeChecker
-  METHOD Check : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)
+  METHOD Check : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)
 TYPE ExternalAppConfig : github.com/coldsmirk/vef-framework-go/security.ExternalAppConfig
   FIELD Enabled : bool [field_order=1 tag="json:\"enabled\""]
   FIELD IPWhitelist : string [field_order=2 tag="json:\"ipWhitelist\""]
 TYPE ExternalAppLoader : github.com/coldsmirk/vef-framework-go/security.ExternalAppLoader
   METHOD LoadByID : func(ctx context.Context, id string) (*github.com/coldsmirk/vef-framework-go/security.Principal, string, error)
+FUNC ForAuthTypes : func(authTypes ...string) github.com/coldsmirk/vef-framework-go/security.LoginFilter
 TYPE Gender : github.com/coldsmirk/vef-framework-go/security.Gender
 CONST GenderFemale : github.com/coldsmirk/vef-framework-go/security.Gender = "female"
 CONST GenderMale : github.com/coldsmirk/vef-framework-go/security.Gender = "male"
@@ -7493,7 +7500,7 @@ TYPE JWT : github.com/coldsmirk/vef-framework-go/security.JWT
   METHOD Generate : func(claimsBuilder *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder, expires time.Duration, notBefore time.Duration) (string, error)
   METHOD Parse : func(tokenString string) (*github.com/coldsmirk/vef-framework-go/security.JWTClaimsAccessor, error)
 TYPE JWTChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.JWTChallengeTokenStore
-  METHOD Generate : func(_ context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(_ context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)
   METHOD Parse : func(_ context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE JWTClaimsAccessor : github.com/coldsmirk/vef-framework-go/security.JWTClaimsAccessor
   METHOD Claim : func(key string) any
@@ -7541,6 +7548,11 @@ TYPE LoginChallenge : github.com/coldsmirk/vef-framework-go/security.LoginChalle
   FIELD Type : string [field_order=1 tag="json:\"type\""]
   FIELD Data : any [field_order=2 tag="json:\"data,omitempty\""]
   FIELD Required : bool [field_order=3 tag="json:\"required\""]
+TYPE LoginContext : github.com/coldsmirk/vef-framework-go/security.LoginContext
+  FIELD AuthType : string [field_order=1 tag=""]
+  FIELD Username : string [field_order=2 tag=""]
+  FIELD Principal : *github.com/coldsmirk/vef-framework-go/security.Principal [field_order=3 tag=""]
+  FIELD Resolved : []string [field_order=4 tag=""]
 TYPE LoginDecision : github.com/coldsmirk/vef-framework-go/security.LoginDecision
   FIELD Allowed : bool [field_order=1 tag=""]
   FIELD RetryAfter : time.Duration [field_order=2 tag=""]
@@ -7554,6 +7566,7 @@ TYPE LoginEvent : github.com/coldsmirk/vef-framework-go/security.LoginEvent
   FIELD IsOk : bool [field_order=7 tag="json:\"isOk\""]
   FIELD FailReason : string [field_order=8 tag="json:\"failReason\""]
   FIELD ErrorCode : int [field_order=9 tag="json:\"errorCode\""]
+  FIELD ChallengeType : string [field_order=10 tag="json:\"challengeType\""]
   METHOD EventType : func() string
 TYPE LoginEventParams : github.com/coldsmirk/vef-framework-go/security.LoginEventParams
   FIELD AuthType : string [field_order=1 tag=""]
@@ -7565,6 +7578,11 @@ TYPE LoginEventParams : github.com/coldsmirk/vef-framework-go/security.LoginEven
   FIELD IsOk : bool [field_order=7 tag=""]
   FIELD FailReason : string [field_order=8 tag=""]
   FIELD ErrorCode : int [field_order=9 tag=""]
+  FIELD ChallengeType : string [field_order=10 tag=""]
+TYPE LoginFilter : github.com/coldsmirk/vef-framework-go/security.LoginFilter
+  FIELD AuthTypes : []string [field_order=1 tag=""]
+  FIELD ExcludedAuthTypes : []string [field_order=2 tag=""]
+  METHOD Matches : func(login *github.com/coldsmirk/vef-framework-go/security.LoginContext) bool
 TYPE LoginGuard : github.com/coldsmirk/vef-framework-go/security.LoginGuard
   METHOD Check : func(ctx context.Context, attempt github.com/coldsmirk/vef-framework-go/security.LoginAttempt) (github.com/coldsmirk/vef-framework-go/security.LoginDecision, error)
   METHOD RecordFailure : func(ctx context.Context, attempt github.com/coldsmirk/vef-framework-go/security.LoginAttempt) (github.com/coldsmirk/vef-framework-go/security.LoginDecision, error)
@@ -7574,7 +7592,7 @@ TYPE LoginResult : github.com/coldsmirk/vef-framework-go/security.LoginResult
   FIELD ChallengeToken : string [field_order=2 tag="json:\"challengeToken,omitempty\""]
   FIELD Challenge : *github.com/coldsmirk/vef-framework-go/security.LoginChallenge [field_order=3 tag="json:\"challenge,omitempty\""]
 TYPE MemoryChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.MemoryChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE MemoryLoginGuard : github.com/coldsmirk/vef-framework-go/security.MemoryLoginGuard
   METHOD Check : func(ctx context.Context, attempt github.com/coldsmirk/vef-framework-go/security.LoginAttempt) (github.com/coldsmirk/vef-framework-go/security.LoginDecision, error)
@@ -7607,6 +7625,7 @@ FUNC NewDisallowIdentityRule : func() github.com/coldsmirk/vef-framework-go/secu
 FUNC NewEmailChallengeProvider : func(evaluator github.com/coldsmirk/vef-framework-go/security.OTPEvaluator, store github.com/coldsmirk/vef-framework-go/security.OTPCodeStore, delivery github.com/coldsmirk/vef-framework-go/security.OTPCodeDelivery) *github.com/coldsmirk/vef-framework-go/security.OTPChallengeProvider
 FUNC NewExpiryPasswordChangeChecker : func(loader github.com/coldsmirk/vef-framework-go/security.PasswordMetadataLoader, maxAge time.Duration) *github.com/coldsmirk/vef-framework-go/security.ExpiryPasswordChangeChecker
 FUNC NewExternalApp : func(id string, name string, roles ...string) *github.com/coldsmirk/vef-framework-go/security.Principal
+FUNC NewFilteredChallengeProvider : func(provider github.com/coldsmirk/vef-framework-go/security.ChallengeProvider, filters ...github.com/coldsmirk/vef-framework-go/security.LoginFilter) github.com/coldsmirk/vef-framework-go/security.ChallengeProvider
 FUNC NewHistoryValidator : func(store github.com/coldsmirk/vef-framework-go/security.PasswordHistoryStore, encoder github.com/coldsmirk/vef-framework-go/password.Encoder, depth int) github.com/coldsmirk/vef-framework-go/security.PasswordValidator
 FUNC NewIPWhitelistValidator : func(whitelist string) *github.com/coldsmirk/vef-framework-go/security.IPWhitelistValidator
 FUNC NewIPWhitelistValidatorFromEntries : func(entries []string) *github.com/coldsmirk/vef-framework-go/security.IPWhitelistValidator
@@ -7645,9 +7664,9 @@ TYPE OTPChallengeData : github.com/coldsmirk/vef-framework-go/security.OTPChalle
   FIELD Destination : string [field_order=1 tag="json:\"destination\""]
   FIELD Meta : map[string]any [field_order=2 tag="json:\"meta,omitempty\""]
 TYPE OTPChallengeProvider : github.com/coldsmirk/vef-framework-go/security.OTPChallengeProvider
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
   METHOD Order : func() int
-  METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Type : func() string
 TYPE OTPChallengeProviderConfig : github.com/coldsmirk/vef-framework-go/security.OTPChallengeProviderConfig
   FIELD ChallengeType : string [field_order=1 tag=""]
@@ -7665,17 +7684,17 @@ TYPE OTPCodeStore : github.com/coldsmirk/vef-framework-go/security.OTPCodeStore
 TYPE OTPCodeVerifier : github.com/coldsmirk/vef-framework-go/security.OTPCodeVerifier
   METHOD Verify : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, code string) (bool, error)
 TYPE OTPEvaluator : github.com/coldsmirk/vef-framework-go/security.OTPEvaluator
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)
 TYPE PasswordChangeChallengeData : github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData
   FIELD Reason : string [field_order=1 tag="json:\"reason\""]
   FIELD Meta : map[string]any [field_order=2 tag="json:\"meta,omitempty\""]
 TYPE PasswordChangeChallengeProvider : github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeProvider
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
   METHOD Order : func() int
-  METHOD Resolve : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Type : func() string
 TYPE PasswordChangeChecker : github.com/coldsmirk/vef-framework-go/security.PasswordChangeChecker
-  METHOD Check : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)
+  METHOD Check : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.PasswordChangeChallengeData, error)
 CONST PasswordChangeReasonExpired : untyped string = "expired"
 CONST PasswordChangeReasonFirstLogin : untyped string = "first_login"
 TYPE PasswordChanger : github.com/coldsmirk/vef-framework-go/security.PasswordChanger
@@ -7719,7 +7738,7 @@ CONST PrioritySelf : untyped int = 10
 FUNC PublishRolePermissionsChangedEvent : func(ctx context.Context, bus github.com/coldsmirk/vef-framework-go/event.Bus, roles ...string) error
 CONST QueryKeyAccessToken : untyped string = "__accessToken"
 TYPE RedisChallengeTokenStore : github.com/coldsmirk/vef-framework-go/security.RedisChallengeTokenStore
-  METHOD Generate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, username string, pending []string, resolved []string) (string, error)
+  METHOD Generate : func(ctx context.Context, state *github.com/coldsmirk/vef-framework-go/security.ChallengeState) (string, error)
   METHOD Parse : func(ctx context.Context, token string) (*github.com/coldsmirk/vef-framework-go/security.ChallengeState, error)
 TYPE RedisLoginGuard : github.com/coldsmirk/vef-framework-go/security.RedisLoginGuard
   METHOD Check : func(ctx context.Context, attempt github.com/coldsmirk/vef-framework-go/security.LoginAttempt) (github.com/coldsmirk/vef-framework-go/security.LoginDecision, error)
@@ -7815,7 +7834,7 @@ TYPE SignatureResult : github.com/coldsmirk/vef-framework-go/security.SignatureR
 FUNC SubscribeLoginEvent : func(bus github.com/coldsmirk/vef-framework-go/event.Bus, handler func(context.Context, *github.com/coldsmirk/vef-framework-go/security.LoginEvent) error, opts ...github.com/coldsmirk/vef-framework-go/event.SubscribeOption) (github.com/coldsmirk/vef-framework-go/event.Unsubscribe, error)
 CONST TOTPDefaultDestination : untyped string = "Authenticator App"
 TYPE TOTPEvaluator : github.com/coldsmirk/vef-framework-go/security.TOTPEvaluator
-  METHOD Evaluate : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.OTPChallengeData, error)
 TYPE TOTPOption : github.com/coldsmirk/vef-framework-go/security.TOTPOption
 TYPE TOTPSecretLoader : github.com/coldsmirk/vef-framework-go/security.TOTPSecretLoader
   METHOD LoadSecret : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal) (string, error)

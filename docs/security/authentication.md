@@ -258,11 +258,132 @@ The login response DTOs use these exact fields:
 | `Authentication` | JSON `type`, `principal`, `credentials` |
 | `LoginResult` | JSON `tokens`, `challengeToken`, `challenge` |
 | `LoginChallenge` | JSON `type`, `data`, `required` |
-| `ChallengeState` | Go-only state: `Principal`, `Username` (original login identifier, preserved across steps for audit events), `Pending`, `Resolved` |
+| `LoginContext` | Go-only, read-only: `AuthType`, `Username`, `Principal`, `Resolved` — the login a challenge runs within (see [The login context](#the-login-context)) |
+| `ChallengeState` | Go-only state the challenge token carries: the embedded `LoginContext` plus `Pending`, the challenge types still ahead in evaluation order (the first is the one presented) |
 
 Field-by-field tables for both response shapes — the token payload and the
 challenge envelope — with JSON examples live in
 [RPC Resource: `security/auth`](./authentication-reference#rpc-resource-securityauth).
+
+### The login context
+
+A challenge always runs within one login, and its provider is handed that login
+as a `*security.LoginContext`:
+
+| Field | Holds |
+| --- | --- |
+| `AuthType` | the login mechanism that authenticated the principal — the `type` sent to `login`: `security.AuthTypePassword` (`password`), `security.AuthTypeTrustCode` (`trust_code`), or a type a host `security.Authenticator` supports. It is the same on every step of one login |
+| `Username` | the identifier sent to `login` as `principal`, so events raised after a challenge report the identifier first presented |
+| `Principal` | the identity as enriched by the challenges resolved so far |
+| `Resolved` | the challenge types resolved so far, in resolution order |
+
+`ChallengeProvider.Evaluate(ctx, login)` decides whether its challenge applies
+to the login, returning nil when it does not; `Resolve(ctx, login, response)`
+checks the answer and returns the principal the login continues with —
+`login.Principal`, or an enriched copy such as the one department selection
+produces. The challenge token carries the context across every
+`resolve_challenge` step, so a later step sees the same `AuthType` and
+`Username` as the first. The framework owns the context and passes it by
+pointer: treat it as read-only, and change the identity only by returning a
+principal from `Resolve`.
+
+The hooks behind the built-in providers divide along one rule: a hook that
+decides *whether* a challenge applies sees the whole login, while a hook that
+*acts on* the identity sees only the principal — how the user logged in has no
+bearing on how a password is stored or a code is checked.
+
+| Decides whether it applies (takes `login`) | Acts on the identity (takes `principal`) |
+| --- | --- |
+| `PasswordChangeChecker.Check` — including `ExpiryPasswordChangeChecker` and `NewCompositePasswordChangeChecker` | `PasswordChanger`, `PasswordValidator`, `PasswordMetadataLoader` |
+| `OTPEvaluator.Evaluate` — including `TOTPEvaluator` | `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `OTPCodeDelivery`, `TOTPSecretLoader` |
+| `DepartmentLoader.LoadDepartments` | `DepartmentSelector` |
+
+A deciding hook reads the user from `login.Principal`. Per-user conditions —
+whether the user has a TOTP secret, whether the password has expired — belong
+in these hooks; which login mechanisms a challenge belongs to is better
+declared once, at registration. The method signatures are tabulated in the
+[Authentication Reference](./authentication-reference#challenge-providers).
+
+### Scoping challenges to login mechanisms
+
+A provider applies to every login unless it decides otherwise. To scope one to
+some login mechanisms without touching it, wrap it at registration with
+`security.NewFilteredChallengeProvider(provider, filters...)`. Each
+`security.LoginFilter` states the scope as data:
+
+| Field | Constructor | Matches a login when |
+| --- | --- | --- |
+| `AuthTypes` | `security.ForAuthTypes(types...)` | its `AuthType` is listed — an allow-list |
+| `ExcludedAuthTypes` | `security.ExceptAuthTypes(types...)` | its `AuthType` is not listed — a deny-list |
+
+- Within one filter an empty dimension is unconstrained, so `LoginFilter{}`
+  matches every login; a filter populating both dimensions requires both.
+- Several filters passed to one provider must all match (AND).
+- For a login the filters reject, the provider is skipped exactly as if its
+  `Evaluate` had returned nil, and the chain moves on to the next provider.
+- No filters returns the provider unchanged. `LoginFilter.Matches(login)` is
+  the predicate itself.
+
+Take an application that logs users in with passwords and with a host-defined
+WeChat mini-program mechanism — `type: "wechat_mini"`, served by its own
+authenticator — and also accepts trust-login handoffs. A forced password change
+belongs to password logins. The TOTP second factor belongs to every login except
+a handoff, whose initiating system this application trusts to have enforced its
+own:
+
+```go
+var Module = vef.Module(
+	"app:auth",
+	vef.ProvideAuthenticator(NewMiniProgramAuthenticator), // Supports("wechat_mini")
+	vef.ProvideChallengeProvider(func(
+		checker security.PasswordChangeChecker,
+		changer security.PasswordChanger,
+		validator security.PasswordValidator,
+	) security.ChallengeProvider {
+		return security.NewFilteredChallengeProvider(
+			security.NewPasswordChangeChallengeProvider(checker, changer, validator),
+			security.ForAuthTypes(security.AuthTypePassword),
+		)
+	}),
+	vef.ProvideChallengeProvider(func(loader security.TOTPSecretLoader) security.ChallengeProvider {
+		return security.NewFilteredChallengeProvider(
+			security.NewTOTPChallengeProvider(loader),
+			security.ExceptAuthTypes(security.AuthTypeTrustCode),
+		)
+	}),
+)
+```
+
+Each constructor returns `security.ChallengeProvider`, the type the provider
+group is declared with: fx keys a group by type, so a constructor returning a
+concrete provider type — as `security.NewTOTPChallengeProvider` itself does —
+is dropped without an error. The application supplies the checker, the
+changer, and the TOTP secret loader; the `PasswordValidator` is the framework's
+own, built from `vef.security.password_policy`. The chain each login meets:
+
+| Login `type` | `totp` (order `100`) | `password_change` (order `400`) |
+| --- | --- | --- |
+| `password` | evaluated | evaluated |
+| `wechat_mini` | evaluated | skipped |
+| `trust_code` | skipped | skipped |
+
+"Evaluated" hands the decision to the provider's own hook: TOTP is still
+skipped for a user without a secret, and the password change for a user who
+need not change.
+
+:::caution[Choose the list by what the challenge guards]
+A challenge tied to one credential takes an allow-list: a forced password
+change concerns the password, so `ForAuthTypes(security.AuthTypePassword)`
+keeps it off logins that never presented one. A second factor takes a
+deny-list: exempt with `ExceptAuthTypes(...)` only the mechanisms that already
+carry equivalent assurance. Written as an allow-list, a second factor would
+silently exempt every login mechanism added later; as a deny-list, a new
+mechanism is challenged until someone decides otherwise.
+:::
+
+Department selection is a required business input and is normally left
+unfiltered. How a trust-login handoff meets the chain is covered in
+[Trust Login](./trust-login).
 
 ## What Applications Usually Provide
 

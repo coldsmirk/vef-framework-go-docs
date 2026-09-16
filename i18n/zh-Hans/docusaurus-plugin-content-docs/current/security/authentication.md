@@ -233,10 +233,117 @@ Go API 层里，这个响应形状由 `LoginResult` 表示；当前步骤由 `Lo
 | `Authentication` | JSON `type`、`principal`、`credentials` |
 | `LoginResult` | JSON `tokens`、`challengeToken`、`challenge` |
 | `LoginChallenge` | JSON `type`、`data`、`required` |
-| `ChallengeState` | Go-only state: `Principal`、`Username`（第一步提交的原始登录标识，跨挑战步骤保留、用于审计事件）、`Pending`、`Resolved` |
+| `LoginContext` | Go-only，只读：`AuthType`、`Username`、`Principal`、`Resolved`——挑战所处的那次登录（见[登录上下文](#登录上下文)） |
+| `ChallengeState` | challenge token 携带的 Go-only 状态：内嵌的 `LoginContext`，加上 `Pending`——尚未解决的挑战类型，按评估顺序排列（第一个即当前呈现的挑战） |
 
 两种响应形态——token 载荷与 challenge 包络——的逐字段表格及 JSON 示例见
 [RPC Resource: `security/auth`](./authentication-reference#rpc-resource-securityauth)。
+
+### 登录上下文
+
+挑战总是发生在某一次登录之中，provider 拿到的就是这次登录，类型为
+`*security.LoginContext`：
+
+| 字段 | 内容 |
+| --- | --- |
+| `AuthType` | 认证该 principal 的登录方式——即提交给 `login` 的 `type`：`security.AuthTypePassword`（`password`）、`security.AuthTypeTrustCode`（`trust_code`），或宿主 `security.Authenticator` 支持的类型。同一次登录的每一步都相同 |
+| `Username` | 以 `principal` 提交给 `login` 的标识，挑战之后发布的事件因此报告的仍是最初提交的标识 |
+| `Principal` | 经已解决的挑战充实后的身份 |
+| `Resolved` | 迄今已解决的挑战类型，按解决顺序排列 |
+
+`ChallengeProvider.Evaluate(ctx, login)` 判断自己的挑战是否适用于这次登录，
+不适用时返回 nil；`Resolve(ctx, login, response)` 校验应答，并返回登录继续
+使用的 principal——`login.Principal`，或者像部门选择那样返回一个充实后的副本。
+challenge token 在每一步 `resolve_challenge` 之间携带这份上下文，因此后续步骤
+看到的 `AuthType` 与 `Username` 和第一步完全相同。上下文归框架所有、以指针
+传入：请把它当作只读，想改变身份只能通过 `Resolve` 返回一个 principal。
+
+内置 provider 背后的钩子按同一条规则划分：决定挑战**是否**适用的钩子看到整次
+登录；**作用于**身份的钩子只看到 principal——用户以何种方式登录，与密码如何
+存储、验证码如何校验毫无关系。
+
+| 决定是否适用（接收 `login`） | 作用于身份（接收 `principal`） |
+| --- | --- |
+| `PasswordChangeChecker.Check`——包括 `ExpiryPasswordChangeChecker` 与 `NewCompositePasswordChangeChecker` | `PasswordChanger`、`PasswordValidator`、`PasswordMetadataLoader` |
+| `OTPEvaluator.Evaluate`——包括 `TOTPEvaluator` | `OTPCodeSender`、`OTPCodeVerifier`、`OTPCodeStore`、`OTPCodeDelivery`、`TOTPSecretLoader` |
+| `DepartmentLoader.LoadDepartments` | `DepartmentSelector` |
+
+决定类钩子从 `login.Principal` 读取用户。针对单个用户的条件——用户是否配置了
+TOTP 密钥、密码是否已过期——属于这些钩子；而一个挑战属于哪些登录方式，更适合
+在注册时一次性声明。各方法签名见[认证参考](./authentication-reference#challenge-providers)。
+
+### 按登录方式限定挑战
+
+provider 默认适用于每一次登录，除非它自己另作判断。要在不改动 provider 的前提
+下把它限定到部分登录方式，在注册时用
+`security.NewFilteredChallengeProvider(provider, filters...)` 包装它。每个
+`security.LoginFilter` 以数据形式声明适用范围：
+
+| 字段 | 构造函数 | 匹配条件 |
+| --- | --- | --- |
+| `AuthTypes` | `security.ForAuthTypes(types...)` | 登录的 `AuthType` 在列表中——允许列表（allow-list） |
+| `ExcludedAuthTypes` | `security.ExceptAuthTypes(types...)` | 登录的 `AuthType` 不在列表中——排除列表（deny-list） |
+
+- 在单个 filter 内，空维度不做约束，因此 `LoginFilter{}` 匹配任何登录；两个
+  维度都填写的 filter 要求两者同时满足。
+- 传给同一个 provider 的多个 filter 必须全部匹配（AND）。
+- 对被 filter 拒绝的登录，provider 被跳过，效果与其 `Evaluate` 返回 nil 完全
+  相同，挑战链继续评估下一个 provider。
+- 不传 filter 时原样返回该 provider。`LoginFilter.Matches(login)` 就是判定本身。
+
+举个例子：某应用支持密码登录和宿主自定义的微信小程序登录——`type: "wechat_mini"`，
+由它自己的认证器处理——同时接受信任登录交接。强制改密只属于密码登录。TOTP 第二
+因子属于除交接之外的每一种登录，因为这个应用信任发起交接的系统已经执行过自己的
+第二因素：
+
+```go
+var Module = vef.Module(
+	"app:auth",
+	vef.ProvideAuthenticator(NewMiniProgramAuthenticator), // Supports("wechat_mini")
+	vef.ProvideChallengeProvider(func(
+		checker security.PasswordChangeChecker,
+		changer security.PasswordChanger,
+		validator security.PasswordValidator,
+	) security.ChallengeProvider {
+		return security.NewFilteredChallengeProvider(
+			security.NewPasswordChangeChallengeProvider(checker, changer, validator),
+			security.ForAuthTypes(security.AuthTypePassword),
+		)
+	}),
+	vef.ProvideChallengeProvider(func(loader security.TOTPSecretLoader) security.ChallengeProvider {
+		return security.NewFilteredChallengeProvider(
+			security.NewTOTPChallengeProvider(loader),
+			security.ExceptAuthTypes(security.AuthTypeTrustCode),
+		)
+	}),
+)
+```
+
+每个构造函数都返回 `security.ChallengeProvider`，也就是该 provider group 声明
+的类型：fx 按类型区分 group，返回具体 provider 类型的构造函数——
+`security.NewTOTPChallengeProvider` 本身就是如此——会被静默丢弃，不报任何错误。
+checker、changer 与 TOTP 密钥加载器由应用提供；`PasswordValidator` 是框架基于
+`vef.security.password_policy` 构建的。每种登录遇到的挑战链：
+
+| 登录 `type` | `totp`（order `100`） | `password_change`（order `400`） |
+| --- | --- | --- |
+| `password` | 评估 | 评估 |
+| `wechat_mini` | 评估 | 跳过 |
+| `trust_code` | 跳过 | 跳过 |
+
+“评估”表示交给 provider 自己的钩子决定：没有配置密钥的用户仍会跳过 TOTP，无需
+改密的用户也不会遇到改密挑战。
+
+:::caution[按挑战所守护的对象选择列表]
+与某一种凭据绑定的挑战用允许列表：强制改密针对的是密码，
+`ForAuthTypes(security.AuthTypePassword)` 让它远离从未提交过密码的登录。第二
+因子用排除列表：只用 `ExceptAuthTypes(...)` 豁免那些已经具备同等保障的登录方式。
+如果把第二因素写成允许列表，之后新增的每一种登录方式都会被悄悄豁免；写成排除
+列表，新的登录方式在有人明确决定之前都会被挑战。
+:::
+
+部门选择是必需的业务输入，通常不加 filter。信任登录的交接如何经过挑战链，见
+[信任登录](./trust-login)。
 
 ## 应用通常还需要提供什么
 

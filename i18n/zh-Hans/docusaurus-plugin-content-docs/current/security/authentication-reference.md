@@ -11,14 +11,16 @@ sidebar_position: 2
 | principal | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType`, `IsReserved` |
 | JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
 | auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
-| challenge token | `ChallengeProvider`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge token | `ChallengeProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge scoping | `LoginFilter`, `ForAuthTypes`, `ExceptAuthTypes`, `NewFilteredChallengeProvider` |
 | OTP/challenge | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
 | TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
 | signature auth | `Signature`, `SignatureCredentials`, `SignatureResult`, `SignatureAlgorithm`, `NewSignature`, `WithAlgorithm`, `WithTimestampTolerance`, `WithNonceStore`, `NonceStore`, `NewMemoryNonceStore`, `NewRedisNonceStore` |
 | login event | `LoginEvent`, `LoginEventParams`, `NewLoginEvent`, `SubscribeLoginEvent` |
 
 Bearer 相关常量是 `AuthSchemeBearer` 和 `QueryKeyAccessToken`。token type
-常量是 `TokenTypeAccess`、`TokenTypeRefresh`、`TokenTypeChallenge`。
+常量是 `TokenTypeAccess`、`TokenTypeRefresh`、`TokenTypeChallenge`。登录方式常量是
+`AuthTypePassword`（`password`）和 `AuthTypeTrustCode`（`trust_code`）。
 
 ## JWT 与 principal
 
@@ -109,16 +111,27 @@ principal 类型为 `system`，或 principal `ID` 等于 `orm.OperatorSystem`
 | `ChallengeTypePasswordChange` | `password_change` | `400` |
 | `ChallengeTypeDepartmentSelection` | `department_selection` | `500` |
 
-`ChallengeTokenStore.Generate(ctx, principal, username, pending, resolved)` 和
-`Parse(ctx, token)` 负责在 `login` 与 `resolve_challenge` 之间携带状态
-（`username` 是申请人在第一步提交的原始登录标识，跨挑战步骤保留、用于审计
-事件）。
-内置登录资源把这个状态字段暴露为 `challengeToken`。
+`ChallengeTokenStore` 在 `login` 与 `resolve_challenge` 之间携带一个
+`*ChallengeState`：`Generate(ctx, state)` 为该状态签发 token，`Parse(ctx, token)`
+把它取回。`ChallengeState` 内嵌 `LoginContext`——`AuthType`（登录方式）、
+`Username`（最初提交的标识，用于审计事件）、`Principal` 与 `Resolved`——并加上
+`Pending`：尚未解决的挑战类型，按评估顺序排列，第一个就是当前呈现的挑战。
+内置登录资源把这个 token 暴露为 `challengeToken`。
+
+store 必须完整往返状态的每个字段。`resolve_challenge` 会以
+`ErrChallengeTokenInvalid` 拒绝一个没有 `AuthType` 的解析结果，与拒绝无法解析的
+token 完全一样，因为后续挑战的适用范围取决于它：自定义 store 必须持久化
+`AuthType`；挑战状态在写入时缺少它的登录——例如由尚无该字段的旧节点写入——必须
+从 `login` 重新开始。`Parse` 返回的状态归调用方所有：登录流程会对 `Pending`
+重新切片、向 `Resolved` 追加、替换 `Principal`，再交回 `Generate`，因此其中的
+slice 不得与 store 保留的任何数据共享底层数组（`MemoryChallengeTokenStore` 在两次
+调用时都会复制它们）。
+
 `JWTChallengeTokenStore` 是无状态实现；`MemoryChallengeTokenStore` 适合测试或单实例；
 `RedisChallengeTokenStore` 适合分布式部署。challenge token 的有效期是
 `ChallengeTokenExpires`。JWT-backed store 使用 `ClaimChallengePrincipalType`、
-`ClaimChallengePrincipalName`、`ClaimChallengeUsername`、`ClaimChallengePending`、`ClaimChallengeResolved`
-作为紧凑 claim key。
+`ClaimChallengePrincipalName`、`ClaimChallengeAuthType`、`ClaimChallengeUsername`、
+`ClaimChallengePending`、`ClaimChallengeResolved` 作为紧凑 claim key。
 
 challenge token store 的 wire/storage 形状不同：
 
@@ -129,8 +142,10 @@ challenge token store 的 wire/storage 形状不同：
 | `RedisChallengeTokenStore` | UUID token，按 `ChallengeTokenExpires` 存在 `vef:security:challenge:<token>` |
 
 JWT challenge claim key 是 `ptp`（`ClaimChallengePrincipalType`）、`pnm`
-（`ClaimChallengePrincipalName`）、`unm`（`ClaimChallengeUsername`）、`pnd`
-（`ClaimChallengePending`）和 `rsd`（`ClaimChallengeResolved`）。在
+（`ClaimChallengePrincipalName`）、`atp`（`ClaimChallengeAuthType`）、`unm`
+（`ClaimChallengeUsername`）、`pnd`（`ClaimChallengePending`）和 `rsd`
+（`ClaimChallengeResolved`）。`atp` 缺失或为空的 token 在解析时以
+`ErrTokenInvalid` 拒绝。在
 保留身份加固下，challenge 解析只接受 `user` 与 `external_app` 两种
 principal type——`system`、空值与未知类型一律以 `ErrTokenInvalid` 拒绝
 （携带框架内部身份的挑战 token 不可能有合法来源），解析出的 principal 若
@@ -143,12 +158,14 @@ principal type——`system`、空值与未知类型一律以 `ErrTokenInvalid` 
 
 | Claim Key | Constant | 内容 |
 | --- | --- | --- |
+| `atp` | `ClaimChallengeAuthType` | 登录方式（`LoginContext.AuthType`）——后续每一步都针对这次登录评估、解决与审计；缺少它的 token 会被拒绝 |
 | `det` | （标准 JWT claim） | 用户详情（`claimDetails`）——应用自定义载荷，同时存在于 access token 和 challenge token 中 |
-| `pnd` | `ClaimChallengePending` | 待处理的挑战类型，按评估顺序排列——尚未评估的剩余类型 |
+| `pnd` | `ClaimChallengePending` | 待处理的挑战类型，按评估顺序排列——尚未解决的类型，第一个即当前呈现的挑战 |
 | `pnm` | `ClaimChallengePrincipalName` | principal 显示名——作为独立 claim 存储，因为 subject claim（`sub`）只携带 principal ID |
 | `ptp` | `ClaimChallengePrincipalType` | principal 类型——`user` 或 `external_app`；挑战 token 解析时拒绝 `system` |
 | `rls` | （标准 JWT claim） | 用户角色（`claimRoles`）——在 access token 和 challenge token 中均携带 |
 | `rsd` | `ClaimChallengeResolved` | 已解决的挑战类型，按解决顺序排列——已完成的类型 |
+| `unm` | `ClaimChallengeUsername` | 原始登录标识（`LoginContext.Username`）——挑战之后发布的事件因此报告最初提交的标识 |
 
 `JWT.Generate` 设置 `iss`、`aud`、`iat`、`nbf`、`exp`；`jti`、`sub`、`typ`
 由调用方的 `JWTClaimsBuilder` 在签名前写入，随后由 `JWT.Parse` 校验。
@@ -160,12 +177,55 @@ parser 校验 issuer 为 `JWTIssuer`（`vef`），audience 为 `JWTConfig.Audien
 `sub` claim 仅保存 principal ID；`pnm` 保存显示名。`det` 和 `rls` 与标准
 access token claim 一致，这样挑战流程无需数据库查询即可重建 principal。
 
+`ChallengeProvider` 由 `Type()`、`Order()`、返回 `(*LoginChallenge, error)` 的
+`Evaluate(ctx, login)`，以及返回 `(*Principal, error)` 的
+`Resolve(ctx, login, response)` 组成，其中 `login` 是只读的 `*LoginContext`，见
+[认证：登录上下文](./authentication#登录上下文)。挑战对这次登录不需要时，
+`Evaluate` 返回 nil；`Resolve` 校验应答，并返回登录继续使用的 principal——
+`login.Principal` 或其充实后的副本。
+
 challenge provider 会按 `Order()` 升序排序。内置 convenience provider 的顺序是：
 TOTP 为 `100`，SMS 为 `200`，email 为 `300`，password change 为 `400`，
 department selection 为 `500`。未注册的 provider，或者 `Evaluate(...)`
-返回 `nil` 的 provider，会被跳过。执行 `resolve_challenge` 时，提交的
+返回 `nil` 的 provider，会被跳过——`NewFilteredChallengeProvider` 的 filter 拒绝了
+这次登录的 provider 也算在内。执行 `resolve_challenge` 时，提交的
 `type` 必须等于第一个 pending challenge type，否则框架返回
 `ErrChallengeTypeInvalid`。
+
+`NewFilteredChallengeProvider(provider, filters...)` 用 `LoginFilter` 包装一个
+provider。`ForAuthTypes(types...)` 构造允许列表 filter（`AuthTypes`），
+`ExceptAuthTypes(types...)` 构造排除列表 filter（`ExcludedAuthTypes`），
+`LoginFilter.Matches(login)` 判断一次登录能否通过某个 filter：在单个 filter 内，
+空维度不做约束，已填写的 `AuthTypes` 与 `ExcludedAuthTypes` 必须同时满足。包装器
+原样转发 `Type`、`Order` 与 `Resolve`；它的 `Evaluate` 只有在每个 filter 都匹配时
+才转发同一个 login，否则返回 nil。`Resolve` 不需要自己的 filter——登录流程只会解决
+`Evaluate` 呈现过的挑战，而一次登录的登录方式在各步骤之间不会改变。不传 filter 时
+原样返回该 provider。何时用允许列表、何时用排除列表，以及完整示例，见
+[认证：按登录方式限定挑战](./authentication#按登录方式限定挑战)。
+
+内置 provider 背后的钩子按职责划分：决定挑战是否适用的钩子接收 login，作用于身份的
+钩子接收 principal。
+
+| 钩子 | 方法 | 接收 |
+| --- | --- | --- |
+| `PasswordChangeChecker` | `Check(ctx, login *LoginContext) (*PasswordChangeChallengeData, error)` | login |
+| `OTPEvaluator` | `Evaluate(ctx, login *LoginContext) (*OTPChallengeData, error)` | login |
+| `DepartmentLoader` | `LoadDepartments(ctx, login *LoginContext) (*DepartmentSelectionChallengeData, error)` | login |
+| `PasswordChanger` | `ChangePassword(ctx, principal *Principal, newPassword string) error` | principal |
+| `PasswordValidator` | `Validate(ctx, principal *Principal, plaintext string) error` | principal |
+| `PasswordMetadataLoader` | `PasswordChangedAt(ctx, principal *Principal) (time.Time, error)` | principal |
+| `DepartmentSelector` | `SelectDepartment(ctx, principal *Principal, departmentID string) (*Principal, error)` | principal |
+| `OTPCodeSender` | `Send(ctx, principal *Principal) error` | principal |
+| `OTPCodeVerifier` | `Verify(ctx, principal *Principal, code string) (bool, error)` | principal |
+| `OTPCodeStore` | `Generate(ctx, principal *Principal) (string, error)`, `Verify(ctx, principal *Principal, code string) (bool, error)` | principal |
+| `OTPCodeDelivery` | `Deliver(ctx, principal *Principal, code string) error` | principal |
+| `TOTPSecretLoader` | `LoadSecret(ctx, principal *Principal) (string, error)` | principal |
+
+内置实现遵循同样的划分。`ExpiryPasswordChangeChecker` 实现 `Check`，并把
+`login.Principal` 交给 `PasswordMetadataLoader`；`NewCompositePasswordChangeChecker`
+组合器把同一次登录交给它运行的每个 checker；`TOTPEvaluator` 实现 `Evaluate`，并把
+`login.Principal` 交给 `TOTPSecretLoader`；每个内置 provider 都把 `login.Principal`
+交给它的执行类钩子。
 
 `NewOTPChallengeProvider` 是通用构造器。`OTPChallengeProviderConfig` 要求
 `ChallengeType`、`Evaluator`、`Verifier`；`ChallengeOrder` 控制评估顺序，
@@ -199,7 +259,11 @@ loader 的完整载荷会被原样转发——框架不会重建它，因此每�
 属组织、用于树渲染的 parent id）和挑战级 `Meta`（组织树、默认选择、分组定
 义）都会到达客户端。两个层级框架都不会读取、校验或持久化。
 
-这些 challenge 构造器属于 wiring-time API。`NewOTPChallengeProvider` 在缺少
+这些 challenge 构造器属于 wiring-time API。它们返回各自的具体 provider 类型
+（`*OTPChallengeProvider`、`*PasswordChangeChallengeProvider`、
+`*DepartmentSelectionChallengeProvider`），因此要通过一个返回 `ChallengeProvider`
+的构造函数注册：若原样交给 `vef.ProvideChallengeProvider`，框架构造器能正常启动、
+不报错，但它的 provider 永远进不了 group。`NewOTPChallengeProvider` 在缺少
 `ChallengeType`、`Evaluator` 或 `Verifier` 时会 panic。
 `NewPasswordChangeChallengeProvider` 在缺少 `PasswordChangeChecker` 或
 `PasswordChanger` 时会 panic。`NewDepartmentSelectionChallengeProvider` 在缺少
@@ -362,7 +426,7 @@ code——见[登录加固](./login-hardening)）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `type` | `string` | 是 | 凭证类型。框架为该端点内置的只有 `password`；注册自定义 `security.Authenticator` 可扩展取值。框架签发的令牌类型（`jwt_token`、`opaque_token`、`refresh`）会以 code `1001` 拒绝，已签发的令牌永远无法在此洗换成新的 token 对 |
+| `type` | `string` | 是 | 凭证类型——即登录方式。框架为该端点内置 `password`（`AuthTypePassword`），[信任登录](./trust-login)开启时另有 `trust_code`（`AuthTypeTrustCode`）；注册自定义 `security.Authenticator` 可扩展取值。该值会成为这次登录每个挑战的 `LoginContext.AuthType`，以及它发布的每个登录事件的 `authType`。框架签发的令牌类型（`jwt_token`、`opaque_token`、`refresh`）会以 code `1001` 拒绝，已签发的令牌永远无法在此洗换成新的 token 对 |
 | `principal` | `string` | 是 | 登录标识，通常是用户名。内置密码流程拒绝保留标识（`system`、`cron_job`、`anonymous`），返回 code `1007` |
 | `credentials` | `any` | 是 | 凭证载荷。`type = "password"` 时是密码字符串——配置了 `security.PasswordDecryptor` 时为传输加密密文，否则为明文 |
 
@@ -398,7 +462,7 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `challengeToken` | `string` | 携带挑战进度（principal、原始登录标识、pending 与 resolved 类型列表）的状态令牌——客户端将其视为不透明值，传给 `resolve_challenge` 即可。每个令牌在 `ChallengeTokenExpires`（`5m`）后过期；每个成功步骤都会签发新令牌 |
+| `challengeToken` | `string` | 携带这次登录迄今状态的令牌——登录方式、原始登录标识、principal，以及 resolved 与 pending 挑战类型列表——使后续每一步都针对同一次登录评估。客户端将其视为不透明值，传给 `resolve_challenge` 即可。每个令牌在 `ChallengeTokenExpires`（`5m`）后过期；每个成功步骤都会签发新令牌 |
 | `challenge` | `LoginChallenge` | 第一个待解的 challenge（见下） |
 
 `LoginChallenge`：
@@ -426,12 +490,17 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
 
 行为说明：
 
-- provider 严格按 `Order()` 顺序评估；`Evaluate(...)` 返回 `nil` 的
-  provider 被跳过，因此包络里始终是第一个真正适用的 challenge。
-- 暴力破解 guard 在凭证通过校验的那一刻——早于任何第二因子——就清空失败
-  计数。凭证被拒绝会发布失败 `LoginEvent`；成功事件只在 token 真正签发时
-  发布——无挑战时立即发布，有挑战时在挑战链末尾发布——始终携带提交的
-  登录标识。
+- provider 严格按 `Order()` 顺序评估；对这次登录 `Evaluate(...)` 返回 `nil`
+  的 provider——包括 `NewFilteredChallengeProvider` 的 filter 拒绝了其 `type`
+  的 provider——被跳过，因此包络里始终是第一个真正适用的 challenge。
+- 暴力破解 guard 只在登录整体完成、token 签发的那一刻清空失败计数——凭证
+  通过校验时不清，中间某一步挑战通过时也不清，因为一次登录的凭证猜测与挑战
+  猜测计入同一个计数器；`trust_code` 登录在这一步不经过
+  guard（见[信任登录](./trust-login#限流)）。
+  凭证被拒绝会发布失败 `LoginEvent`；成功事件只在 token 真正签发时发布——
+  无挑战时立即发布，有挑战时在挑战链末尾发布——始终以 `username` 携带提交的
+  登录标识、以 `authType` 携带提交的 `type`。`login` 发布的事件
+  `challengeType` 为空。
 - 典型失败（均见上文[错误码表](#signature-helpers)）：`1001`（不支持/被
   拒绝的 `type`，HTTP 400）、`1008`（凭证无效——未知用户、nil principal
   或空存储哈希、密码错误刻意返回同一响应，HTTP 401）、`1007`（保留或非
@@ -510,26 +579,29 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
 响应是与 `login` 相同两种形态的 `LoginResult`：
 
 - **仍有 challenge 待解**——新的 `challengeToken` 加下一个 `challenge`。
-  挑战链严格按 provider 顺序推进；对该 principal `Evaluate(...)` 返回
-  `nil` 的 provider 被跳过。新令牌携带更新后的 pending/resolved 列表和
-  原始登录标识（保证审计连续性），并重新开始 `5m` 过期窗口。
+  挑战链严格按 provider 顺序推进；对这次登录 `Evaluate(...)` 返回
+  `nil` 的 provider 被跳过。新令牌携带更新后的 pending/resolved 列表、
+  已解决挑战所返回的 principal，以及这次登录的登录方式与原始登录标识，
+  并重新开始 `5m` 过期窗口。
 - **全部挑战已解决**——`data.tokens` 携带最终 `AuthTokens`，与 `login`
-  形态一完全一致。认证 token 只在此刻签发，成功的 `LoginEvent` 以原始
-  登录标识发布。
+  形态一完全一致。认证 token 只在此刻签发，成功的 `LoginEvent` 携带原始
+  登录标识、这次登录的 `authType`，以及这一步解决的 `challengeType`。
 
 行为说明：
 
-- challenge token 的任何解析失败——过期、被篡改、`typ` 不对，或
+- challenge token 的任何解析失败——过期、被篡改、`typ` 不对、缺少 `atp`，或
   [Challenge providers](#challenge-providers) 中描述的保留身份拒绝
   （`system`/空/未知 principal type、保留 ID）——在该端点统一表现为
-  `1031`（`ErrChallengeTokenInvalid`，HTTP 401）。
-- 被拒绝的 `response` 按登录失败对待：计入原始标识的暴力破解锁定并被审
-  计。返回类型化 `result.Error` 的 provider 保留自己的 code（`1035`
+  `1031`（`ErrChallengeTokenInvalid`，HTTP 401）。无论由哪个
+  `ChallengeTokenStore` 产生，解析出的状态缺少 `AuthType` 时同样如此。
+- 被拒绝的 `response` 按登录失败对待：计入原始标识的暴力破解锁定——任何
+  登录方式都一样，`trust_code` 也不例外——并以这次登录的 `authType` 和正在
+  解决的 `challengeType` 被审计。返回类型化 `result.Error` 的 provider 保留自己的 code（`1035`
   `ErrOTPCodeRequired`、`1036` `ErrOTPCodeInvalid`、`1037`
   `ErrNewPasswordRequired`、`1038` `ErrDepartmentRequired`）；裸 error 被
   归一化为 `1034`（`ErrChallengeResolveFailed`，HTTP 401）。
 - provider 解析出 nil 或框架保留 principal 会以 `1007`
-  （`ErrReservedPrincipal`）拒绝；该拒绝会被审计但不计入锁定——第二因子
+  （`ErrReservedPrincipal`）拒绝；该拒绝会被审计但不计入锁定——第二因素
   本身是正确的，错在 provider。
 - 类型不符与令牌无效这类协议错误（`1031`、`1033`）不经过 guard 也不审
   计；锁定检查（`1023`，HTTP 429）在 provider 校验应答之前进行。

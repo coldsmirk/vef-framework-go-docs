@@ -118,7 +118,7 @@ vef.ProvideAPIResource(NewUserResource)
 vef.ProvideMiddleware(NewAuditTrailMiddleware)
 vef.ProvideAuthStrategy(NewAPIKeyStrategy)
 vef.ProvideCQRSBehavior(NewTracingBehavior)
-vef.ProvideChallengeProvider(NewTOTPChallengeProvider)
+vef.ProvideChallengeProvider(NewTOTPChallenge)
 vef.ProvideMCPTools(NewToolProvider)
 vef.ProvideMCPResources(NewResourceProvider)
 vef.ProvideMCPResourceTemplates(NewTemplateProvider)
@@ -131,6 +131,12 @@ vef.ProvideDataSourceProvider(NewTenantDataSourceProvider)
 ```
 
 这些 helper 的价值不在“增加新能力”，而在于把 FX group tag 隐藏掉，让应用代码更易读。
+
+传给 group helper 的构造函数必须返回该 group 声明的契约类型——对
+`vef.ProvideChallengeProvider` 来说是 `security.ChallengeProvider`，而不是
+`security.NewTOTPChallengeProvider` 返回的具体类型 `*security.OTPChallengeProvider`。
+fx 按类型区分 group，其他类型的成员会被静默丢弃、不报任何错误：应用照常启动，扩展
+却永远不会运行。
 
 另一些 helper 是替换框架默认实现，而不是追加 group 成员：
 

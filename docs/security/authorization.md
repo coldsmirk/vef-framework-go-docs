@@ -66,8 +66,22 @@ the scope with the highest `DataScope.Priority()` value wins.
 
 `LoginEvent` publishes the event type `vef.security.login`. Its JSON fields are
 `authType`, `userId`, `username`, `loginIp`, `userAgent`, `traceId`, `isOk`,
-`failReason`, and `errorCode`. `SubscribeLoginEvent` registers a typed handler
-for that event and returns an unsubscribe function.
+`failReason`, `errorCode`, and `challengeType`. `SubscribeLoginEvent` registers
+a typed handler for that event and returns an unsubscribe function.
+
+One login may raise several events: `login` authenticates, then each
+`resolve_challenge` step resolves one challenge, and any of them can succeed or
+fail. Every event of one login reports that login:
+
+| Field | On events `login` raises | On events `resolve_challenge` raises |
+| --- | --- | --- |
+| `authType` | the submitted `type` — the login mechanism, e.g. `password` or `trust_code` | the same login mechanism, carried by the challenge token |
+| `username` | the submitted `principal` | the same identifier, carried by the challenge token |
+| `challengeType` | empty | the challenge type the step was resolving, e.g. `totp` |
+
+To audit challenge steps, filter on a non-empty `challengeType`; `authType`
+never names a challenge. `userId` is populated on success, and `failReason` and
+`errorCode` on failure.
 
 `UserInfo` is the shape returned by `security/auth.get_user_info`. `Gender`
 values are `GenderMale` (`male`), `GenderFemale` (`female`), and

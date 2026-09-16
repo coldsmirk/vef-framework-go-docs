@@ -15,7 +15,9 @@ sidebar_position: 8
 1. **网关**——`GET /sso/trust`，一条以 `app.Middleware` 形式挂载在 order 460 的真实路由。它校验整次交接的 HMAC，把外部用户解析成本地 principal，将该身份寄存在一个一次性 code 之下，然后 302 跳转到 `<redirect>?app_id=…&code=…`。
 2. **兑换**——一次普通的 `security/auth.login` 调用，`type` 为 `"trust_code"`，`principal` 填 app ID，`credentials` 填那个 code。`TrustCodeAuthenticator` 兑换 code 并返回寄存的 principal。
 
-正因为第二段就是普通登录，这次交接原封不动地继承了**完整登录管线**：challenge 链（部门选择、强制 `password_change`）、按当前 `token_type` 签发令牌、并发会话与挤下线、以及登录审计事件。这里刻意**没有“跳过 challenge”的开关**——部门选择是必需的业务输入，强制改密是策略，跳过任何一个都是漏洞；而是否跳过二次验证属于各家自己的判断，不该由框架一刀切。
+正因为第二段就是普通登录，这次交接继承了登录管线——按当前 `token_type` 签发令牌、并发会话与挤下线、以及登录审计事件（`authType: "trust_code"`）——唯独不经过 `login` 这一步的暴力破解登录守卫（见[限流](#限流)）。它同样要经过**挑战链**：凡是没有被 filter 排除在 `security.AuthTypeTrustCode` 之外的 provider 都会被评估，因为外部系统认证了用户，却没有满足你的应用自己的登录策略。
+
+这里刻意**没有“跳过挑战”的开关**。部门选择是必需的业务输入，通常不加 filter 注册，因此交接与其他登录一样要经过它。其余挑战是否适用于交接，由每个 provider 在注册时用 `security.NewFilteredChallengeProvider` 各自决定：用 `ForAuthTypes(security.AuthTypePassword)` 限定的强制 `password_change` 永远不会落到交接上——交接从未提交过密码；发起系统已经执行过的第二因素，可以用 `ExceptAuthTypes(security.AuthTypeTrustCode)` 注册。见[认证：按登录方式限定挑战](./authentication#按登录方式限定挑战)。
 
 所以那条签名 URL 本身留着并不危险：它只能换来一个 code，真正能登录任何人的是 code。code 一次性、存活以秒计，并且绑定到收到它的那个浏览器。
 
@@ -164,7 +166,9 @@ code 由 `GenerateOpaqueToken` 生成，并以 `HashOpaqueToken` 作为键，从
 
 网关是公开的，而且在能够拒绝任何东西之前就必须做一次 `ExternalAppLoader` 查询——通常是一次数据库往返——因此它通过 `rate_limit` 按 (app ID, 客户端 IP) 逐节点限流。默认值刻意放得宽松：一整个组织共用一个 NAT 出口，在上班时段集中登录是完全正常的。它约束的是洪水，而不是登录行为本身。
 
-兑换那一段**不受暴力破解登录守卫约束**，这一点与其他所有登录类型都不同。code 是 `GenerateOpaqueToken` 级别的随机数，一次性且存活以秒计，再多次尝试也逼近不了它；而它出示的身份是发起系统的 app ID，不是某个人。统计失败次数只会把该系统的所有用户塞进同一个锁定桶里，而任何能 POST 一个错误 code 的人都能把它填满。它真正的限流是上面的网关限流、code 的一次性，以及 `vef.security.login_rate_limit`。
+兑换那一段的 `login` 步骤**不受暴力破解登录守卫约束**，这一点与其他所有登录类型都不同。code 是 `GenerateOpaqueToken` 级别的随机数，一次性且存活以秒计，再多次尝试也逼近不了它；而它出示的身份是发起系统的 app ID，不是某个人。统计失败次数只会把该系统的所有用户塞进同一个锁定桶里，而任何能 POST 一个错误 code 的人都能把它填满。它真正的限流是上面的网关限流、code 的一次性，以及 `vef.security.login_rate_limit`。
+
+这项豁免只覆盖 code 本身，不覆盖其后的任何步骤。交接遇到的挑战通过 `resolve_challenge` 作答，那里答错会计入锁定并被审计——因为挑战的答案与 code 不同，是可以猜的。
 
 ## 发起方接入清单
 

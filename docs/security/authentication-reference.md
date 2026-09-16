@@ -11,7 +11,8 @@ The public `security` package surface for authentication: principals, JWT, the a
 | principals | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType`, `IsReserved` |
 | JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
 | auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
-| challenge tokens | `ChallengeProvider`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge tokens | `ChallengeProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge scoping | `LoginFilter`, `ForAuthTypes`, `ExceptAuthTypes`, `NewFilteredChallengeProvider` |
 | OTP/challenges | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
 | TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
 | signature auth | `Signature`, `SignatureCredentials`, `SignatureResult`, `SignatureAlgorithm`, `NewSignature`, `WithAlgorithm`, `WithTimestampTolerance`, `WithNonceStore`, `NonceStore`, `NewMemoryNonceStore`, `NewRedisNonceStore` |
@@ -19,7 +20,8 @@ The public `security` package surface for authentication: principals, JWT, the a
 
 Bearer constants are `AuthSchemeBearer` and `QueryKeyAccessToken`. The token
 type constants are `TokenTypeAccess`, `TokenTypeRefresh`, and
-`TokenTypeChallenge`.
+`TokenTypeChallenge`. Login mechanism constants are `AuthTypePassword`
+(`password`) and `AuthTypeTrustCode` (`trust_code`).
 
 ## JWT and principals
 
@@ -117,17 +119,33 @@ Their wire values and default orders are:
 | `ChallengeTypePasswordChange` | `password_change` | `400` |
 | `ChallengeTypeDepartmentSelection` | `department_selection` | `500` |
 
-`ChallengeTokenStore.Generate(ctx, principal, username, pending, resolved)` and
-`Parse(ctx, token)` carry the state between `login` and `resolve_challenge`
-(`username` is the original login identifier the applicant supplied at the
-first step, preserved across challenge steps for audit events).
-The built-in login resources expose that state field as `challengeToken`.
+`ChallengeTokenStore` carries a `*ChallengeState` between `login` and
+`resolve_challenge`: `Generate(ctx, state)` issues a token for the state and
+`Parse(ctx, token)` returns it. `ChallengeState` embeds the `LoginContext` —
+`AuthType` (the login mechanism), `Username` (the identifier first presented,
+kept for audit events), `Principal`, and `Resolved` — and adds `Pending`, the
+challenge types not yet resolved in evaluation order, the first being the
+challenge presented. The built-in login resources expose the token as
+`challengeToken`.
+
+A store must round-trip every field of the state. `resolve_challenge` refuses
+a parsed state without an `AuthType` with `ErrChallengeTokenInvalid`, exactly
+as it refuses a token that does not parse, because the challenges still ahead
+are scoped by it: a custom store must persist `AuthType`, and a login whose
+challenge state was written without one — by a node that predates the field,
+for instance — has to start over from `login`. The caller owns the state
+`Parse` returns: the login flow reslices `Pending`, appends to `Resolved`, and
+replaces `Principal` before handing it back to `Generate`, so its slices must
+not share backing arrays with anything the store retains
+(`MemoryChallengeTokenStore` copies them on both calls).
+
 `JWTChallengeTokenStore` is stateless; `MemoryChallengeTokenStore` is suitable
 for tests or single-instance deployments; `RedisChallengeTokenStore` is for
 distributed deployments. Challenge tokens expire after `ChallengeTokenExpires`.
 The JWT-backed store uses `ClaimChallengePrincipalType`,
-`ClaimChallengePrincipalName`, `ClaimChallengeUsername`,
-`ClaimChallengePending`, and `ClaimChallengeResolved` as compact claim keys.
+`ClaimChallengePrincipalName`, `ClaimChallengeAuthType`,
+`ClaimChallengeUsername`, `ClaimChallengePending`, and
+`ClaimChallengeResolved` as compact claim keys.
 
 Challenge token stores have different wire/storage shapes:
 
@@ -138,8 +156,10 @@ Challenge token stores have different wire/storage shapes:
 | `RedisChallengeTokenStore` | UUID token stored under `vef:security:challenge:<token>` for `ChallengeTokenExpires` |
 
 The JWT challenge claim keys are `ptp` (`ClaimChallengePrincipalType`), `pnm`
-(`ClaimChallengePrincipalName`), `unm` (`ClaimChallengeUsername`), `pnd`
-(`ClaimChallengePending`), and `rsd` (`ClaimChallengeResolved`). Under the
+(`ClaimChallengePrincipalName`), `atp` (`ClaimChallengeAuthType`), `unm`
+(`ClaimChallengeUsername`), `pnd` (`ClaimChallengePending`), and `rsd`
+(`ClaimChallengeResolved`). Parsing rejects a token whose `atp` is missing or
+empty with `ErrTokenInvalid`. Under the
 reserved-identity hardening, challenge parsing accepts only `user` and
 `external_app` principal types — `system`, empty, and unknown types are all
 rejected with `ErrTokenInvalid` (a challenge token carrying the framework's
@@ -154,12 +174,14 @@ The following claim keys appear in challenge tokens and in the standard
 
 | Claim Key | Constant | Holds |
 | --- | --- | --- |
+| `atp` | `ClaimChallengeAuthType` | Login mechanism (`LoginContext.AuthType`) — the login every later step is evaluated, resolved, and audited against; a token without it is rejected |
 | `det` | (standard JWT claim) | User details (`claimDetails`) — application-defined payload, carried in both access tokens and challenge tokens |
-| `pnd` | `ClaimChallengePending` | Pending challenge types in evaluation order — the remaining types that have not yet been evaluated |
+| `pnd` | `ClaimChallengePending` | Pending challenge types in evaluation order — the types not yet resolved, the first being the challenge presented |
 | `pnm` | `ClaimChallengePrincipalName` | Principal display name — stored as a separate claim because the subject (`sub`) carries only the principal ID |
 | `ptp` | `ClaimChallengePrincipalType` | Principal type — `user` or `external_app`; `system` is rejected during challenge token parsing |
 | `rls` | (standard JWT claim) | User roles (`claimRoles`) — carried in access tokens and challenge tokens |
 | `rsd` | `ClaimChallengeResolved` | Resolved challenge types in resolution order — the types that have already been satisfied |
+| `unm` | `ClaimChallengeUsername` | Original login identifier (`LoginContext.Username`) — so events raised after a challenge report the identifier first presented |
 
 `JWT.Generate` sets `iss`, `aud`, `iat`, `nbf`, and `exp`. `jti`, `sub`, and
 `typ` are written by the caller's `JWTClaimsBuilder` before signing and are
@@ -174,12 +196,61 @@ Challenge tokens carry `typ: "challenge"` and expire after
 claims so the challenge flow can reconstruct the principal without a database
 lookup.
 
+A `ChallengeProvider` is `Type()`, `Order()`, `Evaluate(ctx, login)` returning
+`(*LoginChallenge, error)`, and `Resolve(ctx, login, response)` returning
+`(*Principal, error)`, where `login` is the read-only `*LoginContext` described
+in [Authentication: The login context](./authentication#the-login-context).
+`Evaluate` returns nil when the challenge is not needed for this login;
+`Resolve` validates the response and returns the principal the login continues
+with — `login.Principal`, or an enriched copy.
+
 Challenge providers are sorted by `Order()` in ascending order. The built-in
 convenience providers use `100` for TOTP, `200` for SMS, `300` for email, `400`
 for password change, and `500` for department selection. Providers that are not
-registered, or whose `Evaluate(...)` returns `nil`, are skipped. During
+registered, or whose `Evaluate(...)` returns `nil`, are skipped — including a
+provider whose `NewFilteredChallengeProvider` filters reject the login. During
 `resolve_challenge`, the submitted `type` must match the first pending
 challenge type or the framework returns `ErrChallengeTypeInvalid`.
+
+`NewFilteredChallengeProvider(provider, filters...)` wraps a provider with
+`LoginFilter`s. `ForAuthTypes(types...)` builds an allow-list filter
+(`AuthTypes`), `ExceptAuthTypes(types...)` a deny-list filter
+(`ExcludedAuthTypes`), and `LoginFilter.Matches(login)` reports whether a login
+passes one: within a filter an empty dimension is unconstrained, and a
+populated `AuthTypes` and `ExcludedAuthTypes` must both hold. The wrapper
+forwards `Type`, `Order`, and `Resolve` unchanged; its `Evaluate` returns nil
+unless every filter matches, and otherwise forwards the same login. `Resolve`
+needs no filter of its own — the flow resolves only the challenge `Evaluate`
+presented, and a login's mechanism never changes between steps. Passing no
+filters returns the provider unchanged. When to allow-list and when to
+deny-list is covered, with a worked example, in
+[Authentication: Scoping challenges to login mechanisms](./authentication#scoping-challenges-to-login-mechanisms).
+
+The hooks behind the built-in providers split by what they do: a hook that
+decides whether a challenge applies receives the login, and a hook that acts on
+the identity receives the principal.
+
+| Hook | Method | Receives |
+| --- | --- | --- |
+| `PasswordChangeChecker` | `Check(ctx, login *LoginContext) (*PasswordChangeChallengeData, error)` | the login |
+| `OTPEvaluator` | `Evaluate(ctx, login *LoginContext) (*OTPChallengeData, error)` | the login |
+| `DepartmentLoader` | `LoadDepartments(ctx, login *LoginContext) (*DepartmentSelectionChallengeData, error)` | the login |
+| `PasswordChanger` | `ChangePassword(ctx, principal *Principal, newPassword string) error` | the principal |
+| `PasswordValidator` | `Validate(ctx, principal *Principal, plaintext string) error` | the principal |
+| `PasswordMetadataLoader` | `PasswordChangedAt(ctx, principal *Principal) (time.Time, error)` | the principal |
+| `DepartmentSelector` | `SelectDepartment(ctx, principal *Principal, departmentID string) (*Principal, error)` | the principal |
+| `OTPCodeSender` | `Send(ctx, principal *Principal) error` | the principal |
+| `OTPCodeVerifier` | `Verify(ctx, principal *Principal, code string) (bool, error)` | the principal |
+| `OTPCodeStore` | `Generate(ctx, principal *Principal) (string, error)`, `Verify(ctx, principal *Principal, code string) (bool, error)` | the principal |
+| `OTPCodeDelivery` | `Deliver(ctx, principal *Principal, code string) error` | the principal |
+| `TOTPSecretLoader` | `LoadSecret(ctx, principal *Principal) (string, error)` | the principal |
+
+The built-in implementations follow the same split. `ExpiryPasswordChangeChecker`
+implements `Check` and passes `login.Principal` to `PasswordMetadataLoader`; the
+`NewCompositePasswordChangeChecker` composite hands the same login to each
+checker it runs; `TOTPEvaluator` implements `Evaluate` and passes
+`login.Principal` to `TOTPSecretLoader`; and every built-in provider hands
+`login.Principal` to its acting hooks.
 
 `NewOTPChallengeProvider` is the generic constructor. Its
 `OTPChallengeProviderConfig` requires `ChallengeType`, `Evaluator`, and
@@ -222,7 +293,12 @@ rendering) and challenge-level `Meta` (the organization tree, default
 selection, grouping definitions) reach the client. Neither level is read,
 validated, or persisted by the framework.
 
-The challenge constructors are wiring-time APIs. `NewOTPChallengeProvider`
+The challenge constructors are wiring-time APIs. They return their concrete
+provider types (`*OTPChallengeProvider`, `*PasswordChangeChallengeProvider`,
+`*DepartmentSelectionChallengeProvider`), so register one through a constructor
+that returns `ChallengeProvider`: handed to `vef.ProvideChallengeProvider`
+as-is, a framework constructor boots without an error and its provider never
+reaches the group. `NewOTPChallengeProvider`
 panics when `ChallengeType`, `Evaluator`, or `Verifier` is missing.
 `NewPasswordChangeChallengeProvider` panics when `PasswordChangeChecker` or
 `PasswordChanger` is missing. `NewDepartmentSelectionChallengeProvider` panics
@@ -400,7 +476,7 @@ on use.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `type` | `string` | Yes | credential type. `password` is the only type the framework ships for this endpoint; custom `security.Authenticator` registrations extend the vocabulary. The framework-issued token types (`jwt_token`, `opaque_token`, `refresh`) are refused with code `1001` so an issued token can never be laundered into a fresh token pair |
+| `type` | `string` | Yes | credential type — the login mechanism. The framework ships `password` (`AuthTypePassword`) for this endpoint, plus `trust_code` (`AuthTypeTrustCode`) while [trust login](./trust-login) is enabled; custom `security.Authenticator` registrations extend the vocabulary. The value becomes `LoginContext.AuthType` for every challenge of this login and `authType` on every login event it raises. The framework-issued token types (`jwt_token`, `opaque_token`, `refresh`) are refused with code `1001` so an issued token can never be laundered into a fresh token pair |
 | `principal` | `string` | Yes | login identifier, typically the username. The built-in password flow rejects the reserved identifiers (`system`, `cron_job`, `anonymous`) with code `1007` |
 | `credentials` | `any` | Yes | credential payload. For `type = "password"` this is the password string — transport-encrypted when a `security.PasswordDecryptor` is configured, plaintext otherwise |
 
@@ -439,7 +515,7 @@ tokens are issued yet:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `challengeToken` | `string` | state token carrying the challenge progress (principal, the original login identifier, pending and resolved types) — clients treat it as an opaque value and pass it to `resolve_challenge`. Each token expires after `ChallengeTokenExpires` (`5m`); every successful step issues a fresh one |
+| `challengeToken` | `string` | state token carrying the login so far — its mechanism, the original login identifier, the principal, and the resolved and pending challenge types — so every later step is evaluated against the same login. Clients treat it as an opaque value and pass it to `resolve_challenge`. Each token expires after `ChallengeTokenExpires` (`5m`); every successful step issues a fresh one |
 | `challenge` | `LoginChallenge` | the first pending challenge to resolve (below) |
 
 `LoginChallenge`:
@@ -468,13 +544,19 @@ tokens are issued yet:
 Behavior notes:
 
 - Providers are evaluated strictly in `Order()` sequence; providers whose
-  `Evaluate(...)` returns `nil` are skipped, so the envelope always carries
-  the first challenge that actually applies.
-- The brute-force guard clears the failure counter as soon as the credential
-  verifies — before any second factor. A rejected credential publishes a
-  failure `LoginEvent`; the success event is published only when tokens are
-  actually issued — immediately when no challenge applies, otherwise at the
-  end of the challenge chain — always carrying the submitted identifier.
+  `Evaluate(...)` returns `nil` for this login — including those whose
+  `NewFilteredChallengeProvider` filters reject its `type` — are skipped, so
+  the envelope always carries the first challenge that actually applies.
+- The brute-force guard clears the failure counter only when the login
+  completes, where the tokens are issued — not when the credential verifies and
+  not after an intermediate challenge step, since a login's credential guesses
+  and its challenge guesses fill one counter; a `trust_code` login skips the
+  guard at this step (see [Trust Login](./trust-login#throttling)). A rejected credential
+  publishes a failure `LoginEvent`; the success event is published only when
+  tokens are actually issued — immediately when no challenge applies, otherwise
+  at the end of the challenge chain — always carrying the submitted identifier
+  as `username` and the submitted `type` as `authType`. Events `login` raises
+  carry an empty `challengeType`.
 - Typical failures, all from the [error-code table](#signature-helpers)
   above: `1001` (unsupported/refused `type`, HTTP 400), `1008` (invalid
   credentials — deliberately the same uniform response for an unknown user,
@@ -563,24 +645,29 @@ The response is a `LoginResult` with the same two shapes as `login`:
 
 - **Another challenge pending** — a fresh `challengeToken` plus the next
   `challenge`. The chain is strictly sequential in provider order;
-  providers whose `Evaluate(...)` returns `nil` for this principal are
-  skipped. The new token carries the updated pending/resolved lists and the
-  original login identifier (for audit continuity), and restarts the `5m`
-  expiry window.
+  providers whose `Evaluate(...)` returns `nil` for this login are
+  skipped. The new token carries the updated pending/resolved lists, the
+  principal as the resolved challenge returned it, and the login's mechanism
+  and original identifier, and restarts the `5m` expiry window.
 - **All challenges resolved** — `data.tokens` with the final `AuthTokens`,
   exactly as in `login` shape 1. Only at this point are auth tokens issued,
   and the success `LoginEvent` is published with the original login
-  identifier.
+  identifier, the login's `authType`, and the `challengeType` this step
+  resolved.
 
 Behavior notes:
 
-- Any challenge-token parse failure — expired, tampered, wrong `typ`, or
-  the reserved-identity rejections (`system`/empty/unknown principal
-  types, reserved IDs) described in
+- Any challenge-token parse failure — expired, tampered, wrong `typ`, a
+  missing `atp`, or the reserved-identity rejections (`system`/empty/unknown
+  principal types, reserved IDs) described in
   [Challenge providers](#challenge-providers) — surfaces uniformly as
-  `1031` (`ErrChallengeTokenInvalid`, HTTP 401) on this endpoint.
+  `1031` (`ErrChallengeTokenInvalid`, HTTP 401) on this endpoint. So does a
+  token that parses to a state without an `AuthType`, whichever
+  `ChallengeTokenStore` produced it.
 - A rejected `response` is treated like a failed login: it counts toward
-  the brute-force lockout for the original identifier and is audited.
+  the brute-force lockout for the original identifier — on every login
+  mechanism, `trust_code` included — and is audited with the login's
+  `authType` and the `challengeType` being resolved.
   Providers that return a typed `result.Error` keep their code (`1035`
   `ErrOTPCodeRequired`, `1036` `ErrOTPCodeInvalid`, `1037`
   `ErrNewPasswordRequired`, `1038` `ErrDepartmentRequired`); a bare error is

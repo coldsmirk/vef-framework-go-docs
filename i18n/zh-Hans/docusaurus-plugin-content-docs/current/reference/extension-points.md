@@ -85,7 +85,12 @@ Helper：
 
 Helper：
 
-- `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideChallengeProvider(...)`——把一个 `security.ChallengeProvider` 追加进
+  `security/auth` 按 `Order()` 评估的 group。构造函数必须直接返回
+  `security.ChallengeProvider`：fx 按类型区分 group，返回具体 provider 类型的构造
+  函数会被静默丢弃、不报任何错误。provider 默认适用于每一次登录；要限定到部分登录
+  方式，返回用 `security.NewFilteredChallengeProvider` 包装后的 provider（见
+  [认证：按登录方式限定挑战](../security/authentication#按登录方式限定挑战)）
 - `vef.ProvideAuthenticator(...)`——把一个 `security.Authenticator` 追加进
   `security.AuthManager` 聚合的认证器 group。认证器通过 `Supports(authType)`
   认领某个登录 `type`；内置类型有 `password`、当前配置的令牌机制

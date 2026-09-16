@@ -83,16 +83,22 @@ type LoginDecision struct {
 }
 ```
 
-`AuthResource.Login` calls `Check` before authenticating, `RecordFailure`
-when authentication fails, and `RecordSuccess` as soon as the credential
-verifies (before any second-factor challenge, since the brute-forced
-credential has already succeeded). Failures accumulate per `LockoutPolicy.Key`
-and reset on success.
+`AuthResource.Login` calls `Check` before authenticating and `RecordFailure`
+when authentication fails. `RecordSuccess` runs only where the login
+completes — where the tokens are issued, not when the credential verifies and
+not after an intermediate challenge step — because a login's credential guesses
+and its challenge guesses fill one counter (see below), so clearing it earlier
+would let anyone holding the password reset the count of second-factor guesses
+by logging in again. Failures accumulate per `LockoutPolicy.Key` and reset when
+a login completes.
 
 The same guard also covers `resolve_challenge`: a failed second-factor guess
 counts toward the same lockout key, and a tripped lockout blocks both
 endpoints — so an attacker who reaches the challenge step cannot brute-force
-it outside the lockout budget.
+it outside the lockout budget. The one exemption is the `login` step of a
+`trust_code` login, whose one-time code no number of guesses approaches; the
+challenge steps of that login are counted like any other (see
+[Trust Login: Throttling](./trust-login#throttling)).
 
 Reserved-principal rejections (see
 [Authentication: Reserved Identities](./authentication#reserved-identities))
@@ -334,20 +340,47 @@ max_age = "2160h" # 90 days
 ```
 
 `ExpiryPasswordChangeChecker` implements `security.PasswordChangeChecker`, the
-same interface used for other forced-change reasons (e.g. first login).
-Combine several with `NewCompositePasswordChangeChecker`, which returns the
-first reason that applies:
+same interface used for other forced-change reasons (e.g. first login):
+
+```go
+type PasswordChangeChecker interface {
+	Check(ctx context.Context, login *LoginContext) (*PasswordChangeChallengeData, error)
+}
+```
+
+A checker decides whether the forced change applies, so it is handed the whole
+login and reads the user from `login.Principal` (see
+[Authentication: The login context](./authentication#the-login-context)). A
+first-login checker backed by an application user service, for instance:
+
+```go
+type firstLoginChecker struct {
+	users *UserService
+}
+
+func (c *firstLoginChecker) Check(ctx context.Context, login *security.LoginContext) (*security.PasswordChangeChallengeData, error) {
+	mustChange, err := c.users.MustChangePassword(ctx, login.Principal.ID)
+	if err != nil || !mustChange {
+		return nil, err
+	}
+
+	return &security.PasswordChangeChallengeData{Reason: security.PasswordChangeReasonFirstLogin}, nil
+}
+```
+
+Combine several with `NewCompositePasswordChangeChecker`, which hands the same
+login to each checker in order and returns the first reason that applies:
 
 ```go
 checker := security.NewCompositePasswordChangeChecker(
-	firstLoginChecker,
+	&firstLoginChecker{users: users},
 	security.NewExpiryPasswordChangeChecker(myMetadataLoader, 90*24*time.Hour),
 )
 ```
 
 Wire the composed checker, your `PasswordChanger`, and (optionally) a
 `PasswordValidator` into `NewPasswordChangeChallengeProvider`, then register
-it as a login challenge provider:
+it as a login challenge provider scoped to password logins:
 
 ```go
 vef.ProvideChallengeProvider(func(
@@ -355,12 +388,24 @@ vef.ProvideChallengeProvider(func(
 	changer security.PasswordChanger,
 	validator security.PasswordValidator,
 ) security.ChallengeProvider {
-	return security.NewPasswordChangeChallengeProvider(checker, changer, validator)
+	return security.NewFilteredChallengeProvider(
+		security.NewPasswordChangeChallengeProvider(checker, changer, validator),
+		security.ForAuthTypes(security.AuthTypePassword),
+	)
 })
 ```
 
-When the checker fires, `security/auth.login` returns a `password_change`
-challenge (`Reason: "expired"`) instead of tokens; the client resolves it via
+`ForAuthTypes(security.AuthTypePassword)` keeps the challenge on the logins it
+concerns. A forced change is about the password, and only a `password` login
+presented one: unscoped, a trust-login handoff or a host-defined mechanism
+would be stopped to replace a password it never used. A challenge tied to one
+credential suits an allow-list like this; a second factor is better scoped
+with a deny-list — see
+[Authentication: Scoping challenges to login mechanisms](./authentication#scoping-challenges-to-login-mechanisms).
+
+When the checker fires on a password login, `security/auth.login` returns a
+`password_change` challenge (`Reason: "expired"`) instead of tokens; the client
+resolves it via
 `resolve_challenge` with the new password as the response. The provider
 validates the new password through the supplied `PasswordValidator` — so
 strength and history rules apply here too — before calling

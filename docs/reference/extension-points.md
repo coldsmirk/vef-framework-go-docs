@@ -100,7 +100,13 @@ Helper:
 
 Helpers:
 
-- `vef.ProvideChallengeProvider(...)`
+- `vef.ProvideChallengeProvider(...)` — appends a `security.ChallengeProvider`
+  into the group `security/auth` evaluates in `Order()`. The constructor must
+  return `security.ChallengeProvider` itself: fx keys the group by type, so a
+  constructor returning a concrete provider type is dropped without an error. A
+  provider applies to every login; to scope one to some login mechanisms,
+  return it wrapped with `security.NewFilteredChallengeProvider` (see
+  [Authentication: Scoping challenges to login mechanisms](../security/authentication#scoping-challenges-to-login-mechanisms))
 - `vef.ProvideAuthenticator(...)` — appends a `security.Authenticator` into the
   authenticator group the `security.AuthManager` aggregates. The authenticator
   claims a login `type` through `Supports(authType)`; the built-in types are
