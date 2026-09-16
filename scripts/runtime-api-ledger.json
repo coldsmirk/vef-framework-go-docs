@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3243,
-  "fingerprint": "c69b05d13e4563dcd0dc53d61f9e007b9e1afad4306b436b725052f91a53f03b",
+  "entry_count": 3244,
+  "fingerprint": "e3f6c49a72187c416acaabadb0cc2180f8b67529339a9992c4e76a416f26a053",
   "coverage": [
     {
       "category": "API default",
@@ -78,7 +78,7 @@
     },
     {
       "category": "JSON wire field",
-      "entry_count": 1660,
+      "entry_count": 1661,
       "tier": "Tier 2 scoped DTO AST with closed-world boundary check",
       "extractor": "extractJSONFields",
       "method": "AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field.",
@@ -145,7 +145,7 @@
       "entry_count": 6,
       "tier": "Tier 2 scoped AST constants",
       "extractor": "extractAuthTypes",
-      "method": "AST scan of internal/security AuthType* constants that are sent through Authentication.Type.",
+      "method": "AST scan of security and internal/security AuthType* constants that are sent through Authentication.Type.",
       "known_residual": "None in known built-in authenticators."
     },
     {
@@ -25308,7 +25308,7 @@
       ]
     },
     {
-      "id": "aceffd3941b102c820be2837",
+      "id": "541e43a07062ef64bc64d002",
       "category": "JSON wire field",
       "name": "LoginEvent.AuthType",
       "value": "authType",
@@ -25317,7 +25317,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:13"
+        "security/login_event.go:17"
       ],
       "terms": [
         "Go",
@@ -25332,7 +25332,31 @@
       ]
     },
     {
-      "id": "f18f20bda746c622eecc3ec5",
+      "id": "9efad5cec39214696d4174a6",
+      "category": "JSON wire field",
+      "name": "LoginEvent.ChallengeType",
+      "value": "challengeType",
+      "details": [
+        "Go field: LoginEvent.ChallengeType",
+        "type: string"
+      ],
+      "source_evidence": [
+        "security/login_event.go:26"
+      ],
+      "terms": [
+        "Go",
+        "JSON",
+        "LoginEvent.ChallengeType",
+        "challengeType",
+        "field",
+        "field:",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "9c38af5d8ce521cd3d47623a",
       "category": "JSON wire field",
       "name": "LoginEvent.ErrorCode",
       "value": "errorCode",
@@ -25341,7 +25365,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "security/login_event.go:21"
+        "security/login_event.go:25"
       ],
       "terms": [
         "Go",
@@ -25356,7 +25380,7 @@
       ]
     },
     {
-      "id": "a82cd33e3973cae8b82f35e4",
+      "id": "77bd616fa209b87ec29c624a",
       "category": "JSON wire field",
       "name": "LoginEvent.FailReason",
       "value": "failReason",
@@ -25365,7 +25389,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:20"
+        "security/login_event.go:24"
       ],
       "terms": [
         "Go",
@@ -25380,7 +25404,7 @@
       ]
     },
     {
-      "id": "0d1f7895d7faa1cbb1aa189e",
+      "id": "8728ef4b6067f4849d9c16a8",
       "category": "JSON wire field",
       "name": "LoginEvent.IsOk",
       "value": "isOk",
@@ -25389,7 +25413,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "security/login_event.go:19"
+        "security/login_event.go:23"
       ],
       "terms": [
         "Go",
@@ -25404,7 +25428,7 @@
       ]
     },
     {
-      "id": "f02046e3719af79eab31e954",
+      "id": "17d983e728cd9354fe2df98b",
       "category": "JSON wire field",
       "name": "LoginEvent.LoginIP",
       "value": "loginIp",
@@ -25413,7 +25437,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:16"
+        "security/login_event.go:20"
       ],
       "terms": [
         "Go",
@@ -25428,7 +25452,7 @@
       ]
     },
     {
-      "id": "78061e306e59bd991c98cd6a",
+      "id": "48f1ab9693b83724fd909963",
       "category": "JSON wire field",
       "name": "LoginEvent.TraceID",
       "value": "traceId",
@@ -25437,7 +25461,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:18"
+        "security/login_event.go:22"
       ],
       "terms": [
         "Go",
@@ -25452,7 +25476,7 @@
       ]
     },
     {
-      "id": "cda11069830496b7a615d65a",
+      "id": "f014bc4427b21bd8d135f034",
       "category": "JSON wire field",
       "name": "LoginEvent.UserAgent",
       "value": "userAgent",
@@ -25461,7 +25485,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:17"
+        "security/login_event.go:21"
       ],
       "terms": [
         "Go",
@@ -25476,7 +25500,7 @@
       ]
     },
     {
-      "id": "48004de9e5e59d6db2b6c461",
+      "id": "fab7915dfe681dcac4ba79ea",
       "category": "JSON wire field",
       "name": "LoginEvent.UserID",
       "value": "userId",
@@ -25485,7 +25509,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "security/login_event.go:14"
+        "security/login_event.go:18"
       ],
       "terms": [
         "Go",
@@ -25500,7 +25524,7 @@
       ]
     },
     {
-      "id": "9f84638ddad88e7c3415be2a",
+      "id": "35c33e2ae586feda1b1fa3ee",
       "category": "JSON wire field",
       "name": "LoginEvent.Username",
       "value": "username",
@@ -25509,7 +25533,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/login_event.go:15"
+        "security/login_event.go:19"
       ],
       "terms": [
         "Go",
@@ -25524,7 +25548,7 @@
       ]
     },
     {
-      "id": "5b5ccb17e4f46d69f4d8232a",
+      "id": "5ec6933b6b9e1a777cb40b50",
       "category": "JSON wire field",
       "name": "LoginParams.Credentials",
       "value": "credentials",
@@ -25534,7 +25558,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:119"
+        "internal/security/auth_resource.go:125"
       ],
       "terms": [
         "Go",
@@ -25551,7 +25575,7 @@
       ]
     },
     {
-      "id": "e8aa8699f962eae4069ed05d",
+      "id": "5b6da4af97c57e2f0fc7d492",
       "category": "JSON wire field",
       "name": "LoginParams.Principal",
       "value": "principal",
@@ -25561,7 +25585,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:118"
+        "internal/security/auth_resource.go:124"
       ],
       "terms": [
         "Go",
@@ -25578,7 +25602,7 @@
       ]
     },
     {
-      "id": "9260e2d8329b43a213606243",
+      "id": "426849ae2a2896a972a08714",
       "category": "JSON wire field",
       "name": "LoginParams.Type",
       "value": "type",
@@ -25588,7 +25612,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:117"
+        "internal/security/auth_resource.go:123"
       ],
       "terms": [
         "Go",
@@ -27152,7 +27176,7 @@
       ]
     },
     {
-      "id": "d2aef080596a8d96751b2f03",
+      "id": "5e84b2731ded5343d70627a9",
       "category": "JSON wire field",
       "name": "OTPChallengeData.Destination",
       "value": "destination",
@@ -27161,7 +27185,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "security/otp.go:45"
+        "security/otp.go:47"
       ],
       "terms": [
         "Go",
@@ -27176,7 +27200,7 @@
       ]
     },
     {
-      "id": "9f0348bdb0dda61d5a396ece",
+      "id": "6bb64e8e06cbc89246c629b0",
       "category": "JSON wire field",
       "name": "OTPChallengeData.Meta",
       "value": "meta",
@@ -27185,7 +27209,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "security/otp.go:46"
+        "security/otp.go:48"
       ],
       "terms": [
         "Go",
@@ -29990,7 +30014,7 @@
       ]
     },
     {
-      "id": "556c9cc7b6ad93a2fcbec835",
+      "id": "bfea485f96b664d10e4bbece",
       "category": "JSON wire field",
       "name": "RefreshParams.RefreshToken",
       "value": "refreshToken",
@@ -30000,7 +30024,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:224"
+        "internal/security/auth_resource.go:245"
       ],
       "terms": [
         "Go",
@@ -30358,7 +30382,7 @@
       ]
     },
     {
-      "id": "d2339e02a4a7e51a7b1290ac",
+      "id": "c7903be9f3bf9190307bd70a",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.ChallengeToken",
       "value": "challengeToken",
@@ -30368,7 +30392,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:283"
+        "internal/security/auth_resource.go:304"
       ],
       "terms": [
         "Go",
@@ -30385,7 +30409,7 @@
       ]
     },
     {
-      "id": "e478c098d339cf314bb742d0",
+      "id": "c30c5b1bccb747f0efe0bb84",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.Response",
       "value": "response",
@@ -30395,7 +30419,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:285"
+        "internal/security/auth_resource.go:306"
       ],
       "terms": [
         "Go",
@@ -30412,7 +30436,7 @@
       ]
     },
     {
-      "id": "420d438eabe024cb4c8b6fba",
+      "id": "7d06570ff6b074d9403021f5",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.Type",
       "value": "type",
@@ -30422,7 +30446,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:284"
+        "internal/security/auth_resource.go:305"
       ],
       "terms": [
         "Go",
@@ -43721,12 +43745,12 @@
       ]
     },
     {
-      "id": "062cae32f90fc129d59727c3",
+      "id": "81434257fd84b6f4b41479e3",
       "category": "auth type",
       "name": "AuthTypePassword",
       "value": "password",
       "source_evidence": [
-        "internal/security/password_authenticator.go:15"
+        "security/constants.go:13"
       ],
       "terms": [
         "AuthTypePassword",
@@ -43766,12 +43790,12 @@
       ]
     },
     {
-      "id": "0b691e515f69b92ee531fd9f",
+      "id": "396b7ec9f1047dfe63bfa58e",
       "category": "auth type",
       "name": "AuthTypeTrustCode",
       "value": "trust_code",
       "source_evidence": [
-        "internal/security/trust_code_authenticator.go:12"
+        "security/constants.go:14"
       ],
       "terms": [
         "AuthTypeTrustCode",
@@ -43991,12 +44015,12 @@
       ]
     },
     {
-      "id": "b66b19de357085f1459fa181",
+      "id": "f7e1f990a48b02163cbf00ac",
       "category": "built-in resource",
       "name": "security/auth",
       "value": "rpc",
       "source_evidence": [
-        "internal/security/auth_resource.go:91"
+        "internal/security/auth_resource.go:96"
       ],
       "terms": [
         "built-in",
@@ -55610,7 +55634,7 @@
       ]
     },
     {
-      "id": "aedd8c39e02cf53a210b7296",
+      "id": "8281dd7e8d1d841fba61449d",
       "category": "i18n message key",
       "name": "auth_challenge_response",
       "value": "auth_challenge_response",
@@ -55618,7 +55642,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:285"
+        "internal/security/auth_resource.go:306"
       ],
       "terms": [
         "auth_challenge_response",
@@ -55631,7 +55655,7 @@
       ]
     },
     {
-      "id": "67b53739b593b20149948876",
+      "id": "cb24807c0331f959f7004aa3",
       "category": "i18n message key",
       "name": "auth_challenge_token",
       "value": "auth_challenge_token",
@@ -55639,7 +55663,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:283"
+        "internal/security/auth_resource.go:304"
       ],
       "terms": [
         "auth_challenge_token",
@@ -55652,7 +55676,7 @@
       ]
     },
     {
-      "id": "209a262e69e85409ae7f4448",
+      "id": "36603d03c273eecdda915e71",
       "category": "i18n message key",
       "name": "auth_challenge_type",
       "value": "auth_challenge_type",
@@ -55660,7 +55684,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:284"
+        "internal/security/auth_resource.go:305"
       ],
       "terms": [
         "auth_challenge_type",
@@ -55673,7 +55697,7 @@
       ]
     },
     {
-      "id": "79839d39ee8d5f2f9f82e7f2",
+      "id": "cc99323c7135dd4b0b16e70b",
       "category": "i18n message key",
       "name": "auth_credentials",
       "value": "auth_credentials",
@@ -55681,7 +55705,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:119"
+        "internal/security/auth_resource.go:125"
       ],
       "terms": [
         "auth_credentials",
@@ -55694,7 +55718,7 @@
       ]
     },
     {
-      "id": "6f6cd7dec60feae23d93932a",
+      "id": "1884aa30a3aebab7deb30f8b",
       "category": "i18n message key",
       "name": "auth_principal",
       "value": "auth_principal",
@@ -55702,7 +55726,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:118"
+        "internal/security/auth_resource.go:124"
       ],
       "terms": [
         "auth_principal",
@@ -55715,7 +55739,7 @@
       ]
     },
     {
-      "id": "eefdf586664bfede8de52be9",
+      "id": "5076f55c6e2842793dbada1b",
       "category": "i18n message key",
       "name": "auth_refresh_token",
       "value": "auth_refresh_token",
@@ -55723,7 +55747,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:224"
+        "internal/security/auth_resource.go:245"
       ],
       "terms": [
         "auth_refresh_token",
@@ -55736,7 +55760,7 @@
       ]
     },
     {
-      "id": "6e6428e9a7463dfaf9af8277",
+      "id": "8a0514675affc7002c9145f1",
       "category": "i18n message key",
       "name": "auth_type",
       "value": "auth_type",
@@ -55744,7 +55768,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:117"
+        "internal/security/auth_resource.go:123"
       ],
       "terms": [
         "auth_type",
@@ -57440,7 +57464,7 @@
       ]
     },
     {
-      "id": "23ab1201a40eeb645c8aca23",
+      "id": "166285fedc7f8fe226fbf02c",
       "category": "i18n message key",
       "name": "security_invalid_credentials",
       "value": "security_invalid_credentials",
@@ -57448,7 +57472,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:107"
+        "internal/security/password_authenticator.go:80"
       ],
       "terms": [
         "call",
@@ -57460,7 +57484,7 @@
       ]
     },
     {
-      "id": "8d595fa85f6fa787558c2bb2",
+      "id": "7d16d7c57cc7dbf2cf6fc34b",
       "category": "i18n message key",
       "name": "security_invalid_credentials",
       "value": "security_invalid_credentials",
@@ -57468,7 +57492,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:111"
+        "internal/security/password_authenticator.go:98"
       ],
       "terms": [
         "call",
@@ -57480,7 +57504,7 @@
       ]
     },
     {
-      "id": "944a0d235c4b7e8c1c007e08",
+      "id": "a02a03a67266790fcf2bec03",
       "category": "i18n message key",
       "name": "security_invalid_credentials",
       "value": "security_invalid_credentials",
@@ -57488,7 +57512,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:100"
+        "internal/security/password_authenticator.go:105"
       ],
       "terms": [
         "call",
@@ -57500,7 +57524,7 @@
       ]
     },
     {
-      "id": "fe56b63c5cad018f920bcc9f",
+      "id": "bfc9d3992cdc6f26de965897",
       "category": "i18n message key",
       "name": "security_invalid_credentials",
       "value": "security_invalid_credentials",
@@ -57508,7 +57532,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:82"
+        "internal/security/password_authenticator.go:109"
       ],
       "terms": [
         "call",
@@ -57780,7 +57804,7 @@
       ]
     },
     {
-      "id": "0e7ee45c3bf7243065c42ee8",
+      "id": "016d0c3153866c9075cb6efb",
       "category": "i18n message key",
       "name": "security_password_required",
       "value": "security_password_required",
@@ -57788,7 +57812,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:69"
+        "internal/security/password_authenticator.go:67"
       ],
       "terms": [
         "call",
@@ -57960,7 +57984,7 @@
       ]
     },
     {
-      "id": "12a6bfc01efcac11e1480053",
+      "id": "d88a7cd573cd60ed1f3bb004",
       "category": "i18n message key",
       "name": "security_system_principal_login_forbidden",
       "value": "security_system_principal_login_forbidden",
@@ -57968,7 +57992,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:64"
+        "internal/security/password_authenticator.go:62"
       ],
       "terms": [
         "call",
@@ -58260,7 +58284,7 @@
       ]
     },
     {
-      "id": "9bbfd3b2c926cad35786b98f",
+      "id": "a775fc1cf3fd059bfd4e5a5f",
       "category": "i18n message key",
       "name": "security_user_info_loader_not_implemented",
       "value": "security_user_info_loader_not_implemented",
@@ -58268,7 +58292,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:390"
+        "internal/security/auth_resource.go:406"
       ],
       "terms": [
         "call",
@@ -58277,6 +58301,26 @@
         "key",
         "message",
         "security_user_info_loader_not_implemented"
+      ]
+    },
+    {
+      "id": "25cf7d5eac64700675ad46cc",
+      "category": "i18n message key",
+      "name": "security_user_loader_not_implemented",
+      "value": "security_user_loader_not_implemented",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "internal/security/password_authenticator.go:53"
+      ],
+      "terms": [
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message",
+        "security_user_loader_not_implemented"
       ]
     },
     {
@@ -58300,27 +58344,7 @@
       ]
     },
     {
-      "id": "f1fe0a002dbcdaacc2cb61bb",
-      "category": "i18n message key",
-      "name": "security_user_loader_not_implemented",
-      "value": "security_user_loader_not_implemented",
-      "details": [
-        "i18n.T call"
-      ],
-      "source_evidence": [
-        "internal/security/password_authenticator.go:55"
-      ],
-      "terms": [
-        "call",
-        "i18n",
-        "i18n.T",
-        "key",
-        "message",
-        "security_user_loader_not_implemented"
-      ]
-    },
-    {
-      "id": "65b3b35a81951cc2974f8d63",
+      "id": "eae9ad5a161926363427a7a0",
       "category": "i18n message key",
       "name": "security_username_required",
       "value": "security_username_required",
@@ -58328,7 +58352,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/password_authenticator.go:60"
+        "internal/security/password_authenticator.go:58"
       ],
       "terms": [
         "call",

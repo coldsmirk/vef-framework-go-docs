@@ -17,8 +17,8 @@ Regenerate and verify this page whenever the framework runtime surface changes:
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `c69b05d13e4563dcd0dc53d61f9e007b9e1afad4306b436b725052f91a53f03b`
-Entries: `3243`
+Fingerprint: `e3f6c49a72187c416acaabadb0cc2180f8b67529339a9992c4e76a416f26a053`
+Entries: `3244`
 
 ## Coverage Evidence
 
@@ -33,7 +33,7 @@ Entries: `3243`
 | `HTTP endpoint` | 2 | Tier 2 source-derived constants | `extractProtocolConstants` | Source-derived REST/RPC/MCP endpoint constants and call-site evidence. | None for framework-owned default endpoints. |
 | `HTTP header` | 7 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/header.go Header* constants. | None. |
 | `HTTP wire field` | 8 | Tier 3 curated protocol fields | `extractProtocolConstants` | Curated source references for fundamental request/result fields shared by REST/RPC. | None in generated index; JSON DTO fields are covered separately. |
-| `JSON wire field` | 1660 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
+| `JSON wire field` | 1661 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
 | `MCP endpoint` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of the MCP Streamable HTTP endpoint constant. | None. |
 | `MCP jsonschema tag` | 32 | Tier 2 pinned dependency parser catalog | `extractJSONSchemaTags` | Catalog of struct-tag keywords accepted by github.com/invopop/jsonschema v0.14.0, with boundary verification that fails on dependency-version drift and uncovered in-source jsonschema tags. | None for the pinned jsonschema parser version. |
 | `MCP prompt` | 1 | Tier 2 MCP AST | `extractMCP` | AST scan of internal/mcp Prompt composites. | None in scanned MCP package. |
@@ -41,7 +41,7 @@ Entries: `3243`
 | `REST action verb` | 10 | Tier 2 validator AST | `extractRESTVerbs` | AST scan of the REST action validator's allowed HTTP verb set. | None in current validator construction. |
 | `RPC form key` | 2 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of FormKey* constants. | None. |
 | `auth strategy` | 6 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/auth.go AuthStrategy* string constants. | None. |
-| `auth type` | 6 | Tier 2 scoped AST constants | `extractAuthTypes` | AST scan of internal/security AuthType* constants that are sent through Authentication.Type. | None in known built-in authenticators. |
+| `auth type` | 6 | Tier 2 scoped AST constants | `extractAuthTypes` | AST scan of security and internal/security AuthType* constants that are sent through Authentication.Type. | None in known built-in authenticators. |
 | `built-in resource` | 19 | Tier 2 scoped AST resources | `extractBuiltInResources` | AST scan of NewRPCResource/NewRESTResource calls in built-in runtime resource packages. | None in scanned built-in resource directories. |
 | `built-in resource action` | 97 | Tier 2 scoped AST operations | `extractBuiltInResources` | AST scan of explicit OperationSpec values and CRUD builder defaults inside built-in runtime resource packages. | None in scanned built-in resource directories. |
 | `config default` | 87 | Tier 3 mixed static extraction | `extractConfigDefaults` | AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed. | Defaults outside Effective*/ApplyDefaults/DefaultConfig and curated reviewed call sites require explicit review. |
@@ -1151,18 +1151,19 @@ Entries: `3243`
 | `LoginChallenge.Data` | `data` | Go field: LoginChallenge.Data<br/>type: any | `security/challenge.go:8` |
 | `LoginChallenge.Required` | `required` | Go field: LoginChallenge.Required<br/>type: bool | `security/challenge.go:9` |
 | `LoginChallenge.Type` | `type` | Go field: LoginChallenge.Type<br/>type: string | `security/challenge.go:7` |
-| `LoginEvent.AuthType` | `authType` | Go field: LoginEvent.AuthType<br/>type: string | `security/login_event.go:13` |
-| `LoginEvent.ErrorCode` | `errorCode` | Go field: LoginEvent.ErrorCode<br/>type: int | `security/login_event.go:21` |
-| `LoginEvent.FailReason` | `failReason` | Go field: LoginEvent.FailReason<br/>type: string | `security/login_event.go:20` |
-| `LoginEvent.IsOk` | `isOk` | Go field: LoginEvent.IsOk<br/>type: bool | `security/login_event.go:19` |
-| `LoginEvent.LoginIP` | `loginIp` | Go field: LoginEvent.LoginIP<br/>type: string | `security/login_event.go:16` |
-| `LoginEvent.TraceID` | `traceId` | Go field: LoginEvent.TraceID<br/>type: string | `security/login_event.go:18` |
-| `LoginEvent.UserAgent` | `userAgent` | Go field: LoginEvent.UserAgent<br/>type: string | `security/login_event.go:17` |
-| `LoginEvent.UserID` | `userId` | Go field: LoginEvent.UserID<br/>type: *string | `security/login_event.go:14` |
-| `LoginEvent.Username` | `username` | Go field: LoginEvent.Username<br/>type: string | `security/login_event.go:15` |
-| `LoginParams.Credentials` | `credentials` | Go field: LoginParams.Credentials<br/>type: any<br/>validate: "required" | `internal/security/auth_resource.go:119` |
-| `LoginParams.Principal` | `principal` | Go field: LoginParams.Principal<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:118` |
-| `LoginParams.Type` | `type` | Go field: LoginParams.Type<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:117` |
+| `LoginEvent.AuthType` | `authType` | Go field: LoginEvent.AuthType<br/>type: string | `security/login_event.go:17` |
+| `LoginEvent.ChallengeType` | `challengeType` | Go field: LoginEvent.ChallengeType<br/>type: string | `security/login_event.go:26` |
+| `LoginEvent.ErrorCode` | `errorCode` | Go field: LoginEvent.ErrorCode<br/>type: int | `security/login_event.go:25` |
+| `LoginEvent.FailReason` | `failReason` | Go field: LoginEvent.FailReason<br/>type: string | `security/login_event.go:24` |
+| `LoginEvent.IsOk` | `isOk` | Go field: LoginEvent.IsOk<br/>type: bool | `security/login_event.go:23` |
+| `LoginEvent.LoginIP` | `loginIp` | Go field: LoginEvent.LoginIP<br/>type: string | `security/login_event.go:20` |
+| `LoginEvent.TraceID` | `traceId` | Go field: LoginEvent.TraceID<br/>type: string | `security/login_event.go:22` |
+| `LoginEvent.UserAgent` | `userAgent` | Go field: LoginEvent.UserAgent<br/>type: string | `security/login_event.go:21` |
+| `LoginEvent.UserID` | `userId` | Go field: LoginEvent.UserID<br/>type: *string | `security/login_event.go:18` |
+| `LoginEvent.Username` | `username` | Go field: LoginEvent.Username<br/>type: string | `security/login_event.go:19` |
+| `LoginParams.Credentials` | `credentials` | Go field: LoginParams.Credentials<br/>type: any<br/>validate: "required" | `internal/security/auth_resource.go:125` |
+| `LoginParams.Principal` | `principal` | Go field: LoginParams.Principal<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:124` |
+| `LoginParams.Type` | `type` | Go field: LoginParams.Type<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:123` |
 | `LoginResult.Challenge` | `challenge` | Go field: LoginResult.Challenge<br/>type: *LoginChallenge | `security/challenge.go:18` |
 | `LoginResult.ChallengeToken` | `challengeToken` | Go field: LoginResult.ChallengeToken<br/>type: string | `security/challenge.go:17` |
 | `LoginResult.Tokens` | `tokens` | Go field: LoginResult.Tokens<br/>type: *AuthTokens | `security/challenge.go:16` |
@@ -1227,8 +1228,8 @@ Entries: `3243`
 | `NodeVisit.Sequence` | `sequence` | Go field: NodeVisit.Sequence<br/>type: int | `approval/models.go:371` |
 | `NodeVisit.Status` | `status` | Go field: NodeVisit.Status<br/>type: NodeVisitStatus | `approval/models.go:372` |
 | `NodeVisit.TenantID` | `tenantId` | Go field: NodeVisit.TenantID<br/>type: string | `approval/models.go:368` |
-| `OTPChallengeData.Destination` | `destination` | Go field: OTPChallengeData.Destination<br/>type: string | `security/otp.go:45` |
-| `OTPChallengeData.Meta` | `meta` | Go field: OTPChallengeData.Meta<br/>type: map[string]any | `security/otp.go:46` |
+| `OTPChallengeData.Destination` | `destination` | Go field: OTPChallengeData.Destination<br/>type: string | `security/otp.go:47` |
+| `OTPChallengeData.Meta` | `meta` | Go field: OTPChallengeData.Meta<br/>type: map[string]any | `security/otp.go:48` |
 | `ObjectInfo.Bucket` | `bucket` | Go field: ObjectInfo.Bucket<br/>type: string | `storage/service.go:125` |
 | `ObjectInfo.ContentType` | `contentType` | Go field: ObjectInfo.ContentType<br/>type: string | `storage/service.go:133` |
 | `ObjectInfo.ETag` | `eTag` | Go field: ObjectInfo.ETag<br/>type: string | `storage/service.go:129` |
@@ -1343,7 +1344,7 @@ Entries: `3243`
 | `Record.Status` | `status` | Go field: Record.Status<br/>type: Status | `event/transport/outbox/outbox.go:51` |
 | `Record.Status` | `status` | Go field: Record.Status<br/>type: Status | `event/inbox/inbox.go:52` |
 | `Record.TraceID` | `traceId` | Go field: Record.TraceID<br/>type: string | `event/transport/outbox/outbox.go:46` |
-| `RefreshParams.RefreshToken` | `refreshToken` | Go field: RefreshParams.RefreshToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:224` |
+| `RefreshParams.RefreshToken` | `refreshToken` | Go field: RefreshParams.RefreshToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:245` |
 | `RemoteOptionMapping.DescriptionKey` | `descriptionKey` | Go field: RemoteOptionMapping.DescriptionKey<br/>type: string | `approval/form_field.go:136` |
 | `RemoteOptionMapping.DisabledKey` | `disabledKey` | Go field: RemoteOptionMapping.DisabledKey<br/>type: string | `approval/form_field.go:134` |
 | `RemoteOptionMapping.LabelKey` | `labelKey` | Go field: RemoteOptionMapping.LabelKey<br/>type: string | `approval/form_field.go:130` |
@@ -1358,9 +1359,9 @@ Entries: `3243`
 | `RemoveAssigneeParams.TaskID` | `taskId` | Go field: RemoveAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:424` |
 | `Request.Meta` | `meta` | Go field: Request.Meta<br/>type: Meta | `api/request.go:113` |
 | `Request.Params` | `params` | Go field: Request.Params<br/>type: Params | `api/request.go:112` |
-| `ResolveChallengeParams.ChallengeToken` | `challengeToken` | Go field: ResolveChallengeParams.ChallengeToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:283` |
-| `ResolveChallengeParams.Response` | `response` | Go field: ResolveChallengeParams.Response<br/>type: any<br/>validate: "required" | `internal/security/auth_resource.go:285` |
-| `ResolveChallengeParams.Type` | `type` | Go field: ResolveChallengeParams.Type<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:284` |
+| `ResolveChallengeParams.ChallengeToken` | `challengeToken` | Go field: ResolveChallengeParams.ChallengeToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:304` |
+| `ResolveChallengeParams.Response` | `response` | Go field: ResolveChallengeParams.Response<br/>type: any<br/>validate: "required" | `internal/security/auth_resource.go:306` |
+| `ResolveChallengeParams.Type` | `type` | Go field: ResolveChallengeParams.Type<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:305` |
 | `ResolveParams.Keys` | `keys` | Go field: ResolveParams.Keys<br/>type: []string<br/>validate: "required,min=1,max=200,dive,required" | `internal/storage/file_resource.go:50` |
 | `ResolveResult.Files` | `files` | Go field: ResolveResult.Files<br/>type: []ResolvedFile | `internal/storage/file_resource.go:68` |
 | `ResolvedFile.ContentType` | `contentType` | Go field: ResolvedFile.ContentType<br/>type: string | `internal/storage/file_resource.go:60` |
@@ -1964,10 +1965,10 @@ Entries: `3243`
 | --- | --- | --- | --- |
 | `AuthTypeJWTToken` | `jwt_token` |  | `internal/security/jwt_token_authenticator.go:11` |
 | `AuthTypeOpaqueToken` | `opaque_token` |  | `internal/security/opaque_token_authenticator.go:11` |
-| `AuthTypePassword` | `password` |  | `internal/security/password_authenticator.go:15` |
+| `AuthTypePassword` | `password` |  | `security/constants.go:13` |
 | `AuthTypeRefresh` | `refresh` |  | `internal/security/jwt_refresh_authenticator.go:13` |
 | `AuthTypeSignature` | `signature` |  | `internal/security/signature_authenticator.go:14` |
-| `AuthTypeTrustCode` | `trust_code` |  | `internal/security/trust_code_authenticator.go:12` |
+| `AuthTypeTrustCode` | `trust_code` |  | `security/constants.go:14` |
 
 ## built-in resource
 
@@ -1987,7 +1988,7 @@ Entries: `3243`
 | `integration/ops` | `rpc` |  | `internal/integration/resource/ops.go:79` |
 | `integration/route` | `rpc` |  | `internal/integration/resource/route.go:52` |
 | `integration/system` | `rpc` |  | `internal/integration/resource/system.go:86` |
-| `security/auth` | `rpc` |  | `internal/security/auth_resource.go:91` |
+| `security/auth` | `rpc` |  | `internal/security/auth_resource.go:96` |
 | `sys/monitor` | `rpc` |  | `internal/monitor/resource.go:25` |
 | `sys/schema` | `rpc` |  | `internal/schema/resource.go:17` |
 | `sys/storage` | `rpc` |  | `internal/storage/resource.go:214` |
@@ -2610,13 +2611,13 @@ Entries: `3243`
 | `approval_version_not_draft` | `approval_version_not_draft` | i18n.T call | `approval/api_errors.go:91` |
 | `approval_version_not_found` | `approval_version_not_found` | i18n.T call | `approval/api_errors.go:94` |
 | `approval_withdraw_not_allowed` | `approval_withdraw_not_allowed` | i18n.T call | `approval/api_errors.go:166` |
-| `auth_challenge_response` | `auth_challenge_response` | label_i18n struct tag | `internal/security/auth_resource.go:285` |
-| `auth_challenge_token` | `auth_challenge_token` | label_i18n struct tag | `internal/security/auth_resource.go:283` |
-| `auth_challenge_type` | `auth_challenge_type` | label_i18n struct tag | `internal/security/auth_resource.go:284` |
-| `auth_credentials` | `auth_credentials` | label_i18n struct tag | `internal/security/auth_resource.go:119` |
-| `auth_principal` | `auth_principal` | label_i18n struct tag | `internal/security/auth_resource.go:118` |
-| `auth_refresh_token` | `auth_refresh_token` | label_i18n struct tag | `internal/security/auth_resource.go:224` |
-| `auth_type` | `auth_type` | label_i18n struct tag | `internal/security/auth_resource.go:117` |
+| `auth_challenge_response` | `auth_challenge_response` | label_i18n struct tag | `internal/security/auth_resource.go:306` |
+| `auth_challenge_token` | `auth_challenge_token` | label_i18n struct tag | `internal/security/auth_resource.go:304` |
+| `auth_challenge_type` | `auth_challenge_type` | label_i18n struct tag | `internal/security/auth_resource.go:305` |
+| `auth_credentials` | `auth_credentials` | label_i18n struct tag | `internal/security/auth_resource.go:125` |
+| `auth_principal` | `auth_principal` | label_i18n struct tag | `internal/security/auth_resource.go:124` |
+| `auth_refresh_token` | `auth_refresh_token` | label_i18n struct tag | `internal/security/auth_resource.go:245` |
+| `auth_type` | `auth_type` | label_i18n struct tag | `internal/security/auth_resource.go:123` |
 | `cron_job_not_registered` | `cron_job_not_registered` | i18n.T call | `cron/api_errors.go:35` |
 | `cron_schedule_disabled` | `cron_schedule_disabled` | i18n.T call | `cron/api_errors.go:31` |
 | `cron_schedule_exists` | `cron_schedule_exists` | i18n.T call | `cron/api_errors.go:27` |
@@ -2701,10 +2702,10 @@ Entries: `3243`
 | `security_external_app_disabled` | `security_external_app_disabled` | i18n.T call | `security/api_errors.go:164` |
 | `security_external_app_loader_not_implemented` | `security_external_app_loader_not_implemented` | i18n.T call | `internal/security/signature_authenticator.go:71` |
 | `security_external_app_not_found` | `security_external_app_not_found` | i18n.T call | `security/api_errors.go:159` |
-| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:107` |
-| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:111` |
-| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:100` |
-| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:82` |
+| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:80` |
+| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:98` |
+| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:105` |
+| `security_invalid_credentials` | `security_invalid_credentials` | i18n.T call | `internal/security/password_authenticator.go:109` |
 | `security_ip_not_allowed` | `security_ip_not_allowed` | i18n.T call | `security/api_errors.go:169` |
 | `security_new_password_required` | `security_new_password_required` | i18n.T call | `security/api_errors.go:243` |
 | `security_nonce_already_used` | `security_nonce_already_used` | i18n.T call | `security/api_errors.go:194` |
@@ -2718,7 +2719,7 @@ Entries: `3243`
 | `security_password_missing_lowercase` | `security_password_missing_lowercase` | i18n.T call | `security/api_errors.go:263` |
 | `security_password_missing_symbol` | `security_password_missing_symbol` | i18n.T call | `security/api_errors.go:273` |
 | `security_password_missing_uppercase` | `security_password_missing_uppercase` | i18n.T call | `security/api_errors.go:258` |
-| `security_password_required` | `security_password_required` | i18n.T call | `internal/security/password_authenticator.go:69` |
+| `security_password_required` | `security_password_required` | i18n.T call | `internal/security/password_authenticator.go:67` |
 | `security_password_reused` | `security_password_reused` | i18n.T call | `security/api_errors.go:288` |
 | `security_password_too_few_char_classes` | `security_password_too_few_char_classes` | i18n.T call | `security/api_errors.go:356` |
 | `security_password_too_long` | `security_password_too_long` | i18n.T call | `security/api_errors.go:347` |
@@ -2727,7 +2728,7 @@ Entries: `3243`
 | `security_signature_expired` | `security_signature_expired` | i18n.T call | `security/api_errors.go:149` |
 | `security_signature_invalid` | `security_signature_invalid` | i18n.T call | `security/api_errors.go:154` |
 | `security_signature_required` | `security_signature_required` | i18n.T call | `security/api_errors.go:139` |
-| `security_system_principal_login_forbidden` | `security_system_principal_login_forbidden` | i18n.T call | `internal/security/password_authenticator.go:64` |
+| `security_system_principal_login_forbidden` | `security_system_principal_login_forbidden` | i18n.T call | `internal/security/password_authenticator.go:62` |
 | `security_timestamp_invalid` | `security_timestamp_invalid` | i18n.T call | `security/api_errors.go:144` |
 | `security_timestamp_required` | `security_timestamp_required` | i18n.T call | `security/api_errors.go:134` |
 | `security_token_expired` | `security_token_expired` | i18n.T call | `security/api_errors.go:91` |
@@ -2742,10 +2743,10 @@ Entries: `3243`
 | `security_trust_user_not_resolved` | `security_trust_user_not_resolved` | i18n.T call | `security/api_errors.go:320` |
 | `security_unauthenticated` | `security_unauthenticated` | i18n.T call | `security/api_errors.go:86` |
 | `security_unsupported_authentication_type` | `security_unsupported_authentication_type` | i18n.T call | `internal/security/auth_manager.go:73` |
-| `security_user_info_loader_not_implemented` | `security_user_info_loader_not_implemented` | i18n.T call | `internal/security/auth_resource.go:390` |
+| `security_user_info_loader_not_implemented` | `security_user_info_loader_not_implemented` | i18n.T call | `internal/security/auth_resource.go:406` |
+| `security_user_loader_not_implemented` | `security_user_loader_not_implemented` | i18n.T call | `internal/security/password_authenticator.go:53` |
 | `security_user_loader_not_implemented` | `security_user_loader_not_implemented` | i18n.T call | `internal/security/jwt_refresh_authenticator.go:34` |
-| `security_user_loader_not_implemented` | `security_user_loader_not_implemented` | i18n.T call | `internal/security/password_authenticator.go:55` |
-| `security_username_required` | `security_username_required` | i18n.T call | `internal/security/password_authenticator.go:60` |
+| `security_username_required` | `security_username_required` | i18n.T call | `internal/security/password_authenticator.go:58` |
 | `storage_claim_expired` | `storage_claim_expired` | i18n.T call | `storage/api_errors.go:54` |
 | `storage_claim_not_multipart` | `storage_claim_not_multipart` | i18n.T call | `storage/api_errors.go:86` |
 | `storage_claim_not_pending` | `storage_claim_not_pending` | i18n.T call | `storage/api_errors.go:50` |

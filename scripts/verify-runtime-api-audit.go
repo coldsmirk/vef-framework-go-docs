@@ -244,7 +244,7 @@ func buildRuntimeCoverage(entries []RuntimeEntry) []RuntimeCoverage {
 		"auth type": {
 			Tier:          "Tier 2 scoped AST constants",
 			Extractor:     "extractAuthTypes",
-			Method:        "AST scan of internal/security AuthType* constants that are sent through Authentication.Type.",
+			Method:        "AST scan of security and internal/security AuthType* constants that are sent through Authentication.Type.",
 			KnownResidual: "None in known built-in authenticators.",
 		},
 		"built-in resource": {
@@ -834,7 +834,10 @@ func (x *extractor) extractProtocolConstants() {
 
 func (x *extractor) extractAuthTypes() {
 	for _, sf := range x.files {
-		if !strings.HasPrefix(sf.Path, "internal/security/") {
+		// The login mechanisms a caller sends are declared in both halves of the
+		// security package: the public constants a host names (security/constants.go)
+		// and the internal ones the built-in authenticators register.
+		if !strings.HasPrefix(sf.Path, "security/") && !strings.HasPrefix(sf.Path, "internal/security/") {
 			continue
 		}
 		ast.Inspect(sf.File, func(node ast.Node) bool {
