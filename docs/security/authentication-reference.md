@@ -672,10 +672,12 @@ Behavior notes:
   `1031` (`ErrChallengeTokenInvalid`, HTTP 401) on this endpoint. So does a
   token that parses to a state without an `AuthType`, whichever
   `ChallengeTokenStore` produced it.
-- A rejected `response` is treated like a failed login: it counts toward
-  the brute-force lockout for the original identifier — on every login
-  mechanism, `trust_code` included — and is audited with the login's
-  `authType` and the `challengeType` being resolved.
+- A rejected `response` is treated like a failed login and is audited with
+  the login's `authType` and the `challengeType` being resolved. For login
+  mechanisms guarded at the `login` step, it counts toward the brute-force
+  lockout under the original identifier; a `trust_code` login counts under the
+  account being logged into (`login.Principal.ID`), not the initiating
+  app ID.
   Providers that return a typed `result.Error` keep their code (`1035`
   `ErrOTPCodeRequired`, `1036` `ErrOTPCodeInvalid`, `1037`
   `ErrNewPasswordRequired`, `1038` `ErrDepartmentRequired`); a bare error is
@@ -690,6 +692,12 @@ Behavior notes:
   refused as reserved or fails while advancing the login: the provider's side
   effects have already run, so the token is spent and the login must restart
   from `login`.
+- Once the credential and, on a resolve step, the challenge answer have been
+  accepted, failures while advancing the login are audited but not counted:
+  a provider cannot evaluate the next challenge, the challenge store cannot
+  issue the next token, or token issuance is refused by session policy. They
+  carry the same `authType`, original username, and current `challengeType`,
+  and leave any failures already counted for the login standing.
 - Wrong-type and invalid-token protocol errors (`1031`, `1033`) are not
   guarded or audited; the lockout check (`1023`, HTTP 429) applies before
   the provider verifies the response.

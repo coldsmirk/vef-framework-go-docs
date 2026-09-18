@@ -600,9 +600,11 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
   （`system`/空/未知 principal type、保留 ID）——在该端点统一表现为
   `1031`（`ErrChallengeTokenInvalid`，HTTP 401）。无论由哪个
   `ChallengeTokenStore` 产生，解析出的状态缺少 `AuthType` 时同样如此。
-- 被拒绝的 `response` 按登录失败对待：计入原始标识的暴力破解锁定——任何
-  登录方式都一样，`trust_code` 也不例外——并以这次登录的 `authType` 和正在
-  解决的 `challengeType` 被审计。返回类型化 `result.Error` 的 provider 保留自己的 code（`1035`
+- 被拒绝的 `response` 按登录失败对待，并以这次登录的 `authType` 和正在
+  解决的 `challengeType` 被审计。对在 `login` 步骤受守卫约束的登录方式，它计入
+  原始标识的暴力破解锁定；`trust_code` 登录计入正在登录的账号
+  （`login.Principal.ID`），而不是发起系统的 app ID。返回类型化
+  `result.Error` 的 provider 保留自己的 code（`1035`
   `ErrOTPCodeRequired`、`1036` `ErrOTPCodeInvalid`、`1037`
   `ErrNewPasswordRequired`、`1038` `ErrDepartmentRequired`）；裸 error 被
   归一化为 `1034`（`ErrChallengeResolveFailed`，HTTP 401）。
@@ -613,6 +615,10 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
   重试。一旦 `Resolve` 返回 principal，即使这一步随后被保留身份规则拒绝，或在
   推进登录时失败，认领也会保留：provider 的副作用此时已经执行，token 已被消耗，
   登录必须从 `login` 重新开始。
+- 凭证、以及 resolve 步骤中的挑战应答被接受后，推进登录时的失败会被审计但
+  不计数：provider 无法评估下一个挑战、challenge store 无法签发下一个 token，
+  或 token 签发被会话策略拒绝。这些事件携带同一个 `authType`、原始用户名和
+  当前 `challengeType`，并保留这次登录已经计入的失败次数。
 - 类型不符与令牌无效这类协议错误（`1031`、`1033`）不经过 guard 也不审
   计；锁定检查（`1023`，HTTP 429）在 provider 校验应答之前进行。
 
