@@ -139,6 +139,14 @@ replaces `Principal` before handing it back to `Generate`, so its slices must
 not share backing arrays with anything the store retains
 (`MemoryChallengeTokenStore` copies them on both calls).
 
+A store need not make tokens single-use. `resolve_challenge` claims the token
+it receives with the application's `lock.Locker` before the provider runs, so
+each token resolves at most one step no matter which store issued it. A replay
+of a step whose provider already ran, or a duplicate racing one in flight, is
+refused as `ErrChallengeTokenInvalid` before any provider side effect runs
+again. Without Redis, the default in-process locker makes that claim effective
+per replica only.
+
 `JWTChallengeTokenStore` is stateless; `MemoryChallengeTokenStore` is suitable
 for tests or single-instance deployments; `RedisChallengeTokenStore` is for
 distributed deployments. Challenge tokens expire after `ChallengeTokenExpires`.
@@ -676,6 +684,12 @@ Behavior notes:
   refused with `1007` (`ErrReservedPrincipal`); the rejection is audited but
   not counted toward lockout — the second factor was correct, the fault is
   the provider's.
+- The claim is released when a provider rejects the response or returns an
+  error, so a mistyped answer can be retried with the same token. Once
+  `Resolve` returns a principal, the claim is kept even if the step is then
+  refused as reserved or fails while advancing the login: the provider's side
+  effects have already run, so the token is spent and the login must restart
+  from `login`.
 - Wrong-type and invalid-token protocol errors (`1031`, `1033`) are not
   guarded or audited; the lockout check (`1023`, HTTP 429) applies before
   the provider verifies the response.

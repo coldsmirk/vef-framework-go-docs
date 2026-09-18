@@ -127,6 +127,12 @@ token 完全一样，因为后续挑战的适用范围取决于它：自定义 s
 slice 不得与 store 保留的任何数据共享底层数组（`MemoryChallengeTokenStore` 在两次
 调用时都会复制它们）。
 
+store 不必把 token 做成一次性。`resolve_challenge` 会在 provider 运行前，用应用的
+`lock.Locker` 认领收到的 token，因此无论由哪个 store 签发，每个 token 最多解决
+一步。重放 provider 已经执行过的步骤，或与它并发重复提交，都会在任何 provider
+副作用再次执行前以 `ErrChallengeTokenInvalid` 拒绝。没有 Redis 时，默认的进程内
+锁只让这个认领在单个副本内生效。
+
 `JWTChallengeTokenStore` 是无状态实现；`MemoryChallengeTokenStore` 适合测试或单实例；
 `RedisChallengeTokenStore` 适合分布式部署。challenge token 的有效期是
 `ChallengeTokenExpires`。JWT-backed store 使用 `ClaimChallengePrincipalType`、
@@ -603,6 +609,10 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
 - provider 解析出 nil 或框架保留 principal 会以 `1007`
   （`ErrReservedPrincipal`）拒绝；该拒绝会被审计但不计入锁定——第二因素
   本身是正确的，错在 provider。
+- provider 拒绝应答或返回 error 时会释放认领，因此输错的应答仍可用同一个 token
+  重试。一旦 `Resolve` 返回 principal，即使这一步随后被保留身份规则拒绝，或在
+  推进登录时失败，认领也会保留：provider 的副作用此时已经执行，token 已被消耗，
+  登录必须从 `login` 重新开始。
 - 类型不符与令牌无效这类协议错误（`1031`、`1033`）不经过 guard 也不审
   计；锁定检查（`1023`，HTTP 429）在 provider 校验应答之前进行。
 
