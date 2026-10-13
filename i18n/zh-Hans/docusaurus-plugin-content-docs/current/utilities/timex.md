@@ -135,10 +135,11 @@ dt.Until()       // 距离 dt 还有多久
 dt.Sub(other)    // 两个时间的间隔
 ```
 
-`AsLocal` 的存在是因为 `DateTime` 按约定是时区朴素的——持久化与解析都用裸的
-`"2006-01-02 15:04:05"` 字符串——因此从数据库驱动扫描回来的值可能带着任意
-时区标签（某些驱动是 UTC），而其字段实际是本地墙钟时间。在与 `Now` 做时刻
-运算之前请用 `AsLocal()`；在 SQL 内部比较的值永远不需要它。
+`AsLocal` 把墙钟字段重解释到 `time.Local`；零值保持为零值。`timex` 产生的每个值
+——`Now`、不带时区的 `Parse` 输入、JSON 以及数据库 `Scan`——本来就以 `time.Local`
+读取，因此它只对用 `Of`（或类型转换）从"字段是本地读数、标签却是别的时区"的
+`time.Time` 构造出来的 `DateTime` 有意义。它保留读数、移动时刻；若要保留时刻，
+请用 `dt.Unwrap().In(time.Local)`。
 
 ## Date
 
@@ -239,3 +240,14 @@ type Event struct {
     CreatedAt timex.DateTime `json:"createdAt" bun:"created_at,type:timestamp"`
 }
 ```
+
+读回的值就是写入时的读数，并以 `time.Local` 表示。`Value` 存储不带时区的墙钟字符串；
+无论驱动解码时打的是什么时区标签，`Scan` 都返回存储的读数并标为 `time.Local`——
+PostgreSQL、MySQL（`parseTime`，`loc` 保持默认的 UTC）、SQLite、SQL Server 与
+Oracle 的驱动都会把不带时区的列解码为 UTC。因此与 `Now` 的时刻运算和 Go 侧比较
+都无需转换；比较请用 `Equal`、`Before` 或 `After`，不要用 `==`——它还会比较
+`Location` 指针。
+
+优先使用不带时区的列类型（`timestamp`、`DATETIME`、`datetime2`）。在 `timestamptz`
+这类带时区的列上，读数是数据库会话时区所显示的那个：应用写入的值可以精确往返，
+数据库生成的值（`DEFAULT now()`）在会话时区与应用时区一致时才读得正确。

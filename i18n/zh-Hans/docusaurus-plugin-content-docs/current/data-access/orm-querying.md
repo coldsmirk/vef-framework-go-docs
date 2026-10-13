@@ -346,6 +346,12 @@ db.NewSelect().Model(&users).
 	}).Scan(ctx)
 ```
 
+`CreatedAt*` / `UpdatedAt*` 快捷条件接收 `time.Time` 并按时刻比较：绑定值会先换算成
+审计列所存储的本地墙上读数（见 [timex](../utilities/timex)），因此 `time.Now().UTC()`
+与 `time.Now()` 选出的行相同。通用运算符（`GreaterThan`、`Between` 等）按原样绑定
+参数——对 `timex` 列请绑定 `timex` 值而不是裸 `time.Time`，因为 bun 在 PostgreSQL 和
+SQLite 上会把裸 `time.Time` 渲染成它的 UTC 读数。
+
 ### 主键快捷方法
 
 ```go

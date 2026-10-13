@@ -99,11 +99,9 @@ the exported constants is treated defensively as "do not reset". For non-none
 cycles, `LastResetAt == nil` triggers a reset on the next reservation.
 
 Periods are calendar periods in the process's local time zone. `LastResetAt`
-and the reservation time are both read as local wall-clock time —
-`timex.DateTime` is timezone-naive, stored as a bare local wall-clock string —
-so the zone label a database driver puts on the stored value (UTC, for
-`timestamp` columns on PostgreSQL, MySQL and SQLite) does not move it into
-another period.
+is stored as a bare local wall-clock reading and reads back in `time.Local`
+like every `timex` value (see [timex](../utilities/timex)), so the zone label a
+database driver decodes it with does not move it into another period.
 
 ### Overflow strategies
 

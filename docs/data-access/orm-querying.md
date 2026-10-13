@@ -348,6 +348,14 @@ db.NewSelect().Model(&users).
 	}).Scan(ctx)
 ```
 
+The `CreatedAt*` / `UpdatedAt*` shortcuts take a `time.Time` and compare by
+instant: the bound is converted to the local wall-clock reading the audit
+columns store (see [timex](../utilities/timex)), so `time.Now().UTC()` and
+`time.Now()` select the same rows. The generic operators (`GreaterThan`,
+`Between`, …) bind values as given — bind a `timex` value, not a bare
+`time.Time`, against a `timex` column, since bun renders a bare `time.Time` as
+its UTC reading on PostgreSQL and SQLite.
+
 ### Primary Key Shortcuts
 
 ```go

@@ -144,12 +144,12 @@ dt.Until()       // Duration until dt
 dt.Sub(other)    // Duration between
 ```
 
-`AsLocal` exists because `DateTime` is timezone-naive by convention —
-persisted and parsed as a bare `"2006-01-02 15:04:05"` string — so a value
-scanned back from a database driver may carry an arbitrary zone label (UTC on
-some drivers) while its fields hold local wall-clock time. Use `AsLocal()`
-before instant arithmetic against `Now`; values compared inside SQL never
-need it.
+`AsLocal` reinterprets the wall-clock fields in `time.Local`; the zero value
+stays zero. Every value `timex` produces already reads in `time.Local` —
+`Now`, zone-less `Parse` input, JSON, and database `Scan` — so it matters only
+for a `DateTime` built with `Of` (or a conversion) from a `time.Time` that
+holds a local reading under another label. It keeps the reading and moves the
+instant; to keep the instant instead, use `dt.Unwrap().In(time.Local)`.
 
 ## Date
 
@@ -251,3 +251,17 @@ type Event struct {
     CreatedAt timex.DateTime `json:"createdAt" bun:"created_at,type:timestamp"`
 }
 ```
+
+A value read back is the reading that was written, in `time.Local`. `Value`
+stores the bare wall-clock string, and `Scan` returns the stored reading
+labeled `time.Local` whatever label the driver decoded it with — the
+PostgreSQL, MySQL (`parseTime`, `loc` left at UTC), SQLite, SQL Server and
+Oracle drivers all decode a zone-less column as UTC. Arithmetic against `Now`
+and Go-side comparisons therefore need no conversion; compare with `Equal`,
+`Before` or `After`, never `==`, which also compares the `Location` pointer.
+
+Prefer zone-less column types (`timestamp`, `DATETIME`, `datetime2`). On a
+zoned column such as `timestamptz` the reading is the one the database
+session's time zone shows: values the application wrote round-trip exactly,
+and database-generated ones (`DEFAULT now()`) read correctly when the session
+zone matches the application's.

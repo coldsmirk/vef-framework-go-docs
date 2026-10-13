@@ -93,10 +93,9 @@ rule := &sequence.Rule{
 fallback 处理为“不重置”。对非 none 周期，`LastResetAt == nil` 会让下一次预
 留触发 reset。
 
-周期按进程本地时区的自然周期计算。`LastResetAt` 与本次预留的时间都按本地墙上
-时间读取——`timex.DateTime` 不带时区，以不含时区的本地墙上时间字符串存储——因此
-数据库驱动给存储值打上的时区标签（PostgreSQL、MySQL 与 SQLite 的 `timestamp`
-列读回时为 UTC）不会把它挪到另一个周期。
+周期按进程本地时区的自然周期计算。`LastResetAt` 以不含时区的本地墙上读数存储，
+并像所有 `timex` 值一样以 `time.Local` 读回（见 [timex](../utilities/timex)），
+因此数据库驱动解码时打上的时区标签不会把它挪到另一个周期。
 
 ### 溢出策略
 
