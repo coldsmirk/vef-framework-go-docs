@@ -20,12 +20,13 @@ window-builder contracts used by application code.
 The Bun pass-through surface consists of aliases such as `orm.BunSelectQuery`,
 `orm.BunInsertQuery`, `orm.BunUpdateQuery`, and `orm.BunDeleteQuery`; those
 methods follow upstream [github.com/uptrace/bun](https://github.com/uptrace/bun)
-behavior at the pinned source dependency version `v1.2.18`. Bun/schema aliases
+behavior at the pinned source dependency version `v1.3.0`. Bun/schema aliases
 such as `Table`, `Field`, `Relation`, and `Dialect` follow the same
 pass-through policy. Do not read VEF query-interface behavior from the Bun
-aliases: for example, VEF `orm.SelectQuery.Count` returns `int64`, while the
-upstream Bun alias method signatures are tracked separately in the public API
-index. Query interfaces that embed `fmt.Stringer` expose `String()` for
+aliases: for example, VEF `orm.SelectQuery.Limit` and `orm.SelectQuery.Offset`
+take an `int` while the Bun aliases take an `int64`, and VEF
+`orm.SelectQuery.Count` returns `int64` whatever Bun returns. The upstream Bun
+alias method signatures are tracked separately in the public API index. Query interfaces that embed `fmt.Stringer` expose `String()` for
 SQL/debug rendering; exact signatures are tracked in the public API index.
 
 ## Overview

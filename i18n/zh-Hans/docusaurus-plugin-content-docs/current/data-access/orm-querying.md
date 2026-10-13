@@ -19,10 +19,12 @@ DDL、condition、expression、aggregate 和 window-builder contracts。
 Bun pass-through surface 包括 `orm.BunSelectQuery`、`orm.BunInsertQuery`、
 `orm.BunUpdateQuery` 和 `orm.BunDeleteQuery` 等 alias；这些方法遵循上游
 [github.com/uptrace/bun](https://github.com/uptrace/bun) 行为，版本为 source
-dependency 中固定的 `v1.2.18`。`Table`、`Field`、`Relation`、`Dialect` 等
+dependency 中固定的 `v1.3.0`。`Table`、`Field`、`Relation`、`Dialect` 等
 Bun/schema aliases 遵循同一 pass-through policy。不要用 Bun aliases 推断 VEF
-query-interface 行为：例如 VEF `orm.SelectQuery.Count` 返回 `int64`，而上游
-Bun alias 的方法签名会在 public API index 中单独记录。嵌入 `fmt.Stringer`
+query-interface 行为：例如 VEF `orm.SelectQuery.Limit` 和
+`orm.SelectQuery.Offset` 接收 `int`，而 Bun aliases 接收 `int64`；VEF
+`orm.SelectQuery.Count` 始终返回 `int64`，与 Bun 的返回类型无关。上游 Bun alias
+的方法签名会在 public API index 中单独记录。嵌入 `fmt.Stringer`
 的 query interfaces 公开 `String()` 用于 SQL/debug 渲染；精确签名记录在
 public API index 中。
 

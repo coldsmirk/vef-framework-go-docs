@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Decimal
 
-`decimal` 包重新导出 `shopspring/decimal v1.4.0`，用于任意精度
+`decimal` 包重新导出 `shopspring/decimal v1.5.0`，用于任意精度
 十进制算术，并额外提供 `NewFromAny` / `MustFromAny` 转换 helper。
 
 ## Alias 契约
@@ -21,8 +21,9 @@ exported fields。
 
 VEF 重新导出了 constructors、constants 和 aggregators，但没有重新导出
 upstream package-level knobs，例如 `DivisionPrecision`、
-`MarshalJSONWithoutQuotes`、`PowPrecisionNegativeExponent` 或
-`ExpMaxIterations`。如果应用必须修改这些全局设置，需要直接 import
+`MarshalJSONWithoutQuotes`、`PowPrecisionNegativeExponent`、
+`ExpMaxIterations`、`MaxDecodeExponent`、`TrimTrailingZeros` 或
+`UseScientificNotation`。如果应用必须修改这些全局设置，需要直接 import
 `github.com/shopspring/decimal`。
 
 ## Top-Level API
@@ -108,7 +109,7 @@ sentinel 没有导出。`decimal.MustFromAny` 会在任何转换错误上 panic�
 ## Method Families
 
 因为 `decimal.Decimal` 是 type alias，method set 继承自
-`shopspring/decimal.Decimal`。下表按用途对全部 70 个 exported methods
+`shopspring/decimal.Decimal`。下表按用途对全部 73 个 exported methods
 进行了分组；每个方法的精确签名都列在 [public API index](../reference/public-api-index) 中，
 那份索引是从源码树生成的，不在本页维护。
 
@@ -119,8 +120,8 @@ sentinel 没有导出。`decimal.MustFromAny` 会在任何转换错误上 panic�
 | Comparison and sign | `Decimal.Cmp`、`Decimal.Compare`、`Decimal.Equal`、`Decimal.Equals`、`Decimal.GreaterThan`、`Decimal.GreaterThanOrEqual`、`Decimal.LessThan`、`Decimal.LessThanOrEqual`、`Decimal.Sign` |
 | Rounding and scale | `Decimal.Ceil`、`Decimal.Floor`、`Decimal.Round`、`Decimal.RoundBank`、`Decimal.RoundCash`、`Decimal.RoundCeil`、`Decimal.RoundDown`、`Decimal.RoundFloor`、`Decimal.RoundUp`、`Decimal.Shift`、`Decimal.Truncate` |
 | Inspection and conversion | `Decimal.BigFloat`、`Decimal.BigInt`、`Decimal.Rat`、`Decimal.Float64`、`Decimal.InexactFloat64`、`Decimal.IntPart`、`Decimal.Coefficient`、`Decimal.CoefficientInt64`、`Decimal.Exponent`、`Decimal.NumDigits`、`Decimal.IsInteger`、`Decimal.IsNegative`、`Decimal.IsPositive`、`Decimal.IsZero`、`Decimal.Copy` |
-| String formatting | `Decimal.String`、`Decimal.StringFixed`、`Decimal.StringFixedBank`、`Decimal.StringFixedCash`、`Decimal.StringScaled` |
-| Encoding, database, and scanner interfaces | `Decimal.MarshalBinary`、`Decimal.UnmarshalBinary`、`Decimal.MarshalJSON`、`Decimal.UnmarshalJSON`、`Decimal.MarshalText`、`Decimal.UnmarshalText`、`Decimal.GobEncode`、`Decimal.GobDecode`、`Decimal.Scan`、`Decimal.Value` |
+| String formatting | `Decimal.String`、`Decimal.StringFixed`、`Decimal.StringFixedBank`、`Decimal.StringFixedCash`、`Decimal.StringScaled`、`Decimal.ScientificNotationString` |
+| Encoding, database, and scanner interfaces | `Decimal.MarshalBinary`、`Decimal.UnmarshalBinary`、`Decimal.MarshalJSON`、`Decimal.UnmarshalJSON`、`Decimal.MarshalText`、`Decimal.UnmarshalText`、`Decimal.GobEncode`、`Decimal.GobDecode`、`Decimal.Scan`、`Decimal.Value`、`Decimal.EncodeSpanner`、`Decimal.DecodeSpanner` |
 
 ## 运行时注意点
 
@@ -132,6 +133,9 @@ sentinel 没有导出。`decimal.MustFromAny` 会在任何转换错误上 panic�
   upstream `MarshalJSONWithoutQuotes` global 可以切换为 JSON number，但在
   JavaScript 客户端中可能丢失精度。
 - `Decimal.UnmarshalJSON` 同时接受 quoted 和 numeric JSON input。
+- 解析时会拒绝超过 upstream `MaxDecodeExponent`（默认 10,000）的 exponent：
+  `decimal.NewFromString`、对字符串调用的 `decimal.NewFromAny`，以及 JSON、text、
+  binary 和数据库解码遇到这类输入都会返回错误，而不会卡死或耗尽内存。
 - `decimal.NewFromFloat` 和 `decimal.NewFromFloat32` 会从 binary floating-point
   value 转换；金额类输入优先使用 `decimal.NewFromString`、整数 constructor
   或 scaled integer storage。

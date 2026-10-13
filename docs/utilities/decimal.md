@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Decimal
 
-The `decimal` package re-exports `shopspring/decimal v1.4.0` for
+The `decimal` package re-exports `shopspring/decimal v1.5.0` for
 arbitrary-precision decimal arithmetic and adds the `NewFromAny` /
 `MustFromAny` conversion helpers.
 
@@ -22,8 +22,9 @@ signatures and behavior. The type has no exported fields.
 
 VEF re-exports constructors, constants, and aggregators, but it does not
 re-export upstream package-level knobs such as `DivisionPrecision`,
-`MarshalJSONWithoutQuotes`, `PowPrecisionNegativeExponent`, or
-`ExpMaxIterations`. Import `github.com/shopspring/decimal` directly if an app
+`MarshalJSONWithoutQuotes`, `PowPrecisionNegativeExponent`,
+`ExpMaxIterations`, `MaxDecodeExponent`, `TrimTrailingZeros`, or
+`UseScientificNotation`. Import `github.com/shopspring/decimal` directly if an app
 must change those globals.
 
 ## Top-Level APIs
@@ -110,7 +111,7 @@ panics on any conversion error.
 ## Method Families
 
 Since `decimal.Decimal` is a type alias, the method set is inherited from
-`shopspring/decimal.Decimal`. The table below groups all 70 exported methods
+`shopspring/decimal.Decimal`. The table below groups all 73 exported methods
 by purpose; every exact signature is listed in the
 [public API index](../reference/public-api-index), which is generated from the
 source tree rather than maintained here.
@@ -122,8 +123,8 @@ source tree rather than maintained here.
 | Comparison and sign | `Decimal.Cmp`, `Decimal.Compare`, `Decimal.Equal`, `Decimal.Equals`, `Decimal.GreaterThan`, `Decimal.GreaterThanOrEqual`, `Decimal.LessThan`, `Decimal.LessThanOrEqual`, `Decimal.Sign` |
 | Rounding and scale | `Decimal.Ceil`, `Decimal.Floor`, `Decimal.Round`, `Decimal.RoundBank`, `Decimal.RoundCash`, `Decimal.RoundCeil`, `Decimal.RoundDown`, `Decimal.RoundFloor`, `Decimal.RoundUp`, `Decimal.Shift`, `Decimal.Truncate` |
 | Inspection and conversion | `Decimal.BigFloat`, `Decimal.BigInt`, `Decimal.Rat`, `Decimal.Float64`, `Decimal.InexactFloat64`, `Decimal.IntPart`, `Decimal.Coefficient`, `Decimal.CoefficientInt64`, `Decimal.Exponent`, `Decimal.NumDigits`, `Decimal.IsInteger`, `Decimal.IsNegative`, `Decimal.IsPositive`, `Decimal.IsZero`, `Decimal.Copy` |
-| String formatting | `Decimal.String`, `Decimal.StringFixed`, `Decimal.StringFixedBank`, `Decimal.StringFixedCash`, `Decimal.StringScaled` |
-| Encoding, database, and scanner interfaces | `Decimal.MarshalBinary`, `Decimal.UnmarshalBinary`, `Decimal.MarshalJSON`, `Decimal.UnmarshalJSON`, `Decimal.MarshalText`, `Decimal.UnmarshalText`, `Decimal.GobEncode`, `Decimal.GobDecode`, `Decimal.Scan`, `Decimal.Value` |
+| String formatting | `Decimal.String`, `Decimal.StringFixed`, `Decimal.StringFixedBank`, `Decimal.StringFixedCash`, `Decimal.StringScaled`, `Decimal.ScientificNotationString` |
+| Encoding, database, and scanner interfaces | `Decimal.MarshalBinary`, `Decimal.UnmarshalBinary`, `Decimal.MarshalJSON`, `Decimal.UnmarshalJSON`, `Decimal.MarshalText`, `Decimal.UnmarshalText`, `Decimal.GobEncode`, `Decimal.GobDecode`, `Decimal.Scan`, `Decimal.Value`, `Decimal.EncodeSpanner`, `Decimal.DecodeSpanner` |
 
 ## Runtime Notes
 
@@ -135,6 +136,10 @@ source tree rather than maintained here.
   `"123.45"`. The upstream `MarshalJSONWithoutQuotes` global switches it to a
   JSON number, but that can lose precision in JavaScript clients.
 - `Decimal.UnmarshalJSON` accepts both quoted and numeric JSON input.
+- Parsing rejects an exponent above the upstream `MaxDecodeExponent` (default
+  10,000), so `decimal.NewFromString`, `decimal.NewFromAny` on a string, and
+  JSON, text, binary, and database decoding fail on such input instead of
+  hanging or exhausting memory.
 - `decimal.NewFromFloat` and `decimal.NewFromFloat32` convert from binary
   floating-point values; use `decimal.NewFromString`, integer constructors, or
   scaled integer storage for money-like inputs.
