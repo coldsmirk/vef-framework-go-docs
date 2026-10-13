@@ -303,13 +303,14 @@ confirmed against it.
 
 ## `integration/log`
 
-Read-only invocation log: the paged view for browsing and the single-record
-view for the full captures.
+The invocation log: the paged view for browsing, the single-record view for
+the full captures, and replay for re-running a recorded invocation.
 
 | Action | Permission | Input | Output |
 | --- | --- | --- | --- |
 | `find_page` | `integration.log.query` | `LogSearch` + pageable meta | `page.Page[InvocationLog]` |
 | `find_one` | `integration.log.query` | `LogSearch` | one `InvocationLog` |
+| `replay` | `integration.log.replay` (audited) | `ReplayParams` | `ReplayResult` |
 
 `LogSearch` (query filters):
 
@@ -336,7 +337,39 @@ view for the full captures.
 | `httpTrace` | `HTTPExchange[]` | wire exchanges captured while the script ran (below) |
 | `error` | `string` | failure message; absent on success |
 | `requestId` | `string` | originating API request ID |
+| `replayable` | `bool` | whether a replay payload was kept for the entry (`vef.integration.log.replay`), so it can be re-run |
 | `createdAt` / `createdBy` | timestamp / `string` | creation audit columns |
+
+`replay` re-runs one entry against the current definitions and answers a
+result shaped like the entry, for side-by-side comparison. It takes the dry-run
+path — nothing is cached, counted, or logged, and disabled definitions are
+accepted — but the wire calls an **outbound** replay makes are real. An
+**inbound** replay skips verification and answers each dispatch with what the
+business handler returned originally, so no business code runs twice.
+
+Request (`ReplayParams`):
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | `string` | Yes | log entry to re-run; an unknown ID fails with `result.ErrRecordNotFound`, an entry without a replay payload with `ErrReplayUnavailable` (`2631`) |
+| `script` | `string` | No | unsaved adapter script run in place of the saved one, the way a dry run tests edits |
+
+Response (`ReplayResult`):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `input` / `output` | JSON | captured input and output, masked and truncated like the log's |
+| `httpTrace` | `HTTPExchange[]` | wire exchanges of the replay |
+| `failureKind` | `string` | failure classification; empty for success |
+| `error` | `string` | failure message; absent on success |
+| `durationMs` | `int` | wall time of the replay |
+| `definitionChanged` | `bool` | the contract, system, or adapter was modified after the original invocation, so a different outcome may stem from that edit rather than from the external system |
+
+The engine behind the action is injectable as `integration.Replayer`
+(`Replay(ctx, logID, script string) (*ReplayResult, error)`), so an application
+serving its own management surface can offer replay under its own resource.
+It does not authorize: a host exposing it owns that check, as the framework's
+resource does with `integration.log.replay`.
 
 `HTTPExchange` (shared by the log and the dry-run trace):
 
@@ -351,6 +384,7 @@ view for the full captures.
 | `responseBody` | `string` | captured response body (masked, truncated) |
 | `durationMs` | `int` | exchange duration |
 | `error` | `string` | transport error message when the call failed |
+| `clientAddr` | `string` | the caller's network address; only inbound deliveries carry one |
 
 ## `integration/ops`
 

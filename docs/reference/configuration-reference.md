@@ -268,6 +268,8 @@ Read by the optional integration module (`vef.IntegrationModule`).
 | `log.capture_limit` | `int` | byte cap per captured payload (input, output, wire bodies); default `4096` |
 | `log.mask_fields` | `[]string` | JSON field names (case-insensitive) masked in captures, on top of the always-masked credential headers |
 | `log.retention` | `duration` | prunes invocation-log rows older than this window (hourly sweep); default `0` (keep forever) |
+| `log.replay` | `bool` | keeps, beside each recorded entry, the lossless material to re-run it (the unmasked contract input, or the inbound request with its credentials stripped), sealed with `secret_key`; default `false`, since that material is unmasked business data |
+| `log.replay_limit` | `int` | byte cap per replay payload — a larger invocation is recorded without one; default 1 MiB |
 | `inbound.rate_limit.max` | `int` | inbound deliveries admitted per window per (system, client IP); default `120` |
 | `inbound.rate_limit.period` | `duration` | sliding-window length; default `1m`. The limiter is in process memory — each node enforces independently |
 
@@ -565,6 +567,8 @@ Runtime note:
 | `config.IntegrationLogConfig.CaptureLimit` | `int [field_order=2 tag="config:\"capture_limit\""]` |
 | `config.IntegrationLogConfig.MaskFields` | `[]string [field_order=3 tag="config:\"mask_fields\""]` |
 | `config.IntegrationLogConfig.Retention` | `time.Duration [field_order=4 tag="config:\"retention\""]` |
+| `config.IntegrationLogConfig.Replay` | `bool [field_order=5 tag="config:\"replay\""]` |
+| `config.IntegrationLogConfig.ReplayLimit` | `int [field_order=6 tag="config:\"replay_limit\""]` |
 | `config.LockoutConfig.Enabled` | `*bool [field_order=1 tag="config:\"enabled\""]` |
 | `config.LockoutConfig.MaxFailures` | `int [field_order=2 tag="config:\"max_failures\""]` |
 | `config.LockoutConfig.Window` | `time.Duration [field_order=3 tag="config:\"window\""]` |
@@ -698,6 +702,7 @@ Runtime note:
 | `config.IntegrationInboundRateLimitConfig.EffectivePeriod` | `func() time.Duration` |
 | `config.IntegrationLogConfig.EffectiveMode` | `func() github.com/coldsmirk/vef-framework-go/config.IntegrationLogMode` |
 | `config.IntegrationLogConfig.EffectiveCaptureLimit` | `func() int` |
+| `config.IntegrationLogConfig.EffectiveReplayLimit` | `func() int` |
 | `config.LockoutConfig.IsEnabled` | `func() bool` |
 | `config.LockoutConfig.EffectiveMaxFailures` | `func() int` |
 | `config.LockoutConfig.EffectiveWindow` | `func() time.Duration` |
@@ -785,6 +790,7 @@ Runtime note:
 | `config.IntegrationInboundRateLimitConfig.EffectivePeriod()` | Returns `Period` when positive, otherwise `config.DefaultIntegrationInboundRateLimitPeriod` (`1m`). |
 | `config.IntegrationLogConfig.EffectiveMode()` | Returns `Mode` or `config.IntegrationLogErrors` ("errors") when unset. |
 | `config.IntegrationLogConfig.EffectiveCaptureLimit()` | Returns `CaptureLimit` when positive, otherwise `4096`. |
+| `config.IntegrationLogConfig.EffectiveReplayLimit()` | Returns `ReplayLimit` when positive, otherwise `1048576` (1 MiB). |
 | `config.PushConfig.EffectivePath()` | Returns `Path` or `"/ws"` when unset. |
 | `config.PushConfig.EffectivePingInterval()` | Returns `PingInterval` when positive, otherwise `30s`. |
 | `config.PushConfig.EffectiveWriteTimeout()` | Returns `WriteTimeout` when positive, otherwise `10s`. |

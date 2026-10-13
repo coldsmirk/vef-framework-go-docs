@@ -473,8 +473,18 @@ Request parameters (all decoded from `params`):
 | | `keyword` | `string` | No | contains match against the instance title |
 | | `page` / `pageSize` | `int` | No | pagination |
 | `find_pending_tasks` | `tenantId` | `string` | No | tenant filter |
+| | `keyword` | `string` | No | contains match against the instance title |
+| | `applicantId` | `string` | No | exact applicant — the value a user picker yields |
+| | `applicantName` | `string` | No | contains match against the applicant name snapshot, for free-text search |
+| | `flowId` | `string` | No | the flow the instance was started from |
+| | `isTimeout` | `bool` | No | only tasks past (`true`) or within (`false`) their deadline |
+| | `createdAtFrom` / `createdAtTo` | `DateTime` | No | when the task arrived; both bounds inclusive |
 | | `page` / `pageSize` | `int` | No | pagination |
 | `find_completed_tasks` | `tenantId` | `string` | No | tenant filter |
+| | `keyword` / `applicantId` / `applicantName` / `flowId` | | No | as on `find_pending_tasks` |
+| | `status` | `string` | No | how the caller finished the task (`approved` / `rejected` / `handled` / `transferred` / `rolled_back`); a status no completed task has matches nothing |
+| | `instanceStatus` | `string` | No | the instance's current status |
+| | `finishedAtFrom` / `finishedAtTo` | `DateTime` | No | when the task was finished; both bounds inclusive |
 | | `page` / `pageSize` | `int` | No | pagination |
 | `find_cc_records` | `tenantId` | `string` | No | tenant filter |
 | | `isRead` | `bool` | No | read-state filter |
@@ -506,6 +516,8 @@ published version), so a rendered form always implies a startable flow:
 | `versionId` | `string` | published version the form belongs to |
 | `version` | `int` | published version number |
 | `formSchema` | JSON document \| absent | host form-designer document, verbatim |
+| `applicant` | `UserInfo` | the snapshot the instance will record if the caller starts it now, resolved exactly as `start` resolves it — the form's `$applicant`, so a rule about the initiator evaluates at initiation as it does later on every detail view |
+| `globals` | `object` \| absent | the host globals the flow exposes to its form (`approval.FormGlobalsExposer`), resolved for the caller — the form's `$globals`. Resolved only past the initiation gate, and absent when the flow exposes none |
 
 `InitiatedInstance` — one instance the caller submitted:
 
@@ -581,6 +593,7 @@ renderable concern:
 | `currentNodeId` / `currentNodeName` | `string` \| absent | currently in-progress node |
 | `businessRef` | `string` \| absent | opaque business reference (business-bound flows) |
 | `formData` | `object` \| absent | form data, stripped of fields the viewer may not see |
+| `globals` | `object` \| absent | the form-visible part of the instance's globals snapshot (`approval.FormGlobalsExposer`) — the form's `$globals`, as resolved at initiation; absent when the flow exposes none |
 | `createdAt` / `finishedAt` | `DateTime` | lifecycle timestamps |
 
 `ViewerTask` — the pending task `process_task` should target plus the
@@ -720,6 +733,7 @@ document), `timeline` (`TimelineEntry[]`), and `flowGraph`
 | `currentNodeId` / `currentNodeName` | `string` \| absent | currently in-progress node |
 | `businessRef` | `string` \| absent | opaque business reference (business-bound flows) |
 | `formData` | `object` \| absent | current form data (unfiltered — admin view) |
+| `globals` | `object` \| absent | the form-visible part of the instance's globals snapshot, as on `my.InstanceInfo` |
 | `createdAt` / `finishedAt` | `DateTime` | lifecycle timestamps |
 
 `ActionLog` — one audit entry. Person references are uniform `UserInfo`
@@ -924,6 +938,7 @@ surface rather than importing the internal Go symbols.
 | `40216` | `ErrCodeNoUsersSpecified` | `ErrNoUsersSpecified` | `approval_no_users_specified` | user-list operation received no target users |
 | `40301` | `ErrCodeNoAssignee` | `ErrNoAssignee` | `approval_no_assignee` | no assignee could be resolved |
 | `40302` | `ErrCodeAssigneeResolveFailed` | `ErrAssigneeResolveFailed` | `approval_assignee_resolve_failed` | assignee resolver failed |
+| `40302` | `ErrCodeAssigneeResolveFailed` | dynamic form-field assignee `result.Err` | `approval_form_field_assignee_unresolved` | same code; the built-in `form_field` assignee resolver read IDs the host's `UserInfoResolver` returned no name for; rendered with `field` and `ids`, and the action rolls back |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormValidationFailed` | `approval_form_validation_failed` | general form validation failure |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormDataTooLarge` | `approval_form_data_too_large` | same code; JSON-encoded `formData` exceeded 64 KiB |
 | `40401` | `ErrCodeFormValidationFailed` | dynamic form validation `result.Err` | `approval_form_field_not_defined`, `approval_form_field_required`, `approval_form_field_must_be_string`, `approval_form_field_must_be_number`, `approval_form_field_must_be_integer`, `approval_form_field_min_length`, `approval_form_field_max_length`, `approval_form_field_invalid_validation`, `approval_form_field_pattern_mismatch`, `approval_form_field_min_value`, `approval_form_field_max_value`, `approval_form_field_empty`, `approval_form_field_invalid_file_item`, `approval_form_field_must_be_file`, `approval_form_field_invalid_value`, `approval_form_field_must_be_row_list`, `approval_form_field_must_be_row_object`, `approval_form_field_min_rows`, `approval_form_field_max_rows`, `approval_form_field_table_cell` | field-level validation messages are constructed dynamically |

@@ -89,7 +89,7 @@ Any other character passes through verbatim, so `yyyyMMdd-` produces `20240315-`
 | --- | --- |
 | `sequence.ResetNone` | Never reset |
 | `sequence.ResetDaily` | Reset at the start of each day |
-| `sequence.ResetWeekly` | Reset at the start of each week |
+| `sequence.ResetWeekly` | Reset at the start of each week (weeks start on Sunday) |
 | `sequence.ResetMonthly` | Reset on the 1st of each month |
 | `sequence.ResetQuarterly` | Reset on the first day of each calendar quarter |
 | `sequence.ResetYearly` | Reset on January 1st |
@@ -97,6 +97,13 @@ Any other character passes through verbatim, so `yyyyMMdd-` produces `20240315-`
 An empty `ResetCycle` behaves like `sequence.ResetNone`. Any value other than
 the exported constants is treated defensively as "do not reset". For non-none
 cycles, `LastResetAt == nil` triggers a reset on the next reservation.
+
+Periods are calendar periods in the process's local time zone. `LastResetAt`
+and the reservation time are both read as local wall-clock time —
+`timex.DateTime` is timezone-naive, stored as a bare local wall-clock string —
+so the zone label a database driver puts on the stored value (UTC, for
+`timestamp` columns on PostgreSQL, MySQL and SQLite) does not move it into
+another period.
 
 ### Overflow strategies
 

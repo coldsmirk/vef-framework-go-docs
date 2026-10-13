@@ -300,6 +300,16 @@ are the framework's: treat them as read-only. CC deliberately does **not** see
 engine's decision, made before the resolver is consulted, and a resolver that
 read it could contradict that decision.
 
+A kind whose mode is `SelectionFormField` reads the IDs out of the form with
+`approval.FormFieldIDs(formData, field)`, `field` being the rule's `FormField`.
+The value may be a single string or a list (a multi-select submits a list);
+entries are trimmed and blanks dropped, preserving order. The IDs are whatever
+the field holds — a host kind whose form stores staff IDs maps them to the user
+accounts tasks are assigned to. A missing or blank value yields no IDs rather
+than an error, so the node's `EmptyAssigneeAction` (or, for CC, an empty
+recipient list) decides; a nil or blank field name returns
+`ErrFormFieldNameEmpty` and any other value type `ErrUnsupportedFieldValueType`.
+
 `approval.InitiatorResolveContext` is deliberately smaller — `FlowID`,
 `TenantID`, `Applicant`, `Kind`, `IDs`. There is no instance and no form data,
 because who may start a flow is a property of the person and the flow, never of
@@ -314,6 +324,15 @@ decide on the ID and the department.
   `EmptyAssigneeAction` then decides, which is how an optional approver step is
   expressed. Returning an *error* fails the approval action rather than
   silently dropping approvers.
+- The built-in `form_field` assignee resolver checks what it read. Those IDs
+  are the applicant's input rather than a designer's pick, so an ID the host's
+  `UserInfoResolver` returns no name for — which `ResolveUsers` must do for an
+  ID it does not know, rather than omitting it — fails the action with
+  `ErrCodeAssigneeResolveFailed` (`40302`, message
+  `approval_form_field_assignee_unresolved`, naming the field and the IDs) and
+  rolls it back, instead of creating a task nobody can see. Designer-picked
+  `user` IDs still keep a stale reference visible, and the `form_field` CC
+  resolver stays best-effort like every CC rule.
 - CC stays **best-effort**: an unresolvable rule is logged and skipped, never
   rolling back the approval that triggered it.
 - An unregistered **initiator** kind is a loud error. Treating it as "denied"
@@ -375,11 +394,11 @@ type Delegation struct {
 | Area | Public API |
 | --- | --- |
 | caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
-| form data | `FormData`, `NewFormData`, `FormSchemaParser`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `FieldOptionSource`, `OptionSourceKind`, `OptionSourceRemote`, `RemoteOptionRequest`, `RemoteOptionMapping`, `DynamicParam`, `DynamicParamKind`, `DynamicParamLiteral`, `DynamicParamExpression`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
+| form data | `FormData`, `NewFormData`, `FormFieldIDs`, `ErrFormFieldNameEmpty`, `ErrUnsupportedFieldValueType`, `FormSchemaParser`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `FieldOptionSource`, `OptionSourceKind`, `OptionSourceRemote`, `RemoteOptionRequest`, `RemoteOptionMapping`, `DynamicParam`, `DynamicParamKind`, `DynamicParamLiteral`, `DynamicParamExpression`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
 | table storage | `FormTable`, `FormTableColumn` (`FormTable.SourceFieldKey` is `""` for the main table, or the owning table field's key for a detail-table child projection) |
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `UrgeRecord`, `DefaultTenantID` |
 | node design | `FlowDefinition`, `NodeDefinition`, `EdgeDefinition`, `Position`, `NodeData`, `BaseNodeData`, `StartNodeData`, `ApprovalNodeData`, `HandleNodeData`, `ConditionNodeData`, `CCNodeData`, `EndNodeData`, `ErrUnknownNodeKind`, `ErrNodeDataUnmarshal` |
-| conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `AggregateKind`, `AggregateSum`, `AggregateCount`, `AggregateAvg`, `Aggregator` |
+| conditions | `ConditionKind`, `ConditionField`, `ConditionExpression`, `Condition`, `ConditionGroup`, `ConditionBranch`, `EvaluationContext`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `FormGlobalsExposer`, `AggregateKind`, `AggregateSum`, `AggregateCount`, `AggregateAvg`, `Aggregator` |
 | initiators and assignees | `InitiatorKind`, `InitiatorUser`, `InitiatorRole`, `InitiatorDepartment`, `AssigneeKind`, `AssigneeDefinition`, `AssigneeService`, `ResolvedAssignee`, `UserInfo`, `UserInfoResolver`, `RoleMembershipChecker`, `AddAssigneeType`, `AddAssigneeBefore`, `AddAssigneeAfter`, `AddAssigneeParallel`, `AssigneeResolver`, `AssigneeResolveContext`, `InitiatorResolver`, `InitiatorResolveContext`, `KindDescriptor`, `KindOptions`, `SelectionMode`, `SelectionNone`, `SelectionUser`, `SelectionRole`, `SelectionDepartment`, `SelectionFormField`, `SelectionCustom`, `NodeResolveContext` |
 | CC | `CCKind`, `CCUser`, `CCRole`, `CCDepartment`, `CCFormField`, `CCTiming`, `CCTimingAlways`, `CCTimingOnApprove`, `CCTimingOnReject`, `CCDefinition`, `CCResolver`, `CCResolveContext`, `CCRecord` (`CCRecord.VisitID` scopes the record to one node traversal, mirroring `Task.VisitID`) |
 | business binding & projection | `BusinessBindingConfig`, `BusinessRecordKey`, `BusinessProjection` (model, table `apv_business_projection`), `BindingProjectionStatus` (`BindingProjectionPending` / `Processing` / `Applied` / `Failed`), `BindingTrigger`, `BindingTriggerStarted`, `BindingTriggerCompleted`, `BindingTriggerReturned`, `BindingTriggerWithdrawn`, `BindingTriggerResubmitted` |
@@ -387,10 +406,10 @@ type Delegation struct {
 | node behavior | `ApprovalMethod`, `TaskNodeData`, `ExecutionType`, `ExecutionManual`, `ExecutionAutoPass`, `ExecutionAutoReject`, `ConsecutiveApproverAction`, `ConsecutiveApproverNone`, `ConsecutiveApproverAutoPass`, `SameApplicantAction`, `SameApplicantSelfApprove`, `SameApplicantAutoPass`, `SameApplicantTransferSuperior`, `SameApplicantExclude`, `Permission`, `PermissionVisible`, `PermissionEditable`, `PermissionRequired`, `PermissionHidden`, `DefaultExecutionType`, `DefaultApprovalMethod`, `DefaultPassRule`, `DefaultEmptyAssigneeAction`, `DefaultSameApplicantAction`, `DefaultConsecutiveApproverAction`, `DefaultRollbackType`, `DefaultRollbackDataStrategy`, `DefaultTimeoutAction`, `DefaultCCTiming`, `DefaultHandleApprovalMethod`, `DefaultHandlePassRule`, `DefaultUrgeCooldownMinutes` |
 | rollback and timeouts | `RollbackType`, `RollbackNone`, `RollbackPrevious`, `RollbackStart`, `RollbackAny`, `RollbackSpecified`, `RollbackDataStrategy`, `RollbackDataClear`, `RollbackDataKeep`, `EmptyAssigneeAction`, `EmptyAssigneeAutoPass`, `EmptyAssigneeTransferAdmin`, `EmptyAssigneeTransferSuperior`, `EmptyAssigneeTransferApplicant`, `EmptyAssigneeTransferSpecified`, `TimeoutAction`, `TimeoutActionNone`, `TimeoutActionAutoPass`, `TimeoutActionAutoReject`, `TimeoutActionNotify`, `TimeoutActionTransferAdmin` |
 | action and status enums | `ActionType`, `InstanceStatus`, `TaskStatus`, `NodeKind`, `StorageMode`, `VersionStatus` |
-| pass rules | `PassRule`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
+| pass rules | `PassRule`, `PassAll`, `PassAny`, `PassRatio`, `PassFixedCount`, `PassRuleContext`, `PassRuleStrategy`, `PassRuleResult`, `PassRulePending`, `PassRulePassed`, `PassRuleRejected` |
 | progress views | `TimelineEntryKind`, `TimelineEntry`, `NodeVisitStatus`, `NodeProgressStatus`, `InstanceFlowGraph`, `FlowGraphNode`, `FlowGraphNodeData`, `FlowGraphEdge`, `NodeParticipant`, `Activity`, `ActivityUrge`, `CCRecipient` |
 | events | all `New...Event` constructors, `DomainEvent`, `InstanceEventBase`, `TaskEventBase`, `FlowEventBase`, `NewInstanceEventBase`, `NewTaskEventBase`, `NewFlowEventBase`, `PayloadOccurredAt`, `AllEventTypes`, `TaskActivationReason`, `TaskActivationAssigned`, `TaskActivationQueueAdvanced`, `TaskActivationTransferred`, `TaskActivationReassigned`, and the `EventType...` constants |
-| extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
+| extension interfaces | `InstanceLifecycleHook`, `BusinessRefProvider`, `BusinessRefResolver`, `InstanceNoGenerator`, `ConditionEvaluator`, `InstanceGlobalsResolver`, `FormGlobalsExposer`, `PrincipalTenantResolver`, `PrincipalDepartmentResolver`, `RoleMembershipChecker` |
 | DI helpers (package `vef`) | `SupplyBusinessRefProvider`, `SupplyBusinessRefResolver`, `ProvideApprovalLifecycleHook`, `ProvideApprovalAggregator`, `ProvideApprovalFormSchemaParser`, `ProvideApprovalAssigneeResolver`, `ProvideApprovalCCResolver`, `ProvideApprovalInitiatorResolver`, `ProvideApprovalGlobalsResolver` |
 | programmatic control | `Service`, `ErrDBRequired`, `StartInstanceInput`, `WithdrawInstanceInput`, `ResubmitInstanceInput`, `TerminateInstanceInput`, `ApproveTaskInput`, `RejectTaskInput`, `TransferTaskInput`, `RollbackTaskInput`, `ReassignTaskInput`, `AddAssigneeInput`, `RemoveAssigneeInput`, `AddCCInput`, `MarkCCReadInput`, `UrgeTaskInput`, `RetryBusinessProjectionInput` — see [Programmatic Flow Control](./service.md) |
 | admin DTOs | package `approval/admin`: `Instance`, `InstanceDetail`, `InstanceDetailInfo`, `Task`, `ActionLog`, `Metrics`, `BusinessProjection` |

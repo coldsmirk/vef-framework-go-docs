@@ -190,6 +190,8 @@ mode = "errors"              # "off" | "errors" (default) | "all"
 capture_limit = 4096         # bytes per captured payload before truncation
 mask_fields = ["idCard"]     # extra JSON field names masked in captures
 retention = "720h"           # prune invocation logs; zero keeps forever
+replay = false               # keep a sealed payload per entry so it can be re-run
+replay_limit = 1048576       # bytes per replay payload; larger entries keep none (1 MiB)
 
 [vef.integration.inbound.rate_limit]
 max = 120                    # deliveries per window per (system, client IP)
@@ -201,6 +203,14 @@ classification, timing, input/output captures, and the full HTTP wire trace
 — masked (credential headers always; `mask_fields` additionally) and
 truncated to `capture_limit`. An hourly sweep prunes rows older than
 `retention` when set.
+
+With `replay` on, each entry also keeps the lossless material needed to re-run
+it — the unmasked contract input, or the inbound request with its credentials
+stripped — sealed with `secret_key`. It is off by default because that
+material is unmasked business data; an entry whose payload exceeds
+`replay_limit` (`IntegrationLogConfig.EffectiveReplayLimit()`, 1 MiB when
+unset) is recorded without one, and `InvocationLog.replayable` says which
+entries can be re-run.
 
 ## Failure Vocabulary
 
@@ -285,6 +295,7 @@ with the failure in the body code, except where noted.
 | `2628` | `ErrCodeUnmappedValue` | `ErrUnmappedValue(codeSet, value)` | value unmapped under the reject policy |
 | `2629` | `ErrCodeInvalidCodeMap` | `ErrInvalidCodeMap(detail)` | code map definition rejected at save time |
 | `2630` | `ErrCodeCodeSetCatalogFailed` | `ErrCodeSetCatalogFailed(detail)` | host code set catalog could not answer — mapping editor pickers cannot be filled and code map saves cannot confirm their identifiers against it |
+| `2631` | `ErrCodeReplayUnavailable` | `ErrReplayUnavailable` | the log entry cannot be re-run: no replay payload was kept for it, or the kept one can no longer be opened under the configured secret key |
 
 ## Next Steps
 

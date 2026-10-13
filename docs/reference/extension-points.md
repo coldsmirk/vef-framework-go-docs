@@ -386,6 +386,11 @@ them could steer their own approval. The helper composes through `fx.Decorate`,
 so a resolver that needs `orm.DB` or any other dependency declares it as a
 constructor parameter.
 
+A resolver may also implement the optional `approval.FormGlobalsExposer`
+(`FormGlobalKeys(flowCode string) []string`) to name the globals an instance's
+form may read; without it none is sent to the browser. See
+[Flow Design](../approval/flow-design) for what the form receives.
+
 ## Approval business binding
 
 Helpers:

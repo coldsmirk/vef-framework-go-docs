@@ -175,6 +175,8 @@ mode = "errors"              # "off" | "errors"（默认）| "all"
 capture_limit = 4096         # 每个捕获负载截断前的字节数
 mask_fields = ["idCard"]     # 捕获中额外掩码的 JSON 字段名
 retention = "720h"           # 调用日志保留窗口；0 表示永久保留
+replay = false               # 为每条记录保留一份加密载荷，以便重放
+replay_limit = 1048576       # 每份重放载荷的字节上限；超出的记录不保留载荷（1 MiB）
 
 [vef.integration.inbound.rate_limit]
 max = 120                    # 每窗口每 (系统, 客户端 IP) 允许的投递数
@@ -185,6 +187,12 @@ period = "1m"
 HTTP 线上追踪——按 `vef.integration.log` 掩码（凭证头始终掩码；`mask_fields`
 额外掩码）并截断到 `capture_limit`。设置 `retention` 后，每小时的清扫任务会
 删除超过窗口的行。
+
+开启 `replay` 后，每条记录还会额外保留重放它所需的无损材料——未掩码的契约输入，
+或去掉凭证后的入站请求——并用 `secret_key` 加密。由于这些材料是未掩码的业务数据，
+该开关默认关闭；载荷超过 `replay_limit`（`IntegrationLogConfig.EffectiveReplayLimit()`，
+未设置时为 1 MiB）的记录不会保留载荷，`InvocationLog.replayable` 指明哪些记录
+可以重放。
 
 ## 失败分类
 
@@ -267,6 +275,7 @@ Invoker 实现 `integration.StatsInspector`：进程启动以来按
 | `2628` | `ErrCodeUnmappedValue` | `ErrUnmappedValue(codeSet, value)` | reject 策略下的未映射值 |
 | `2629` | `ErrCodeInvalidCodeMap` | `ErrInvalidCodeMap(detail)` | 码值映射定义保存时被拒绝 |
 | `2630` | `ErrCodeCodeSetCatalogFailed` | `ErrCodeSetCatalogFailed(detail)` | 宿主码值目录无法响应 —— 映射编辑器选择器无法填充，码值映射保存时无法确认其标识符 |
+| `2631` | `ErrCodeReplayUnavailable` | `ErrReplayUnavailable` | 该日志记录无法重放：没有为它保留重放载荷，或保留的载荷已无法用当前配置的密钥打开 |
 
 ## 下一步
 

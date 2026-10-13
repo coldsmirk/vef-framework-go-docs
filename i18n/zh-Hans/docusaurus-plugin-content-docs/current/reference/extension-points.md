@@ -318,6 +318,8 @@ Helper：
 
 替换默认的空实现 `approval.InstanceGlobalsResolver`，它的结果在**实例启动时于服务端解析**，并快照到 `Instance.Globals` 上。globals 会左右条件分支，所以它刻意不属于 start-instance 的请求载荷：能够自行提供 globals 的申请人，就能左右自己的审批走向。这个 helper 通过 `fx.Decorate` 组合，因此需要 `orm.DB` 或任何其他依赖的 resolver，把它声明成构造函数参数即可。
 
+resolver 还可以实现可选接口 `approval.FormGlobalsExposer`（`FormGlobalKeys(flowCode string) []string`），列出实例表单可以读取的全局变量；未实现时不会向浏览器发送任何全局变量。表单会收到什么，见[流程设计](../approval/flow-design)。
+
 ## 审批业务绑定
 
 Helpers：

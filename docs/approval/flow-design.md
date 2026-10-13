@@ -57,6 +57,16 @@ snapshot is persisted on `Instance.Globals`; clients cannot submit it in the
 the built-in `formData`, `applicantId`, and `applicantDepartmentId` names win
 collisions.
 
+Globals are routing inputs first, so none reaches the browser by default. A
+resolver that also implements the optional `approval.FormGlobalsExposer`
+(`FormGlobalKeys(flowCode string) []string`) names the globals the instance's
+form may read — the form designer's `$globals`: `my.get_start_form` returns
+them resolved for the caller, and the instance detail views return them from
+the instance's snapshot (`globals` on `my.InstanceInfo` and
+`admin.InstanceDetailInfo`). A key the resolver does not produce is ignored,
+and a resolver that does not implement the interface exposes nothing — the
+start form then never calls it, so hosts that do not opt in pay nothing.
+
 ### Detail-Table Aggregation
 
 A field condition may fold a detail table's rows instead of comparing a scalar
@@ -116,10 +126,27 @@ The enum type is `ApprovalMethod`.
 | All | `PassAll` | `all` | All assignees must approve |
 | Any | `PassAny` | `any` | At least one approval passes |
 | Ratio | `PassRatio` | `ratio` | A percentage must approve |
+| Fixed count | `PassFixedCount` | `fixed_count` | A fixed number must approve — every assignee when fewer take part |
+
+The two threshold rules read a threshold from the node: `passRatio`, a
+percentage in (0, 100], and `passCount`, a positive integer. Deploy rejects a
+missing or out-of-range threshold rather than defaulting it (`pass count must
+be a positive integer`), since a node without one would pass on its first
+evaluation regardless of votes. A `passCount` above the number of resolved
+assignees is valid: assignees resolve at run time, so the engine caps the
+threshold at the participating task count. A fixed-count node passes once
+that many approve and rejects once the rest can no longer reach it.
+`TimelineEntry.passCount` and `FlowGraphNodeData.passCount` carry the
+threshold on the progress views.
 
 Custom pass-rule implementations use `PassRuleStrategy`, `PassRuleContext`,
 and return a `PassRuleResult` (`PassRulePending`, `PassRulePassed`,
-`PassRuleRejected`).
+`PassRuleRejected`). The context carries the tallies of the node visit's
+participating tasks — `ApprovedCount` (approved and handled), `RejectedCount`,
+`TotalCount` (decided or not; transferred, canceled, removed, skipped and
+rolled-back tasks no longer participate) — and the node's thresholds,
+`PassRatio` and `PassCount`; a strategy reads only the threshold its own rule
+defines.
 
 ## Assignee Types
 
@@ -234,7 +261,7 @@ Node `data` fields are:
 | `StartNodeData` | base fields only |
 | `EndNodeData` | base fields only |
 | `TaskNodeData` | `assignees`, `executionType`, `emptyAssigneeAction`, `fallbackUserIds`, `adminUserIds`, `isTransferAllowed`, `isOpinionRequired`, `timeoutHours`, `timeoutAction`, `timeoutNotifyBeforeHours`, `urgeCooldownMinutes`, `ccs`, `fieldPermissions` |
-| `ApprovalNodeData` | base fields + `TaskNodeData` fields + `approvalMethod`, `passRule`, `passRatio`, `sameApplicantAction`, `consecutiveApproverAction`, `rollbackType`, `rollbackDataStrategy`, `rollbackTargetKeys`, `isRollbackAllowed`, `isAddAssigneeAllowed`, `addAssigneeTypes`, `isRemoveAssigneeAllowed`, `isManualCcAllowed` |
+| `ApprovalNodeData` | base fields + `TaskNodeData` fields + `approvalMethod`, `passRule`, `passRatio`, `passCount`, `sameApplicantAction`, `consecutiveApproverAction`, `rollbackType`, `rollbackDataStrategy`, `rollbackTargetKeys`, `isRollbackAllowed`, `isAddAssigneeAllowed`, `addAssigneeTypes`, `isRemoveAssigneeAllowed`, `isManualCcAllowed` |
 | `HandleNodeData` | base fields + `TaskNodeData` fields; deploy always sets `approvalMethod` to `sequential` and `passRule` to `any` (handle nodes expose no such wire fields) |
 | `CCNodeData` | base fields + `ccs`, `isReadConfirmRequired`, `fieldPermissions` |
 | `ConditionNodeData` | base fields + `branches` |

@@ -84,7 +84,7 @@ rule := &sequence.Rule{
 | --- | --- |
 | `sequence.ResetNone` | 永不重置 |
 | `sequence.ResetDaily` | 每日凌晨重置 |
-| `sequence.ResetWeekly` | 每周开始重置 |
+| `sequence.ResetWeekly` | 每周开始重置（每周从周日开始） |
 | `sequence.ResetMonthly` | 每月 1 日重置 |
 | `sequence.ResetQuarterly` | 每季度首日重置 |
 | `sequence.ResetYearly` | 每年 1 月 1 日重置 |
@@ -92,6 +92,11 @@ rule := &sequence.Rule{
 空 `ResetCycle` 等同于 `sequence.ResetNone`。除公开常量外的其他值会按防御性
 fallback 处理为“不重置”。对非 none 周期，`LastResetAt == nil` 会让下一次预
 留触发 reset。
+
+周期按进程本地时区的自然周期计算。`LastResetAt` 与本次预留的时间都按本地墙上
+时间读取——`timex.DateTime` 不带时区，以不含时区的本地墙上时间字符串存储——因此
+数据库驱动给存储值打上的时区标签（PostgreSQL、MySQL 与 SQLite 的 `timestamp`
+列读回时为 UTC）不会把它挪到另一个周期。
 
 ### 溢出策略
 

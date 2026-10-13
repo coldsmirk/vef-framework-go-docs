@@ -263,6 +263,8 @@ path = "./analytics.db"
 | `log.capture_limit` | `int` | 每个捕获负载（输入、输出、线上报文）的字节上限；默认 `4096` |
 | `log.mask_fields` | `[]string` | 捕获中额外掩码的 JSON 字段名（不区分大小写），凭证头始终掩码 |
 | `log.retention` | `duration` | （每小时清扫）删除超窗的调用日志行；默认 `0`（永久保留） |
+| `log.replay` | `bool` | 为每条记录额外保留重放所需的无损材料（未掩码的契约输入，或去掉凭证的入站请求），并用 `secret_key` 加密；由于这些材料是未掩码的业务数据，默认 `false` |
+| `log.replay_limit` | `int` | 每份重放载荷的字节上限——超出的调用记录时不保留载荷；默认 1 MiB |
 | `inbound.rate_limit.max` | `int` | 每窗口每（系统、客户端 IP）允许的入站投递数；默认 `120` |
 | `inbound.rate_limit.period` | `duration` | 滑动窗口长度；默认 `1m`。限流器在进程内存中——多节点各自独立计数 |
 
@@ -560,6 +562,8 @@ path = "./analytics.db"
 | `config.IntegrationLogConfig.CaptureLimit` | `int [field_order=2 tag="config:\"capture_limit\""]` |
 | `config.IntegrationLogConfig.MaskFields` | `[]string [field_order=3 tag="config:\"mask_fields\""]` |
 | `config.IntegrationLogConfig.Retention` | `time.Duration [field_order=4 tag="config:\"retention\""]` |
+| `config.IntegrationLogConfig.Replay` | `bool [field_order=5 tag="config:\"replay\""]` |
+| `config.IntegrationLogConfig.ReplayLimit` | `int [field_order=6 tag="config:\"replay_limit\""]` |
 | `config.LockoutConfig.Enabled` | `*bool [field_order=1 tag="config:\"enabled\""]` |
 | `config.LockoutConfig.MaxFailures` | `int [field_order=2 tag="config:\"max_failures\""]` |
 | `config.LockoutConfig.Window` | `time.Duration [field_order=3 tag="config:\"window\""]` |
@@ -693,6 +697,7 @@ path = "./analytics.db"
 | `config.IntegrationInboundRateLimitConfig.EffectivePeriod` | `func() time.Duration` |
 | `config.IntegrationLogConfig.EffectiveMode` | `func() github.com/coldsmirk/vef-framework-go/config.IntegrationLogMode` |
 | `config.IntegrationLogConfig.EffectiveCaptureLimit` | `func() int` |
+| `config.IntegrationLogConfig.EffectiveReplayLimit` | `func() int` |
 | `config.PushConfig.EffectivePath` | `func() string` |
 | `config.PushConfig.EffectivePingInterval` | `func() time.Duration` |
 | `config.PushConfig.EffectiveWriteTimeout` | `func() time.Duration` |
@@ -780,6 +785,7 @@ path = "./analytics.db"
 | `config.IntegrationInboundRateLimitConfig.EffectivePeriod()` | `Period` 为正时返回配置值，否则返回 `config.DefaultIntegrationInboundRateLimitPeriod`（`1m`）。 |
 | `config.IntegrationLogConfig.EffectiveMode()` | 返回 `Mode`；未配置时返回 `config.IntegrationLogErrors`（`"errors"`）。 |
 | `config.IntegrationLogConfig.EffectiveCaptureLimit()` | `CaptureLimit` 为正时返回配置值，否则返回 `4096`。 |
+| `config.IntegrationLogConfig.EffectiveReplayLimit()` | `ReplayLimit` 为正时返回配置值，否则返回 `1048576`（1 MiB）。 |
 | `config.PushConfig.EffectivePath()` | 返回 `Path`；未配置时返回 `"/ws"`。 |
 | `config.PushConfig.EffectivePingInterval()` | `PingInterval` 为正时返回配置值，否则返回 `30s`。 |
 | `config.PushConfig.EffectiveWriteTimeout()` | `WriteTimeout` 为正时返回配置值，否则返回 `10s`。 |

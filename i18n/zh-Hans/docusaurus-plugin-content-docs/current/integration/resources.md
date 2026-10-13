@@ -286,12 +286,13 @@ HTTP 传输（`ErrInvalidEnvelope`）。
 
 ## `integration/log`
 
-只读调用日志：分页视图用于浏览，单条视图用于查看完整捕获。
+调用日志：分页视图用于浏览，单条视图用于查看完整捕获，重放用于重新执行一次已记录的调用。
 
 | 操作 | 权限 | 输入 | 输出 |
 | --- | --- | --- | --- |
 | `find_page` | `integration.log.query` | `LogSearch` + 分页 meta | `page.Page[InvocationLog]` |
 | `find_one` | `integration.log.query` | `LogSearch` | 一条 `InvocationLog` |
+| `replay` | `integration.log.replay`（记录审计） | `ReplayParams` | `ReplayResult` |
 
 `LogSearch`（查询过滤）：
 
@@ -318,7 +319,33 @@ HTTP 传输（`ErrInvalidEnvelope`）。
 | `httpTrace` | `HTTPExchange[]` | 脚本运行期间捕获的线上交换（见下） |
 | `error` | `string` | 失败消息；成功时缺省 |
 | `requestId` | `string` | 来源 API 请求 ID |
+| `replayable` | `bool` | 是否为该记录保留了重放载荷（`vef.integration.log.replay`），即能否重放 |
 | `createdAt` / `createdBy` | 时间戳 / `string` | 创建审计字段 |
+
+`replay` 以当前定义重新执行一条记录，返回与该记录形态相同的结果，便于并排对比。
+它走 dry-run 路径——不缓存、不计数、不写日志，停用的定义也可以执行——但**出站**
+重放发出的线上调用是真实的。**入站**重放跳过验签，并对每次分发返回业务处理器当初
+的返回值，因此业务代码不会被执行第二次。
+
+请求（`ReplayParams`）：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | `string` | 是 | 要重放的日志记录；未知 ID 返回 `result.ErrRecordNotFound`，没有重放载荷的记录返回 `ErrReplayUnavailable`（`2631`） |
+| `script` | `string` | 否 | 用未保存的适配器脚本代替已保存的脚本，与 dry run 测试编辑内容的方式相同 |
+
+响应（`ReplayResult`）：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `input` / `output` | JSON | 捕获的输入与输出，掩码与截断方式同日志 |
+| `httpTrace` | `HTTPExchange[]` | 重放期间的线上交换 |
+| `failureKind` | `string` | 失败分类；成功时为空 |
+| `error` | `string` | 失败消息；成功时缺省 |
+| `durationMs` | `int` | 重放耗时 |
+| `definitionChanged` | `bool` | 契约、系统或适配器在原调用之后被修改过，因此结果不同可能源自该修改，而不是外部系统 |
+
+该操作背后的引擎可以通过 `integration.Replayer`（`Replay(ctx, logID, script string) (*ReplayResult, error)`）注入，因此自建管理界面的应用可以在自己的资源下提供重放。它本身不做授权：暴露它的宿主负责权限检查，正如框架资源用 `integration.log.replay` 所做的那样。
 
 `HTTPExchange`（日志与 dry-run 追踪共用）：
 
@@ -333,6 +360,7 @@ HTTP 传输（`ErrInvalidEnvelope`）。
 | `responseBody` | `string` | 捕获的响应体（掩码、截断） |
 | `durationMs` | `int` | 交换耗时 |
 | `error` | `string` | 调用失败时的传输错误消息 |
+| `clientAddr` | `string` | 调用方的网络地址；只有入站投递才有 |
 
 ## `integration/ops`
 

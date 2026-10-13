@@ -50,6 +50,14 @@ principal 解析全局变量。该快照会持久化到 `Instance.Globals`；客
 `formData`；expression condition 会把 globals 暴露为顶层 binding，但内置的
 `formData`、`applicantId`、`applicantDepartmentId` 名称发生冲突时优先级更高。
 
+globals 首先是路由输入，因此默认不会发送到浏览器。同时实现可选接口
+`approval.FormGlobalsExposer`（`FormGlobalKeys(flowCode string) []string`）的
+resolver 会列出实例表单可以读取的全局变量——即表单设计器中的 `$globals`：
+`my.get_start_form` 返回为调用者解析的值，实例详情视图则从实例快照中返回
+（`my.InstanceInfo` 与 `admin.InstanceDetailInfo` 上的 `globals`）。resolver
+没有产出的 key 会被忽略；未实现该接口的 resolver 不暴露任何全局变量——此时发起
+表单根本不会调用它，未选择接入的宿主不付出任何代价。
+
 ### 明细表格聚合
 
 字段条件可以不比较标量 subject，而是对明细表格的行做聚合。条件仍然
@@ -105,9 +113,21 @@ vef.Run(
 | 全部 | `PassAll` | `all` | 所有审批人必须同意 |
 | 任意 | `PassAny` | `any` | 至少一人同意即通过 |
 | 比例 | `PassRatio` | `ratio` | 达到一定比例即通过 |
+| 固定人数 | `PassFixedCount` | `fixed_count` | 达到固定人数同意即通过——参与人数更少时需全部同意 |
+
+两种阈值规则从节点读取阈值：`passRatio` 为 (0, 100] 内的百分比，`passCount`
+为正整数。部署会拒绝缺失或越界的阈值，而不是替它补默认值（`pass count must be
+a positive integer`），因为没有阈值的节点会在第一次求值时无论投票结果都直接通过。
+`passCount` 大于已解析出的审批人数量是合法的：审批人在运行时才解析，引擎会以
+参与的任务数为上限截断阈值。固定人数节点在同意数达到阈值时通过，在剩余人数已无法
+达到阈值时驳回。`TimelineEntry.passCount` 与 `FlowGraphNodeData.passCount`
+在进度视图中携带该阈值。
 
 自定义通过规则实现使用 `PassRuleStrategy`、`PassRuleContext`，并返回
 `PassRuleResult`（`PassRulePending`、`PassRulePassed`、`PassRuleRejected`）。
+上下文携带本次节点访问中参与任务的计数——`ApprovedCount`（已通过与已办理）、
+`RejectedCount`、`TotalCount`（无论是否已决策；已转办、取消、移除、跳过和回退的任务不再参与）——
+以及节点配置的阈值 `PassRatio` 与 `PassCount`；策略只读取自身规则定义的那个阈值。
 
 ## 审批人类型
 
@@ -210,7 +230,7 @@ type FlowDefinition struct {
 | `StartNodeData` | 只有 base 字段 |
 | `EndNodeData` | 只有 base 字段 |
 | `TaskNodeData` | `assignees`、`executionType`、`emptyAssigneeAction`、`fallbackUserIds`、`adminUserIds`、`isTransferAllowed`、`isOpinionRequired`、`timeoutHours`、`timeoutAction`、`timeoutNotifyBeforeHours`、`urgeCooldownMinutes`、`ccs`、`fieldPermissions` |
-| `ApprovalNodeData` | base 字段 + `TaskNodeData` 字段 + `approvalMethod`、`passRule`、`passRatio`、`sameApplicantAction`、`consecutiveApproverAction`、`rollbackType`、`rollbackDataStrategy`、`rollbackTargetKeys`、`isRollbackAllowed`、`isAddAssigneeAllowed`、`addAssigneeTypes`、`isRemoveAssigneeAllowed`、`isManualCcAllowed` |
+| `ApprovalNodeData` | base 字段 + `TaskNodeData` 字段 + `approvalMethod`、`passRule`、`passRatio`、`passCount`、`sameApplicantAction`、`consecutiveApproverAction`、`rollbackType`、`rollbackDataStrategy`、`rollbackTargetKeys`、`isRollbackAllowed`、`isAddAssigneeAllowed`、`addAssigneeTypes`、`isRemoveAssigneeAllowed`、`isManualCcAllowed` |
 | `HandleNodeData` | base 字段 + `TaskNodeData` 字段；部署时无条件设置 `approvalMethod = sequential`、`passRule = any`（handle 节点没有这两个 wire 字段） |
 | `CCNodeData` | base 字段 + `ccs`、`isReadConfirmRequired`、`fieldPermissions` |
 | `ConditionNodeData` | base 字段 + `branches` |

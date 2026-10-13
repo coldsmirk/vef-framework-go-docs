@@ -450,8 +450,18 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | | `keyword` | `string` | 否 | 对实例标题做 contains 匹配 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
 | `find_pending_tasks` | `tenantId` | `string` | 否 | 租户过滤 |
+| | `keyword` | `string` | 否 | 对实例标题做 contains 匹配 |
+| | `applicantId` | `string` | 否 | 精确匹配申请人——即用户选择器给出的值 |
+| | `applicantName` | `string` | 否 | 对申请人姓名快照做 contains 匹配，用于自由文本搜索 |
+| | `flowId` | `string` | 否 | 实例所属的流程 |
+| | `isTimeout` | `bool` | 否 | 只保留已超时（`true`）或未超时（`false`）的任务 |
+| | `createdAtFrom` / `createdAtTo` | `DateTime` | 否 | 任务到达时间；两端均包含 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
 | `find_completed_tasks` | `tenantId` | `string` | 否 | 租户过滤 |
+| | `keyword` / `applicantId` / `applicantName` / `flowId` | | 否 | 同 `find_pending_tasks` |
+| | `status` | `string` | 否 | 调用者如何办结该任务（`approved` / `rejected` / `handled` / `transferred` / `rolled_back`）；不属于已办状态的值不会匹配任何任务 |
+| | `instanceStatus` | `string` | 否 | 实例当前状态 |
+| | `finishedAtFrom` / `finishedAtTo` | `DateTime` | 否 | 任务办结时间；两端均包含 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
 | `find_cc_records` | `tenantId` | `string` | 否 | 租户过滤 |
 | | `isRead` | `bool` | 否 | 已读状态过滤 |
@@ -483,6 +493,8 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `versionId` | `string` | 表单所属的已发布版本 |
 | `version` | `int` | 已发布版本号 |
 | `formSchema` | JSON 文档 \| 缺省 | 宿主表单设计器文档，原样返回 |
+| `applicant` | `UserInfo` | 调用者此刻发起时实例将记录的申请人快照，解析方式与 `start` 完全一致——即表单的 `$applicant`，因此关于发起人的规则在发起时与之后每个详情视图上的求值结果相同 |
+| `globals` | `object` \| 缺省 | 流程向其表单暴露的宿主全局变量（`approval.FormGlobalsExposer`），为调用者解析——即表单的 `$globals`。只在通过发起权限校验后才解析；流程未暴露任何全局变量时缺省 |
 
 `InitiatedInstance` —— 一条调用者提交的实例：
 
@@ -557,6 +569,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `currentNodeId` / `currentNodeName` | `string` \| 缺省 | 当前进行中的节点 |
 | `businessRef` | `string` \| 缺省 | 不透明业务引用（业务绑定流程） |
 | `formData` | `object` \| 缺省 | 表单数据，已剥除查看者无权看到的字段 |
+| `globals` | `object` \| 缺省 | 实例全局变量快照中对表单可见的部分（`approval.FormGlobalsExposer`）——即表单的 `$globals`，取发起时解析的值；流程未暴露任何全局变量时缺省 |
 | `createdAt` / `finishedAt` | `DateTime` | 生命周期时间戳 |
 
 `ViewerTask` —— `process_task` 应指向的待办任务，加上客户端构建
@@ -691,6 +704,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `currentNodeId` / `currentNodeName` | `string` \| 缺省 | 当前进行中的节点 |
 | `businessRef` | `string` \| 缺省 | 不透明业务引用（业务绑定流程） |
 | `formData` | `object` \| 缺省 | 当前表单数据（不做过滤 —— 管理端视图） |
+| `globals` | `object` \| 缺省 | 实例全局变量快照中对表单可见的部分，同 `my.InstanceInfo` |
 | `createdAt` / `finishedAt` | `DateTime` | 生命周期时间戳 |
 
 `ActionLog` —— 一条审计记录。人员引用统一为动作发生时捕获的 `UserInfo`
@@ -887,6 +901,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `40216` | `ErrCodeNoUsersSpecified` | `ErrNoUsersSpecified` | `approval_no_users_specified` | 用户列表操作没有收到目标用户 |
 | `40301` | `ErrCodeNoAssignee` | `ErrNoAssignee` | `approval_no_assignee` | 无法解析出办理人 |
 | `40302` | `ErrCodeAssigneeResolveFailed` | `ErrAssigneeResolveFailed` | `approval_assignee_resolve_failed` | 办理人解析器执行失败 |
+| `40302` | `ErrCodeAssigneeResolveFailed` | 动态表单字段办理人 `result.Err` | `approval_form_field_assignee_unresolved` | 同一编码；内置 `form_field` 办理人解析器读到的 ID 在宿主 `UserInfoResolver` 中查不到姓名；消息用 `field` 和 `ids` 渲染，动作随之回滚 |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormValidationFailed` | `approval_form_validation_failed` | 通用表单校验失败 |
 | `40401` | `ErrCodeFormValidationFailed` | `ErrFormDataTooLarge` | `approval_form_data_too_large` | 同一编码；JSON 编码后的 `formData` 超过 64 KiB |
 | `40401` | `ErrCodeFormValidationFailed` | 动态表单校验 `result.Err` | `approval_form_field_not_defined`、`approval_form_field_required`、`approval_form_field_must_be_string`、`approval_form_field_must_be_number`、`approval_form_field_must_be_integer`、`approval_form_field_min_length`、`approval_form_field_max_length`、`approval_form_field_invalid_validation`、`approval_form_field_pattern_mismatch`、`approval_form_field_min_value`、`approval_form_field_max_value`、`approval_form_field_empty`、`approval_form_field_invalid_file_item`、`approval_form_field_must_be_file`、`approval_form_field_invalid_value`、`approval_form_field_must_be_row_list`、`approval_form_field_must_be_row_object`、`approval_form_field_min_rows`、`approval_form_field_max_rows`、`approval_form_field_table_cell` | 字段级校验消息为动态构造 |
