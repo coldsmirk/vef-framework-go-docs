@@ -17,8 +17,8 @@ sidebar_position: 91
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `e3f6c49a72187c416acaabadb0cc2180f8b67529339a9992c4e76a416f26a053`
-Entries: `3244`
+Fingerprint: `f9132e29520d61309a9ca14074dfb2ce89eeb8957abc5e5790a76ccac408c111`
+Entries: `3292`
 
 ## Coverage Evidence
 
@@ -33,7 +33,7 @@ Entries: `3244`
 | `HTTP endpoint` | 2 | Tier 2 source-derived constants | `extractProtocolConstants` | Source-derived REST/RPC/MCP endpoint constants and call-site evidence. | None for framework-owned default endpoints. |
 | `HTTP header` | 7 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/header.go Header* constants. | None. |
 | `HTTP wire field` | 8 | Tier 3 curated protocol fields | `extractProtocolConstants` | Curated source references for fundamental request/result fields shared by REST/RPC. | None in generated index; JSON DTO fields are covered separately. |
-| `JSON wire field` | 1661 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
+| `JSON wire field` | 1700 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
 | `MCP endpoint` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of the MCP Streamable HTTP endpoint constant. | None. |
 | `MCP jsonschema tag` | 32 | Tier 2 pinned dependency parser catalog | `extractJSONSchemaTags` | Catalog of struct-tag keywords accepted by github.com/invopop/jsonschema v0.14.0, with boundary verification that fails on dependency-version drift and uncovered in-source jsonschema tags. | None for the pinned jsonschema parser version. |
 | `MCP prompt` | 1 | Tier 2 MCP AST | `extractMCP` | AST scan of internal/mcp Prompt composites. | None in scanned MCP package. |
@@ -43,22 +43,22 @@ Entries: `3244`
 | `auth strategy` | 6 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/auth.go AuthStrategy* string constants. | None. |
 | `auth type` | 6 | Tier 2 scoped AST constants | `extractAuthTypes` | AST scan of security and internal/security AuthType* constants that are sent through Authentication.Type. | None in known built-in authenticators. |
 | `built-in resource` | 19 | Tier 2 scoped AST resources | `extractBuiltInResources` | AST scan of NewRPCResource/NewRESTResource calls in built-in runtime resource packages. | None in scanned built-in resource directories. |
-| `built-in resource action` | 97 | Tier 2 scoped AST operations | `extractBuiltInResources` | AST scan of explicit OperationSpec values and CRUD builder defaults inside built-in runtime resource packages. | None in scanned built-in resource directories. |
-| `config default` | 87 | Tier 3 mixed static extraction | `extractConfigDefaults` | AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed. | Defaults outside Effective*/ApplyDefaults/DefaultConfig and curated reviewed call sites require explicit review. |
+| `built-in resource action` | 98 | Tier 2 scoped AST operations | `extractBuiltInResources` | AST scan of explicit OperationSpec values and CRUD builder defaults inside built-in runtime resource packages. | None in scanned built-in resource directories. |
+| `config default` | 88 | Tier 3 mixed static extraction | `extractConfigDefaults` | AST extraction of Effective* accessors, ApplyDefaults assignments, monitor DefaultConfig values, and curated source references for defaults outside those named surfaces; boundary verification fails when a supported default surface is not indexed. | Defaults outside Effective*/ApplyDefaults/DefaultConfig and curated reviewed call sites require explicit review. |
 | `config enum` | 8 | Tier 2 scoped AST constants | `extractProtocolConstants` | AST scan of storage and datasource enum constants used in configuration values. | None in current config enum files. |
-| `config key` | 208 | Tier 2 config-tag AST | `extractConfigKeys` | AST walk of config structs rooted at known vef.* config roots plus vef.data_sources.&lt;name&gt;; verifier fails if a config/ struct with config tags is unreachable. | None for config/ structs with config tags. |
+| `config key` | 210 | Tier 2 config-tag AST | `extractConfigKeys` | AST walk of config structs rooted at known vef.* config roots plus vef.data_sources.&lt;name&gt;; verifier fails if a config/ struct with config tags is unreachable. | None for config/ structs with config tags. |
 | `config reserved name` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of reserved configuration-name constants. | None. |
 | `environment variable` | 6 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of Env* constants plus boundary checks for os.Getenv/os.LookupEnv call sites. | None for string-literal or const-backed environment lookups. |
 | `event topic` | 36 | Tier 2 event constant/method scan | `extractProtocolConstants, extractMoldGrammar` | AST scan of EventType*/eventType* constants, EventType() return values, and built-in subscription/route-inspection topic call sites. | None for framework-owned non-test event topics. |
 | `event transport contract` | 6 | Tier 2 scoped AST constants | `extractEventTransportContracts` | AST/source-derived extraction of outbox DLQ headers, topic prefix, retry backoff, and persisted-error bounds. | None for current built-in event transports. |
 | `i18n key indirection` | 4 | Tier 2 AST call scan | `extractI18NMessageKeys` | AST scan of dynamic i18n.T call sites whose key source is another audited surface such as label_i18n tags, validator rules, or Fiber error mappings. | None for current dynamic i18n.T call sites. |
-| `i18n message key` | 280 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
+| `i18n message key` | 282 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
 | `meta tag grammar` | 7 | Tier 2 AST constants | `extractStructTagGrammars` | Catalog of storage meta tag name, dive value, file-reference kinds, and attribute grammar delimiters. | None for the current parser constants and tag parsing rules. |
 | `mold tag grammar` | 9 | Tier 2 parser grammar scan | `extractMoldGrammar` | AST scan of the default mold tag name and restricted parser token constants, with boundary verification for parser token coverage. | None for current mold parser token constants. |
 | `mold transformer tag` | 2 | Tier 2 transformer scan | `extractMoldGrammar` | AST scan of built-in FieldTransformer Tag() methods. | None for current built-in mold transformer Tag() methods. |
-| `result error code` | 178 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
-| `result message key` | 43 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of ErrMessage* constants. | Inline i18n keys are covered by the i18n message key category. |
-| `runtime enum value` | 381 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
+| `result error code` | 179 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
+| `result message key` | 44 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of ErrMessage* constants. | Inline i18n keys are covered by the i18n message key category. |
+| `runtime enum value` | 382 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
 | `search tag grammar` | 38 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of search tag name, attributes, params, ignore marker, and operator/type tokens. | None for constants in search/constants.go. |
 | `tabular tag grammar` | 10 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of tabular tag name, attributes, and ignore marker. | None for constants in tabular/constants.go. |
 | `validator label tag` | 2 | Tier 2 validator tag scan | `extractValidatorRules` | AST scan of validator struct-tag key constants used by Field.Tag.Get. | None for current validator label tag lookups. |
@@ -210,41 +210,41 @@ Entries: `3244`
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
 | `AbortUploadParams.ClaimID` | `claimId` | Go field: AbortUploadParams.ClaimID<br/>type: string<br/>validate: "required" | `internal/storage/resource.go:799` |
-| `ActionLog.Action` | `action` | Go field: ActionLog.Action<br/>type: string | `approval/admin/instance_detail.go:52` |
-| `ActionLog.Action` | `action` | Go field: ActionLog.Action<br/>type: ActionType | `approval/models.go:401` |
-| `ActionLog.AddAssigneeType` | `addAssigneeType` | Go field: ActionLog.AddAssigneeType<br/>type: *AddAssigneeType | `approval/models.go:414` |
-| `ActionLog.AddedAssignees` | `addedAssignees` | Go field: ActionLog.AddedAssignees<br/>type: []UserInfo | `approval/models.go:415` |
-| `ActionLog.AddedAssignees` | `addedAssignees` | Go field: ActionLog.AddedAssignees<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:58` |
-| `ActionLog.Attachments` | `attachments` | Go field: ActionLog.Attachments<br/>type: []string | `approval/admin/instance_detail.go:62` |
-| `ActionLog.Attachments` | `attachments` | Go field: ActionLog.Attachments<br/>type: []string | `approval/models.go:418` |
-| `ActionLog.CCUsers` | `ccUsers` | Go field: ActionLog.CCUsers<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:60` |
-| `ActionLog.CCUsers` | `ccUsers` | Go field: ActionLog.CCUsers<br/>type: []UserInfo | `approval/models.go:417` |
-| `ActionLog.CreatedAt` | `createdAt` | Go field: ActionLog.CreatedAt<br/>type: timex.DateTime | `approval/admin/instance_detail.go:63` |
-| `ActionLog.IPAddress` | `ipAddress` | Go field: ActionLog.IPAddress<br/>type: *string | `approval/models.go:406` |
-| `ActionLog.InstanceID` | `instanceId` | Go field: ActionLog.InstanceID<br/>type: string | `approval/models.go:398` |
-| `ActionLog.LogID` | `logId` | Go field: ActionLog.LogID<br/>type: string | `approval/admin/instance_detail.go:51` |
-| `ActionLog.Meta` | `meta` | Go field: ActionLog.Meta<br/>type: map[string]any | `approval/models.go:419` |
-| `ActionLog.NodeID` | `nodeId` | Go field: ActionLog.NodeID<br/>type: *string | `approval/models.go:399` |
-| `ActionLog.NodeID` | `nodeId` | Go field: ActionLog.NodeID<br/>type: *string | `approval/admin/instance_detail.go:53` |
-| `ActionLog.Operator` | `operator` | Go field: ActionLog.Operator<br/>type: approval.UserInfo | `approval/admin/instance_detail.go:55` |
-| `ActionLog.OperatorDepartmentID` | `operatorDepartmentId` | Go field: ActionLog.OperatorDepartmentID<br/>type: *string | `approval/models.go:404` |
-| `ActionLog.OperatorDepartmentName` | `operatorDepartmentName` | Go field: ActionLog.OperatorDepartmentName<br/>type: *string | `approval/models.go:405` |
-| `ActionLog.OperatorID` | `operatorId` | Go field: ActionLog.OperatorID<br/>type: string | `approval/models.go:402` |
-| `ActionLog.OperatorName` | `operatorName` | Go field: ActionLog.OperatorName<br/>type: string | `approval/models.go:403` |
-| `ActionLog.Opinion` | `opinion` | Go field: ActionLog.Opinion<br/>type: *string | `approval/models.go:408` |
-| `ActionLog.Opinion` | `opinion` | Go field: ActionLog.Opinion<br/>type: *string | `approval/admin/instance_detail.go:61` |
-| `ActionLog.RemovedAssignees` | `removedAssignees` | Go field: ActionLog.RemovedAssignees<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:59` |
-| `ActionLog.RemovedAssignees` | `removedAssignees` | Go field: ActionLog.RemovedAssignees<br/>type: []UserInfo | `approval/models.go:416` |
-| `ActionLog.RollbackToNodeID` | `rollbackToNodeId` | Go field: ActionLog.RollbackToNodeID<br/>type: *string | `approval/models.go:413` |
-| `ActionLog.RollbackToNodeID` | `rollbackToNodeId` | Go field: ActionLog.RollbackToNodeID<br/>type: *string | `approval/admin/instance_detail.go:57` |
-| `ActionLog.TaskID` | `taskId` | Go field: ActionLog.TaskID<br/>type: *string | `approval/admin/instance_detail.go:54` |
-| `ActionLog.TaskID` | `taskId` | Go field: ActionLog.TaskID<br/>type: *string | `approval/models.go:400` |
-| `ActionLog.TransferTo` | `transferTo` | Go field: ActionLog.TransferTo<br/>type: *approval.UserInfo | `approval/admin/instance_detail.go:56` |
-| `ActionLog.TransferToDepartmentID` | `transferToDepartmentId` | Go field: ActionLog.TransferToDepartmentID<br/>type: *string | `approval/models.go:411` |
-| `ActionLog.TransferToDepartmentName` | `transferToDepartmentName` | Go field: ActionLog.TransferToDepartmentName<br/>type: *string | `approval/models.go:412` |
-| `ActionLog.TransferToID` | `transferToId` | Go field: ActionLog.TransferToID<br/>type: *string | `approval/models.go:409` |
-| `ActionLog.TransferToName` | `transferToName` | Go field: ActionLog.TransferToName<br/>type: *string | `approval/models.go:410` |
-| `ActionLog.UserAgent` | `userAgent` | Go field: ActionLog.UserAgent<br/>type: *string | `approval/models.go:407` |
+| `ActionLog.Action` | `action` | Go field: ActionLog.Action<br/>type: string | `approval/admin/instance_detail.go:56` |
+| `ActionLog.Action` | `action` | Go field: ActionLog.Action<br/>type: ActionType | `approval/models.go:402` |
+| `ActionLog.AddAssigneeType` | `addAssigneeType` | Go field: ActionLog.AddAssigneeType<br/>type: *AddAssigneeType | `approval/models.go:415` |
+| `ActionLog.AddedAssignees` | `addedAssignees` | Go field: ActionLog.AddedAssignees<br/>type: []UserInfo | `approval/models.go:416` |
+| `ActionLog.AddedAssignees` | `addedAssignees` | Go field: ActionLog.AddedAssignees<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:62` |
+| `ActionLog.Attachments` | `attachments` | Go field: ActionLog.Attachments<br/>type: []string | `approval/models.go:419` |
+| `ActionLog.Attachments` | `attachments` | Go field: ActionLog.Attachments<br/>type: []string | `approval/admin/instance_detail.go:66` |
+| `ActionLog.CCUsers` | `ccUsers` | Go field: ActionLog.CCUsers<br/>type: []UserInfo | `approval/models.go:418` |
+| `ActionLog.CCUsers` | `ccUsers` | Go field: ActionLog.CCUsers<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:64` |
+| `ActionLog.CreatedAt` | `createdAt` | Go field: ActionLog.CreatedAt<br/>type: timex.DateTime | `approval/admin/instance_detail.go:67` |
+| `ActionLog.IPAddress` | `ipAddress` | Go field: ActionLog.IPAddress<br/>type: *string | `approval/models.go:407` |
+| `ActionLog.InstanceID` | `instanceId` | Go field: ActionLog.InstanceID<br/>type: string | `approval/models.go:399` |
+| `ActionLog.LogID` | `logId` | Go field: ActionLog.LogID<br/>type: string | `approval/admin/instance_detail.go:55` |
+| `ActionLog.Meta` | `meta` | Go field: ActionLog.Meta<br/>type: map[string]any | `approval/models.go:420` |
+| `ActionLog.NodeID` | `nodeId` | Go field: ActionLog.NodeID<br/>type: *string | `approval/models.go:400` |
+| `ActionLog.NodeID` | `nodeId` | Go field: ActionLog.NodeID<br/>type: *string | `approval/admin/instance_detail.go:57` |
+| `ActionLog.Operator` | `operator` | Go field: ActionLog.Operator<br/>type: approval.UserInfo | `approval/admin/instance_detail.go:59` |
+| `ActionLog.OperatorDepartmentID` | `operatorDepartmentId` | Go field: ActionLog.OperatorDepartmentID<br/>type: *string | `approval/models.go:405` |
+| `ActionLog.OperatorDepartmentName` | `operatorDepartmentName` | Go field: ActionLog.OperatorDepartmentName<br/>type: *string | `approval/models.go:406` |
+| `ActionLog.OperatorID` | `operatorId` | Go field: ActionLog.OperatorID<br/>type: string | `approval/models.go:403` |
+| `ActionLog.OperatorName` | `operatorName` | Go field: ActionLog.OperatorName<br/>type: string | `approval/models.go:404` |
+| `ActionLog.Opinion` | `opinion` | Go field: ActionLog.Opinion<br/>type: *string | `approval/admin/instance_detail.go:65` |
+| `ActionLog.Opinion` | `opinion` | Go field: ActionLog.Opinion<br/>type: *string | `approval/models.go:409` |
+| `ActionLog.RemovedAssignees` | `removedAssignees` | Go field: ActionLog.RemovedAssignees<br/>type: []approval.UserInfo | `approval/admin/instance_detail.go:63` |
+| `ActionLog.RemovedAssignees` | `removedAssignees` | Go field: ActionLog.RemovedAssignees<br/>type: []UserInfo | `approval/models.go:417` |
+| `ActionLog.RollbackToNodeID` | `rollbackToNodeId` | Go field: ActionLog.RollbackToNodeID<br/>type: *string | `approval/models.go:414` |
+| `ActionLog.RollbackToNodeID` | `rollbackToNodeId` | Go field: ActionLog.RollbackToNodeID<br/>type: *string | `approval/admin/instance_detail.go:61` |
+| `ActionLog.TaskID` | `taskId` | Go field: ActionLog.TaskID<br/>type: *string | `approval/admin/instance_detail.go:58` |
+| `ActionLog.TaskID` | `taskId` | Go field: ActionLog.TaskID<br/>type: *string | `approval/models.go:401` |
+| `ActionLog.TransferTo` | `transferTo` | Go field: ActionLog.TransferTo<br/>type: *approval.UserInfo | `approval/admin/instance_detail.go:60` |
+| `ActionLog.TransferToDepartmentID` | `transferToDepartmentId` | Go field: ActionLog.TransferToDepartmentID<br/>type: *string | `approval/models.go:412` |
+| `ActionLog.TransferToDepartmentName` | `transferToDepartmentName` | Go field: ActionLog.TransferToDepartmentName<br/>type: *string | `approval/models.go:413` |
+| `ActionLog.TransferToID` | `transferToId` | Go field: ActionLog.TransferToID<br/>type: *string | `approval/models.go:410` |
+| `ActionLog.TransferToName` | `transferToName` | Go field: ActionLog.TransferToName<br/>type: *string | `approval/models.go:411` |
+| `ActionLog.UserAgent` | `userAgent` | Go field: ActionLog.UserAgent<br/>type: *string | `approval/models.go:408` |
 | `Activity.Action` | `action` | Go field: Activity.Action<br/>type: string | `approval/node_view.go:42` |
 | `Activity.AddedAssignees` | `addedAssignees` | Go field: Activity.AddedAssignees<br/>type: []UserInfo | `approval/node_view.go:50` |
 | `Activity.Attachments` | `attachments` | Go field: Activity.Attachments<br/>type: []string | `approval/node_view.go:45` |
@@ -308,19 +308,20 @@ Entries: `3244`
 | `AdminRetryBusinessProjectionParams.ProjectionID` | `projectionId` | Go field: AdminRetryBusinessProjectionParams.ProjectionID<br/>type: string<br/>validate: "required" | `internal/approval/resource/admin.go:334` |
 | `AdminTerminateInstanceParams.InstanceID` | `instanceId` | Go field: AdminTerminateInstanceParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/admin.go:211` |
 | `AdminTerminateInstanceParams.Reason` | `reason` | Go field: AdminTerminateInstanceParams.Reason<br/>type: string<br/>validate: "max=2000" | `internal/approval/resource/admin.go:212` |
-| `ApprovalNodeData.AddAssigneeTypes` | `addAssigneeTypes` | Go field: ApprovalNodeData.AddAssigneeTypes<br/>type: []AddAssigneeType | `approval/node_data.go:181` |
+| `ApprovalNodeData.AddAssigneeTypes` | `addAssigneeTypes` | Go field: ApprovalNodeData.AddAssigneeTypes<br/>type: []AddAssigneeType | `approval/node_data.go:182` |
 | `ApprovalNodeData.ApprovalMethod` | `approvalMethod` | Go field: ApprovalNodeData.ApprovalMethod<br/>type: ApprovalMethod | `approval/node_data.go:171` |
-| `ApprovalNodeData.ConsecutiveApproverAction` | `consecutiveApproverAction` | Go field: ApprovalNodeData.ConsecutiveApproverAction<br/>type: ConsecutiveApproverAction | `approval/node_data.go:175` |
-| `ApprovalNodeData.IsAddAssigneeAllowed` | `isAddAssigneeAllowed` | Go field: ApprovalNodeData.IsAddAssigneeAllowed<br/>type: *bool | `approval/node_data.go:180` |
-| `ApprovalNodeData.IsManualCCAllowed` | `isManualCcAllowed` | Go field: ApprovalNodeData.IsManualCCAllowed<br/>type: *bool | `approval/node_data.go:183` |
-| `ApprovalNodeData.IsRemoveAssigneeAllowed` | `isRemoveAssigneeAllowed` | Go field: ApprovalNodeData.IsRemoveAssigneeAllowed<br/>type: *bool | `approval/node_data.go:182` |
-| `ApprovalNodeData.IsRollbackAllowed` | `isRollbackAllowed` | Go field: ApprovalNodeData.IsRollbackAllowed<br/>type: *bool | `approval/node_data.go:179` |
+| `ApprovalNodeData.ConsecutiveApproverAction` | `consecutiveApproverAction` | Go field: ApprovalNodeData.ConsecutiveApproverAction<br/>type: ConsecutiveApproverAction | `approval/node_data.go:176` |
+| `ApprovalNodeData.IsAddAssigneeAllowed` | `isAddAssigneeAllowed` | Go field: ApprovalNodeData.IsAddAssigneeAllowed<br/>type: *bool | `approval/node_data.go:181` |
+| `ApprovalNodeData.IsManualCCAllowed` | `isManualCcAllowed` | Go field: ApprovalNodeData.IsManualCCAllowed<br/>type: *bool | `approval/node_data.go:184` |
+| `ApprovalNodeData.IsRemoveAssigneeAllowed` | `isRemoveAssigneeAllowed` | Go field: ApprovalNodeData.IsRemoveAssigneeAllowed<br/>type: *bool | `approval/node_data.go:183` |
+| `ApprovalNodeData.IsRollbackAllowed` | `isRollbackAllowed` | Go field: ApprovalNodeData.IsRollbackAllowed<br/>type: *bool | `approval/node_data.go:180` |
+| `ApprovalNodeData.PassCount` | `passCount` | Go field: ApprovalNodeData.PassCount<br/>type: int | `approval/node_data.go:174` |
 | `ApprovalNodeData.PassRatio` | `passRatio` | Go field: ApprovalNodeData.PassRatio<br/>type: decimal.Decimal | `approval/node_data.go:173` |
 | `ApprovalNodeData.PassRule` | `passRule` | Go field: ApprovalNodeData.PassRule<br/>type: PassRule | `approval/node_data.go:172` |
-| `ApprovalNodeData.RollbackDataStrategy` | `rollbackDataStrategy` | Go field: ApprovalNodeData.RollbackDataStrategy<br/>type: RollbackDataStrategy | `approval/node_data.go:177` |
-| `ApprovalNodeData.RollbackTargetKeys` | `rollbackTargetKeys` | Go field: ApprovalNodeData.RollbackTargetKeys<br/>type: []string | `approval/node_data.go:178` |
-| `ApprovalNodeData.RollbackType` | `rollbackType` | Go field: ApprovalNodeData.RollbackType<br/>type: RollbackType | `approval/node_data.go:176` |
-| `ApprovalNodeData.SameApplicantAction` | `sameApplicantAction` | Go field: ApprovalNodeData.SameApplicantAction<br/>type: SameApplicantAction | `approval/node_data.go:174` |
+| `ApprovalNodeData.RollbackDataStrategy` | `rollbackDataStrategy` | Go field: ApprovalNodeData.RollbackDataStrategy<br/>type: RollbackDataStrategy | `approval/node_data.go:178` |
+| `ApprovalNodeData.RollbackTargetKeys` | `rollbackTargetKeys` | Go field: ApprovalNodeData.RollbackTargetKeys<br/>type: []string | `approval/node_data.go:179` |
+| `ApprovalNodeData.RollbackType` | `rollbackType` | Go field: ApprovalNodeData.RollbackType<br/>type: RollbackType | `approval/node_data.go:177` |
+| `ApprovalNodeData.SameApplicantAction` | `sameApplicantAction` | Go field: ApprovalNodeData.SameApplicantAction<br/>type: SameApplicantAction | `approval/node_data.go:175` |
 | `AssigneeDefinition.FormField` | `formField` | Go field: AssigneeDefinition.FormField<br/>type: *string | `approval/assignee.go:75` |
 | `AssigneeDefinition.IDs` | `ids` | Go field: AssigneeDefinition.IDs<br/>type: []string | `approval/assignee.go:74` |
 | `AssigneeDefinition.Kind` | `kind` | Go field: AssigneeDefinition.Kind<br/>type: AssigneeKind | `approval/assignee.go:73` |
@@ -368,53 +369,53 @@ Entries: `3244`
 | `BusinessBindingConfig.StatusMapping` | `statusMapping` | Go field: BusinessBindingConfig.StatusMapping<br/>type: map[InstanceStatus]string | `approval/binding.go:49` |
 | `BusinessBindingConfig.TableName` | `tableName` | Go field: BusinessBindingConfig.TableName<br/>type: string | `approval/binding.go:38` |
 | `BusinessProjection.AppliedAt` | `appliedAt` | Go field: BusinessProjection.AppliedAt<br/>type: *timex.DateTime | `approval/admin/business_projection.go:33` |
-| `BusinessProjection.AppliedAt` | `appliedAt` | Go field: BusinessProjection.AppliedAt<br/>type: *timex.DateTime | `approval/models.go:286` |
-| `BusinessProjection.AppliedOwnerInstanceID` | `appliedOwnerInstanceId` | Go field: BusinessProjection.AppliedOwnerInstanceID<br/>type: *string | `approval/models.go:271` |
+| `BusinessProjection.AppliedAt` | `appliedAt` | Go field: BusinessProjection.AppliedAt<br/>type: *timex.DateTime | `approval/models.go:287` |
+| `BusinessProjection.AppliedOwnerInstanceID` | `appliedOwnerInstanceId` | Go field: BusinessProjection.AppliedOwnerInstanceID<br/>type: *string | `approval/models.go:272` |
 | `BusinessProjection.AppliedOwnerInstanceID` | `appliedOwnerInstanceId` | Go field: BusinessProjection.AppliedOwnerInstanceID<br/>type: *string | `approval/admin/business_projection.go:19` |
-| `BusinessProjection.AppliedRevision` | `appliedRevision` | Go field: BusinessProjection.AppliedRevision<br/>type: int64 | `approval/models.go:280` |
+| `BusinessProjection.AppliedRevision` | `appliedRevision` | Go field: BusinessProjection.AppliedRevision<br/>type: int64 | `approval/models.go:281` |
 | `BusinessProjection.AppliedRevision` | `appliedRevision` | Go field: BusinessProjection.AppliedRevision<br/>type: int64 | `approval/admin/business_projection.go:27` |
 | `BusinessProjection.AttemptCount` | `attemptCount` | Go field: BusinessProjection.AttemptCount<br/>type: int | `approval/admin/business_projection.go:29` |
-| `BusinessProjection.AttemptCount` | `attemptCount` | Go field: BusinessProjection.AttemptCount<br/>type: int | `approval/models.go:282` |
-| `BusinessProjection.Binding` | `binding` | Go field: BusinessProjection.Binding<br/>type: *BusinessBindingConfig | `approval/models.go:274` |
+| `BusinessProjection.AttemptCount` | `attemptCount` | Go field: BusinessProjection.AttemptCount<br/>type: int | `approval/models.go:283` |
+| `BusinessProjection.Binding` | `binding` | Go field: BusinessProjection.Binding<br/>type: *BusinessBindingConfig | `approval/models.go:275` |
 | `BusinessProjection.BusinessTable` | `businessTable` | Go field: BusinessProjection.BusinessTable<br/>type: string | `approval/admin/business_projection.go:20` |
-| `BusinessProjection.Consistency` | `consistency` | Go field: BusinessProjection.Consistency<br/>type: config.ApprovalBindingConsistency | `approval/models.go:273` |
+| `BusinessProjection.Consistency` | `consistency` | Go field: BusinessProjection.Consistency<br/>type: config.ApprovalBindingConsistency | `approval/models.go:274` |
 | `BusinessProjection.Consistency` | `consistency` | Go field: BusinessProjection.Consistency<br/>type: config.ApprovalBindingConsistency | `approval/admin/business_projection.go:22` |
 | `BusinessProjection.DesiredFinishedAt` | `desiredFinishedAt` | Go field: BusinessProjection.DesiredFinishedAt<br/>type: *timex.DateTime | `approval/admin/business_projection.go:25` |
-| `BusinessProjection.DesiredFinishedAt` | `desiredFinishedAt` | Go field: BusinessProjection.DesiredFinishedAt<br/>type: *timex.DateTime | `approval/models.go:278` |
-| `BusinessProjection.DesiredRevision` | `desiredRevision` | Go field: BusinessProjection.DesiredRevision<br/>type: int64 | `approval/models.go:279` |
+| `BusinessProjection.DesiredFinishedAt` | `desiredFinishedAt` | Go field: BusinessProjection.DesiredFinishedAt<br/>type: *timex.DateTime | `approval/models.go:279` |
 | `BusinessProjection.DesiredRevision` | `desiredRevision` | Go field: BusinessProjection.DesiredRevision<br/>type: int64 | `approval/admin/business_projection.go:26` |
-| `BusinessProjection.DesiredStartedAt` | `desiredStartedAt` | Go field: BusinessProjection.DesiredStartedAt<br/>type: timex.DateTime | `approval/models.go:277` |
+| `BusinessProjection.DesiredRevision` | `desiredRevision` | Go field: BusinessProjection.DesiredRevision<br/>type: int64 | `approval/models.go:280` |
 | `BusinessProjection.DesiredStartedAt` | `desiredStartedAt` | Go field: BusinessProjection.DesiredStartedAt<br/>type: timex.DateTime | `approval/admin/business_projection.go:24` |
+| `BusinessProjection.DesiredStartedAt` | `desiredStartedAt` | Go field: BusinessProjection.DesiredStartedAt<br/>type: timex.DateTime | `approval/models.go:278` |
+| `BusinessProjection.DesiredStatus` | `desiredStatus` | Go field: BusinessProjection.DesiredStatus<br/>type: InstanceStatus | `approval/models.go:277` |
 | `BusinessProjection.DesiredStatus` | `desiredStatus` | Go field: BusinessProjection.DesiredStatus<br/>type: approval.InstanceStatus | `approval/admin/business_projection.go:23` |
-| `BusinessProjection.DesiredStatus` | `desiredStatus` | Go field: BusinessProjection.DesiredStatus<br/>type: InstanceStatus | `approval/models.go:276` |
 | `BusinessProjection.FlowID` | `flowId` | Go field: BusinessProjection.FlowID<br/>type: string | `approval/admin/business_projection.go:16` |
-| `BusinessProjection.FlowID` | `flowId` | Go field: BusinessProjection.FlowID<br/>type: string | `approval/models.go:268` |
+| `BusinessProjection.FlowID` | `flowId` | Go field: BusinessProjection.FlowID<br/>type: string | `approval/models.go:269` |
+| `BusinessProjection.FlowVersionID` | `flowVersionId` | Go field: BusinessProjection.FlowVersionID<br/>type: string | `approval/models.go:270` |
 | `BusinessProjection.FlowVersionID` | `flowVersionId` | Go field: BusinessProjection.FlowVersionID<br/>type: string | `approval/admin/business_projection.go:17` |
-| `BusinessProjection.FlowVersionID` | `flowVersionId` | Go field: BusinessProjection.FlowVersionID<br/>type: string | `approval/models.go:269` |
-| `BusinessProjection.LastError` | `lastError` | Go field: BusinessProjection.LastError<br/>type: *string | `approval/models.go:285` |
 | `BusinessProjection.LastError` | `lastError` | Go field: BusinessProjection.LastError<br/>type: *string | `approval/admin/business_projection.go:32` |
+| `BusinessProjection.LastError` | `lastError` | Go field: BusinessProjection.LastError<br/>type: *string | `approval/models.go:286` |
 | `BusinessProjection.LeaseUntil` | `leaseUntil` | Go field: BusinessProjection.LeaseUntil<br/>type: *timex.DateTime | `approval/admin/business_projection.go:31` |
-| `BusinessProjection.LeaseUntil` | `leaseUntil` | Go field: BusinessProjection.LeaseUntil<br/>type: *timex.DateTime | `approval/models.go:284` |
-| `BusinessProjection.NextAttemptAt` | `nextAttemptAt` | Go field: BusinessProjection.NextAttemptAt<br/>type: *timex.DateTime | `approval/models.go:283` |
+| `BusinessProjection.LeaseUntil` | `leaseUntil` | Go field: BusinessProjection.LeaseUntil<br/>type: *timex.DateTime | `approval/models.go:285` |
+| `BusinessProjection.NextAttemptAt` | `nextAttemptAt` | Go field: BusinessProjection.NextAttemptAt<br/>type: *timex.DateTime | `approval/models.go:284` |
 | `BusinessProjection.NextAttemptAt` | `nextAttemptAt` | Go field: BusinessProjection.NextAttemptAt<br/>type: *timex.DateTime | `approval/admin/business_projection.go:30` |
-| `BusinessProjection.OwnerInstanceID` | `ownerInstanceId` | Go field: BusinessProjection.OwnerInstanceID<br/>type: string | `approval/models.go:270` |
+| `BusinessProjection.OwnerInstanceID` | `ownerInstanceId` | Go field: BusinessProjection.OwnerInstanceID<br/>type: string | `approval/models.go:271` |
 | `BusinessProjection.OwnerInstanceID` | `ownerInstanceId` | Go field: BusinessProjection.OwnerInstanceID<br/>type: string | `approval/admin/business_projection.go:18` |
 | `BusinessProjection.ProjectionID` | `projectionId` | Go field: BusinessProjection.ProjectionID<br/>type: string | `approval/admin/business_projection.go:14` |
+| `BusinessProjection.RecordKey` | `recordKey` | Go field: BusinessProjection.RecordKey<br/>type: json.RawMessage | `approval/models.go:276` |
 | `BusinessProjection.RecordKey` | `recordKey` | Go field: BusinessProjection.RecordKey<br/>type: json.RawMessage | `approval/admin/business_projection.go:21` |
-| `BusinessProjection.RecordKey` | `recordKey` | Go field: BusinessProjection.RecordKey<br/>type: json.RawMessage | `approval/models.go:275` |
-| `BusinessProjection.Status` | `status` | Go field: BusinessProjection.Status<br/>type: BindingProjectionStatus | `approval/models.go:281` |
+| `BusinessProjection.Status` | `status` | Go field: BusinessProjection.Status<br/>type: BindingProjectionStatus | `approval/models.go:282` |
 | `BusinessProjection.Status` | `status` | Go field: BusinessProjection.Status<br/>type: approval.BindingProjectionStatus | `approval/admin/business_projection.go:28` |
-| `BusinessProjection.TargetHash` | `targetHash` | Go field: BusinessProjection.TargetHash<br/>type: string | `approval/models.go:272` |
+| `BusinessProjection.TargetHash` | `targetHash` | Go field: BusinessProjection.TargetHash<br/>type: string | `approval/models.go:273` |
 | `BusinessProjection.TenantID` | `tenantId` | Go field: BusinessProjection.TenantID<br/>type: string | `approval/admin/business_projection.go:15` |
-| `BusinessProjection.TenantID` | `tenantId` | Go field: BusinessProjection.TenantID<br/>type: string | `approval/models.go:267` |
+| `BusinessProjection.TenantID` | `tenantId` | Go field: BusinessProjection.TenantID<br/>type: string | `approval/models.go:268` |
 | `BusinessProjection.UpdatedAt` | `updatedAt` | Go field: BusinessProjection.UpdatedAt<br/>type: timex.DateTime | `approval/admin/business_projection.go:34` |
 | `CCDefinition.FormField` | `formField` | Go field: CCDefinition.FormField<br/>type: *string | `approval/cc.go:9` |
 | `CCDefinition.IDs` | `ids` | Go field: CCDefinition.IDs<br/>type: []string | `approval/cc.go:8` |
 | `CCDefinition.Kind` | `kind` | Go field: CCDefinition.Kind<br/>type: CCKind | `approval/cc.go:7` |
 | `CCDefinition.Timing` | `timing` | Go field: CCDefinition.Timing<br/>type: CCTiming | `approval/cc.go:10` |
-| `CCNodeData.CCs` | `ccs` | Go field: CCNodeData.CCs<br/>type: []CCDefinition | `approval/node_data.go:239` |
-| `CCNodeData.FieldPermissions` | `fieldPermissions` | Go field: CCNodeData.FieldPermissions<br/>type: map[string]Permission | `approval/node_data.go:241` |
-| `CCNodeData.IsReadConfirmRequired` | `isReadConfirmRequired` | Go field: CCNodeData.IsReadConfirmRequired<br/>type: bool | `approval/node_data.go:240` |
+| `CCNodeData.CCs` | `ccs` | Go field: CCNodeData.CCs<br/>type: []CCDefinition | `approval/node_data.go:241` |
+| `CCNodeData.FieldPermissions` | `fieldPermissions` | Go field: CCNodeData.FieldPermissions<br/>type: map[string]Permission | `approval/node_data.go:243` |
+| `CCNodeData.IsReadConfirmRequired` | `isReadConfirmRequired` | Go field: CCNodeData.IsReadConfirmRequired<br/>type: bool | `approval/node_data.go:242` |
 | `CCNotifiedEvent.IsManual` | `isManual` | Go field: CCNotifiedEvent.IsManual<br/>type: bool | `approval/events_cc.go:11` |
 | `CCNotifiedEvent.NodeID` | `nodeId` | Go field: CCNotifiedEvent.NodeID<br/>type: string | `approval/events_cc.go:8` |
 | `CCNotifiedEvent.NodeName` | `nodeName` | Go field: CCNotifiedEvent.NodeName<br/>type: string | `approval/events_cc.go:9` |
@@ -423,24 +424,24 @@ Entries: `3244`
 | `CCRecipient.User` | `user` | Go field: CCRecipient.User<br/>type: UserInfo | `approval/node_view.go:60` |
 | `CCRecord.Applicant` | `applicant` | Go field: CCRecord.Applicant<br/>type: approval.UserInfo | `approval/my/cc_records.go:16` |
 | `CCRecord.CCRecordID` | `ccRecordId` | Go field: CCRecord.CCRecordID<br/>type: string | `approval/my/cc_records.go:10` |
-| `CCRecord.CCUserDepartmentID` | `ccUserDepartmentId` | Go field: CCRecord.CCUserDepartmentID<br/>type: *string | `approval/models.go:468` |
-| `CCRecord.CCUserDepartmentName` | `ccUserDepartmentName` | Go field: CCRecord.CCUserDepartmentName<br/>type: *string | `approval/models.go:469` |
-| `CCRecord.CCUserID` | `ccUserId` | Go field: CCRecord.CCUserID<br/>type: string | `approval/models.go:466` |
-| `CCRecord.CCUserName` | `ccUserName` | Go field: CCRecord.CCUserName<br/>type: string | `approval/models.go:467` |
+| `CCRecord.CCUserDepartmentID` | `ccUserDepartmentId` | Go field: CCRecord.CCUserDepartmentID<br/>type: *string | `approval/models.go:469` |
+| `CCRecord.CCUserDepartmentName` | `ccUserDepartmentName` | Go field: CCRecord.CCUserDepartmentName<br/>type: *string | `approval/models.go:470` |
+| `CCRecord.CCUserID` | `ccUserId` | Go field: CCRecord.CCUserID<br/>type: string | `approval/models.go:467` |
+| `CCRecord.CCUserName` | `ccUserName` | Go field: CCRecord.CCUserName<br/>type: string | `approval/models.go:468` |
 | `CCRecord.CreatedAt` | `createdAt` | Go field: CCRecord.CreatedAt<br/>type: timex.DateTime | `approval/my/cc_records.go:19` |
 | `CCRecord.FlowIcon` | `flowIcon` | Go field: CCRecord.FlowIcon<br/>type: *string | `approval/my/cc_records.go:15` |
 | `CCRecord.FlowName` | `flowName` | Go field: CCRecord.FlowName<br/>type: string | `approval/my/cc_records.go:14` |
-| `CCRecord.InstanceID` | `instanceId` | Go field: CCRecord.InstanceID<br/>type: string | `approval/models.go:458` |
+| `CCRecord.InstanceID` | `instanceId` | Go field: CCRecord.InstanceID<br/>type: string | `approval/models.go:459` |
 | `CCRecord.InstanceID` | `instanceId` | Go field: CCRecord.InstanceID<br/>type: string | `approval/my/cc_records.go:11` |
 | `CCRecord.InstanceNo` | `instanceNo` | Go field: CCRecord.InstanceNo<br/>type: string | `approval/my/cc_records.go:13` |
 | `CCRecord.InstanceTitle` | `instanceTitle` | Go field: CCRecord.InstanceTitle<br/>type: string | `approval/my/cc_records.go:12` |
-| `CCRecord.IsManual` | `isManual` | Go field: CCRecord.IsManual<br/>type: bool | `approval/models.go:470` |
+| `CCRecord.IsManual` | `isManual` | Go field: CCRecord.IsManual<br/>type: bool | `approval/models.go:471` |
 | `CCRecord.IsRead` | `isRead` | Go field: CCRecord.IsRead<br/>type: bool | `approval/my/cc_records.go:18` |
-| `CCRecord.NodeID` | `nodeId` | Go field: CCRecord.NodeID<br/>type: *string | `approval/models.go:459` |
+| `CCRecord.NodeID` | `nodeId` | Go field: CCRecord.NodeID<br/>type: *string | `approval/models.go:460` |
 | `CCRecord.NodeName` | `nodeName` | Go field: CCRecord.NodeName<br/>type: *string | `approval/my/cc_records.go:17` |
-| `CCRecord.ReadAt` | `readAt` | Go field: CCRecord.ReadAt<br/>type: *timex.DateTime | `approval/models.go:471` |
-| `CCRecord.TaskID` | `taskId` | Go field: CCRecord.TaskID<br/>type: *string | `approval/models.go:465` |
-| `CCRecord.VisitID` | `visitId` | Go field: CCRecord.VisitID<br/>type: *string | `approval/models.go:464` |
+| `CCRecord.ReadAt` | `readAt` | Go field: CCRecord.ReadAt<br/>type: *timex.DateTime | `approval/models.go:472` |
+| `CCRecord.TaskID` | `taskId` | Go field: CCRecord.TaskID<br/>type: *string | `approval/models.go:466` |
+| `CCRecord.VisitID` | `visitId` | Go field: CCRecord.VisitID<br/>type: *string | `approval/models.go:465` |
 | `CPUInfo.CacheSize` | `cacheSize` | Go field: CPUInfo.CacheSize<br/>type: int32 | `monitor/service.go:64` |
 | `CPUInfo.EffectiveCores` | `effectiveCores` | Go field: CPUInfo.EffectiveCores<br/>type: float64 | `monitor/service.go:72` |
 | `CPUInfo.Family` | `family` | Go field: CPUInfo.Family<br/>type: string | `monitor/service.go:68` |
@@ -540,7 +541,7 @@ Entries: `3244`
 | `ConditionBranch.Label` | `label` | Go field: ConditionBranch.Label<br/>type: string | `approval/condition.go:114` |
 | `ConditionBranch.Priority` | `priority` | Go field: ConditionBranch.Priority<br/>type: int | `approval/condition.go:117` |
 | `ConditionGroup.Conditions` | `conditions` | Go field: ConditionGroup.Conditions<br/>type: []Condition | `approval/condition.go:107` |
-| `ConditionNodeData.Branches` | `branches` | Go field: ConditionNodeData.Branches<br/>type: []ConditionBranch | `approval/node_data.go:265` |
+| `ConditionNodeData.Branches` | `branches` | Go field: ConditionNodeData.Branches<br/>type: []ConditionBranch | `approval/node_data.go:267` |
 | `ConnectionCheck.Database` | `database` | Go field: ConnectionCheck.Database<br/>type: *DatabaseProbe | `internal/integration/exec/connection_check.go:17` |
 | `ConnectionCheck.HTTP` | `http` | Go field: ConnectionCheck.HTTP<br/>type: *HTTPProbe | `internal/integration/exec/connection_check.go:16` |
 | `Contract.Code` | `code` | Go field: Contract.Code<br/>type: string | `integration/models.go:17` |
@@ -608,14 +609,14 @@ Entries: `3244`
 | `DatabaseProbe.Error` | `error` | Go field: DatabaseProbe.Error<br/>type: string | `internal/integration/exec/connection_check.go:35` |
 | `DatabaseProbe.Reachable` | `reachable` | Go field: DatabaseProbe.Reachable<br/>type: bool | `internal/integration/exec/connection_check.go:32` |
 | `DatabaseProbe.Version` | `version` | Go field: DatabaseProbe.Version<br/>type: string | `internal/integration/exec/connection_check.go:33` |
-| `Delegation.DelegateeID` | `delegateeId` | Go field: Delegation.DelegateeID<br/>type: string | `approval/models.go:494` |
-| `Delegation.DelegatorID` | `delegatorId` | Go field: Delegation.DelegatorID<br/>type: string | `approval/models.go:493` |
-| `Delegation.EndsAt` | `endsAt` | Go field: Delegation.EndsAt<br/>type: timex.DateTime | `approval/models.go:498` |
-| `Delegation.FlowCategoryID` | `flowCategoryId` | Go field: Delegation.FlowCategoryID<br/>type: *string | `approval/models.go:495` |
-| `Delegation.FlowID` | `flowId` | Go field: Delegation.FlowID<br/>type: *string | `approval/models.go:496` |
-| `Delegation.IsActive` | `isActive` | Go field: Delegation.IsActive<br/>type: bool | `approval/models.go:499` |
-| `Delegation.Reason` | `reason` | Go field: Delegation.Reason<br/>type: *string | `approval/models.go:500` |
-| `Delegation.StartsAt` | `startsAt` | Go field: Delegation.StartsAt<br/>type: timex.DateTime | `approval/models.go:497` |
+| `Delegation.DelegateeID` | `delegateeId` | Go field: Delegation.DelegateeID<br/>type: string | `approval/models.go:495` |
+| `Delegation.DelegatorID` | `delegatorId` | Go field: Delegation.DelegatorID<br/>type: string | `approval/models.go:494` |
+| `Delegation.EndsAt` | `endsAt` | Go field: Delegation.EndsAt<br/>type: timex.DateTime | `approval/models.go:499` |
+| `Delegation.FlowCategoryID` | `flowCategoryId` | Go field: Delegation.FlowCategoryID<br/>type: *string | `approval/models.go:496` |
+| `Delegation.FlowID` | `flowId` | Go field: Delegation.FlowID<br/>type: *string | `approval/models.go:497` |
+| `Delegation.IsActive` | `isActive` | Go field: Delegation.IsActive<br/>type: bool | `approval/models.go:500` |
+| `Delegation.Reason` | `reason` | Go field: Delegation.Reason<br/>type: *string | `approval/models.go:501` |
+| `Delegation.StartsAt` | `startsAt` | Go field: Delegation.StartsAt<br/>type: timex.DateTime | `approval/models.go:498` |
 | `DelegationParams.DelegateeID` | `delegateeId` | Go field: DelegationParams.DelegateeID<br/>type: string<br/>validate: "required" | `internal/approval/resource/delegation.go:20` |
 | `DelegationParams.DelegatorID` | `delegatorId` | Go field: DelegationParams.DelegatorID<br/>type: string<br/>validate: "required" | `internal/approval/resource/delegation.go:19` |
 | `DelegationParams.EndsAt` | `endsAt` | Go field: DelegationParams.EndsAt<br/>type: *timex.DateTime<br/>validate: "required" | `internal/approval/resource/delegation.go:24` |
@@ -650,6 +651,8 @@ Entries: `3244`
 | `DiskSummary.Total` | `total` | Go field: DiskSummary.Total<br/>type: uint64 | `monitor/service.go:146` |
 | `DiskSummary.Used` | `used` | Go field: DiskSummary.Used<br/>type: uint64 | `monitor/service.go:147` |
 | `DiskSummary.UsedPercent` | `usedPercent` | Go field: DiskSummary.UsedPercent<br/>type: float64 | `monitor/service.go:148` |
+| `DispatchResult.Error` | `error` | Go field: DispatchResult.Error<br/>type: string | `internal/integration/exec/replay.go:42` |
+| `DispatchResult.Output` | `output` | Go field: DispatchResult.Output<br/>type: any | `internal/integration/exec/replay.go:41` |
 | `DryRunInboundParams.ContractCode` | `contractCode` | Go field: DryRunInboundParams.ContractCode<br/>type: string<br/>validate: "required" | `internal/integration/resource/ops.go:37` |
 | `DryRunInboundParams.HandlerOutput` | `handlerOutput` | Go field: DryRunInboundParams.HandlerOutput<br/>type: json.RawMessage | `internal/integration/resource/ops.go:40` |
 | `DryRunInboundParams.Request` | `request` | Go field: DryRunInboundParams.Request<br/>type: InboundRequestParams | `internal/integration/resource/ops.go:39` |
@@ -659,10 +662,10 @@ Entries: `3244`
 | `DryRunParams.Input` | `input` | Go field: DryRunParams.Input<br/>type: json.RawMessage | `internal/integration/resource/ops.go:26` |
 | `DryRunParams.Script` | `script` | Go field: DryRunParams.Script<br/>type: string | `internal/integration/resource/ops.go:25` |
 | `DryRunParams.SystemCode` | `systemCode` | Go field: DryRunParams.SystemCode<br/>type: string<br/>validate: "required" | `internal/integration/resource/ops.go:23` |
-| `DryRunResult.Error` | `error` | Go field: DryRunResult.Error<br/>type: string | `internal/integration/exec/invoker.go:168` |
-| `DryRunResult.FailureKind` | `failureKind` | Go field: DryRunResult.FailureKind<br/>type: integration.FailureKind | `internal/integration/exec/invoker.go:167` |
-| `DryRunResult.Output` | `output` | Go field: DryRunResult.Output<br/>type: any | `internal/integration/exec/invoker.go:165` |
-| `DryRunResult.Trace` | `trace` | Go field: DryRunResult.Trace<br/>type: []integration.HTTPExchange | `internal/integration/exec/invoker.go:166` |
+| `DryRunResult.Error` | `error` | Go field: DryRunResult.Error<br/>type: string | `internal/integration/exec/invoker.go:171` |
+| `DryRunResult.FailureKind` | `failureKind` | Go field: DryRunResult.FailureKind<br/>type: integration.FailureKind | `internal/integration/exec/invoker.go:170` |
+| `DryRunResult.Output` | `output` | Go field: DryRunResult.Output<br/>type: any | `internal/integration/exec/invoker.go:168` |
+| `DryRunResult.Trace` | `trace` | Go field: DryRunResult.Trace<br/>type: []integration.HTTPExchange | `internal/integration/exec/invoker.go:169` |
 | `DynamicParam.Kind` | `kind` | Go field: DynamicParam.Kind<br/>type: DynamicParamKind | `approval/form_field.go:115` |
 | `DynamicParam.Source` | `source` | Go field: DynamicParam.Source<br/>type: string | `approval/form_field.go:122` |
 | `DynamicParam.Value` | `value` | Go field: DynamicParam.Value<br/>type: any | `approval/form_field.go:119` |
@@ -693,18 +696,26 @@ Entries: `3244`
 | `FileRecord.Size` | `size` | Go field: FileRecord.Size<br/>type: int64 | `storage/file_record.go:58` |
 | `FileRecord.StartedAt` | `startedAt` | Go field: FileRecord.StartedAt<br/>type: timex.DateTime | `storage/file_record.go:70` |
 | `FileRecord.Status` | `status` | Go field: FileRecord.Status<br/>type: FileStatus | `storage/file_record.go:62` |
-| `FindAvailableFlowsParams.Keyword` | `keyword` | Go field: FindAvailableFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:50` |
-| `FindAvailableFlowsParams.Labels` | `labels` | Go field: FindAvailableFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/my.go:51` |
-| `FindAvailableFlowsParams.Page` | `page` | Go field: FindAvailableFlowsParams.Page<br/>type: int | `internal/approval/resource/my.go:52` |
-| `FindAvailableFlowsParams.PageSize` | `pageSize` | Go field: FindAvailableFlowsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:53` |
-| `FindAvailableFlowsParams.TenantID` | `tenantId` | Go field: FindAvailableFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:49` |
-| `FindCCRecordsParams.IsRead` | `isRead` | Go field: FindCCRecordsParams.IsRead<br/>type: *bool | `internal/approval/resource/my.go:189` |
-| `FindCCRecordsParams.Page` | `page` | Go field: FindCCRecordsParams.Page<br/>type: int | `internal/approval/resource/my.go:190` |
-| `FindCCRecordsParams.PageSize` | `pageSize` | Go field: FindCCRecordsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:191` |
-| `FindCCRecordsParams.TenantID` | `tenantId` | Go field: FindCCRecordsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:188` |
-| `FindCompletedTasksParams.Page` | `page` | Go field: FindCompletedTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:165` |
-| `FindCompletedTasksParams.PageSize` | `pageSize` | Go field: FindCompletedTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:166` |
-| `FindCompletedTasksParams.TenantID` | `tenantId` | Go field: FindCompletedTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:164` |
+| `FindAvailableFlowsParams.Keyword` | `keyword` | Go field: FindAvailableFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:58` |
+| `FindAvailableFlowsParams.Labels` | `labels` | Go field: FindAvailableFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/my.go:59` |
+| `FindAvailableFlowsParams.Page` | `page` | Go field: FindAvailableFlowsParams.Page<br/>type: int | `internal/approval/resource/my.go:60` |
+| `FindAvailableFlowsParams.PageSize` | `pageSize` | Go field: FindAvailableFlowsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:61` |
+| `FindAvailableFlowsParams.TenantID` | `tenantId` | Go field: FindAvailableFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:57` |
+| `FindCCRecordsParams.IsRead` | `isRead` | Go field: FindCCRecordsParams.IsRead<br/>type: *bool | `internal/approval/resource/my.go:236` |
+| `FindCCRecordsParams.Page` | `page` | Go field: FindCCRecordsParams.Page<br/>type: int | `internal/approval/resource/my.go:237` |
+| `FindCCRecordsParams.PageSize` | `pageSize` | Go field: FindCCRecordsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:238` |
+| `FindCCRecordsParams.TenantID` | `tenantId` | Go field: FindCCRecordsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:235` |
+| `FindCompletedTasksParams.ApplicantID` | `applicantId` | Go field: FindCompletedTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:197` |
+| `FindCompletedTasksParams.ApplicantName` | `applicantName` | Go field: FindCompletedTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:198` |
+| `FindCompletedTasksParams.FinishedAtFrom` | `finishedAtFrom` | Go field: FindCompletedTasksParams.FinishedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:202` |
+| `FindCompletedTasksParams.FinishedAtTo` | `finishedAtTo` | Go field: FindCompletedTasksParams.FinishedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:203` |
+| `FindCompletedTasksParams.FlowID` | `flowId` | Go field: FindCompletedTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:199` |
+| `FindCompletedTasksParams.InstanceStatus` | `instanceStatus` | Go field: FindCompletedTasksParams.InstanceStatus<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:201` |
+| `FindCompletedTasksParams.Keyword` | `keyword` | Go field: FindCompletedTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:196` |
+| `FindCompletedTasksParams.Page` | `page` | Go field: FindCompletedTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:204` |
+| `FindCompletedTasksParams.PageSize` | `pageSize` | Go field: FindCompletedTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:205` |
+| `FindCompletedTasksParams.Status` | `status` | Go field: FindCompletedTasksParams.Status<br/>type: *approval.TaskStatus | `internal/approval/resource/my.go:200` |
+| `FindCompletedTasksParams.TenantID` | `tenantId` | Go field: FindCompletedTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:195` |
 | `FindFlowsParams.BindingMode` | `bindingMode` | Go field: FindFlowsParams.BindingMode<br/>type: *approval.BindingMode | `internal/approval/resource/flow.go:246` |
 | `FindFlowsParams.CategoryID` | `categoryId` | Go field: FindFlowsParams.CategoryID<br/>type: *string | `internal/approval/resource/flow.go:242` |
 | `FindFlowsParams.IsActive` | `isActive` | Go field: FindFlowsParams.IsActive<br/>type: *bool | `internal/approval/resource/flow.go:244` |
@@ -713,16 +724,23 @@ Entries: `3244`
 | `FindFlowsParams.Page` | `page` | Go field: FindFlowsParams.Page<br/>type: int | `internal/approval/resource/flow.go:247` |
 | `FindFlowsParams.PageSize` | `pageSize` | Go field: FindFlowsParams.PageSize<br/>type: int | `internal/approval/resource/flow.go:248` |
 | `FindFlowsParams.TenantID` | `tenantId` | Go field: FindFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:241` |
-| `FindInitiatedParams.Keyword` | `keyword` | Go field: FindInitiatedParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:114` |
-| `FindInitiatedParams.Page` | `page` | Go field: FindInitiatedParams.Page<br/>type: int | `internal/approval/resource/my.go:115` |
-| `FindInitiatedParams.PageSize` | `pageSize` | Go field: FindInitiatedParams.PageSize<br/>type: int | `internal/approval/resource/my.go:116` |
-| `FindInitiatedParams.Status` | `status` | Go field: FindInitiatedParams.Status<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:113` |
-| `FindInitiatedParams.TenantID` | `tenantId` | Go field: FindInitiatedParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:112` |
+| `FindInitiatedParams.Keyword` | `keyword` | Go field: FindInitiatedParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:129` |
+| `FindInitiatedParams.Page` | `page` | Go field: FindInitiatedParams.Page<br/>type: int | `internal/approval/resource/my.go:130` |
+| `FindInitiatedParams.PageSize` | `pageSize` | Go field: FindInitiatedParams.PageSize<br/>type: int | `internal/approval/resource/my.go:131` |
+| `FindInitiatedParams.Status` | `status` | Go field: FindInitiatedParams.Status<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:128` |
+| `FindInitiatedParams.TenantID` | `tenantId` | Go field: FindInitiatedParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:127` |
 | `FindInitiatorsParams.FlowID` | `flowId` | Go field: FindInitiatorsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:402` |
 | `FindInitiatorsParams.TenantID` | `tenantId` | Go field: FindInitiatorsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:403` |
-| `FindPendingTasksParams.Page` | `page` | Go field: FindPendingTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:141` |
-| `FindPendingTasksParams.PageSize` | `pageSize` | Go field: FindPendingTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:142` |
-| `FindPendingTasksParams.TenantID` | `tenantId` | Go field: FindPendingTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:140` |
+| `FindPendingTasksParams.ApplicantID` | `applicantId` | Go field: FindPendingTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:158` |
+| `FindPendingTasksParams.ApplicantName` | `applicantName` | Go field: FindPendingTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:159` |
+| `FindPendingTasksParams.CreatedAtFrom` | `createdAtFrom` | Go field: FindPendingTasksParams.CreatedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:162` |
+| `FindPendingTasksParams.CreatedAtTo` | `createdAtTo` | Go field: FindPendingTasksParams.CreatedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:163` |
+| `FindPendingTasksParams.FlowID` | `flowId` | Go field: FindPendingTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:160` |
+| `FindPendingTasksParams.IsTimeout` | `isTimeout` | Go field: FindPendingTasksParams.IsTimeout<br/>type: *bool | `internal/approval/resource/my.go:161` |
+| `FindPendingTasksParams.Keyword` | `keyword` | Go field: FindPendingTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:157` |
+| `FindPendingTasksParams.Page` | `page` | Go field: FindPendingTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:164` |
+| `FindPendingTasksParams.PageSize` | `pageSize` | Go field: FindPendingTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:165` |
+| `FindPendingTasksParams.TenantID` | `tenantId` | Go field: FindPendingTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:156` |
 | `FindVersionsParams.FlowID` | `flowId` | Go field: FindVersionsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:371` |
 | `FindVersionsParams.TenantID` | `tenantId` | Go field: FindVersionsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:372` |
 | `FiresPreview.NextFiresUnixMs` | `nextFiresUnixMs` | Go field: FiresPreview.NextFiresUnixMs<br/>type: []int64 | `internal/cron/store/schedule_resource.go:142` |
@@ -754,13 +772,13 @@ Entries: `3244`
 | `FlowDefinition.Nodes` | `nodes` | Go field: FlowDefinition.Nodes<br/>type: []NodeDefinition | `approval/flow_definition.go:22` |
 | `FlowDeployedEvent.Version` | `version` | Go field: FlowDeployedEvent.Version<br/>type: int | `approval/events_flow.go:35` |
 | `FlowDeployedEvent.VersionID` | `versionId` | Go field: FlowDeployedEvent.VersionID<br/>type: string | `approval/events_flow.go:34` |
-| `FlowEdge.FlowVersionID` | `flowVersionId` | Go field: FlowEdge.FlowVersionID<br/>type: string | `approval/models.go:174` |
-| `FlowEdge.Key` | `key` | Go field: FlowEdge.Key<br/>type: string | `approval/models.go:175` |
-| `FlowEdge.SourceHandle` | `sourceHandle` | Go field: FlowEdge.SourceHandle<br/>type: *string | `approval/models.go:180` |
-| `FlowEdge.SourceNodeID` | `sourceNodeId` | Go field: FlowEdge.SourceNodeID<br/>type: string | `approval/models.go:176` |
-| `FlowEdge.SourceNodeKey` | `sourceNodeKey` | Go field: FlowEdge.SourceNodeKey<br/>type: string | `approval/models.go:177` |
-| `FlowEdge.TargetNodeID` | `targetNodeId` | Go field: FlowEdge.TargetNodeID<br/>type: string | `approval/models.go:178` |
-| `FlowEdge.TargetNodeKey` | `targetNodeKey` | Go field: FlowEdge.TargetNodeKey<br/>type: string | `approval/models.go:179` |
+| `FlowEdge.FlowVersionID` | `flowVersionId` | Go field: FlowEdge.FlowVersionID<br/>type: string | `approval/models.go:175` |
+| `FlowEdge.Key` | `key` | Go field: FlowEdge.Key<br/>type: string | `approval/models.go:176` |
+| `FlowEdge.SourceHandle` | `sourceHandle` | Go field: FlowEdge.SourceHandle<br/>type: *string | `approval/models.go:181` |
+| `FlowEdge.SourceNodeID` | `sourceNodeId` | Go field: FlowEdge.SourceNodeID<br/>type: string | `approval/models.go:177` |
+| `FlowEdge.SourceNodeKey` | `sourceNodeKey` | Go field: FlowEdge.SourceNodeKey<br/>type: string | `approval/models.go:178` |
+| `FlowEdge.TargetNodeID` | `targetNodeId` | Go field: FlowEdge.TargetNodeID<br/>type: string | `approval/models.go:179` |
+| `FlowEdge.TargetNodeKey` | `targetNodeKey` | Go field: FlowEdge.TargetNodeKey<br/>type: string | `approval/models.go:180` |
 | `FlowEventBase.Code` | `code` | Go field: FlowEventBase.Code<br/>type: string | `approval/events_base.go:72` |
 | `FlowEventBase.FlowID` | `flowId` | Go field: FlowEventBase.FlowID<br/>type: string | `approval/events_base.go:70` |
 | `FlowEventBase.Name` | `name` | Go field: FlowEventBase.Name<br/>type: string | `approval/events_base.go:73` |
@@ -770,70 +788,72 @@ Entries: `3244`
 | `FlowGraph.Flow` | `flow` | Go field: FlowGraph.Flow<br/>type: *approval.Flow | `internal/approval/shared/flow.go:10` |
 | `FlowGraph.Nodes` | `nodes` | Go field: FlowGraph.Nodes<br/>type: []approval.FlowNode | `internal/approval/shared/flow.go:12` |
 | `FlowGraph.Version` | `version` | Go field: FlowGraph.Version<br/>type: *approval.FlowVersion | `internal/approval/shared/flow.go:11` |
-| `FlowGraphEdge.ID` | `id` | Go field: FlowGraphEdge.ID<br/>type: string | `approval/flow_graph_view.go:86` |
-| `FlowGraphEdge.Source` | `source` | Go field: FlowGraphEdge.Source<br/>type: string | `approval/flow_graph_view.go:87` |
-| `FlowGraphEdge.SourceHandle` | `sourceHandle` | Go field: FlowGraphEdge.SourceHandle<br/>type: *string | `approval/flow_graph_view.go:89` |
-| `FlowGraphEdge.Target` | `target` | Go field: FlowGraphEdge.Target<br/>type: string | `approval/flow_graph_view.go:88` |
+| `FlowGraphEdge.ID` | `id` | Go field: FlowGraphEdge.ID<br/>type: string | `approval/flow_graph_view.go:87` |
+| `FlowGraphEdge.Source` | `source` | Go field: FlowGraphEdge.Source<br/>type: string | `approval/flow_graph_view.go:88` |
+| `FlowGraphEdge.SourceHandle` | `sourceHandle` | Go field: FlowGraphEdge.SourceHandle<br/>type: *string | `approval/flow_graph_view.go:90` |
+| `FlowGraphEdge.Target` | `target` | Go field: FlowGraphEdge.Target<br/>type: string | `approval/flow_graph_view.go:89` |
 | `FlowGraphNode.Data` | `data` | Go field: FlowGraphNode.Data<br/>type: FlowGraphNodeData | `approval/flow_graph_view.go:55` |
 | `FlowGraphNode.ID` | `id` | Go field: FlowGraphNode.ID<br/>type: string | `approval/flow_graph_view.go:51` |
 | `FlowGraphNode.Kind` | `kind` | Go field: FlowGraphNode.Kind<br/>type: NodeKind | `approval/flow_graph_view.go:53` |
 | `FlowGraphNode.NodeID` | `nodeId` | Go field: FlowGraphNode.NodeID<br/>type: string | `approval/flow_graph_view.go:52` |
 | `FlowGraphNode.Position` | `position` | Go field: FlowGraphNode.Position<br/>type: Position | `approval/flow_graph_view.go:54` |
-| `FlowGraphNodeData.Activities` | `activities` | Go field: FlowGraphNodeData.Activities<br/>type: []Activity | `approval/flow_graph_view.go:79` |
+| `FlowGraphNodeData.Activities` | `activities` | Go field: FlowGraphNodeData.Activities<br/>type: []Activity | `approval/flow_graph_view.go:80` |
 | `FlowGraphNodeData.ApprovalMethod` | `approvalMethod` | Go field: FlowGraphNodeData.ApprovalMethod<br/>type: string | `approval/flow_graph_view.go:74` |
-| `FlowGraphNodeData.CCRecipients` | `ccRecipients` | Go field: FlowGraphNodeData.CCRecipients<br/>type: []CCRecipient | `approval/flow_graph_view.go:78` |
+| `FlowGraphNodeData.CCRecipients` | `ccRecipients` | Go field: FlowGraphNodeData.CCRecipients<br/>type: []CCRecipient | `approval/flow_graph_view.go:79` |
 | `FlowGraphNodeData.ExecutionType` | `executionType` | Go field: FlowGraphNodeData.ExecutionType<br/>type: string | `approval/flow_graph_view.go:73` |
-| `FlowGraphNodeData.FinishedAt` | `finishedAt` | Go field: FlowGraphNodeData.FinishedAt<br/>type: *timex.DateTime | `approval/flow_graph_view.go:81` |
+| `FlowGraphNodeData.FinishedAt` | `finishedAt` | Go field: FlowGraphNodeData.FinishedAt<br/>type: *timex.DateTime | `approval/flow_graph_view.go:82` |
 | `FlowGraphNodeData.Name` | `name` | Go field: FlowGraphNodeData.Name<br/>type: string | `approval/flow_graph_view.go:71` |
-| `FlowGraphNodeData.Participants` | `participants` | Go field: FlowGraphNodeData.Participants<br/>type: []NodeParticipant | `approval/flow_graph_view.go:77` |
+| `FlowGraphNodeData.Participants` | `participants` | Go field: FlowGraphNodeData.Participants<br/>type: []NodeParticipant | `approval/flow_graph_view.go:78` |
+| `FlowGraphNodeData.PassCount` | `passCount` | Go field: FlowGraphNodeData.PassCount<br/>type: *int | `approval/flow_graph_view.go:77` |
 | `FlowGraphNodeData.PassRatio` | `passRatio` | Go field: FlowGraphNodeData.PassRatio<br/>type: *decimal.Decimal | `approval/flow_graph_view.go:76` |
 | `FlowGraphNodeData.PassRule` | `passRule` | Go field: FlowGraphNodeData.PassRule<br/>type: string | `approval/flow_graph_view.go:75` |
-| `FlowGraphNodeData.StartedAt` | `startedAt` | Go field: FlowGraphNodeData.StartedAt<br/>type: *timex.DateTime | `approval/flow_graph_view.go:80` |
+| `FlowGraphNodeData.StartedAt` | `startedAt` | Go field: FlowGraphNodeData.StartedAt<br/>type: *timex.DateTime | `approval/flow_graph_view.go:81` |
 | `FlowGraphNodeData.Status` | `status` | Go field: FlowGraphNodeData.Status<br/>type: NodeProgressStatus | `approval/flow_graph_view.go:72` |
-| `FlowInitiator.FlowID` | `flowId` | Go field: FlowInitiator.FlowID<br/>type: string | `approval/models.go:212` |
-| `FlowInitiator.IDs` | `ids` | Go field: FlowInitiator.IDs<br/>type: []string | `approval/models.go:214` |
-| `FlowInitiator.Kind` | `kind` | Go field: FlowInitiator.Kind<br/>type: InitiatorKind | `approval/models.go:213` |
-| `FlowNode.AddAssigneeTypes` | `addAssigneeTypes` | Go field: FlowNode.AddAssigneeTypes<br/>type: []AddAssigneeType | `approval/models.go:154` |
-| `FlowNode.AdminUserIDs` | `adminUserIds` | Go field: FlowNode.AdminUserIDs<br/>type: []string | `approval/models.go:147` |
+| `FlowInitiator.FlowID` | `flowId` | Go field: FlowInitiator.FlowID<br/>type: string | `approval/models.go:213` |
+| `FlowInitiator.IDs` | `ids` | Go field: FlowInitiator.IDs<br/>type: []string | `approval/models.go:215` |
+| `FlowInitiator.Kind` | `kind` | Go field: FlowInitiator.Kind<br/>type: InitiatorKind | `approval/models.go:214` |
+| `FlowNode.AddAssigneeTypes` | `addAssigneeTypes` | Go field: FlowNode.AddAssigneeTypes<br/>type: []AddAssigneeType | `approval/models.go:155` |
+| `FlowNode.AdminUserIDs` | `adminUserIds` | Go field: FlowNode.AdminUserIDs<br/>type: []string | `approval/models.go:148` |
 | `FlowNode.ApprovalMethod` | `approvalMethod` | Go field: FlowNode.ApprovalMethod<br/>type: ApprovalMethod | `approval/models.go:142` |
-| `FlowNode.Branches` | `branches` | Go field: FlowNode.Branches<br/>type: []ConditionBranch | `approval/models.go:166` |
-| `FlowNode.ConsecutiveApproverAction` | `consecutiveApproverAction` | Go field: FlowNode.ConsecutiveApproverAction<br/>type: ConsecutiveApproverAction | `approval/models.go:164` |
+| `FlowNode.Branches` | `branches` | Go field: FlowNode.Branches<br/>type: []ConditionBranch | `approval/models.go:167` |
+| `FlowNode.ConsecutiveApproverAction` | `consecutiveApproverAction` | Go field: FlowNode.ConsecutiveApproverAction<br/>type: ConsecutiveApproverAction | `approval/models.go:165` |
 | `FlowNode.Description` | `description` | Go field: FlowNode.Description<br/>type: *string | `approval/models.go:140` |
-| `FlowNode.EmptyAssigneeAction` | `emptyAssigneeAction` | Go field: FlowNode.EmptyAssigneeAction<br/>type: EmptyAssigneeAction | `approval/models.go:145` |
+| `FlowNode.EmptyAssigneeAction` | `emptyAssigneeAction` | Go field: FlowNode.EmptyAssigneeAction<br/>type: EmptyAssigneeAction | `approval/models.go:146` |
 | `FlowNode.ExecutionType` | `executionType` | Go field: FlowNode.ExecutionType<br/>type: ExecutionType | `approval/models.go:141` |
-| `FlowNode.FallbackUserIDs` | `fallbackUserIds` | Go field: FlowNode.FallbackUserIDs<br/>type: []string | `approval/models.go:146` |
-| `FlowNode.FieldPermissions` | `fieldPermissions` | Go field: FlowNode.FieldPermissions<br/>type: map[string]Permission | `approval/models.go:156` |
+| `FlowNode.FallbackUserIDs` | `fallbackUserIds` | Go field: FlowNode.FallbackUserIDs<br/>type: []string | `approval/models.go:147` |
+| `FlowNode.FieldPermissions` | `fieldPermissions` | Go field: FlowNode.FieldPermissions<br/>type: map[string]Permission | `approval/models.go:157` |
 | `FlowNode.FlowVersionID` | `flowVersionId` | Go field: FlowNode.FlowVersionID<br/>type: string | `approval/models.go:136` |
-| `FlowNode.IsAddAssigneeAllowed` | `isAddAssigneeAllowed` | Go field: FlowNode.IsAddAssigneeAllowed<br/>type: bool | `approval/models.go:153` |
-| `FlowNode.IsManualCCAllowed` | `isManualCcAllowed` | Go field: FlowNode.IsManualCCAllowed<br/>type: bool | `approval/models.go:157` |
-| `FlowNode.IsOpinionRequired` | `isOpinionRequired` | Go field: FlowNode.IsOpinionRequired<br/>type: bool | `approval/models.go:159` |
-| `FlowNode.IsReadConfirmRequired` | `isReadConfirmRequired` | Go field: FlowNode.IsReadConfirmRequired<br/>type: bool | `approval/models.go:165` |
-| `FlowNode.IsRemoveAssigneeAllowed` | `isRemoveAssigneeAllowed` | Go field: FlowNode.IsRemoveAssigneeAllowed<br/>type: bool | `approval/models.go:155` |
-| `FlowNode.IsRollbackAllowed` | `isRollbackAllowed` | Go field: FlowNode.IsRollbackAllowed<br/>type: bool | `approval/models.go:149` |
-| `FlowNode.IsTransferAllowed` | `isTransferAllowed` | Go field: FlowNode.IsTransferAllowed<br/>type: bool | `approval/models.go:158` |
+| `FlowNode.IsAddAssigneeAllowed` | `isAddAssigneeAllowed` | Go field: FlowNode.IsAddAssigneeAllowed<br/>type: bool | `approval/models.go:154` |
+| `FlowNode.IsManualCCAllowed` | `isManualCcAllowed` | Go field: FlowNode.IsManualCCAllowed<br/>type: bool | `approval/models.go:158` |
+| `FlowNode.IsOpinionRequired` | `isOpinionRequired` | Go field: FlowNode.IsOpinionRequired<br/>type: bool | `approval/models.go:160` |
+| `FlowNode.IsReadConfirmRequired` | `isReadConfirmRequired` | Go field: FlowNode.IsReadConfirmRequired<br/>type: bool | `approval/models.go:166` |
+| `FlowNode.IsRemoveAssigneeAllowed` | `isRemoveAssigneeAllowed` | Go field: FlowNode.IsRemoveAssigneeAllowed<br/>type: bool | `approval/models.go:156` |
+| `FlowNode.IsRollbackAllowed` | `isRollbackAllowed` | Go field: FlowNode.IsRollbackAllowed<br/>type: bool | `approval/models.go:150` |
+| `FlowNode.IsTransferAllowed` | `isTransferAllowed` | Go field: FlowNode.IsTransferAllowed<br/>type: bool | `approval/models.go:159` |
 | `FlowNode.Key` | `key` | Go field: FlowNode.Key<br/>type: string | `approval/models.go:137` |
 | `FlowNode.Kind` | `kind` | Go field: FlowNode.Kind<br/>type: NodeKind | `approval/models.go:138` |
 | `FlowNode.Name` | `name` | Go field: FlowNode.Name<br/>type: string | `approval/models.go:139` |
+| `FlowNode.PassCount` | `passCount` | Go field: FlowNode.PassCount<br/>type: int | `approval/models.go:145` |
 | `FlowNode.PassRatio` | `passRatio` | Go field: FlowNode.PassRatio<br/>type: decimal.Decimal | `approval/models.go:144` |
 | `FlowNode.PassRule` | `passRule` | Go field: FlowNode.PassRule<br/>type: PassRule | `approval/models.go:143` |
-| `FlowNode.RollbackDataStrategy` | `rollbackDataStrategy` | Go field: FlowNode.RollbackDataStrategy<br/>type: RollbackDataStrategy | `approval/models.go:151` |
-| `FlowNode.RollbackTargetKeys` | `rollbackTargetKeys` | Go field: FlowNode.RollbackTargetKeys<br/>type: []string | `approval/models.go:152` |
-| `FlowNode.RollbackType` | `rollbackType` | Go field: FlowNode.RollbackType<br/>type: RollbackType | `approval/models.go:150` |
-| `FlowNode.SameApplicantAction` | `sameApplicantAction` | Go field: FlowNode.SameApplicantAction<br/>type: SameApplicantAction | `approval/models.go:148` |
-| `FlowNode.TimeoutAction` | `timeoutAction` | Go field: FlowNode.TimeoutAction<br/>type: TimeoutAction | `approval/models.go:161` |
-| `FlowNode.TimeoutHours` | `timeoutHours` | Go field: FlowNode.TimeoutHours<br/>type: int | `approval/models.go:160` |
-| `FlowNode.TimeoutNotifyBeforeHours` | `timeoutNotifyBeforeHours` | Go field: FlowNode.TimeoutNotifyBeforeHours<br/>type: int | `approval/models.go:162` |
-| `FlowNode.UrgeCooldownMinutes` | `urgeCooldownMinutes` | Go field: FlowNode.UrgeCooldownMinutes<br/>type: int | `approval/models.go:163` |
-| `FlowNodeAssignee.FormField` | `formField` | Go field: FlowNodeAssignee.FormField<br/>type: *string | `approval/models.go:191` |
-| `FlowNodeAssignee.IDs` | `ids` | Go field: FlowNodeAssignee.IDs<br/>type: []string | `approval/models.go:190` |
-| `FlowNodeAssignee.Kind` | `kind` | Go field: FlowNodeAssignee.Kind<br/>type: AssigneeKind | `approval/models.go:189` |
-| `FlowNodeAssignee.NodeID` | `nodeId` | Go field: FlowNodeAssignee.NodeID<br/>type: string | `approval/models.go:188` |
-| `FlowNodeAssignee.SortOrder` | `sortOrder` | Go field: FlowNodeAssignee.SortOrder<br/>type: int | `approval/models.go:192` |
-| `FlowNodeCC.FormField` | `formField` | Go field: FlowNodeCC.FormField<br/>type: *string | `approval/models.go:203` |
-| `FlowNodeCC.IDs` | `ids` | Go field: FlowNodeCC.IDs<br/>type: []string | `approval/models.go:202` |
-| `FlowNodeCC.Kind` | `kind` | Go field: FlowNodeCC.Kind<br/>type: CCKind | `approval/models.go:201` |
-| `FlowNodeCC.NodeID` | `nodeId` | Go field: FlowNodeCC.NodeID<br/>type: string | `approval/models.go:200` |
-| `FlowNodeCC.Timing` | `timing` | Go field: FlowNodeCC.Timing<br/>type: CCTiming | `approval/models.go:204` |
+| `FlowNode.RollbackDataStrategy` | `rollbackDataStrategy` | Go field: FlowNode.RollbackDataStrategy<br/>type: RollbackDataStrategy | `approval/models.go:152` |
+| `FlowNode.RollbackTargetKeys` | `rollbackTargetKeys` | Go field: FlowNode.RollbackTargetKeys<br/>type: []string | `approval/models.go:153` |
+| `FlowNode.RollbackType` | `rollbackType` | Go field: FlowNode.RollbackType<br/>type: RollbackType | `approval/models.go:151` |
+| `FlowNode.SameApplicantAction` | `sameApplicantAction` | Go field: FlowNode.SameApplicantAction<br/>type: SameApplicantAction | `approval/models.go:149` |
+| `FlowNode.TimeoutAction` | `timeoutAction` | Go field: FlowNode.TimeoutAction<br/>type: TimeoutAction | `approval/models.go:162` |
+| `FlowNode.TimeoutHours` | `timeoutHours` | Go field: FlowNode.TimeoutHours<br/>type: int | `approval/models.go:161` |
+| `FlowNode.TimeoutNotifyBeforeHours` | `timeoutNotifyBeforeHours` | Go field: FlowNode.TimeoutNotifyBeforeHours<br/>type: int | `approval/models.go:163` |
+| `FlowNode.UrgeCooldownMinutes` | `urgeCooldownMinutes` | Go field: FlowNode.UrgeCooldownMinutes<br/>type: int | `approval/models.go:164` |
+| `FlowNodeAssignee.FormField` | `formField` | Go field: FlowNodeAssignee.FormField<br/>type: *string | `approval/models.go:192` |
+| `FlowNodeAssignee.IDs` | `ids` | Go field: FlowNodeAssignee.IDs<br/>type: []string | `approval/models.go:191` |
+| `FlowNodeAssignee.Kind` | `kind` | Go field: FlowNodeAssignee.Kind<br/>type: AssigneeKind | `approval/models.go:190` |
+| `FlowNodeAssignee.NodeID` | `nodeId` | Go field: FlowNodeAssignee.NodeID<br/>type: string | `approval/models.go:189` |
+| `FlowNodeAssignee.SortOrder` | `sortOrder` | Go field: FlowNodeAssignee.SortOrder<br/>type: int | `approval/models.go:193` |
+| `FlowNodeCC.FormField` | `formField` | Go field: FlowNodeCC.FormField<br/>type: *string | `approval/models.go:204` |
+| `FlowNodeCC.IDs` | `ids` | Go field: FlowNodeCC.IDs<br/>type: []string | `approval/models.go:203` |
+| `FlowNodeCC.Kind` | `kind` | Go field: FlowNodeCC.Kind<br/>type: CCKind | `approval/models.go:202` |
+| `FlowNodeCC.NodeID` | `nodeId` | Go field: FlowNodeCC.NodeID<br/>type: string | `approval/models.go:201` |
+| `FlowNodeCC.Timing` | `timing` | Go field: FlowNodeCC.Timing<br/>type: CCTiming | `approval/models.go:205` |
 | `FlowPublishedEvent.VersionID` | `versionId` | Go field: FlowPublishedEvent.VersionID<br/>type: string | `approval/events_flow.go:68` |
 | `FlowToggledEvent.IsActive` | `isActive` | Go field: FlowToggledEvent.IsActive<br/>type: bool | `approval/events_flow.go:52` |
 | `FlowVersion.BusinessBinding` | `businessBinding` | Go field: FlowVersion.BusinessBinding<br/>type: *BusinessBindingConfig | `approval/models.go:92` |
@@ -877,9 +897,9 @@ Entries: `3244`
 | `FormFieldDefinition.Scale` | `scale` | Go field: FormFieldDefinition.Scale<br/>type: *int | `approval/form_field.go:39` |
 | `FormFieldDefinition.SortOrder` | `sortOrder` | Go field: FormFieldDefinition.SortOrder<br/>type: int | `approval/form_field.go:32` |
 | `FormFieldDefinition.Validation` | `validation` | Go field: FormFieldDefinition.Validation<br/>type: *ValidationRule | `approval/form_field.go:28` |
-| `FormSnapshot.FormData` | `formData` | Go field: FormSnapshot.FormData<br/>type: map[string]any | `approval/models.go:384` |
-| `FormSnapshot.InstanceID` | `instanceId` | Go field: FormSnapshot.InstanceID<br/>type: string | `approval/models.go:382` |
-| `FormSnapshot.NodeID` | `nodeId` | Go field: FormSnapshot.NodeID<br/>type: string | `approval/models.go:383` |
+| `FormSnapshot.FormData` | `formData` | Go field: FormSnapshot.FormData<br/>type: map[string]any | `approval/models.go:385` |
+| `FormSnapshot.InstanceID` | `instanceId` | Go field: FormSnapshot.InstanceID<br/>type: string | `approval/models.go:383` |
+| `FormSnapshot.NodeID` | `nodeId` | Go field: FormSnapshot.NodeID<br/>type: string | `approval/models.go:384` |
 | `FormTable.FlowID` | `flowId` | Go field: FormTable.FlowID<br/>type: string | `approval/models.go:107` |
 | `FormTable.PhysicalTableName` | `physicalTableName` | Go field: FormTable.PhysicalTableName<br/>type: string | `approval/models.go:109` |
 | `FormTable.SourceFieldKey` | `sourceFieldKey` | Go field: FormTable.SourceFieldKey<br/>type: string | `approval/models.go:112` |
@@ -906,20 +926,21 @@ Entries: `3244`
 | `GetGraphParams.FlowID` | `flowId` | Go field: GetGraphParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:191` |
 | `GetGraphParams.TenantID` | `tenantId` | Go field: GetGraphParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:195` |
 | `GetGraphParams.VersionID` | `versionId` | Go field: GetGraphParams.VersionID<br/>type: *string | `internal/approval/resource/flow.go:199` |
-| `GetInstanceDetailParams.InstanceID` | `instanceId` | Go field: GetInstanceDetailParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:234` |
-| `GetPendingCountsParams.TenantID` | `tenantId` | Go field: GetPendingCountsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:214` |
-| `GetStartFormParams.FlowCode` | `flowCode` | Go field: GetStartFormParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:84` |
-| `GetStartFormParams.TenantID` | `tenantId` | Go field: GetStartFormParams.TenantID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:83` |
+| `GetInstanceDetailParams.InstanceID` | `instanceId` | Go field: GetInstanceDetailParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:281` |
+| `GetPendingCountsParams.TenantID` | `tenantId` | Go field: GetPendingCountsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:261` |
+| `GetStartFormParams.FlowCode` | `flowCode` | Go field: GetStartFormParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:92` |
+| `GetStartFormParams.TenantID` | `tenantId` | Go field: GetStartFormParams.TenantID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:91` |
 | `GetTableSchemaParams.Name` | `name` | Go field: GetTableSchemaParams.Name<br/>type: string<br/>validate: "required" | `internal/schema/resource.go:49` |
-| `HTTPExchange.DurationMs` | `durationMs` | Go field: HTTPExchange.DurationMs<br/>type: int64 | `integration/models.go:291` |
-| `HTTPExchange.Error` | `error` | Go field: HTTPExchange.Error<br/>type: string | `integration/models.go:292` |
-| `HTTPExchange.Method` | `method` | Go field: HTTPExchange.Method<br/>type: string | `integration/models.go:284` |
-| `HTTPExchange.RequestBody` | `requestBody` | Go field: HTTPExchange.RequestBody<br/>type: string | `integration/models.go:287` |
-| `HTTPExchange.RequestHeaders` | `requestHeaders` | Go field: HTTPExchange.RequestHeaders<br/>type: map[string]string | `integration/models.go:286` |
-| `HTTPExchange.ResponseBody` | `responseBody` | Go field: HTTPExchange.ResponseBody<br/>type: string | `integration/models.go:290` |
-| `HTTPExchange.ResponseHeaders` | `responseHeaders` | Go field: HTTPExchange.ResponseHeaders<br/>type: map[string]string | `integration/models.go:289` |
-| `HTTPExchange.Status` | `status` | Go field: HTTPExchange.Status<br/>type: int | `integration/models.go:288` |
-| `HTTPExchange.URL` | `url` | Go field: HTTPExchange.URL<br/>type: string | `integration/models.go:285` |
+| `HTTPExchange.ClientAddr` | `clientAddr` | Go field: HTTPExchange.ClientAddr<br/>type: string | `integration/models.go:298` |
+| `HTTPExchange.DurationMs` | `durationMs` | Go field: HTTPExchange.DurationMs<br/>type: int64 | `integration/models.go:294` |
+| `HTTPExchange.Error` | `error` | Go field: HTTPExchange.Error<br/>type: string | `integration/models.go:295` |
+| `HTTPExchange.Method` | `method` | Go field: HTTPExchange.Method<br/>type: string | `integration/models.go:287` |
+| `HTTPExchange.RequestBody` | `requestBody` | Go field: HTTPExchange.RequestBody<br/>type: string | `integration/models.go:290` |
+| `HTTPExchange.RequestHeaders` | `requestHeaders` | Go field: HTTPExchange.RequestHeaders<br/>type: map[string]string | `integration/models.go:289` |
+| `HTTPExchange.ResponseBody` | `responseBody` | Go field: HTTPExchange.ResponseBody<br/>type: string | `integration/models.go:293` |
+| `HTTPExchange.ResponseHeaders` | `responseHeaders` | Go field: HTTPExchange.ResponseHeaders<br/>type: map[string]string | `integration/models.go:292` |
+| `HTTPExchange.Status` | `status` | Go field: HTTPExchange.Status<br/>type: int | `integration/models.go:291` |
+| `HTTPExchange.URL` | `url` | Go field: HTTPExchange.URL<br/>type: string | `integration/models.go:288` |
 | `HTTPProbe.DurationMs` | `durationMs` | Go field: HTTPProbe.DurationMs<br/>type: int64 | `internal/integration/exec/connection_check.go:25` |
 | `HTTPProbe.Error` | `error` | Go field: HTTPProbe.Error<br/>type: string | `internal/integration/exec/connection_check.go:26` |
 | `HTTPProbe.Reachable` | `reachable` | Go field: HTTPProbe.Reachable<br/>type: bool | `internal/integration/exec/connection_check.go:22` |
@@ -965,10 +986,10 @@ Entries: `3244`
 | `InboundAuthConfig.Params` | `params` | Go field: InboundAuthConfig.Params<br/>type: map[string]string | `integration/models.go:184` |
 | `InboundAuthConfig.Scheme` | `scheme` | Go field: InboundAuthConfig.Scheme<br/>type: string | `integration/models.go:183` |
 | `InboundAuthConfig.Script` | `script` | Go field: InboundAuthConfig.Script<br/>type: string | `integration/models.go:188` |
-| `InboundDryRunResult.DispatchedInput` | `dispatchedInput` | Go field: InboundDryRunResult.DispatchedInput<br/>type: any | `internal/integration/exec/receiver.go:349` |
-| `InboundDryRunResult.Error` | `error` | Go field: InboundDryRunResult.Error<br/>type: string | `internal/integration/exec/receiver.go:351` |
-| `InboundDryRunResult.FailureKind` | `failureKind` | Go field: InboundDryRunResult.FailureKind<br/>type: integration.FailureKind | `internal/integration/exec/receiver.go:350` |
-| `InboundDryRunResult.Reply` | `reply` | Go field: InboundDryRunResult.Reply<br/>type: any | `internal/integration/exec/receiver.go:348` |
+| `InboundDryRunResult.DispatchedInput` | `dispatchedInput` | Go field: InboundDryRunResult.DispatchedInput<br/>type: any | `internal/integration/exec/receiver.go:367` |
+| `InboundDryRunResult.Error` | `error` | Go field: InboundDryRunResult.Error<br/>type: string | `internal/integration/exec/receiver.go:369` |
+| `InboundDryRunResult.FailureKind` | `failureKind` | Go field: InboundDryRunResult.FailureKind<br/>type: integration.FailureKind | `internal/integration/exec/receiver.go:368` |
+| `InboundDryRunResult.Reply` | `reply` | Go field: InboundDryRunResult.Reply<br/>type: any | `internal/integration/exec/receiver.go:366` |
 | `InboundRequestParams.Body` | `body` | Go field: InboundRequestParams.Body<br/>type: string | `internal/integration/resource/ops.go:49` |
 | `InboundRequestParams.Headers` | `headers` | Go field: InboundRequestParams.Headers<br/>type: map[string]string | `internal/integration/resource/ops.go:47` |
 | `InboundRequestParams.Method` | `method` | Go field: InboundRequestParams.Method<br/>type: string | `internal/integration/resource/ops.go:45` |
@@ -997,33 +1018,33 @@ Entries: `3244`
 | `InitiatedInstance.Status` | `status` | Go field: InitiatedInstance.Status<br/>type: string | `approval/my/initiated_instances.go:16` |
 | `InitiatedInstance.Title` | `title` | Go field: InitiatedInstance.Title<br/>type: string | `approval/my/initiated_instances.go:9` |
 | `Instance.Applicant` | `applicant` | Go field: Instance.Applicant<br/>type: approval.UserInfo | `approval/admin/instance.go:16` |
-| `Instance.ApplicantDepartmentID` | `applicantDepartmentId` | Go field: Instance.ApplicantDepartmentID<br/>type: *string | `approval/models.go:236` |
-| `Instance.ApplicantDepartmentName` | `applicantDepartmentName` | Go field: Instance.ApplicantDepartmentName<br/>type: *string | `approval/models.go:237` |
-| `Instance.ApplicantID` | `applicantId` | Go field: Instance.ApplicantID<br/>type: string | `approval/models.go:234` |
-| `Instance.ApplicantName` | `applicantName` | Go field: Instance.ApplicantName<br/>type: string | `approval/models.go:235` |
-| `Instance.BusinessProjectionID` | `businessProjectionId` | Go field: Instance.BusinessProjectionID<br/>type: *string | `approval/models.go:256` |
-| `Instance.BusinessRef` | `businessRef` | Go field: Instance.BusinessRef<br/>type: *string | `approval/models.go:245` |
+| `Instance.ApplicantDepartmentID` | `applicantDepartmentId` | Go field: Instance.ApplicantDepartmentID<br/>type: *string | `approval/models.go:237` |
+| `Instance.ApplicantDepartmentName` | `applicantDepartmentName` | Go field: Instance.ApplicantDepartmentName<br/>type: *string | `approval/models.go:238` |
+| `Instance.ApplicantID` | `applicantId` | Go field: Instance.ApplicantID<br/>type: string | `approval/models.go:235` |
+| `Instance.ApplicantName` | `applicantName` | Go field: Instance.ApplicantName<br/>type: string | `approval/models.go:236` |
+| `Instance.BusinessProjectionID` | `businessProjectionId` | Go field: Instance.BusinessProjectionID<br/>type: *string | `approval/models.go:257` |
+| `Instance.BusinessRef` | `businessRef` | Go field: Instance.BusinessRef<br/>type: *string | `approval/models.go:246` |
 | `Instance.CreatedAt` | `createdAt` | Go field: Instance.CreatedAt<br/>type: timex.DateTime | `approval/admin/instance.go:19` |
-| `Instance.CurrentNodeID` | `currentNodeId` | Go field: Instance.CurrentNodeID<br/>type: *string | `approval/models.go:239` |
+| `Instance.CurrentNodeID` | `currentNodeId` | Go field: Instance.CurrentNodeID<br/>type: *string | `approval/models.go:240` |
 | `Instance.CurrentNodeName` | `currentNodeName` | Go field: Instance.CurrentNodeName<br/>type: *string | `approval/admin/instance.go:18` |
-| `Instance.FinishedAt` | `finishedAt` | Go field: Instance.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:240` |
 | `Instance.FinishedAt` | `finishedAt` | Go field: Instance.FinishedAt<br/>type: *timex.DateTime | `approval/admin/instance.go:20` |
-| `Instance.FlowCode` | `flowCode` | Go field: Instance.FlowCode<br/>type: string | `approval/models.go:230` |
-| `Instance.FlowID` | `flowId` | Go field: Instance.FlowID<br/>type: string | `approval/models.go:225` |
+| `Instance.FinishedAt` | `finishedAt` | Go field: Instance.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:241` |
+| `Instance.FlowCode` | `flowCode` | Go field: Instance.FlowCode<br/>type: string | `approval/models.go:231` |
+| `Instance.FlowID` | `flowId` | Go field: Instance.FlowID<br/>type: string | `approval/models.go:226` |
 | `Instance.FlowID` | `flowId` | Go field: Instance.FlowID<br/>type: string | `approval/admin/instance.go:14` |
 | `Instance.FlowName` | `flowName` | Go field: Instance.FlowName<br/>type: string | `approval/admin/instance.go:15` |
-| `Instance.FlowVersionID` | `flowVersionId` | Go field: Instance.FlowVersionID<br/>type: string | `approval/models.go:231` |
-| `Instance.FormData` | `formData` | Go field: Instance.FormData<br/>type: map[string]any | `approval/models.go:246` |
-| `Instance.Globals` | `globals` | Go field: Instance.Globals<br/>type: map[string]any | `approval/models.go:252` |
+| `Instance.FlowVersionID` | `flowVersionId` | Go field: Instance.FlowVersionID<br/>type: string | `approval/models.go:232` |
+| `Instance.FormData` | `formData` | Go field: Instance.FormData<br/>type: map[string]any | `approval/models.go:247` |
+| `Instance.Globals` | `globals` | Go field: Instance.Globals<br/>type: map[string]any | `approval/models.go:253` |
 | `Instance.InstanceID` | `instanceId` | Go field: Instance.InstanceID<br/>type: string | `approval/admin/instance.go:10` |
+| `Instance.InstanceNo` | `instanceNo` | Go field: Instance.InstanceNo<br/>type: string | `approval/models.go:234` |
 | `Instance.InstanceNo` | `instanceNo` | Go field: Instance.InstanceNo<br/>type: string | `approval/admin/instance.go:11` |
-| `Instance.InstanceNo` | `instanceNo` | Go field: Instance.InstanceNo<br/>type: string | `approval/models.go:233` |
-| `Instance.Status` | `status` | Go field: Instance.Status<br/>type: InstanceStatus | `approval/models.go:238` |
 | `Instance.Status` | `status` | Go field: Instance.Status<br/>type: string | `approval/admin/instance.go:17` |
+| `Instance.Status` | `status` | Go field: Instance.Status<br/>type: InstanceStatus | `approval/models.go:239` |
 | `Instance.TenantID` | `tenantId` | Go field: Instance.TenantID<br/>type: string | `approval/admin/instance.go:13` |
-| `Instance.TenantID` | `tenantId` | Go field: Instance.TenantID<br/>type: string | `approval/models.go:224` |
+| `Instance.TenantID` | `tenantId` | Go field: Instance.TenantID<br/>type: string | `approval/models.go:225` |
 | `Instance.Title` | `title` | Go field: Instance.Title<br/>type: string | `approval/admin/instance.go:12` |
-| `Instance.Title` | `title` | Go field: Instance.Title<br/>type: string | `approval/models.go:232` |
+| `Instance.Title` | `title` | Go field: Instance.Title<br/>type: string | `approval/models.go:233` |
 | `InstanceBindingFailedEvent.BusinessTable` | `businessTable` | Go field: InstanceBindingFailedEvent.BusinessTable<br/>type: string | `approval/events_instance.go:158` |
 | `InstanceBindingFailedEvent.ErrorMessage` | `errorMessage` | Go field: InstanceBindingFailedEvent.ErrorMessage<br/>type: string | `approval/events_instance.go:159` |
 | `InstanceBindingFailedEvent.Status` | `status` | Go field: InstanceBindingFailedEvent.Status<br/>type: InstanceStatus | `approval/events_instance.go:157` |
@@ -1044,15 +1065,16 @@ Entries: `3244`
 | `InstanceDetail.Timeline` | `timeline` | Go field: InstanceDetail.Timeline<br/>type: []approval.TimelineEntry | `approval/my/instance_detail.go:20` |
 | `InstanceDetailInfo.Applicant` | `applicant` | Go field: InstanceDetailInfo.Applicant<br/>type: approval.UserInfo | `approval/admin/instance_detail.go:38` |
 | `InstanceDetailInfo.BusinessRef` | `businessRef` | Go field: InstanceDetailInfo.BusinessRef<br/>type: *string | `approval/admin/instance_detail.go:42` |
-| `InstanceDetailInfo.CreatedAt` | `createdAt` | Go field: InstanceDetailInfo.CreatedAt<br/>type: timex.DateTime | `approval/admin/instance_detail.go:44` |
+| `InstanceDetailInfo.CreatedAt` | `createdAt` | Go field: InstanceDetailInfo.CreatedAt<br/>type: timex.DateTime | `approval/admin/instance_detail.go:48` |
 | `InstanceDetailInfo.CurrentNodeID` | `currentNodeId` | Go field: InstanceDetailInfo.CurrentNodeID<br/>type: *string | `approval/admin/instance_detail.go:40` |
 | `InstanceDetailInfo.CurrentNodeName` | `currentNodeName` | Go field: InstanceDetailInfo.CurrentNodeName<br/>type: *string | `approval/admin/instance_detail.go:41` |
-| `InstanceDetailInfo.FinishedAt` | `finishedAt` | Go field: InstanceDetailInfo.FinishedAt<br/>type: *timex.DateTime | `approval/admin/instance_detail.go:45` |
+| `InstanceDetailInfo.FinishedAt` | `finishedAt` | Go field: InstanceDetailInfo.FinishedAt<br/>type: *timex.DateTime | `approval/admin/instance_detail.go:49` |
 | `InstanceDetailInfo.FlowCode` | `flowCode` | Go field: InstanceDetailInfo.FlowCode<br/>type: string | `approval/admin/instance_detail.go:31` |
 | `InstanceDetailInfo.FlowID` | `flowId` | Go field: InstanceDetailInfo.FlowID<br/>type: string | `approval/admin/instance_detail.go:30` |
 | `InstanceDetailInfo.FlowName` | `flowName` | Go field: InstanceDetailInfo.FlowName<br/>type: string | `approval/admin/instance_detail.go:32` |
 | `InstanceDetailInfo.FlowVersionID` | `flowVersionId` | Go field: InstanceDetailInfo.FlowVersionID<br/>type: string | `approval/admin/instance_detail.go:33` |
 | `InstanceDetailInfo.FormData` | `formData` | Go field: InstanceDetailInfo.FormData<br/>type: map[string]any | `approval/admin/instance_detail.go:43` |
+| `InstanceDetailInfo.Globals` | `globals` | Go field: InstanceDetailInfo.Globals<br/>type: map[string]any | `approval/admin/instance_detail.go:47` |
 | `InstanceDetailInfo.InstanceID` | `instanceId` | Go field: InstanceDetailInfo.InstanceID<br/>type: string | `approval/admin/instance_detail.go:26` |
 | `InstanceDetailInfo.InstanceNo` | `instanceNo` | Go field: InstanceDetailInfo.InstanceNo<br/>type: string | `approval/admin/instance_detail.go:27` |
 | `InstanceDetailInfo.Labels` | `labels` | Go field: InstanceDetailInfo.Labels<br/>type: map[string]string | `approval/admin/instance_detail.go:37` |
@@ -1072,15 +1094,16 @@ Entries: `3244`
 | `InstanceFlowGraph.Nodes` | `nodes` | Go field: InstanceFlowGraph.Nodes<br/>type: []FlowGraphNode | `approval/flow_graph_view.go:41` |
 | `InstanceInfo.Applicant` | `applicant` | Go field: InstanceInfo.Applicant<br/>type: approval.UserInfo | `approval/my/instance_detail.go:84` |
 | `InstanceInfo.BusinessRef` | `businessRef` | Go field: InstanceInfo.BusinessRef<br/>type: *string | `approval/my/instance_detail.go:88` |
-| `InstanceInfo.CreatedAt` | `createdAt` | Go field: InstanceInfo.CreatedAt<br/>type: timex.DateTime | `approval/my/instance_detail.go:90` |
+| `InstanceInfo.CreatedAt` | `createdAt` | Go field: InstanceInfo.CreatedAt<br/>type: timex.DateTime | `approval/my/instance_detail.go:94` |
 | `InstanceInfo.CurrentNodeID` | `currentNodeId` | Go field: InstanceInfo.CurrentNodeID<br/>type: *string | `approval/my/instance_detail.go:86` |
 | `InstanceInfo.CurrentNodeName` | `currentNodeName` | Go field: InstanceInfo.CurrentNodeName<br/>type: *string | `approval/my/instance_detail.go:87` |
-| `InstanceInfo.FinishedAt` | `finishedAt` | Go field: InstanceInfo.FinishedAt<br/>type: *timex.DateTime | `approval/my/instance_detail.go:91` |
+| `InstanceInfo.FinishedAt` | `finishedAt` | Go field: InstanceInfo.FinishedAt<br/>type: *timex.DateTime | `approval/my/instance_detail.go:95` |
 | `InstanceInfo.FlowCode` | `flowCode` | Go field: InstanceInfo.FlowCode<br/>type: string | `approval/my/instance_detail.go:80` |
 | `InstanceInfo.FlowID` | `flowId` | Go field: InstanceInfo.FlowID<br/>type: string | `approval/my/instance_detail.go:79` |
 | `InstanceInfo.FlowIcon` | `flowIcon` | Go field: InstanceInfo.FlowIcon<br/>type: *string | `approval/my/instance_detail.go:82` |
 | `InstanceInfo.FlowName` | `flowName` | Go field: InstanceInfo.FlowName<br/>type: string | `approval/my/instance_detail.go:81` |
 | `InstanceInfo.FormData` | `formData` | Go field: InstanceInfo.FormData<br/>type: map[string]any | `approval/my/instance_detail.go:89` |
+| `InstanceInfo.Globals` | `globals` | Go field: InstanceInfo.Globals<br/>type: map[string]any | `approval/my/instance_detail.go:93` |
 | `InstanceInfo.InstanceID` | `instanceId` | Go field: InstanceInfo.InstanceID<br/>type: string | `approval/my/instance_detail.go:76` |
 | `InstanceInfo.InstanceNo` | `instanceNo` | Go field: InstanceInfo.InstanceNo<br/>type: string | `approval/my/instance_detail.go:77` |
 | `InstanceInfo.Labels` | `labels` | Go field: InstanceInfo.Labels<br/>type: map[string]string | `approval/my/instance_detail.go:83` |
@@ -1117,6 +1140,7 @@ Entries: `3244`
 | `InvocationLog.HTTPTrace` | `httpTrace` | Go field: InvocationLog.HTTPTrace<br/>type: []HTTPExchange | `integration/models.go:275` |
 | `InvocationLog.Input` | `input` | Go field: InvocationLog.Input<br/>type: json.RawMessage | `integration/models.go:273` |
 | `InvocationLog.Output` | `output` | Go field: InvocationLog.Output<br/>type: json.RawMessage | `integration/models.go:274` |
+| `InvocationLog.Replayable` | `replayable` | Go field: InvocationLog.Replayable<br/>type: bool | `integration/models.go:280` |
 | `InvocationLog.RequestID` | `requestId` | Go field: InvocationLog.RequestID<br/>type: string | `integration/models.go:277` |
 | `InvocationLog.SystemCode` | `systemCode` | Go field: InvocationLog.SystemCode<br/>type: string | `integration/models.go:265` |
 | `InvocationStats.AvgDurationMs` | `avgDurationMs` | Go field: InvocationStats.AvgDurationMs<br/>type: int64 | `integration/stats.go:26` |
@@ -1143,11 +1167,11 @@ Entries: `3244`
 | `LoadInfo.Load1` | `load1` | Go field: LoadInfo.Load1<br/>type: float64 | `monitor/service.go:262` |
 | `LoadInfo.Load15` | `load15` | Go field: LoadInfo.Load15<br/>type: float64 | `monitor/service.go:264` |
 | `LoadInfo.Load5` | `load5` | Go field: LoadInfo.Load5<br/>type: float64 | `monitor/service.go:263` |
-| `LogSearch.ContractCode` | `contractCode` | Go field: LogSearch.ContractCode<br/>search: "eq,column=contract_code"<br/>type: string | `internal/integration/resource/log.go:14` |
-| `LogSearch.Direction` | `direction` | Go field: LogSearch.Direction<br/>search: "eq,column=direction"<br/>type: integration.Direction | `internal/integration/resource/log.go:15` |
-| `LogSearch.FailureKind` | `failureKind` | Go field: LogSearch.FailureKind<br/>search: "eq,column=failure_kind"<br/>type: string | `internal/integration/resource/log.go:16` |
-| `LogSearch.RequestID` | `requestId` | Go field: LogSearch.RequestID<br/>search: "eq,column=request_id"<br/>type: string | `internal/integration/resource/log.go:17` |
-| `LogSearch.SystemCode` | `systemCode` | Go field: LogSearch.SystemCode<br/>search: "eq,column=system_code"<br/>type: string | `internal/integration/resource/log.go:13` |
+| `LogSearch.ContractCode` | `contractCode` | Go field: LogSearch.ContractCode<br/>search: "eq,column=contract_code"<br/>type: string | `internal/integration/resource/log.go:17` |
+| `LogSearch.Direction` | `direction` | Go field: LogSearch.Direction<br/>search: "eq,column=direction"<br/>type: integration.Direction | `internal/integration/resource/log.go:18` |
+| `LogSearch.FailureKind` | `failureKind` | Go field: LogSearch.FailureKind<br/>search: "eq,column=failure_kind"<br/>type: string | `internal/integration/resource/log.go:19` |
+| `LogSearch.RequestID` | `requestId` | Go field: LogSearch.RequestID<br/>search: "eq,column=request_id"<br/>type: string | `internal/integration/resource/log.go:20` |
+| `LogSearch.SystemCode` | `systemCode` | Go field: LogSearch.SystemCode<br/>search: "eq,column=system_code"<br/>type: string | `internal/integration/resource/log.go:16` |
 | `LoginChallenge.Data` | `data` | Go field: LoginChallenge.Data<br/>type: any | `security/challenge.go:8` |
 | `LoginChallenge.Required` | `required` | Go field: LoginChallenge.Required<br/>type: bool | `security/challenge.go:9` |
 | `LoginChallenge.Type` | `type` | Go field: LoginChallenge.Type<br/>type: string | `security/challenge.go:7` |
@@ -1222,12 +1246,12 @@ Entries: `3244`
 | `NodeParticipant.TaskID` | `taskId` | Go field: NodeParticipant.TaskID<br/>type: string | `approval/node_view.go:20` |
 | `NodeParticipant.TransferTo` | `transferTo` | Go field: NodeParticipant.TransferTo<br/>type: *UserInfo | `approval/node_view.go:29` |
 | `NodeParticipant.User` | `user` | Go field: NodeParticipant.User<br/>type: UserInfo | `approval/node_view.go:21` |
-| `NodeVisit.FinishedAt` | `finishedAt` | Go field: NodeVisit.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:373` |
-| `NodeVisit.InstanceID` | `instanceId` | Go field: NodeVisit.InstanceID<br/>type: string | `approval/models.go:369` |
-| `NodeVisit.NodeID` | `nodeId` | Go field: NodeVisit.NodeID<br/>type: string | `approval/models.go:370` |
-| `NodeVisit.Sequence` | `sequence` | Go field: NodeVisit.Sequence<br/>type: int | `approval/models.go:371` |
-| `NodeVisit.Status` | `status` | Go field: NodeVisit.Status<br/>type: NodeVisitStatus | `approval/models.go:372` |
-| `NodeVisit.TenantID` | `tenantId` | Go field: NodeVisit.TenantID<br/>type: string | `approval/models.go:368` |
+| `NodeVisit.FinishedAt` | `finishedAt` | Go field: NodeVisit.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:374` |
+| `NodeVisit.InstanceID` | `instanceId` | Go field: NodeVisit.InstanceID<br/>type: string | `approval/models.go:370` |
+| `NodeVisit.NodeID` | `nodeId` | Go field: NodeVisit.NodeID<br/>type: string | `approval/models.go:371` |
+| `NodeVisit.Sequence` | `sequence` | Go field: NodeVisit.Sequence<br/>type: int | `approval/models.go:372` |
+| `NodeVisit.Status` | `status` | Go field: NodeVisit.Status<br/>type: NodeVisitStatus | `approval/models.go:373` |
+| `NodeVisit.TenantID` | `tenantId` | Go field: NodeVisit.TenantID<br/>type: string | `approval/models.go:369` |
 | `OTPChallengeData.Destination` | `destination` | Go field: OTPChallengeData.Destination<br/>type: string | `security/otp.go:47` |
 | `OTPChallengeData.Meta` | `meta` | Go field: OTPChallengeData.Meta<br/>type: map[string]any | `security/otp.go:48` |
 | `ObjectInfo.Bucket` | `bucket` | Go field: ObjectInfo.Bucket<br/>type: string | `storage/service.go:125` |
@@ -1357,6 +1381,18 @@ Entries: `3244`
 | `RemovableAssignee.Status` | `status` | Go field: RemovableAssignee.Status<br/>type: string | `approval/my/instance_detail.go:68` |
 | `RemovableAssignee.TaskID` | `taskId` | Go field: RemovableAssignee.TaskID<br/>type: string | `approval/my/instance_detail.go:65` |
 | `RemoveAssigneeParams.TaskID` | `taskId` | Go field: RemoveAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:424` |
+| `ReplayParams.ID` | `id` | Go field: ReplayParams.ID<br/>type: string<br/>validate: "required" | `internal/integration/resource/log.go:28` |
+| `ReplayParams.Script` | `script` | Go field: ReplayParams.Script<br/>type: string | `internal/integration/resource/log.go:29` |
+| `ReplayPayload.Dispatches` | `dispatches` | Go field: ReplayPayload.Dispatches<br/>type: []DispatchResult | `internal/integration/exec/replay.go:35` |
+| `ReplayPayload.Input` | `input` | Go field: ReplayPayload.Input<br/>type: any | `internal/integration/exec/replay.go:33` |
+| `ReplayPayload.Request` | `request` | Go field: ReplayPayload.Request<br/>type: *integration.InboundRequest | `internal/integration/exec/replay.go:34` |
+| `ReplayResult.DefinitionChanged` | `definitionChanged` | Go field: ReplayResult.DefinitionChanged<br/>type: bool | `integration/replay.go:42` |
+| `ReplayResult.DurationMs` | `durationMs` | Go field: ReplayResult.DurationMs<br/>type: int64 | `integration/replay.go:38` |
+| `ReplayResult.Error` | `error` | Go field: ReplayResult.Error<br/>type: string | `integration/replay.go:37` |
+| `ReplayResult.FailureKind` | `failureKind` | Go field: ReplayResult.FailureKind<br/>type: FailureKind | `integration/replay.go:36` |
+| `ReplayResult.HTTPTrace` | `httpTrace` | Go field: ReplayResult.HTTPTrace<br/>type: []HTTPExchange | `integration/replay.go:35` |
+| `ReplayResult.Input` | `input` | Go field: ReplayResult.Input<br/>type: json.RawMessage | `integration/replay.go:33` |
+| `ReplayResult.Output` | `output` | Go field: ReplayResult.Output<br/>type: json.RawMessage | `integration/replay.go:34` |
 | `Request.Meta` | `meta` | Go field: Request.Meta<br/>type: Meta | `api/request.go:113` |
 | `Request.Params` | `params` | Go field: Request.Params<br/>type: Params | `api/request.go:112` |
 | `ResolveChallengeParams.ChallengeToken` | `challengeToken` | Go field: ResolveChallengeParams.ChallengeToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:304` |
@@ -1483,14 +1519,16 @@ Entries: `3244`
 | `ScheduleSpec.Timeout` | `timeout` | Go field: ScheduleSpec.Timeout<br/>type: time.Duration | `cron/schedule.go:155` |
 | `ScheduleSpec.Trigger` | `trigger` | Go field: ScheduleSpec.Trigger<br/>type: TriggerSpec | `cron/schedule.go:140` |
 | `Sortable.Sort` | `sort` | Go field: Sortable.Sort<br/>type: []sortx.OrderSpec | `crud/params.go:35` |
-| `StartForm.Description` | `description` | Go field: StartForm.Description<br/>type: *string | `approval/my/start_form.go:16` |
-| `StartForm.FlowCode` | `flowCode` | Go field: StartForm.FlowCode<br/>type: string | `approval/my/start_form.go:13` |
-| `StartForm.FlowID` | `flowId` | Go field: StartForm.FlowID<br/>type: string | `approval/my/start_form.go:12` |
-| `StartForm.FlowIcon` | `flowIcon` | Go field: StartForm.FlowIcon<br/>type: *string | `approval/my/start_form.go:15` |
-| `StartForm.FlowName` | `flowName` | Go field: StartForm.FlowName<br/>type: string | `approval/my/start_form.go:14` |
-| `StartForm.FormSchema` | `formSchema` | Go field: StartForm.FormSchema<br/>type: json.RawMessage | `approval/my/start_form.go:19` |
-| `StartForm.Version` | `version` | Go field: StartForm.Version<br/>type: int | `approval/my/start_form.go:18` |
-| `StartForm.VersionID` | `versionId` | Go field: StartForm.VersionID<br/>type: string | `approval/my/start_form.go:17` |
+| `StartForm.Applicant` | `applicant` | Go field: StartForm.Applicant<br/>type: approval.UserInfo | `approval/my/start_form.go:28` |
+| `StartForm.Description` | `description` | Go field: StartForm.Description<br/>type: *string | `approval/my/start_form.go:20` |
+| `StartForm.FlowCode` | `flowCode` | Go field: StartForm.FlowCode<br/>type: string | `approval/my/start_form.go:17` |
+| `StartForm.FlowID` | `flowId` | Go field: StartForm.FlowID<br/>type: string | `approval/my/start_form.go:16` |
+| `StartForm.FlowIcon` | `flowIcon` | Go field: StartForm.FlowIcon<br/>type: *string | `approval/my/start_form.go:19` |
+| `StartForm.FlowName` | `flowName` | Go field: StartForm.FlowName<br/>type: string | `approval/my/start_form.go:18` |
+| `StartForm.FormSchema` | `formSchema` | Go field: StartForm.FormSchema<br/>type: json.RawMessage | `approval/my/start_form.go:23` |
+| `StartForm.Globals` | `globals` | Go field: StartForm.Globals<br/>type: map[string]any | `approval/my/start_form.go:32` |
+| `StartForm.Version` | `version` | Go field: StartForm.Version<br/>type: int | `approval/my/start_form.go:22` |
+| `StartForm.VersionID` | `versionId` | Go field: StartForm.VersionID<br/>type: string | `approval/my/start_form.go:21` |
 | `StartParams.BusinessRef` | `businessRef` | Go field: StartParams.BusinessRef<br/>type: *string<br/>validate: "omitempty,max=512" | `internal/approval/resource/instance.go:144` |
 | `StartParams.FlowCode` | `flowCode` | Go field: StartParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:143` |
 | `StartParams.FormData` | `formData` | Go field: StartParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:145` |
@@ -1561,37 +1599,37 @@ Entries: `3244`
 | `TableSchema.UniqueKeys` | `uniqueKeys` | Go field: TableSchema.UniqueKeys<br/>type: []UniqueKey | `schema/service.go:20` |
 | `Target.Kind` | `kind` | Go field: Target.Kind<br/>type: TargetKind | `push/target.go:18` |
 | `Target.Values` | `values` | Go field: Target.Values<br/>type: []string | `push/target.go:19` |
-| `Task.AddAssigneeType` | `addAssigneeType` | Go field: Task.AddAssigneeType<br/>type: *AddAssigneeType | `approval/models.go:320` |
+| `Task.AddAssigneeType` | `addAssigneeType` | Go field: Task.AddAssigneeType<br/>type: *AddAssigneeType | `approval/models.go:321` |
 | `Task.Assignee` | `assignee` | Go field: Task.Assignee<br/>type: approval.UserInfo | `approval/admin/task.go:15` |
-| `Task.AssigneeDepartmentID` | `assigneeDepartmentId` | Go field: Task.AssigneeDepartmentID<br/>type: *string | `approval/models.go:310` |
-| `Task.AssigneeDepartmentName` | `assigneeDepartmentName` | Go field: Task.AssigneeDepartmentName<br/>type: *string | `approval/models.go:311` |
-| `Task.AssigneeID` | `assigneeId` | Go field: Task.AssigneeID<br/>type: string | `approval/models.go:308` |
-| `Task.AssigneeName` | `assigneeName` | Go field: Task.AssigneeName<br/>type: string | `approval/models.go:309` |
+| `Task.AssigneeDepartmentID` | `assigneeDepartmentId` | Go field: Task.AssigneeDepartmentID<br/>type: *string | `approval/models.go:311` |
+| `Task.AssigneeDepartmentName` | `assigneeDepartmentName` | Go field: Task.AssigneeDepartmentName<br/>type: *string | `approval/models.go:312` |
+| `Task.AssigneeID` | `assigneeId` | Go field: Task.AssigneeID<br/>type: string | `approval/models.go:309` |
+| `Task.AssigneeName` | `assigneeName` | Go field: Task.AssigneeName<br/>type: string | `approval/models.go:310` |
 | `Task.CreatedAt` | `createdAt` | Go field: Task.CreatedAt<br/>type: timex.DateTime | `approval/admin/task.go:17` |
-| `Task.Deadline` | `deadline` | Go field: Task.Deadline<br/>type: *timex.DateTime | `approval/models.go:321` |
 | `Task.Deadline` | `deadline` | Go field: Task.Deadline<br/>type: *timex.DateTime | `approval/admin/task.go:18` |
-| `Task.DelegatorDepartmentID` | `delegatorDepartmentId` | Go field: Task.DelegatorDepartmentID<br/>type: *string | `approval/models.go:314` |
-| `Task.DelegatorDepartmentName` | `delegatorDepartmentName` | Go field: Task.DelegatorDepartmentName<br/>type: *string | `approval/models.go:315` |
-| `Task.DelegatorID` | `delegatorId` | Go field: Task.DelegatorID<br/>type: *string | `approval/models.go:312` |
-| `Task.DelegatorName` | `delegatorName` | Go field: Task.DelegatorName<br/>type: *string | `approval/models.go:313` |
+| `Task.Deadline` | `deadline` | Go field: Task.Deadline<br/>type: *timex.DateTime | `approval/models.go:322` |
+| `Task.DelegatorDepartmentID` | `delegatorDepartmentId` | Go field: Task.DelegatorDepartmentID<br/>type: *string | `approval/models.go:315` |
+| `Task.DelegatorDepartmentName` | `delegatorDepartmentName` | Go field: Task.DelegatorDepartmentName<br/>type: *string | `approval/models.go:316` |
+| `Task.DelegatorID` | `delegatorId` | Go field: Task.DelegatorID<br/>type: *string | `approval/models.go:313` |
+| `Task.DelegatorName` | `delegatorName` | Go field: Task.DelegatorName<br/>type: *string | `approval/models.go:314` |
 | `Task.FinishedAt` | `finishedAt` | Go field: Task.FinishedAt<br/>type: *timex.DateTime | `approval/admin/task.go:19` |
-| `Task.FinishedAt` | `finishedAt` | Go field: Task.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:324` |
+| `Task.FinishedAt` | `finishedAt` | Go field: Task.FinishedAt<br/>type: *timex.DateTime | `approval/models.go:325` |
 | `Task.FlowName` | `flowName` | Go field: Task.FlowName<br/>type: string | `approval/admin/task.go:13` |
-| `Task.InstanceID` | `instanceId` | Go field: Task.InstanceID<br/>type: string | `approval/models.go:305` |
+| `Task.InstanceID` | `instanceId` | Go field: Task.InstanceID<br/>type: string | `approval/models.go:306` |
 | `Task.InstanceID` | `instanceId` | Go field: Task.InstanceID<br/>type: string | `approval/admin/task.go:11` |
 | `Task.InstanceTitle` | `instanceTitle` | Go field: Task.InstanceTitle<br/>type: string | `approval/admin/task.go:12` |
-| `Task.IsPreWarningSent` | `isPreWarningSent` | Go field: Task.IsPreWarningSent<br/>type: bool | `approval/models.go:323` |
-| `Task.IsTimeout` | `isTimeout` | Go field: Task.IsTimeout<br/>type: bool | `approval/models.go:322` |
-| `Task.NodeID` | `nodeId` | Go field: Task.NodeID<br/>type: string | `approval/models.go:306` |
+| `Task.IsPreWarningSent` | `isPreWarningSent` | Go field: Task.IsPreWarningSent<br/>type: bool | `approval/models.go:324` |
+| `Task.IsTimeout` | `isTimeout` | Go field: Task.IsTimeout<br/>type: bool | `approval/models.go:323` |
+| `Task.NodeID` | `nodeId` | Go field: Task.NodeID<br/>type: string | `approval/models.go:307` |
 | `Task.NodeName` | `nodeName` | Go field: Task.NodeName<br/>type: string | `approval/admin/task.go:14` |
-| `Task.ParentTaskID` | `parentTaskId` | Go field: Task.ParentTaskID<br/>type: *string | `approval/models.go:319` |
-| `Task.ReadAt` | `readAt` | Go field: Task.ReadAt<br/>type: *timex.DateTime | `approval/models.go:318` |
-| `Task.SortOrder` | `sortOrder` | Go field: Task.SortOrder<br/>type: int | `approval/models.go:316` |
+| `Task.ParentTaskID` | `parentTaskId` | Go field: Task.ParentTaskID<br/>type: *string | `approval/models.go:320` |
+| `Task.ReadAt` | `readAt` | Go field: Task.ReadAt<br/>type: *timex.DateTime | `approval/models.go:319` |
+| `Task.SortOrder` | `sortOrder` | Go field: Task.SortOrder<br/>type: int | `approval/models.go:317` |
+| `Task.Status` | `status` | Go field: Task.Status<br/>type: TaskStatus | `approval/models.go:318` |
 | `Task.Status` | `status` | Go field: Task.Status<br/>type: string | `approval/admin/task.go:16` |
-| `Task.Status` | `status` | Go field: Task.Status<br/>type: TaskStatus | `approval/models.go:317` |
 | `Task.TaskID` | `taskId` | Go field: Task.TaskID<br/>type: string | `approval/admin/task.go:10` |
-| `Task.TenantID` | `tenantId` | Go field: Task.TenantID<br/>type: string | `approval/models.go:304` |
-| `Task.VisitID` | `visitId` | Go field: Task.VisitID<br/>type: string | `approval/models.go:307` |
+| `Task.TenantID` | `tenantId` | Go field: Task.TenantID<br/>type: string | `approval/models.go:305` |
+| `Task.VisitID` | `visitId` | Go field: Task.VisitID<br/>type: string | `approval/models.go:308` |
 | `TaskActivatedEvent.Assignee` | `assignee` | Go field: TaskActivatedEvent.Assignee<br/>type: UserInfo | `approval/events_task.go:48` |
 | `TaskActivatedEvent.Deadline` | `deadline` | Go field: TaskActivatedEvent.Deadline<br/>type: *timex.DateTime | `approval/events_task.go:49` |
 | `TaskActivatedEvent.Reason` | `reason` | Go field: TaskActivatedEvent.Reason<br/>type: TaskActivationReason | `approval/events_task.go:52` |
@@ -1639,18 +1677,19 @@ Entries: `3244`
 | `TestConnectionParams.Method` | `method` | Go field: TestConnectionParams.Method<br/>type: string | `internal/integration/resource/ops.go:58` |
 | `TestConnectionParams.Path` | `path` | Go field: TestConnectionParams.Path<br/>type: string | `internal/integration/resource/ops.go:59` |
 | `TestConnectionParams.SystemCode` | `systemCode` | Go field: TestConnectionParams.SystemCode<br/>type: string<br/>validate: "required" | `internal/integration/resource/ops.go:57` |
-| `TimelineEntry.Activities` | `activities` | Go field: TimelineEntry.Activities<br/>type: []Activity | `approval/timeline_view.go:57` |
+| `TimelineEntry.Activities` | `activities` | Go field: TimelineEntry.Activities<br/>type: []Activity | `approval/timeline_view.go:58` |
 | `TimelineEntry.ApprovalMethod` | `approvalMethod` | Go field: TimelineEntry.ApprovalMethod<br/>type: string | `approval/timeline_view.go:52` |
-| `TimelineEntry.CCRecipients` | `ccRecipients` | Go field: TimelineEntry.CCRecipients<br/>type: []CCRecipient | `approval/timeline_view.go:56` |
+| `TimelineEntry.CCRecipients` | `ccRecipients` | Go field: TimelineEntry.CCRecipients<br/>type: []CCRecipient | `approval/timeline_view.go:57` |
 | `TimelineEntry.ExecutionType` | `executionType` | Go field: TimelineEntry.ExecutionType<br/>type: string | `approval/timeline_view.go:51` |
-| `TimelineEntry.FinishedAt` | `finishedAt` | Go field: TimelineEntry.FinishedAt<br/>type: *timex.DateTime | `approval/timeline_view.go:59` |
+| `TimelineEntry.FinishedAt` | `finishedAt` | Go field: TimelineEntry.FinishedAt<br/>type: *timex.DateTime | `approval/timeline_view.go:60` |
 | `TimelineEntry.Kind` | `kind` | Go field: TimelineEntry.Kind<br/>type: TimelineEntryKind | `approval/timeline_view.go:47` |
 | `TimelineEntry.Name` | `name` | Go field: TimelineEntry.Name<br/>type: string | `approval/timeline_view.go:49` |
 | `TimelineEntry.NodeID` | `nodeId` | Go field: TimelineEntry.NodeID<br/>type: *string | `approval/timeline_view.go:48` |
-| `TimelineEntry.Participants` | `participants` | Go field: TimelineEntry.Participants<br/>type: []NodeParticipant | `approval/timeline_view.go:55` |
+| `TimelineEntry.Participants` | `participants` | Go field: TimelineEntry.Participants<br/>type: []NodeParticipant | `approval/timeline_view.go:56` |
+| `TimelineEntry.PassCount` | `passCount` | Go field: TimelineEntry.PassCount<br/>type: *int | `approval/timeline_view.go:55` |
 | `TimelineEntry.PassRatio` | `passRatio` | Go field: TimelineEntry.PassRatio<br/>type: *decimal.Decimal | `approval/timeline_view.go:54` |
 | `TimelineEntry.PassRule` | `passRule` | Go field: TimelineEntry.PassRule<br/>type: string | `approval/timeline_view.go:53` |
-| `TimelineEntry.StartedAt` | `startedAt` | Go field: TimelineEntry.StartedAt<br/>type: timex.DateTime | `approval/timeline_view.go:58` |
+| `TimelineEntry.StartedAt` | `startedAt` | Go field: TimelineEntry.StartedAt<br/>type: timex.DateTime | `approval/timeline_view.go:59` |
 | `TimelineEntry.Status` | `status` | Go field: TimelineEntry.Status<br/>type: NodeVisitStatus | `approval/timeline_view.go:50` |
 | `ToggleActiveParams.FlowID` | `flowId` | Go field: ToggleActiveParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:341` |
 | `ToggleActiveParams.IsActive` | `isActive` | Go field: ToggleActiveParams.IsActive<br/>type: bool | `internal/approval/resource/flow.go:342` |
@@ -1704,18 +1743,18 @@ Entries: `3244`
 | `UploadPartParams.PartNumber` | `partNumber` | Go field: UploadPartParams.PartNumber<br/>type: int<br/>validate: "required,min=1" | `internal/storage/resource.go:452` |
 | `UploadPartResult.PartNumber` | `partNumber` | Go field: UploadPartResult.PartNumber<br/>type: int | `internal/storage/resource.go:460` |
 | `UploadPartResult.Size` | `size` | Go field: UploadPartResult.Size<br/>type: int64 | `internal/storage/resource.go:461` |
-| `UrgeRecord.InstanceID` | `instanceId` | Go field: UrgeRecord.InstanceID<br/>type: string | `approval/models.go:509` |
-| `UrgeRecord.Message` | `message` | Go field: UrgeRecord.Message<br/>type: string | `approval/models.go:520` |
-| `UrgeRecord.NodeID` | `nodeId` | Go field: UrgeRecord.NodeID<br/>type: string | `approval/models.go:510` |
-| `UrgeRecord.TargetUserDepartmentID` | `targetUserDepartmentId` | Go field: UrgeRecord.TargetUserDepartmentID<br/>type: *string | `approval/models.go:518` |
-| `UrgeRecord.TargetUserDepartmentName` | `targetUserDepartmentName` | Go field: UrgeRecord.TargetUserDepartmentName<br/>type: *string | `approval/models.go:519` |
-| `UrgeRecord.TargetUserID` | `targetUserId` | Go field: UrgeRecord.TargetUserID<br/>type: string | `approval/models.go:516` |
-| `UrgeRecord.TargetUserName` | `targetUserName` | Go field: UrgeRecord.TargetUserName<br/>type: string | `approval/models.go:517` |
-| `UrgeRecord.TaskID` | `taskId` | Go field: UrgeRecord.TaskID<br/>type: *string | `approval/models.go:511` |
-| `UrgeRecord.UrgerDepartmentID` | `urgerDepartmentId` | Go field: UrgeRecord.UrgerDepartmentID<br/>type: *string | `approval/models.go:514` |
-| `UrgeRecord.UrgerDepartmentName` | `urgerDepartmentName` | Go field: UrgeRecord.UrgerDepartmentName<br/>type: *string | `approval/models.go:515` |
-| `UrgeRecord.UrgerID` | `urgerId` | Go field: UrgeRecord.UrgerID<br/>type: string | `approval/models.go:512` |
-| `UrgeRecord.UrgerName` | `urgerName` | Go field: UrgeRecord.UrgerName<br/>type: string | `approval/models.go:513` |
+| `UrgeRecord.InstanceID` | `instanceId` | Go field: UrgeRecord.InstanceID<br/>type: string | `approval/models.go:510` |
+| `UrgeRecord.Message` | `message` | Go field: UrgeRecord.Message<br/>type: string | `approval/models.go:521` |
+| `UrgeRecord.NodeID` | `nodeId` | Go field: UrgeRecord.NodeID<br/>type: string | `approval/models.go:511` |
+| `UrgeRecord.TargetUserDepartmentID` | `targetUserDepartmentId` | Go field: UrgeRecord.TargetUserDepartmentID<br/>type: *string | `approval/models.go:519` |
+| `UrgeRecord.TargetUserDepartmentName` | `targetUserDepartmentName` | Go field: UrgeRecord.TargetUserDepartmentName<br/>type: *string | `approval/models.go:520` |
+| `UrgeRecord.TargetUserID` | `targetUserId` | Go field: UrgeRecord.TargetUserID<br/>type: string | `approval/models.go:517` |
+| `UrgeRecord.TargetUserName` | `targetUserName` | Go field: UrgeRecord.TargetUserName<br/>type: string | `approval/models.go:518` |
+| `UrgeRecord.TaskID` | `taskId` | Go field: UrgeRecord.TaskID<br/>type: *string | `approval/models.go:512` |
+| `UrgeRecord.UrgerDepartmentID` | `urgerDepartmentId` | Go field: UrgeRecord.UrgerDepartmentID<br/>type: *string | `approval/models.go:515` |
+| `UrgeRecord.UrgerDepartmentName` | `urgerDepartmentName` | Go field: UrgeRecord.UrgerDepartmentName<br/>type: *string | `approval/models.go:516` |
+| `UrgeRecord.UrgerID` | `urgerId` | Go field: UrgeRecord.UrgerID<br/>type: string | `approval/models.go:513` |
+| `UrgeRecord.UrgerName` | `urgerName` | Go field: UrgeRecord.UrgerName<br/>type: string | `approval/models.go:514` |
 | `UrgeTaskParams.Message` | `message` | Go field: UrgeTaskParams.Message<br/>type: string<br/>validate: "max=500" | `internal/approval/resource/instance.go:450` |
 | `UrgeTaskParams.TaskID` | `taskId` | Go field: UrgeTaskParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:449` |
 | `UserInfo.Avatar` | `avatar` | Go field: UserInfo.Avatar<br/>type: *string | `security/user_info.go:45` |
@@ -1979,12 +2018,12 @@ Entries: `3244`
 | `approval/delegation` | `rpc` |  | `internal/approval/resource/delegation.go:51` |
 | `approval/flow` | `rpc` |  | `internal/approval/resource/flow.go:32` |
 | `approval/instance` | `rpc` |  | `internal/approval/resource/instance.go:104` |
-| `approval/my` | `rpc` |  | `internal/approval/resource/my.go:29` |
+| `approval/my` | `rpc` |  | `internal/approval/resource/my.go:37` |
 | `integration/adapter` | `rpc` |  | `internal/integration/resource/adapter.go:51` |
 | `integration/code_map` | `rpc` |  | `internal/integration/resource/code_map.go:61` |
 | `integration/code_set` | `rpc` |  | `internal/integration/resource/code_set_catalog.go:53` |
 | `integration/contract` | `rpc` |  | `internal/integration/resource/contract.go:58` |
-| `integration/log` | `rpc` |  | `internal/integration/resource/log.go:32` |
+| `integration/log` | `rpc` |  | `internal/integration/resource/log.go:47` |
 | `integration/ops` | `rpc` |  | `internal/integration/resource/ops.go:79` |
 | `integration/route` | `rpc` |  | `internal/integration/resource/route.go:52` |
 | `integration/system` | `rpc` |  | `internal/integration/resource/system.go:86` |
@@ -2034,14 +2073,14 @@ Entries: `3244`
 | `approval/instance/start` | `start` | audit enabled<br/>permission: approval.instance.start<br/>resource kind: rpc | `internal/approval/resource/instance.go:117` |
 | `approval/instance/urge_task` | `urge_task` | permission: approval.task.urge<br/>resource kind: rpc | `internal/approval/resource/instance.go:128` |
 | `approval/instance/withdraw` | `withdraw` | audit enabled<br/>permission: approval.instance.withdraw<br/>resource kind: rpc | `internal/approval/resource/instance.go:119` |
-| `approval/my/find_available_flows` | `find_available_flows` | resource kind: rpc | `internal/approval/resource/my.go:32` |
-| `approval/my/find_cc_records` | `find_cc_records` | resource kind: rpc | `internal/approval/resource/my.go:37` |
-| `approval/my/find_completed_tasks` | `find_completed_tasks` | resource kind: rpc | `internal/approval/resource/my.go:36` |
-| `approval/my/find_initiated` | `find_initiated` | resource kind: rpc | `internal/approval/resource/my.go:34` |
-| `approval/my/find_pending_tasks` | `find_pending_tasks` | resource kind: rpc | `internal/approval/resource/my.go:35` |
-| `approval/my/get_instance_detail` | `get_instance_detail` | resource kind: rpc | `internal/approval/resource/my.go:39` |
-| `approval/my/get_pending_counts` | `get_pending_counts` | resource kind: rpc | `internal/approval/resource/my.go:38` |
-| `approval/my/get_start_form` | `get_start_form` | resource kind: rpc | `internal/approval/resource/my.go:33` |
+| `approval/my/find_available_flows` | `find_available_flows` | resource kind: rpc | `internal/approval/resource/my.go:40` |
+| `approval/my/find_cc_records` | `find_cc_records` | resource kind: rpc | `internal/approval/resource/my.go:45` |
+| `approval/my/find_completed_tasks` | `find_completed_tasks` | resource kind: rpc | `internal/approval/resource/my.go:44` |
+| `approval/my/find_initiated` | `find_initiated` | resource kind: rpc | `internal/approval/resource/my.go:42` |
+| `approval/my/find_pending_tasks` | `find_pending_tasks` | resource kind: rpc | `internal/approval/resource/my.go:43` |
+| `approval/my/get_instance_detail` | `get_instance_detail` | resource kind: rpc | `internal/approval/resource/my.go:47` |
+| `approval/my/get_pending_counts` | `get_pending_counts` | resource kind: rpc | `internal/approval/resource/my.go:46` |
+| `approval/my/get_start_form` | `get_start_form` | resource kind: rpc | `internal/approval/resource/my.go:41` |
 | `integration/adapter/create` | `create` | permission: integration.adapter.create<br/>resource kind: rpc | `internal/integration/resource/adapter.go:56` |
 | `integration/adapter/delete` | `delete` | permission: integration.adapter.delete<br/>resource kind: rpc | `internal/integration/resource/adapter.go:66` |
 | `integration/adapter/find_all` | `find_all` | permission: integration.adapter.query<br/>resource kind: rpc | `internal/integration/resource/adapter.go:54` |
@@ -2059,8 +2098,9 @@ Entries: `3244`
 | `integration/contract/find_all` | `find_all` | permission: integration.contract.query<br/>resource kind: rpc | `internal/integration/resource/contract.go:62` |
 | `integration/contract/find_page` | `find_page` | permission: integration.contract.query<br/>resource kind: rpc | `internal/integration/resource/contract.go:59` |
 | `integration/contract/update` | `update` | permission: integration.contract.update<br/>resource kind: rpc | `internal/integration/resource/contract.go:70` |
-| `integration/log/find_one` | `find_one` | permission: integration.log.query<br/>resource kind: rpc | `internal/integration/resource/log.go:35` |
-| `integration/log/find_page` | `find_page` | permission: integration.log.query<br/>resource kind: rpc | `internal/integration/resource/log.go:33` |
+| `integration/log/find_one` | `find_one` | permission: integration.log.query<br/>resource kind: rpc | `internal/integration/resource/log.go:55` |
+| `integration/log/find_page` | `find_page` | permission: integration.log.query<br/>resource kind: rpc | `internal/integration/resource/log.go:53` |
+| `integration/log/replay` | `replay` | audit enabled<br/>permission: integration.log.replay<br/>resource kind: rpc | `internal/integration/resource/log.go:50` |
 | `integration/ops/diagnose_routes` | `diagnose_routes` | permission: integration.ops.diagnose_routes<br/>resource kind: rpc | `internal/integration/resource/ops.go:85` |
 | `integration/ops/dry_run` | `dry_run` | permission: integration.ops.dry_run<br/>resource kind: rpc | `internal/integration/resource/ops.go:82` |
 | `integration/ops/dry_run_inbound` | `dry_run_inbound` | permission: integration.ops.dry_run_inbound<br/>resource kind: rpc | `internal/integration/resource/ops.go:83` |
@@ -2147,13 +2187,14 @@ Entries: `3244`
 | `vef.event.transports.redis_stream.setup_timeout` | `5 * time.Second` |  | `event/transport/redisstream/redis_stream.go:125` |
 | `vef.event.transports.redis_stream.start_id` | `0` |  | `event/transport/redisstream/redis_stream.go:134` |
 | `vef.event.transports.redis_stream.stream_prefix` | `vef:events:` |  | `event/transport/redisstream/redis_stream.go:71` |
-| `vef.integration.inbound.rate_limit.max` | `120 (120)` |  | `config/integration.go:134` |
-| `vef.integration.inbound.rate_limit.period` | `time.Minute` |  | `config/integration.go:139` |
-| `vef.integration.log.capture_limit` | `4096` |  | `config/integration.go:51` |
-| `vef.integration.log.mode` | `"errors" (errors)` |  | `config/integration.go:42` |
-| `vef.integration.max_response_body` | `8 &lt;&lt; 20` |  | `config/integration.go:158` |
-| `vef.integration.run_timeout` | `30 * time.Second` |  | `config/integration.go:153` |
-| `vef.integration.secret_algorithm` | `"aes" (aes)` |  | `config/integration.go:144` |
+| `vef.integration.inbound.rate_limit.max` | `120 (120)` |  | `config/integration.go:147` |
+| `vef.integration.inbound.rate_limit.period` | `time.Minute` |  | `config/integration.go:152` |
+| `vef.integration.log.capture_limit` | `4096` |  | `config/integration.go:59` |
+| `vef.integration.log.mode` | `"errors" (errors)` |  | `config/integration.go:50` |
+| `vef.integration.log.replay_limit` | `1 &lt;&lt; 20` |  | `config/integration.go:64` |
+| `vef.integration.max_response_body` | `8 &lt;&lt; 20` |  | `config/integration.go:171` |
+| `vef.integration.run_timeout` | `30 * time.Second` |  | `config/integration.go:166` |
+| `vef.integration.secret_algorithm` | `"aes" (aes)` |  | `config/integration.go:157` |
 | `vef.mcp.require_auth` | `true when unset` |  | `internal/mcp/handler.go:34` |
 | `vef.monitor.sample_duration` | `2 * time.Second` |  | `internal/monitor/config.go:25` |
 | `vef.monitor.sample_interval` | `10 * time.Second` |  | `internal/monitor/config.go:24` |
@@ -2306,20 +2347,22 @@ Entries: `3244`
 | `vef.event.transports.tx_memory.full_policy` | `string` | Go field: EventTxMemoryTransportConfig.FullPolicy | `config/event.go:25`, `config/event.go:37`, `config/event.go:58` |
 | `vef.event.transports.tx_memory.publish_timeout` | `time.Duration` | Go field: EventTxMemoryTransportConfig.PublishTimeout | `config/event.go:25`, `config/event.go:37`, `config/event.go:59` |
 | `vef.event.transports.tx_memory.queue_size` | `int` | Go field: EventTxMemoryTransportConfig.QueueSize | `config/event.go:25`, `config/event.go:37`, `config/event.go:57` |
-| `vef.integration.auto_migrate` | `bool` | Go field: IntegrationConfig.AutoMigrate | `config/integration.go:76` |
-| `vef.integration.inbound` | `IntegrationInboundConfig` | Go field: IntegrationConfig.Inbound | `config/integration.go:103` |
-| `vef.integration.inbound.rate_limit` | `IntegrationInboundRateLimitConfig` | Go field: IntegrationInboundConfig.RateLimit | `config/integration.go:103`, `config/integration.go:117` |
-| `vef.integration.inbound.rate_limit.max` | `int` | Go field: IntegrationInboundRateLimitConfig.Max | `config/integration.go:103`, `config/integration.go:117`, `config/integration.go:127` |
-| `vef.integration.inbound.rate_limit.period` | `time.Duration` | Go field: IntegrationInboundRateLimitConfig.Period | `config/integration.go:103`, `config/integration.go:117`, `config/integration.go:130` |
-| `vef.integration.log` | `IntegrationLogConfig` | Go field: IntegrationConfig.Log | `config/integration.go:99` |
-| `vef.integration.log.capture_limit` | `int` | Go field: IntegrationLogConfig.CaptureLimit | `config/integration.go:31`, `config/integration.go:99` |
-| `vef.integration.log.mask_fields` | `[]string` | Go field: IntegrationLogConfig.MaskFields | `config/integration.go:34`, `config/integration.go:99` |
-| `vef.integration.log.mode` | `IntegrationLogMode` | Go field: IntegrationLogConfig.Mode | `config/integration.go:28`, `config/integration.go:99` |
-| `vef.integration.log.retention` | `time.Duration` | Go field: IntegrationLogConfig.Retention | `config/integration.go:38`, `config/integration.go:99` |
-| `vef.integration.max_response_body` | `int64` | Go field: IntegrationConfig.MaxResponseBody | `config/integration.go:96` |
-| `vef.integration.run_timeout` | `time.Duration` | Go field: IntegrationConfig.RunTimeout | `config/integration.go:92` |
-| `vef.integration.secret_algorithm` | `IntegrationSecretAlgorithm` | Go field: IntegrationConfig.SecretAlgorithm | `config/integration.go:88` |
-| `vef.integration.secret_key` | `string` | Go field: IntegrationConfig.SecretKey | `config/integration.go:82` |
+| `vef.integration.auto_migrate` | `bool` | Go field: IntegrationConfig.AutoMigrate | `config/integration.go:89` |
+| `vef.integration.inbound` | `IntegrationInboundConfig` | Go field: IntegrationConfig.Inbound | `config/integration.go:116` |
+| `vef.integration.inbound.rate_limit` | `IntegrationInboundRateLimitConfig` | Go field: IntegrationInboundConfig.RateLimit | `config/integration.go:116`, `config/integration.go:130` |
+| `vef.integration.inbound.rate_limit.max` | `int` | Go field: IntegrationInboundRateLimitConfig.Max | `config/integration.go:116`, `config/integration.go:130`, `config/integration.go:140` |
+| `vef.integration.inbound.rate_limit.period` | `time.Duration` | Go field: IntegrationInboundRateLimitConfig.Period | `config/integration.go:116`, `config/integration.go:130`, `config/integration.go:143` |
+| `vef.integration.log` | `IntegrationLogConfig` | Go field: IntegrationConfig.Log | `config/integration.go:112` |
+| `vef.integration.log.capture_limit` | `int` | Go field: IntegrationLogConfig.CaptureLimit | `config/integration.go:112`, `config/integration.go:31` |
+| `vef.integration.log.mask_fields` | `[]string` | Go field: IntegrationLogConfig.MaskFields | `config/integration.go:112`, `config/integration.go:34` |
+| `vef.integration.log.mode` | `IntegrationLogMode` | Go field: IntegrationLogConfig.Mode | `config/integration.go:112`, `config/integration.go:28` |
+| `vef.integration.log.replay` | `bool` | Go field: IntegrationLogConfig.Replay | `config/integration.go:112`, `config/integration.go:43` |
+| `vef.integration.log.replay_limit` | `int` | Go field: IntegrationLogConfig.ReplayLimit | `config/integration.go:112`, `config/integration.go:46` |
+| `vef.integration.log.retention` | `time.Duration` | Go field: IntegrationLogConfig.Retention | `config/integration.go:112`, `config/integration.go:38` |
+| `vef.integration.max_response_body` | `int64` | Go field: IntegrationConfig.MaxResponseBody | `config/integration.go:109` |
+| `vef.integration.run_timeout` | `time.Duration` | Go field: IntegrationConfig.RunTimeout | `config/integration.go:105` |
+| `vef.integration.secret_algorithm` | `IntegrationSecretAlgorithm` | Go field: IntegrationConfig.SecretAlgorithm | `config/integration.go:101` |
+| `vef.integration.secret_key` | `string` | Go field: IntegrationConfig.SecretKey | `config/integration.go:95` |
 | `vef.mcp.enabled` | `bool` | Go field: MCPConfig.Enabled | `config/mcp.go:5` |
 | `vef.mcp.require_auth` | `*bool` | Go field: MCPConfig.RequireAuth | `config/mcp.go:9` |
 | `vef.monitor.sample_duration` | `time.Duration` | Go field: MonitorConfig.SampleDuration | `config/monitor.go:8` |
@@ -2508,13 +2551,13 @@ Entries: `3244`
 | `api_request_version` | `api_request_version` | label_i18n struct tag | `api/request.go:18` |
 | `approval_access_denied` | `approval_access_denied` | i18n.T call | `approval/api_errors.go:207` |
 | `approval_add_assignee_not_allowed` | `approval_add_assignee_not_allowed` | i18n.T call | `approval/api_errors.go:182` |
-| `approval_assignee_kind_department` | `approval_assignee_kind_department` | i18n.T call | `internal/approval/strategy/assignee.go:89` |
-| `approval_assignee_kind_department_leader` | `approval_assignee_kind_department_leader` | i18n.T call | `internal/approval/strategy/assignee.go:184` |
-| `approval_assignee_kind_form_field` | `approval_assignee_kind_form_field` | i18n.T call | `internal/approval/strategy/assignee.go:218` |
-| `approval_assignee_kind_role` | `approval_assignee_kind_role` | i18n.T call | `internal/approval/strategy/assignee.go:55` |
-| `approval_assignee_kind_self` | `approval_assignee_kind_self` | i18n.T call | `internal/approval/strategy/assignee.go:120` |
-| `approval_assignee_kind_superior` | `approval_assignee_kind_superior` | i18n.T call | `internal/approval/strategy/assignee.go:147` |
-| `approval_assignee_kind_user` | `approval_assignee_kind_user` | i18n.T call | `internal/approval/strategy/assignee.go:28` |
+| `approval_assignee_kind_department` | `approval_assignee_kind_department` | i18n.T call | `internal/approval/strategy/assignee.go:88` |
+| `approval_assignee_kind_department_leader` | `approval_assignee_kind_department_leader` | i18n.T call | `internal/approval/strategy/assignee.go:183` |
+| `approval_assignee_kind_form_field` | `approval_assignee_kind_form_field` | i18n.T call | `internal/approval/strategy/assignee.go:217` |
+| `approval_assignee_kind_role` | `approval_assignee_kind_role` | i18n.T call | `internal/approval/strategy/assignee.go:54` |
+| `approval_assignee_kind_self` | `approval_assignee_kind_self` | i18n.T call | `internal/approval/strategy/assignee.go:119` |
+| `approval_assignee_kind_superior` | `approval_assignee_kind_superior` | i18n.T call | `internal/approval/strategy/assignee.go:146` |
+| `approval_assignee_kind_user` | `approval_assignee_kind_user` | i18n.T call | `internal/approval/strategy/assignee.go:27` |
 | `approval_assignee_resolve_failed` | `approval_assignee_resolve_failed` | i18n.T call | `approval/api_errors.go:195` |
 | `approval_binding_column_missing` | `approval_binding_column_missing` | i18n.T call | `approval/api_errors.go:230` |
 | `approval_binding_columns_conflict` | `approval_binding_columns_conflict` | i18n.T call | `approval/api_errors.go:149` |
@@ -2536,6 +2579,7 @@ Entries: `3244`
 | `approval_form_cross_device_kind_mismatch` | `approval_form_cross_device_kind_mismatch` | i18n.T call | `internal/approval/formeditor/api_errors.go:52` |
 | `approval_form_cross_device_table_mismatch` | `approval_form_cross_device_table_mismatch` | i18n.T call | `internal/approval/formeditor/api_errors.go:62` |
 | `approval_form_data_too_large` | `approval_form_data_too_large` | i18n.T call | `approval/api_errors.go:203` |
+| `approval_form_field_assignee_unresolved` | `approval_form_field_assignee_unresolved` | i18n.T call | `internal/approval/strategy/assignee.go:252` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:498` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:491` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:484` |
@@ -2650,37 +2694,38 @@ Entries: `3244`
 | `error` | `error` | i18n.T call | `result/error.go:69` |
 | `expression_evaluation_failed` | `expression_evaluation_failed` | i18n.T call | `expression/api_errors.go:15` |
 | `foreign_key_violation` | `foreign_key_violation` | i18n.T call | `result/errors.go:54` |
-| `integration_adapter_disabled` | `integration_adapter_disabled` | i18n.T call | `integration/api_errors.go:71` |
-| `integration_adapter_not_found` | `integration_adapter_not_found` | i18n.T call | `integration/api_errors.go:67` |
-| `integration_code_map_missing` | `integration_code_map_missing` | i18n.T call | `integration/api_errors.go:223` |
-| `integration_code_set_catalog_failed` | `integration_code_set_catalog_failed` | i18n.T call | `integration/api_errors.go:253` |
-| `integration_contract_disabled` | `integration_contract_disabled` | i18n.T call | `integration/api_errors.go:55` |
-| `integration_contract_not_found` | `integration_contract_not_found` | i18n.T call | `integration/api_errors.go:51` |
-| `integration_inbound_auth_failed` | `integration_inbound_auth_failed` | i18n.T call | `integration/api_errors.go:262` |
-| `integration_inbound_handler_missing` | `integration_inbound_handler_missing` | i18n.T call | `integration/api_errors.go:270` |
-| `integration_input_invalid` | `integration_input_invalid` | i18n.T call | `integration/api_errors.go:118` |
-| `integration_invalid_auth_params` | `integration_invalid_auth_params` | i18n.T call | `integration/api_errors.go:191` |
-| `integration_invalid_base_url` | `integration_invalid_base_url` | i18n.T call | `integration/api_errors.go:110` |
-| `integration_invalid_code_map` | `integration_invalid_code_map` | i18n.T call | `integration/api_errors.go:242` |
-| `integration_invalid_data_source` | `integration_invalid_data_source` | i18n.T call | `integration/api_errors.go:200` |
-| `integration_invalid_direction` | `integration_invalid_direction` | i18n.T call | `integration/api_errors.go:207` |
-| `integration_invalid_envelope` | `integration_invalid_envelope` | i18n.T call | `integration/api_errors.go:181` |
-| `integration_invalid_label` | `integration_invalid_label` | i18n.T call | `integration/api_errors.go:215` |
-| `integration_invalid_route_ref` | `integration_invalid_route_ref` | i18n.T call | `integration/api_errors.go:104` |
-| `integration_invalid_schema` | `integration_invalid_schema` | i18n.T call | `integration/api_errors.go:162` |
-| `integration_invalid_script` | `integration_invalid_script` | i18n.T call | `integration/api_errors.go:171` |
-| `integration_invocation_canceled` | `integration_invocation_canceled` | i18n.T call | `integration/api_errors.go:98` |
-| `integration_invocation_timeout` | `integration_invocation_timeout` | i18n.T call | `integration/api_errors.go:92` |
-| `integration_output_invalid` | `integration_output_invalid` | i18n.T call | `integration/api_errors.go:127` |
-| `integration_route_not_found` | `integration_route_not_found` | i18n.T call | `integration/api_errors.go:75` |
-| `integration_script_failed` | `integration_script_failed` | i18n.T call | `integration/api_errors.go:144` |
-| `integration_system_disabled` | `integration_system_disabled` | i18n.T call | `integration/api_errors.go:63` |
-| `integration_system_not_found` | `integration_system_not_found` | i18n.T call | `integration/api_errors.go:59` |
-| `integration_target_ambiguous` | `integration_target_ambiguous` | i18n.T call | `integration/api_errors.go:81` |
-| `integration_transport_failed` | `integration_transport_failed` | i18n.T call | `integration/api_errors.go:88` |
-| `integration_unknown_auth_scheme` | `integration_unknown_auth_scheme` | i18n.T call | `integration/api_errors.go:153` |
-| `integration_upstream_failed` | `integration_upstream_failed` | i18n.T call | `integration/api_errors.go:136` |
-| `integration_value_unmapped` | `integration_value_unmapped` | i18n.T call | `integration/api_errors.go:232` |
+| `integration_adapter_disabled` | `integration_adapter_disabled` | i18n.T call | `integration/api_errors.go:72` |
+| `integration_adapter_not_found` | `integration_adapter_not_found` | i18n.T call | `integration/api_errors.go:68` |
+| `integration_code_map_missing` | `integration_code_map_missing` | i18n.T call | `integration/api_errors.go:224` |
+| `integration_code_set_catalog_failed` | `integration_code_set_catalog_failed` | i18n.T call | `integration/api_errors.go:254` |
+| `integration_contract_disabled` | `integration_contract_disabled` | i18n.T call | `integration/api_errors.go:56` |
+| `integration_contract_not_found` | `integration_contract_not_found` | i18n.T call | `integration/api_errors.go:52` |
+| `integration_inbound_auth_failed` | `integration_inbound_auth_failed` | i18n.T call | `integration/api_errors.go:271` |
+| `integration_inbound_handler_missing` | `integration_inbound_handler_missing` | i18n.T call | `integration/api_errors.go:279` |
+| `integration_input_invalid` | `integration_input_invalid` | i18n.T call | `integration/api_errors.go:119` |
+| `integration_invalid_auth_params` | `integration_invalid_auth_params` | i18n.T call | `integration/api_errors.go:192` |
+| `integration_invalid_base_url` | `integration_invalid_base_url` | i18n.T call | `integration/api_errors.go:111` |
+| `integration_invalid_code_map` | `integration_invalid_code_map` | i18n.T call | `integration/api_errors.go:243` |
+| `integration_invalid_data_source` | `integration_invalid_data_source` | i18n.T call | `integration/api_errors.go:201` |
+| `integration_invalid_direction` | `integration_invalid_direction` | i18n.T call | `integration/api_errors.go:208` |
+| `integration_invalid_envelope` | `integration_invalid_envelope` | i18n.T call | `integration/api_errors.go:182` |
+| `integration_invalid_label` | `integration_invalid_label` | i18n.T call | `integration/api_errors.go:216` |
+| `integration_invalid_route_ref` | `integration_invalid_route_ref` | i18n.T call | `integration/api_errors.go:105` |
+| `integration_invalid_schema` | `integration_invalid_schema` | i18n.T call | `integration/api_errors.go:163` |
+| `integration_invalid_script` | `integration_invalid_script` | i18n.T call | `integration/api_errors.go:172` |
+| `integration_invocation_canceled` | `integration_invocation_canceled` | i18n.T call | `integration/api_errors.go:99` |
+| `integration_invocation_timeout` | `integration_invocation_timeout` | i18n.T call | `integration/api_errors.go:93` |
+| `integration_output_invalid` | `integration_output_invalid` | i18n.T call | `integration/api_errors.go:128` |
+| `integration_replay_unavailable` | `integration_replay_unavailable` | i18n.T call | `integration/api_errors.go:263` |
+| `integration_route_not_found` | `integration_route_not_found` | i18n.T call | `integration/api_errors.go:76` |
+| `integration_script_failed` | `integration_script_failed` | i18n.T call | `integration/api_errors.go:145` |
+| `integration_system_disabled` | `integration_system_disabled` | i18n.T call | `integration/api_errors.go:64` |
+| `integration_system_not_found` | `integration_system_not_found` | i18n.T call | `integration/api_errors.go:60` |
+| `integration_target_ambiguous` | `integration_target_ambiguous` | i18n.T call | `integration/api_errors.go:82` |
+| `integration_transport_failed` | `integration_transport_failed` | i18n.T call | `integration/api_errors.go:89` |
+| `integration_unknown_auth_scheme` | `integration_unknown_auth_scheme` | i18n.T call | `integration/api_errors.go:154` |
+| `integration_upstream_failed` | `integration_upstream_failed` | i18n.T call | `integration/api_errors.go:137` |
+| `integration_value_unmapped` | `integration_value_unmapped` | i18n.T call | `integration/api_errors.go:233` |
 | `monitor_collection_failed` | `monitor_collection_failed` | i18n.T call | `monitor/api_errors.go:25` |
 | `monitor_not_ready` | `monitor_not_ready` | i18n.T call | `monitor/api_errors.go:19` |
 | `ok` | `ok` | i18n.T call | `result/result.go:64` |
@@ -2932,6 +2977,7 @@ Entries: `3244`
 | `ErrCodeRecordAlreadyExists` | `2002` |  | `result/constants.go:57` |
 | `ErrCodeRecordNotFound` | `2001` |  | `result/constants.go:56` |
 | `ErrCodeRemoveAssigneeNotAllowed` | `40210` |  | `approval/api_errors.go:58` |
+| `ErrCodeReplayUnavailable` | `2631` |  | `integration/api_errors.go:45` |
 | `ErrCodeRequestTimeout` | `1402` |  | `result/constants.go:43` |
 | `ErrCodeResubmitNotAllowed` | `40105` |  | `approval/api_errors.go:42` |
 | `ErrCodeRollbackNotAllowed` | `40205` |  | `approval/api_errors.go:53` |
@@ -3005,26 +3051,27 @@ Entries: `3244`
 | `ErrMessageDangerousSQL` | `dangerous_sql` |  | `result/constants.go:22` |
 | `ErrMessageExternalAppLoaderNotImplemented` | `security_external_app_loader_not_implemented` |  | `security/api_errors.go:19` |
 | `ErrMessageForeignKeyViolation` | `foreign_key_violation` |  | `result/constants.go:21` |
-| `ErrMessageFormFieldEmpty` | `approval_form_field_empty` |  | `internal/approval/shared/messages.go:29` |
-| `ErrMessageFormFieldInvalidFileItem` | `approval_form_field_invalid_file_item` |  | `internal/approval/shared/messages.go:30` |
-| `ErrMessageFormFieldInvalidValidation` | `approval_form_field_invalid_validation` |  | `internal/approval/shared/messages.go:25` |
-| `ErrMessageFormFieldInvalidValue` | `approval_form_field_invalid_value` |  | `internal/approval/shared/messages.go:32` |
-| `ErrMessageFormFieldMaxLength` | `approval_form_field_max_length` |  | `internal/approval/shared/messages.go:24` |
-| `ErrMessageFormFieldMaxRows` | `approval_form_field_max_rows` |  | `internal/approval/shared/messages.go:36` |
-| `ErrMessageFormFieldMaxValue` | `approval_form_field_max_value` |  | `internal/approval/shared/messages.go:28` |
-| `ErrMessageFormFieldMinLength` | `approval_form_field_min_length` |  | `internal/approval/shared/messages.go:23` |
-| `ErrMessageFormFieldMinRows` | `approval_form_field_min_rows` |  | `internal/approval/shared/messages.go:35` |
-| `ErrMessageFormFieldMinValue` | `approval_form_field_min_value` |  | `internal/approval/shared/messages.go:27` |
-| `ErrMessageFormFieldMustBeFile` | `approval_form_field_must_be_file` |  | `internal/approval/shared/messages.go:31` |
-| `ErrMessageFormFieldMustBeInteger` | `approval_form_field_must_be_integer` |  | `internal/approval/shared/messages.go:22` |
-| `ErrMessageFormFieldMustBeNumber` | `approval_form_field_must_be_number` |  | `internal/approval/shared/messages.go:21` |
-| `ErrMessageFormFieldMustBeRowList` | `approval_form_field_must_be_row_list` |  | `internal/approval/shared/messages.go:33` |
-| `ErrMessageFormFieldMustBeRowObject` | `approval_form_field_must_be_row_object` |  | `internal/approval/shared/messages.go:34` |
-| `ErrMessageFormFieldMustBeString` | `approval_form_field_must_be_string` |  | `internal/approval/shared/messages.go:20` |
-| `ErrMessageFormFieldNotDefined` | `approval_form_field_not_defined` |  | `internal/approval/shared/messages.go:18` |
-| `ErrMessageFormFieldPatternMismatch` | `approval_form_field_pattern_mismatch` |  | `internal/approval/shared/messages.go:26` |
-| `ErrMessageFormFieldRequired` | `approval_form_field_required` |  | `internal/approval/shared/messages.go:19` |
-| `ErrMessageFormFieldTableCell` | `approval_form_field_table_cell` |  | `internal/approval/shared/messages.go:37` |
+| `ErrMessageFormFieldAssigneeUnresolved` | `approval_form_field_assignee_unresolved` |  | `internal/approval/shared/messages.go:17` |
+| `ErrMessageFormFieldEmpty` | `approval_form_field_empty` |  | `internal/approval/shared/messages.go:34` |
+| `ErrMessageFormFieldInvalidFileItem` | `approval_form_field_invalid_file_item` |  | `internal/approval/shared/messages.go:35` |
+| `ErrMessageFormFieldInvalidValidation` | `approval_form_field_invalid_validation` |  | `internal/approval/shared/messages.go:30` |
+| `ErrMessageFormFieldInvalidValue` | `approval_form_field_invalid_value` |  | `internal/approval/shared/messages.go:37` |
+| `ErrMessageFormFieldMaxLength` | `approval_form_field_max_length` |  | `internal/approval/shared/messages.go:29` |
+| `ErrMessageFormFieldMaxRows` | `approval_form_field_max_rows` |  | `internal/approval/shared/messages.go:41` |
+| `ErrMessageFormFieldMaxValue` | `approval_form_field_max_value` |  | `internal/approval/shared/messages.go:33` |
+| `ErrMessageFormFieldMinLength` | `approval_form_field_min_length` |  | `internal/approval/shared/messages.go:28` |
+| `ErrMessageFormFieldMinRows` | `approval_form_field_min_rows` |  | `internal/approval/shared/messages.go:40` |
+| `ErrMessageFormFieldMinValue` | `approval_form_field_min_value` |  | `internal/approval/shared/messages.go:32` |
+| `ErrMessageFormFieldMustBeFile` | `approval_form_field_must_be_file` |  | `internal/approval/shared/messages.go:36` |
+| `ErrMessageFormFieldMustBeInteger` | `approval_form_field_must_be_integer` |  | `internal/approval/shared/messages.go:27` |
+| `ErrMessageFormFieldMustBeNumber` | `approval_form_field_must_be_number` |  | `internal/approval/shared/messages.go:26` |
+| `ErrMessageFormFieldMustBeRowList` | `approval_form_field_must_be_row_list` |  | `internal/approval/shared/messages.go:38` |
+| `ErrMessageFormFieldMustBeRowObject` | `approval_form_field_must_be_row_object` |  | `internal/approval/shared/messages.go:39` |
+| `ErrMessageFormFieldMustBeString` | `approval_form_field_must_be_string` |  | `internal/approval/shared/messages.go:25` |
+| `ErrMessageFormFieldNotDefined` | `approval_form_field_not_defined` |  | `internal/approval/shared/messages.go:23` |
+| `ErrMessageFormFieldPatternMismatch` | `approval_form_field_pattern_mismatch` |  | `internal/approval/shared/messages.go:31` |
+| `ErrMessageFormFieldRequired` | `approval_form_field_required` |  | `internal/approval/shared/messages.go:24` |
+| `ErrMessageFormFieldTableCell` | `approval_form_field_table_cell` |  | `internal/approval/shared/messages.go:42` |
 | `ErrMessageNotFound` | `not_found` |  | `result/constants.go:12` |
 | `ErrMessagePasswordTooFewCharClasses` | `security_password_too_few_char_classes` |  | `security/api_errors.go:28` |
 | `ErrMessagePasswordTooLong` | `security_password_too_long` |  | `security/api_errors.go:27` |
@@ -3050,24 +3097,24 @@ Entries: `3244`
 | `AcquireResultAcquired (AcquireResult)` | `acquired` |  | `event/inbox/inbox.go:29` |
 | `AcquireResultCompleted (AcquireResult)` | `completed` |  | `event/inbox/inbox.go:32` |
 | `AcquireResultInProgress (AcquireResult)` | `in_progress` |  | `event/inbox/inbox.go:36` |
-| `ActionAddAssignee (ActionType)` | `add_assignee` |  | `approval/enums.go:367` |
-| `ActionAddCC (ActionType)` | `add_cc` |  | `approval/enums.go:373` |
-| `ActionApprove (ActionType)` | `approve` |  | `approval/enums.go:360` |
-| `ActionCancel (ActionType)` | `cancel` |  | `approval/enums.go:365` |
-| `ActionExecute (ActionType)` | `execute` |  | `approval/enums.go:369` |
-| `ActionHandle (ActionType)` | `handle` |  | `approval/enums.go:361` |
-| `ActionReassign (ActionType)` | `reassign` |  | `approval/enums.go:371` |
-| `ActionReject (ActionType)` | `reject` |  | `approval/enums.go:362` |
-| `ActionRemoveAssignee (ActionType)` | `remove_assignee` |  | `approval/enums.go:368` |
-| `ActionResubmit (ActionType)` | `resubmit` |  | `approval/enums.go:370` |
-| `ActionRollback (ActionType)` | `rollback` |  | `approval/enums.go:366` |
-| `ActionSubmit (ActionType)` | `submit` |  | `approval/enums.go:359` |
-| `ActionTerminate (ActionType)` | `terminate` |  | `approval/enums.go:372` |
-| `ActionTransfer (ActionType)` | `transfer` |  | `approval/enums.go:363` |
-| `ActionWithdraw (ActionType)` | `withdraw` |  | `approval/enums.go:364` |
-| `AddAssigneeAfter (AddAssigneeType)` | `after` |  | `approval/enums.go:233` |
-| `AddAssigneeBefore (AddAssigneeType)` | `before` |  | `approval/enums.go:232` |
-| `AddAssigneeParallel (AddAssigneeType)` | `parallel` |  | `approval/enums.go:234` |
+| `ActionAddAssignee (ActionType)` | `add_assignee` |  | `approval/enums.go:368` |
+| `ActionAddCC (ActionType)` | `add_cc` |  | `approval/enums.go:374` |
+| `ActionApprove (ActionType)` | `approve` |  | `approval/enums.go:361` |
+| `ActionCancel (ActionType)` | `cancel` |  | `approval/enums.go:366` |
+| `ActionExecute (ActionType)` | `execute` |  | `approval/enums.go:370` |
+| `ActionHandle (ActionType)` | `handle` |  | `approval/enums.go:362` |
+| `ActionReassign (ActionType)` | `reassign` |  | `approval/enums.go:372` |
+| `ActionReject (ActionType)` | `reject` |  | `approval/enums.go:363` |
+| `ActionRemoveAssignee (ActionType)` | `remove_assignee` |  | `approval/enums.go:369` |
+| `ActionResubmit (ActionType)` | `resubmit` |  | `approval/enums.go:371` |
+| `ActionRollback (ActionType)` | `rollback` |  | `approval/enums.go:367` |
+| `ActionSubmit (ActionType)` | `submit` |  | `approval/enums.go:360` |
+| `ActionTerminate (ActionType)` | `terminate` |  | `approval/enums.go:373` |
+| `ActionTransfer (ActionType)` | `transfer` |  | `approval/enums.go:364` |
+| `ActionWithdraw (ActionType)` | `withdraw` |  | `approval/enums.go:365` |
+| `AddAssigneeAfter (AddAssigneeType)` | `after` |  | `approval/enums.go:234` |
+| `AddAssigneeBefore (AddAssigneeType)` | `before` |  | `approval/enums.go:233` |
+| `AddAssigneeParallel (AddAssigneeType)` | `parallel` |  | `approval/enums.go:235` |
 | `AesModeCbc (AESMode)` | `CBC` |  | `cryptox/aes_cipher.go:16` |
 | `AesModeGcm (AESMode)` | `GCM` |  | `cryptox/aes_cipher.go:17` |
 | `AggregateAvg (AggregateKind)` | `avg` |  | `approval/condition.go:57` |
@@ -3077,13 +3124,13 @@ Entries: `3244`
 | `ApprovalBindingSynchronous (ApprovalBindingConsistency)` | `synchronous` |  | `config/approval.go:16` |
 | `ApprovalParallel (ApprovalMethod)` | `parallel` |  | `approval/enums.go:105` |
 | `ApprovalSequential (ApprovalMethod)` | `sequential` |  | `approval/enums.go:104` |
-| `AssigneeDepartment (AssigneeKind)` | `department` |  | `approval/enums.go:281` |
-| `AssigneeDepartmentLeader (AssigneeKind)` | `department_leader` |  | `approval/enums.go:284` |
-| `AssigneeFormField (AssigneeKind)` | `form_field` |  | `approval/enums.go:285` |
-| `AssigneeRole (AssigneeKind)` | `role` |  | `approval/enums.go:280` |
-| `AssigneeSelf (AssigneeKind)` | `self` |  | `approval/enums.go:282` |
-| `AssigneeSuperior (AssigneeKind)` | `superior` |  | `approval/enums.go:283` |
-| `AssigneeUser (AssigneeKind)` | `user` |  | `approval/enums.go:279` |
+| `AssigneeDepartment (AssigneeKind)` | `department` |  | `approval/enums.go:282` |
+| `AssigneeDepartmentLeader (AssigneeKind)` | `department_leader` |  | `approval/enums.go:285` |
+| `AssigneeFormField (AssigneeKind)` | `form_field` |  | `approval/enums.go:286` |
+| `AssigneeRole (AssigneeKind)` | `role` |  | `approval/enums.go:281` |
+| `AssigneeSelf (AssigneeKind)` | `self` |  | `approval/enums.go:283` |
+| `AssigneeSuperior (AssigneeKind)` | `superior` |  | `approval/enums.go:284` |
+| `AssigneeUser (AssigneeKind)` | `user` |  | `approval/enums.go:280` |
 | `Between (Operator)` | `between` |  | `search/constants.go:13` |
 | `BindingBusiness (BindingMode)` | `business` |  | `approval/enums.go:15` |
 | `BindingProjectionApplied (BindingProjectionStatus)` | `applied` |  | `approval/binding.go:63` |
@@ -3096,13 +3143,13 @@ Entries: `3244`
 | `BindingTriggerReturned (BindingTrigger)` | `returned` |  | `approval/binding.go:90` |
 | `BindingTriggerStarted (BindingTrigger)` | `started` |  | `approval/binding.go:88` |
 | `BindingTriggerWithdrawn (BindingTrigger)` | `withdrawn` |  | `approval/binding.go:91` |
-| `CCDepartment (CCKind)` | `department` |  | `approval/enums.go:383` |
-| `CCFormField (CCKind)` | `form_field` |  | `approval/enums.go:384` |
-| `CCRole (CCKind)` | `role` |  | `approval/enums.go:382` |
-| `CCTimingAlways (CCTiming)` | `always` |  | `approval/enums.go:391` |
-| `CCTimingOnApprove (CCTiming)` | `on_approve` |  | `approval/enums.go:392` |
-| `CCTimingOnReject (CCTiming)` | `on_reject` |  | `approval/enums.go:393` |
-| `CCUser (CCKind)` | `user` |  | `approval/enums.go:381` |
+| `CCDepartment (CCKind)` | `department` |  | `approval/enums.go:384` |
+| `CCFormField (CCKind)` | `form_field` |  | `approval/enums.go:385` |
+| `CCRole (CCKind)` | `role` |  | `approval/enums.go:383` |
+| `CCTimingAlways (CCTiming)` | `always` |  | `approval/enums.go:392` |
+| `CCTimingOnApprove (CCTiming)` | `on_approve` |  | `approval/enums.go:393` |
+| `CCTimingOnReject (CCTiming)` | `on_reject` |  | `approval/enums.go:394` |
+| `CCUser (CCKind)` | `user` |  | `approval/enums.go:382` |
 | `ChunkTypeError (ChunkType)` | `error` |  | `ai/stream/chunk.go:12` |
 | `ChunkTypeFile (ChunkType)` | `file` |  | `ai/stream/chunk.go:30` |
 | `ChunkTypeFinish (ChunkType)` | `finish` |  | `ai/stream/chunk.go:9` |
@@ -3123,20 +3170,20 @@ Entries: `3244`
 | `ChunkTypeToolOutputAvailable (ChunkType)` | `tool-output-available` |  | `ai/stream/chunk.go:25` |
 | `ClaimStatusPending (ClaimStatus)` | `pending` |  | `internal/storage/store/claim.go:21` |
 | `ClaimStatusUploaded (ClaimStatus)` | `uploaded` |  | `internal/storage/store/claim.go:22` |
-| `ColumnBoolean (ColumnDataType)` | `boolean` |  | `approval/enums.go:443` |
-| `ColumnDate (ColumnDataType)` | `date` |  | `approval/enums.go:444` |
-| `ColumnDatetime (ColumnDataType)` | `datetime` |  | `approval/enums.go:445` |
-| `ColumnDecimal (ColumnDataType)` | `decimal` |  | `approval/enums.go:442` |
-| `ColumnInteger (ColumnDataType)` | `integer` |  | `approval/enums.go:441` |
-| `ColumnJSON (ColumnDataType)` | `json` |  | `approval/enums.go:446` |
-| `ColumnString (ColumnDataType)` | `string` |  | `approval/enums.go:439` |
-| `ColumnText (ColumnDataType)` | `text` |  | `approval/enums.go:440` |
+| `ColumnBoolean (ColumnDataType)` | `boolean` |  | `approval/enums.go:444` |
+| `ColumnDate (ColumnDataType)` | `date` |  | `approval/enums.go:445` |
+| `ColumnDatetime (ColumnDataType)` | `datetime` |  | `approval/enums.go:446` |
+| `ColumnDecimal (ColumnDataType)` | `decimal` |  | `approval/enums.go:443` |
+| `ColumnInteger (ColumnDataType)` | `integer` |  | `approval/enums.go:442` |
+| `ColumnJSON (ColumnDataType)` | `json` |  | `approval/enums.go:447` |
+| `ColumnString (ColumnDataType)` | `string` |  | `approval/enums.go:440` |
+| `ColumnText (ColumnDataType)` | `text` |  | `approval/enums.go:441` |
 | `ConcurrencyAllow (ConcurrencyPolicy)` | `allow` |  | `cron/schedule.go:34` |
 | `ConcurrencyForbid (ConcurrencyPolicy)` | `forbid` |  | `cron/schedule.go:32` |
-| `ConditionExpression (ConditionKind)` | `expression` |  | `approval/enums.go:352` |
-| `ConditionField (ConditionKind)` | `field` |  | `approval/enums.go:351` |
-| `ConsecutiveApproverAutoPass (ConsecutiveApproverAction)` | `auto_pass` |  | `approval/enums.go:265` |
-| `ConsecutiveApproverNone (ConsecutiveApproverAction)` | `none` |  | `approval/enums.go:264` |
+| `ConditionExpression (ConditionKind)` | `expression` |  | `approval/enums.go:353` |
+| `ConditionField (ConditionKind)` | `field` |  | `approval/enums.go:352` |
+| `ConsecutiveApproverAutoPass (ConsecutiveApproverAction)` | `auto_pass` |  | `approval/enums.go:266` |
+| `ConsecutiveApproverNone (ConsecutiveApproverAction)` | `none` |  | `approval/enums.go:265` |
 | `Contains (Operator)` | `contains` |  | `search/constants.go:22` |
 | `ContainsIgnoreCase (Operator)` | `iContains` |  | `search/constants.go:29` |
 | `DataSourceModeReadOnly (DataSourceMode)` | `read_only` |  | `integration/models.go:80` |
@@ -3149,8 +3196,8 @@ Entries: `3244`
 | `DeleteReasonReplaced (DeleteReason)` | `replaced` |  | `storage/delete_enqueuer.go:18` |
 | `DirectionInbound (Direction)` | `inbound` |  | `integration/models.go:217` |
 | `DirectionOutbound (Direction)` | `outbound` |  | `integration/models.go:213` |
-| `DynamicParamExpression (DynamicParamKind)` | `expression` |  | `approval/enums.go:493` |
-| `DynamicParamLiteral (DynamicParamKind)` | `literal` |  | `approval/enums.go:490` |
+| `DynamicParamExpression (DynamicParamKind)` | `expression` |  | `approval/enums.go:494` |
+| `DynamicParamLiteral (DynamicParamKind)` | `literal` |  | `approval/enums.go:491` |
 | `EcdsaCurveP224 (ECDSACurve)` | `P224` |  | `cryptox/ecdsa_cipher.go:20` |
 | `EcdsaCurveP256 (ECDSACurve)` | `P256` |  | `cryptox/ecdsa_cipher.go:21` |
 | `EcdsaCurveP384 (ECDSACurve)` | `P384` |  | `cryptox/ecdsa_cipher.go:22` |
@@ -3159,11 +3206,11 @@ Entries: `3244`
 | `EciesCurveP384 (ECIESCurve)` | `P384` |  | `cryptox/ecies_cipher.go:21` |
 | `EciesCurveP521 (ECIESCurve)` | `P521` |  | `cryptox/ecies_cipher.go:22` |
 | `EciesCurveX25519 (ECIESCurve)` | `X25519` |  | `cryptox/ecies_cipher.go:23` |
-| `EmptyAssigneeAutoPass (EmptyAssigneeAction)` | `auto_pass` |  | `approval/enums.go:134` |
-| `EmptyAssigneeTransferAdmin (EmptyAssigneeAction)` | `transfer_admin` |  | `approval/enums.go:135` |
-| `EmptyAssigneeTransferApplicant (EmptyAssigneeAction)` | `transfer_applicant` |  | `approval/enums.go:137` |
-| `EmptyAssigneeTransferSpecified (EmptyAssigneeAction)` | `transfer_specified` |  | `approval/enums.go:138` |
-| `EmptyAssigneeTransferSuperior (EmptyAssigneeAction)` | `transfer_superior` |  | `approval/enums.go:136` |
+| `EmptyAssigneeAutoPass (EmptyAssigneeAction)` | `auto_pass` |  | `approval/enums.go:135` |
+| `EmptyAssigneeTransferAdmin (EmptyAssigneeAction)` | `transfer_admin` |  | `approval/enums.go:136` |
+| `EmptyAssigneeTransferApplicant (EmptyAssigneeAction)` | `transfer_applicant` |  | `approval/enums.go:138` |
+| `EmptyAssigneeTransferSpecified (EmptyAssigneeAction)` | `transfer_specified` |  | `approval/enums.go:139` |
+| `EmptyAssigneeTransferSuperior (EmptyAssigneeAction)` | `transfer_superior` |  | `approval/enums.go:137` |
 | `EncoderArgon2 (EncoderID)` | `argon2` |  | `password/password.go:8` |
 | `EncoderBcrypt (EncoderID)` | `bcrypt` |  | `password/password.go:7` |
 | `EncoderMd5 (EncoderID)` | `md5` |  | `password/password.go:11` |
@@ -3187,13 +3234,13 @@ Entries: `3244`
 | `FailureTimeout (FailureKind)` | `timeout` |  | `integration/failure.go:22` |
 | `FailureTransport (FailureKind)` | `transport` |  | `integration/failure.go:20` |
 | `FailureUpstream (FailureKind)` | `upstream` |  | `integration/failure.go:17` |
-| `FieldDate (FieldKind)` | `date` |  | `approval/enums.go:409` |
-| `FieldInput (FieldKind)` | `input` |  | `approval/enums.go:405` |
-| `FieldNumber (FieldKind)` | `number` |  | `approval/enums.go:408` |
-| `FieldSelect (FieldKind)` | `select` |  | `approval/enums.go:407` |
-| `FieldTable (FieldKind)` | `table` |  | `approval/enums.go:415` |
-| `FieldTextarea (FieldKind)` | `textarea` |  | `approval/enums.go:406` |
-| `FieldUpload (FieldKind)` | `upload` |  | `approval/enums.go:410` |
+| `FieldDate (FieldKind)` | `date` |  | `approval/enums.go:410` |
+| `FieldInput (FieldKind)` | `input` |  | `approval/enums.go:406` |
+| `FieldNumber (FieldKind)` | `number` |  | `approval/enums.go:409` |
+| `FieldSelect (FieldKind)` | `select` |  | `approval/enums.go:408` |
+| `FieldTable (FieldKind)` | `table` |  | `approval/enums.go:416` |
+| `FieldTextarea (FieldKind)` | `textarea` |  | `approval/enums.go:407` |
+| `FieldUpload (FieldKind)` | `upload` |  | `approval/enums.go:411` |
 | `FileStatusClaimed (FileStatus)` | `claimed` |  | `storage/file_record.go:22` |
 | `FileStatusDeleted (FileStatus)` | `deleted` |  | `storage/file_record.go:23` |
 | `FileStatusUploaded (FileStatus)` | `uploaded` |  | `storage/file_record.go:21` |
@@ -3211,17 +3258,17 @@ Entries: `3244`
 | `InitiatorDepartment (InitiatorKind)` | `department` |  | `approval/enums.go:41` |
 | `InitiatorRole (InitiatorKind)` | `role` |  | `approval/enums.go:40` |
 | `InitiatorUser (InitiatorKind)` | `user` |  | `approval/enums.go:39` |
-| `InstanceApproved (InstanceStatus)` | `approved` |  | `approval/enums.go:293` |
-| `InstanceRejected (InstanceStatus)` | `rejected` |  | `approval/enums.go:294` |
-| `InstanceReturned (InstanceStatus)` | `returned` |  | `approval/enums.go:296` |
-| `InstanceRunning (InstanceStatus)` | `running` |  | `approval/enums.go:292` |
-| `InstanceTerminated (InstanceStatus)` | `terminated` |  | `approval/enums.go:297` |
-| `InstanceWithdrawn (InstanceStatus)` | `withdrawn` |  | `approval/enums.go:295` |
+| `InstanceApproved (InstanceStatus)` | `approved` |  | `approval/enums.go:294` |
+| `InstanceRejected (InstanceStatus)` | `rejected` |  | `approval/enums.go:295` |
+| `InstanceReturned (InstanceStatus)` | `returned` |  | `approval/enums.go:297` |
+| `InstanceRunning (InstanceStatus)` | `running` |  | `approval/enums.go:293` |
+| `InstanceTerminated (InstanceStatus)` | `terminated` |  | `approval/enums.go:298` |
+| `InstanceWithdrawn (InstanceStatus)` | `withdrawn` |  | `approval/enums.go:296` |
 | `IntegrationLogAll (IntegrationLogMode)` | `all` |  | `config/integration.go:19` |
 | `IntegrationLogErrors (IntegrationLogMode)` | `errors` |  | `config/integration.go:17` |
 | `IntegrationLogOff (IntegrationLogMode)` | `off` |  | `config/integration.go:15` |
-| `IntegrationSecretAlgorithmAES (IntegrationSecretAlgorithm)` | `aes` |  | `config/integration.go:63` |
-| `IntegrationSecretAlgorithmSM4 (IntegrationSecretAlgorithm)` | `sm4` |  | `config/integration.go:66` |
+| `IntegrationSecretAlgorithmAES (IntegrationSecretAlgorithm)` | `aes` |  | `config/integration.go:76` |
+| `IntegrationSecretAlgorithmSM4 (IntegrationSecretAlgorithm)` | `sm4` |  | `config/integration.go:79` |
 | `IsNotNull (Operator)` | `isNotNull` |  | `search/constants.go:20` |
 | `IsNull (Operator)` | `isNull` |  | `search/constants.go:19` |
 | `LessThan (Operator)` | `lt` |  | `search/constants.go:10` |
@@ -3254,11 +3301,11 @@ Entries: `3244`
 | `NodeProgressRejected (NodeProgressStatus)` | `rejected` |  | `approval/flow_graph_view.go:23` |
 | `NodeProgressReturned (NodeProgressStatus)` | `returned` |  | `approval/flow_graph_view.go:25` |
 | `NodeStart (NodeKind)` | `start` |  | `approval/enums.go:75` |
-| `NodeVisitActive (NodeVisitStatus)` | `active` |  | `approval/enums.go:338` |
-| `NodeVisitCanceled (NodeVisitStatus)` | `canceled` |  | `approval/enums.go:342` |
-| `NodeVisitPassed (NodeVisitStatus)` | `passed` |  | `approval/enums.go:339` |
-| `NodeVisitRejected (NodeVisitStatus)` | `rejected` |  | `approval/enums.go:340` |
-| `NodeVisitReturned (NodeVisitStatus)` | `returned` |  | `approval/enums.go:341` |
+| `NodeVisitActive (NodeVisitStatus)` | `active` |  | `approval/enums.go:339` |
+| `NodeVisitCanceled (NodeVisitStatus)` | `canceled` |  | `approval/enums.go:343` |
+| `NodeVisitPassed (NodeVisitStatus)` | `passed` |  | `approval/enums.go:340` |
+| `NodeVisitRejected (NodeVisitStatus)` | `rejected` |  | `approval/enums.go:341` |
+| `NodeVisitReturned (NodeVisitStatus)` | `returned` |  | `approval/enums.go:342` |
 | `NotBetween (Operator)` | `notBetween` |  | `search/constants.go:14` |
 | `NotContains (Operator)` | `notContains` |  | `search/constants.go:23` |
 | `NotContainsIgnoreCase (Operator)` | `iNotContains` |  | `search/constants.go:30` |
@@ -3282,18 +3329,19 @@ Entries: `3244`
 | `OperatorNotEquals (ConditionOperator)` | `ne` |  | `approval/condition.go:17` |
 | `OperatorNotIn (ConditionOperator)` | `not_in` |  | `approval/condition.go:23` |
 | `OperatorStartsWith (ConditionOperator)` | `starts_with` |  | `approval/condition.go:26` |
-| `OptionSourceRemote (OptionSourceKind)` | `remote` |  | `approval/enums.go:475` |
+| `OptionSourceRemote (OptionSourceKind)` | `remote` |  | `approval/enums.go:476` |
 | `Oracle (DBKind)` | `oracle` |  | `config/data_sources.go:16` |
 | `OverflowError (OverflowStrategy)` | `error` |  | `sequence/rule.go:22` |
 | `OverflowExtend (OverflowStrategy)` | `extend` |  | `sequence/rule.go:27` |
 | `OverflowReset (OverflowStrategy)` | `reset` |  | `sequence/rule.go:24` |
 | `PassAll (PassRule)` | `all` |  | `approval/enums.go:120` |
 | `PassAny (PassRule)` | `any` |  | `approval/enums.go:121` |
+| `PassFixedCount (PassRule)` | `fixed_count` |  | `approval/enums.go:123` |
 | `PassRatio (PassRule)` | `ratio` |  | `approval/enums.go:122` |
-| `PermissionEditable (Permission)` | `editable` |  | `approval/enums.go:533` |
-| `PermissionHidden (Permission)` | `hidden` |  | `approval/enums.go:534` |
-| `PermissionRequired (Permission)` | `required` |  | `approval/enums.go:535` |
-| `PermissionVisible (Permission)` | `visible` |  | `approval/enums.go:532` |
+| `PermissionEditable (Permission)` | `editable` |  | `approval/enums.go:534` |
+| `PermissionHidden (Permission)` | `hidden` |  | `approval/enums.go:535` |
+| `PermissionRequired (Permission)` | `required` |  | `approval/enums.go:536` |
+| `PermissionVisible (Permission)` | `visible` |  | `approval/enums.go:533` |
 | `Postgres (DBKind)` | `postgres` |  | `config/data_sources.go:18` |
 | `PrincipalTypeExternalApp (PrincipalType)` | `external_app` |  | `security/principal.go:20` |
 | `PrincipalTypeSystem (PrincipalType)` | `system` |  | `security/principal.go:22` |
@@ -3312,13 +3360,13 @@ Entries: `3244`
 | `RoleTool (Role)` | `tool` |  | `ai/message.go:14` |
 | `RoleUser (Role)` | `user` |  | `ai/message.go:10` |
 | `RoleUser (Role)` | `user` |  | `ai/stream/adapters.go:13` |
-| `RollbackAny (RollbackType)` | `any` |  | `approval/enums.go:198` |
-| `RollbackDataClear (RollbackDataStrategy)` | `clear` |  | `approval/enums.go:216` |
-| `RollbackDataKeep (RollbackDataStrategy)` | `keep` |  | `approval/enums.go:217` |
-| `RollbackNone (RollbackType)` | `none` |  | `approval/enums.go:195` |
-| `RollbackPrevious (RollbackType)` | `previous` |  | `approval/enums.go:196` |
-| `RollbackSpecified (RollbackType)` | `specified` |  | `approval/enums.go:199` |
-| `RollbackStart (RollbackType)` | `start` |  | `approval/enums.go:197` |
+| `RollbackAny (RollbackType)` | `any` |  | `approval/enums.go:199` |
+| `RollbackDataClear (RollbackDataStrategy)` | `clear` |  | `approval/enums.go:217` |
+| `RollbackDataKeep (RollbackDataStrategy)` | `keep` |  | `approval/enums.go:218` |
+| `RollbackNone (RollbackType)` | `none` |  | `approval/enums.go:196` |
+| `RollbackPrevious (RollbackType)` | `previous` |  | `approval/enums.go:197` |
+| `RollbackSpecified (RollbackType)` | `specified` |  | `approval/enums.go:200` |
+| `RollbackStart (RollbackType)` | `start` |  | `approval/enums.go:198` |
 | `RouteFindingDanglingAdapter (RouteFindingKind)` | `dangling_adapter` |  | `integration/diagnostics.go:13` |
 | `RouteFindingDisabledContract (RouteFindingKind)` | `disabled_contract` |  | `integration/diagnostics.go:24` |
 | `RouteFindingDisabledSystem (RouteFindingKind)` | `disabled_system` |  | `integration/diagnostics.go:21` |
@@ -3341,10 +3389,10 @@ Entries: `3244`
 | `SSLRequire (SSLMode)` | `require` |  | `config/data_sources.go:38` |
 | `SSLVerifyCA (SSLMode)` | `verify-ca` |  | `config/data_sources.go:41` |
 | `SSLVerifyFull (SSLMode)` | `verify-full` |  | `config/data_sources.go:44` |
-| `SameApplicantAutoPass (SameApplicantAction)` | `auto_pass` |  | `approval/enums.go:167` |
-| `SameApplicantExclude (SameApplicantAction)` | `exclude` |  | `approval/enums.go:178` |
-| `SameApplicantSelfApprove (SameApplicantAction)` | `self_approve` |  | `approval/enums.go:170` |
-| `SameApplicantTransferSuperior (SameApplicantAction)` | `transfer_superior` |  | `approval/enums.go:173` |
+| `SameApplicantAutoPass (SameApplicantAction)` | `auto_pass` |  | `approval/enums.go:168` |
+| `SameApplicantExclude (SameApplicantAction)` | `exclude` |  | `approval/enums.go:179` |
+| `SameApplicantSelfApprove (SameApplicantAction)` | `self_approve` |  | `approval/enums.go:171` |
+| `SameApplicantTransferSuperior (SameApplicantAction)` | `transfer_superior` |  | `approval/enums.go:174` |
 | `SelectionCustom (SelectionMode)` | `custom` |  | `approval/kind_descriptor.go:40` |
 | `SelectionDepartment (SelectionMode)` | `department` |  | `approval/kind_descriptor.go:34` |
 | `SelectionFormField (SelectionMode)` | `form_field` |  | `approval/kind_descriptor.go:36` |
@@ -3381,16 +3429,16 @@ Entries: `3244`
 | `TaskActivationQueueAdvanced (TaskActivationReason)` | `queue_advanced` |  | `approval/events_task.go:64` |
 | `TaskActivationReassigned (TaskActivationReason)` | `reassigned` |  | `approval/events_task.go:70` |
 | `TaskActivationTransferred (TaskActivationReason)` | `transferred` |  | `approval/events_task.go:67` |
-| `TaskApproved (TaskStatus)` | `approved` |  | `approval/enums.go:311` |
-| `TaskCanceled (TaskStatus)` | `canceled` |  | `approval/enums.go:316` |
-| `TaskHandled (TaskStatus)` | `handled` |  | `approval/enums.go:313` |
-| `TaskPending (TaskStatus)` | `pending` |  | `approval/enums.go:310` |
-| `TaskRejected (TaskStatus)` | `rejected` |  | `approval/enums.go:312` |
-| `TaskRemoved (TaskStatus)` | `removed` |  | `approval/enums.go:317` |
-| `TaskRolledBack (TaskStatus)` | `rolled_back` |  | `approval/enums.go:315` |
-| `TaskSkipped (TaskStatus)` | `skipped` |  | `approval/enums.go:318` |
-| `TaskTransferred (TaskStatus)` | `transferred` |  | `approval/enums.go:314` |
-| `TaskWaiting (TaskStatus)` | `waiting` |  | `approval/enums.go:309` |
+| `TaskApproved (TaskStatus)` | `approved` |  | `approval/enums.go:312` |
+| `TaskCanceled (TaskStatus)` | `canceled` |  | `approval/enums.go:317` |
+| `TaskHandled (TaskStatus)` | `handled` |  | `approval/enums.go:314` |
+| `TaskPending (TaskStatus)` | `pending` |  | `approval/enums.go:311` |
+| `TaskRejected (TaskStatus)` | `rejected` |  | `approval/enums.go:313` |
+| `TaskRemoved (TaskStatus)` | `removed` |  | `approval/enums.go:318` |
+| `TaskRolledBack (TaskStatus)` | `rolled_back` |  | `approval/enums.go:316` |
+| `TaskSkipped (TaskStatus)` | `skipped` |  | `approval/enums.go:319` |
+| `TaskTransferred (TaskStatus)` | `transferred` |  | `approval/enums.go:315` |
+| `TaskWaiting (TaskStatus)` | `waiting` |  | `approval/enums.go:310` |
 | `TimelineEntryApproval (TimelineEntryKind)` | `approval` |  | `approval/timeline_view.go:23` |
 | `TimelineEntryCC (TimelineEntryKind)` | `cc` |  | `approval/timeline_view.go:25` |
 | `TimelineEntryEnd (TimelineEntryKind)` | `end` |  | `approval/timeline_view.go:26` |
@@ -3398,11 +3446,11 @@ Entries: `3244`
 | `TimelineEntryStart (TimelineEntryKind)` | `start` |  | `approval/timeline_view.go:22` |
 | `TimelineEntryTerminate (TimelineEntryKind)` | `terminate` |  | `approval/timeline_view.go:28` |
 | `TimelineEntryWithdraw (TimelineEntryKind)` | `withdraw` |  | `approval/timeline_view.go:27` |
-| `TimeoutActionAutoPass (TimeoutAction)` | `auto_pass` |  | `approval/enums.go:511` |
-| `TimeoutActionAutoReject (TimeoutAction)` | `auto_reject` |  | `approval/enums.go:512` |
-| `TimeoutActionNone (TimeoutAction)` | `none` |  | `approval/enums.go:510` |
-| `TimeoutActionNotify (TimeoutAction)` | `notify` |  | `approval/enums.go:513` |
-| `TimeoutActionTransferAdmin (TimeoutAction)` | `transfer_admin` |  | `approval/enums.go:514` |
+| `TimeoutActionAutoPass (TimeoutAction)` | `auto_pass` |  | `approval/enums.go:512` |
+| `TimeoutActionAutoReject (TimeoutAction)` | `auto_reject` |  | `approval/enums.go:513` |
+| `TimeoutActionNone (TimeoutAction)` | `none` |  | `approval/enums.go:511` |
+| `TimeoutActionNotify (TimeoutAction)` | `notify` |  | `approval/enums.go:514` |
+| `TimeoutActionTransferAdmin (TimeoutAction)` | `transfer_admin` |  | `approval/enums.go:515` |
 | `TokenTypeJWT (TokenType)` | `jwt_token` |  | `config/security.go:91` |
 | `TokenTypeOpaque (TokenType)` | `opaque_token` |  | `config/security.go:93` |
 | `TriggerCron (TriggerKind)` | `cron` |  | `cron/trigger.go:21` |

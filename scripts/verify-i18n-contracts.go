@@ -28,7 +28,7 @@ const (
 	localesFieldCount    = 0
 	localesMethodCount   = 0
 	localesEntryCount    = 1
-	localeMessageCount   = 269
+	localeMessageCount   = 271
 )
 
 type corpus struct {

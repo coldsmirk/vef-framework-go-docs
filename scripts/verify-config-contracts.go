@@ -17,17 +17,17 @@ import (
 
 const (
 	configPackage                     = "github.com/coldsmirk/vef-framework-go/config"
-	configFingerprint                 = "246b24917c452c0687f9a8a42d877e758b549b180991d31416de34fd40bf9ab3"
+	configFingerprint                 = "cd5c3f6c244e6b324b9b5fc1b08f09f1ece1ee1203bdfea25e21e7016cfdabaa"
 	configTopLevel                    = 141
-	configFields                      = 209
-	configMethods                     = 75
-	configEntries                     = 425
-	configGroupedEntries              = 284
-	configGroupedFields               = 209
-	configGroupedMethods              = 75
+	configFields                      = 211
+	configMethods                     = 76
+	configEntries                     = 428
+	configGroupedEntries              = 287
+	configGroupedFields               = 211
+	configGroupedMethods              = 76
 	configGroupedReceivers            = 41
-	configGroupedSignatureFingerprint = "9fa34930c41b2ceddcba47e14a918be8a848c7a6fc0d4284ea9a03b41678795f"
-	configGroupedReceiverFingerprint  = "a699664dbab28718454f4997bd2ba11268d52bd3d153945ffa2efd2d0582f96d"
+	configGroupedSignatureFingerprint = "0e644e2b80c9938299be272ee9b4058aec7efc17b2655ad24bad2cbe8681081c"
+	configGroupedReceiverFingerprint  = "088ba3c7f69f499f9d2c784df7424542f3aa51459b7e52bc4448f855659b37ea"
 
 	englishReferencePath = "docs/reference/configuration-reference.md"
 	chineseReferencePath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/configuration-reference.md"

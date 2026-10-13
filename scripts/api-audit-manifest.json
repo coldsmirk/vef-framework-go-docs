@@ -82,10 +82,10 @@
         "docs/approval/service.md"
       ],
       "notes": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces.",
-      "top_level": 549,
-      "fields": 985,
-      "methods": 161,
-      "fingerprint": "9a4dd40aee111f048e91c361940d8fc6e9f14ab20726eb3680af09fa531cd4c9"
+      "top_level": 554,
+      "fields": 990,
+      "methods": 162,
+      "fingerprint": "593db435773752143a12dba55ce00480ba1d108e0829717c02a1fc38574c58df"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
@@ -96,9 +96,9 @@
       ],
       "notes": "Admin response DTOs for the built-in approval resource.",
       "top_level": 7,
-      "fields": 85,
+      "fields": 86,
       "methods": 0,
-      "fingerprint": "b56e857e0eda27f4ed7496b6b1b386215e15345be6453c989db307f99519414d"
+      "fingerprint": "07c19ff8a6eb6786f4f13e7e6540a4062da6b10ce9ec27263a1c42b5a915f2cb"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/my",
@@ -109,9 +109,9 @@
       ],
       "notes": "Current-user approval response DTOs for the built-in approval resource.",
       "top_level": 12,
-      "fields": 95,
+      "fields": 98,
       "methods": 0,
-      "fingerprint": "8256688439b7fde4fa17b58958c3d3ebbcc6d0904821f126c349913582ee100a"
+      "fingerprint": "8b3b51e88c0feecef6e41c37d17702b67dd8bcf54a840991fbf4d67a11ec2c7b"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/cache",
@@ -194,9 +194,9 @@
       ],
       "notes": "All config structs, config keys, Effective methods, validation, and runtime defaults.",
       "top_level": 141,
-      "fields": 209,
-      "methods": 75,
-      "fingerprint": "246b24917c452c0687f9a8a42d877e758b549b180991d31416de34fd40bf9ab3"
+      "fields": 211,
+      "methods": 76,
+      "fingerprint": "cd5c3f6c244e6b324b9b5fc1b08f09f1ece1ee1203bdfea25e21e7016cfdabaa"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/contextx",
@@ -525,10 +525,10 @@
         "docs/integration/resources.md"
       ],
       "notes": "Integration engine: systems, contracts, mappings, code maps, traces.",
-      "top_level": 125,
-      "fields": 124,
-      "methods": 21,
-      "fingerprint": "27ddbd145fdc1b112c774bad88a44f3950785468e51b73b6f22dae740aaee20a"
+      "top_level": 129,
+      "fields": 133,
+      "methods": 22,
+      "fingerprint": "82b57f80ce1a9560a9408e17abcb81bb4b3ee79dc43a1aa1cab5adf5ea389951"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/js",
@@ -944,7 +944,7 @@
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "ce895bbde7959bffabf99389fc6c069eb2345dd44cb6e008886a5a4f087028af"
+      "fingerprint": "11c867166916c86c51a2733010de2dfb4aa3f657a7f1357affbbc0fd4a5b6105"
     }
   ]
 }

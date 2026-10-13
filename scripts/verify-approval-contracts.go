@@ -177,11 +177,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    549,
-		fields:      985,
-		methods:     161,
-		entries:     1695,
-		fingerprint: "9a4dd40aee111f048e91c361940d8fc6e9f14ab20726eb3680af09fa531cd4c9",
+		topLevel:    554,
+		fields:      990,
+		methods:     162,
+		entries:     1706,
+		fingerprint: "593db435773752143a12dba55ce00480ba1d108e0829717c02a1fc38574c58df",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -193,10 +193,10 @@ var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval/admin",
 		topLevel:    7,
-		fields:      85,
+		fields:      86,
 		methods:     0,
-		entries:     92,
-		fingerprint: "b56e857e0eda27f4ed7496b6b1b386215e15345be6453c989db307f99519414d",
+		entries:     93,
+		fingerprint: "07c19ff8a6eb6786f4f13e7e6540a4062da6b10ce9ec27263a1c42b5a915f2cb",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/admin#dto-wire-shape:approval-admin-dtos",
 		},
@@ -204,10 +204,10 @@ var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval/my",
 		topLevel:    12,
-		fields:      95,
+		fields:      98,
 		methods:     0,
-		entries:     107,
-		fingerprint: "8256688439b7fde4fa17b58958c3d3ebbcc6d0904821f126c349913582ee100a",
+		entries:     110,
+		fingerprint: "8b3b51e88c0feecef6e41c37d17702b67dd8bcf54a840991fbf4d67a11ec2c7b",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval/my#dto-wire-shape:approval-my-dtos",
 		},
@@ -217,30 +217,30 @@ var approvalPackages = []expectedPackage{
 var approvalGroupedSurfaces = []groupedSurface{
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
-		entryCount:           1146,
-		fieldCount:           985,
-		methodCount:          161,
-		receiverCount:        155,
-		signatureFingerprint: "ff552a9e84bc3debf579752fa5d72d3d0a2a0117fa224f54a21f0dc6eec3703e",
-		receiverFingerprint:  "edf0b50aaad7ddde595c5dcf10cc5a4543c66abb9a02668cecd0375ecb3e7404",
+		entryCount:           1152,
+		fieldCount:           990,
+		methodCount:          162,
+		receiverCount:        156,
+		signatureFingerprint: "77035b407fa2bf29d29a226194aa5e043145cddf1a5060091651a31c04da489c",
+		receiverFingerprint:  "d7446e0efbfa366ab59189190b2086d2623a225d61988575bbc322fbd52b7811",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
-		entryCount:           85,
-		fieldCount:           85,
+		entryCount:           86,
+		fieldCount:           86,
 		methodCount:          0,
 		receiverCount:        7,
-		signatureFingerprint: "5d5190195b1c61f620d3eeb585dd8f0f9e4265085ce068e9a6be7d38034a0428",
-		receiverFingerprint:  "b870372865ee1d87f126ad92e06400303bcd7dd2099b0245e8b2bf56e0f7a369",
+		signatureFingerprint: "5d3ea89bb2f734a8595073c269879d6c81977bb6cd201cba90562954ab0bac99",
+		receiverFingerprint:  "ffe179131f617f391a49efc877f0c0518f374493b352de4b1c938f1e80925b73",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/my",
-		entryCount:           95,
-		fieldCount:           95,
+		entryCount:           98,
+		fieldCount:           98,
 		methodCount:          0,
 		receiverCount:        12,
-		signatureFingerprint: "b2f8b5cba80cf69a403d4068ff61e40a760a8c71ae23719c01910d925dedcb96",
-		receiverFingerprint:  "d64eba190ff078c025588f42a97cf66109f35adc8b5b3786fdcc0276b0d08479",
+		signatureFingerprint: "4f1ae47f5530b8e8cd61089b415e757b4089b7d7b6c93cc737f4c7d31c320a97",
+		receiverFingerprint:  "1d147ebda19bb352d13afbc43022c04b096b38fbf0567e17850f133536419b7c",
 	},
 }
 
@@ -287,7 +287,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Approval contract docs verified: 3 public packages, 1326 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
+	fmt.Printf("Approval contract docs verified: 3 public packages, 1336 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
 }
 
 func verifyPackageSurfaces(m manifest, contracts contractLedger, live map[string]liveInventoryEntry) []string {
@@ -441,8 +441,8 @@ func verifyGroupedApprovalSurfaces(audit auditLedger, docs []corpus) []string {
 		receiverRows := receiverRows(receiverCountsByPackage[surface.pkg])
 		failures = append(failures, verifyGroupedSurfaceFingerprint(surface.pkg+" receiver families", receiverRows, surface.receiverCount, surface.receiverFingerprint)...)
 	}
-	if totalGrouped != 1326 {
-		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1326", totalGrouped))
+	if totalGrouped != 1336 {
+		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1336", totalGrouped))
 	}
 
 	return failures
