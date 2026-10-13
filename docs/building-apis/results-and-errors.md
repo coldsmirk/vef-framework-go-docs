@@ -330,9 +330,9 @@ Authentication, signature, session, and challenge flow errors live in `github.co
 | `schema` | `schema.ErrTableNotFound` | 2300 |
 | `crud` | `crud.ErrCodeProcessorInvalidReturn`, CRUD import/export and primary-key result errors, plus plain sentinels such as `crud.ErrModelNoPrimaryKey` and `crud.ErrAuditUserCompositePK` | 2400-2410 |
 | `expression` | `expression.ErrEvaluationFailed` | 2500 |
-| `approval` | public plain sentinels: `approval.ErrCrossTenantAccess`, `approval.ErrInvalidBusinessIdentifier`, `approval.ErrUnknownNodeKind`, `approval.ErrNodeDataUnmarshal`; built-in approval resources return internal `result.Error` values | 40001-40702 |
+| `approval` | `result.Error` sentinels such as `approval.ErrCrossTenantAccess` and `approval.ErrInvalidBusinessIdentifier`, plus the plain sentinels `approval.ErrUnknownNodeKind` and `approval.ErrNodeDataUnmarshal` | 40001-40703 |
 
-> `storage.ErrUploadSessionNotFound` and the four public `approval` sentinels are plain Go errors, **not** `result.Error` values, so they have no code/status fields. Built-in approval resource responses use the internal 40xxx result-envelope catalog instead; see the [Approval module](../approval/) for the full code and message-key table.
+> `storage.ErrUploadSessionNotFound`, `approval.ErrUnknownNodeKind` and `approval.ErrNodeDataUnmarshal` are plain Go errors, **not** `result.Error` values, so they have no code/status fields. Every other approval error travels in the 40xxx result-envelope catalog; see the [Approval module](../approval/) for the full code and message-key table.
 
 ## Practical Patterns
 

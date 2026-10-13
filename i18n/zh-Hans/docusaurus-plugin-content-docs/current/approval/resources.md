@@ -27,9 +27,11 @@ sidebar_position: 2
 
 ## `approval/category`
 
-流程分类管理（`apv_flow_category`）。读操作按租户隔离：super-admin 可见
-所有租户，其他调用者只能看到自己租户的数据，无租户时直接拒绝（fail
-closed）。
+流程分类管理（`apv_flow_category`）。读操作按租户隔离：super-admin 不指定
+租户时可见所有租户，其他调用者只能看到自己租户的数据，无租户时直接拒绝（fail
+closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分类，也就是
+全局流程所在的分类：所有租户都可以通过 `includeShared` 读取，只有 super-admin
+可以写入。分类树从不跨租户（见[全局流程](./integration.md#全局流程)）。
 
 | Action | 权限 | 入参 | 出参 |
 | --- | --- | --- | --- |
@@ -46,6 +48,8 @@ closed）。
 | --- | --- | --- | --- |
 | `name` | `string` | contains | 按分类名称片段过滤 |
 | `isActive` | `bool` | equals | 按启用状态过滤；省略则两者都匹配 |
+| `tenantId` | `string` | equals | 仅 super-admin 生效：把读取范围限定为一个租户（`"0"` 表示全局分类）；其他调用者传了也会被忽略 |
+| `includeShared` | `bool` | — | 在本租户分类之外再加上全局分类——委托范围选择器需要它 |
 | `sort` | `OrderSpec[]` | — | 排序声明（`crud.Sortable`） |
 
 `CategoryParams`（create/update，从 `params` 解码）：
@@ -53,11 +57,11 @@ closed）。
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `id` | `string` | 仅 update | 要更新记录的主键 |
-| `tenantId` | `string` | 是 | 所属租户。create 时非 super-admin 会以调用者自己的租户覆盖写入（提交值被忽略）；update/delete 时调用者必须对记录的租户有权限 |
+| `tenantId` | `string` | 否 | 所属租户。create 时非 super-admin 会以调用者自己的租户覆盖写入（提交值被忽略），super-admin 可以指定任意租户，包括 `"0"`——不传时用其本人所在租户，没有则用 `"default"`；update 时对所有调用者都保持记录原有的租户（提交值被忽略），update/delete 时调用者必须对记录的租户有权限 |
 | `code` | `string` | 是 | 分类业务编码 |
 | `name` | `string` | 是 | 显示名称 |
 | `icon` | `string` | 否 | 显示图标标识 |
-| `parentId` | `string` | 否 | 父分类 id；`null` 表示根分类 |
+| `parentId` | `string` | 否 | 父分类 id；`null` 表示根分类。父分类必须属于同一租户，否则返回 `ErrCategoryNotFound`，与父分类不存在时的回答相同 |
 | `sortOrder` | `int` | 否 | 同级排序权重 |
 | `isActive` | `bool` | 否 | 停用分类仍可查询，宿主通常在选择器中隐藏 |
 | `remark` | `string` | 否 | 备注 |
@@ -138,16 +142,16 @@ closed）。
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 是 | 所属租户；空值回退为 `"default"`，调用者必须对最终租户有权限 |
-| `code` | `string` | 是 | 全局唯一的流程业务编码；创建后不可变（`start` 以它定位流程） |
+| `tenantId` | `string` | 否 | 所属租户，解析方式与分类相同：非 super-admin 总在自己的租户中创建（提交值被忽略），super-admin 按其指定的租户创建——不传时用其本人所在租户，没有则用 `"default"`。`"0"`（`approval.SharedTenantID`，仅 super-admin）表示创建全局流程 |
+| `code` | `string` | 是 | 流程业务编码，在租户内唯一；创建后不可变（`start` 以它定位流程——租户自己的同编码流程会在本租户内取代全局流程） |
 | `name` | `string` | 是 | 显示名称 |
-| `categoryId` | `string` | 是 | 所属 `FlowCategory` id |
+| `categoryId` | `string` | 是 | 所属 `FlowCategory` id；必须属于流程所在的租户（`ErrCategoryNotFound`） |
 | `icon` | `string` | 否 | 显示图标标识 |
 | `description` | `string` | 否 | 描述 |
 | `labels` | `object`（string→string） | 否 | 宿主自有的选择元数据；按共享 label 规则校验 —— 见下方说明 |
 | `bindingMode` | `string` | 是 | `standalone`（表单数据存审批自己的表）或 `business`（挂接既有业务行） |
 | `businessBinding` | `BusinessBindingConfig` | business 模式 | 回写目标描述（见下）；standalone 流程提交会被拒绝（`ErrBindingUnexpected`） |
-| `adminUserIds` | `string[]` | 否 | 流程管理员（用于 `transfer_admin` 空办理人处理与管理可见性） |
+| `adminUserIds` | `string[]` | 否 | 流程管理员，可以在自己所在租户内对该流程的实例执行节点操作（移除处理人、添加抄送）。空办理人与超时的 `transfer_admin` 转交的是节点自己的 `adminUserIds` |
 | `isAllInitiationAllowed` | `bool` | 否 | `true` 允许所有用户发起；`false` 时只有 `initiators` 可发起 |
 | `instanceTitleTemplate` | `string` | 否 | 实例标题的 Go `text/template`，如 `{{.applicantName}}的请假申请`；可用绑定：`flowName`、`flowCode`、`instanceNo`、`formData`、`applicantId`、`applicantName`（以及嵌套的 `flow.name` / `flow.code`、`applicant.id` / `applicant.name`）。留空回退为 `流程名-实例编号`；解析失败报 `ErrInvalidTitleTemplate` |
 | `initiators` | `CreateInitiatorParams[]` | 否 | `isAllInitiationAllowed` 为 `false` 时允许发起的人（见下） |
@@ -182,14 +186,15 @@ closed）。
 ≤ 63 字符；值 ≤ 256 字符，允许空值。`update` 时 labels 整体替换 ——
 省略即清空流程的 labels。
 
-`DeployFlowParams`（`deploy` —— 创建新的 draft 版本）：
+`DeployFlowParams`（`deploy` —— 创建新的 draft 版本，版本号排在该流程已有的全部版本之后，
+草稿也算在内，所以发布前再次部署会得到另一个草稿）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `flowId` | `string` | 是 | 目标流程 |
 | `description` | `string` | 否 | 展示在版本列表的版本描述 |
 | `storageMode` | `string` | 否 | `json`（默认；表单数据留在 `apv_instance.form_data`）或 `table`（发布时生成专用物理投影表） |
-| `flowDefinition` | `FlowDefinition` | 是 | 设计器图文档 —— 节点、边与每个节点的 `data`；部署时校验（`ErrInvalidFlowDesign`）。线上传输格式见 [流程设计](./flow-design.md) |
+| `flowDefinition` | `FlowDefinition` | 是 | 设计器图文档 —— 节点、边与每个节点的 `data`；部署时校验（`ErrInvalidFlowDesign`）。全局流程还会拒绝把任务或抄送派给具体人员的规则（`ErrSharedFlowNamesPeople`，见[全局流程](./integration.md#全局流程)）。线上传输格式见 [流程设计](./flow-design.md) |
 | `formSchema` | JSON 文档 | 否 | 宿主自有的表单设计器文档，原样透传并存储；引擎消费的扁平字段清单在部署时从中推导（见 [表单 Schema 与派生字段](./flow-design.md#表单-schema-与派生字段)） |
 
 `PublishVersionParams`（`publish_version` —— 将 draft 版本设为线上版本并归档
@@ -331,8 +336,8 @@ closed）。
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 是 | 发起所在租户；空值回退为 `"default"`，且调用者必须对流程的租户有权限 |
-| `flowCode` | `string` | 是 | 要发起流程的业务编码；解析最新已发布版本（`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`） |
+| `tenantId` | `string` | 否 | 实例运行的租户。只有 super-admin 传的值会被采用——不传时用其本人所在租户，没有则用 `"default"`；其他调用者总是在自己的租户里发起。`"0"` 会被拒绝（`ErrFlowNotFound`） |
+| `flowCode` | `string` | 是 | 要发起流程的业务编码：先取本租户该编码的流程，没有再取全局流程；解析其已发布版本（`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`） |
 | `businessRef` | `string`（≤ 512） | business 模式 | 绑定业务行的不透明引用；业务绑定流程必填，除非注册的 `BusinessRefProvider` 提供（`ErrBusinessRefRequired`）。默认形状：单键直接取值、复合键为 JSON 对象 |
 | `formData` | `object` | 否 | 按字段 key 组织的表单值；按已发布版本的派生字段清单校验（`40401` 系列），超过 64 KiB 拒绝；未知 key 会被拒绝（`approval_form_field_not_defined`） |
 
@@ -439,11 +444,11 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 
 | Action | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- | --- |
-| `find_available_flows` | `tenantId` | `string` | 否 | 租户过滤 |
+| `find_available_flows` | `tenantId` | `string` | 否 | 要列出流程的租户，仅对 super-admin 生效；其他调用者看到的是本租户的流程，加上本租户没有取代的全局流程，与 `instance.start` 采用完全相同的发起校验 |
 | | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
 | | `labels` | `object` | 否 | label 相等过滤 —— 每一对都必须匹配 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `get_start_form` | `tenantId` | `string` | 是 | 流程所在租户 |
+| `get_start_form` | `tenantId` | `string` | 否 | 实例将要运行的租户，解析方式与 `instance.start` 相同 |
 | | `flowCode` | `string` | 是 | 要加载发起表单的流程 |
 | `find_initiated` | `tenantId` | `string` | 否 | 租户过滤 |
 | | `status` | `string` | 否 | 实例状态过滤（`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`） |
@@ -834,15 +839,16 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 
 ## 错误面
 
-可导入的 `approval` 包导出四个普通 Go 哨兵错误。它们可用 `errors.Is`
+可导入的 `approval` 包导出两个普通 Go 哨兵错误。它们可用 `errors.Is`
 识别，但不是 `result.Error` 值，本身不携带 API code 或 HTTP 状态。
 
 | 错误 | 来源包 | 含义 |
 | --- | --- | --- |
-| `approval.ErrCrossTenantAccess` | `approval` | 非 super-admin 调用者尝试跨租户访问 |
-| `approval.ErrInvalidBusinessIdentifier` | `approval` | 业务表 / 字段标识符未通过 SQL 标识符白名单 |
 | `approval.ErrUnknownNodeKind` | `approval` | `NodeDefinition.ParseData` 遇到不支持的 `kind` |
 | `approval.ErrNodeDataUnmarshal` | `approval` | `NodeDefinition.ParseData` 无法解码节点 `data` |
+
+`approval.ErrCrossTenantAccess`（`40703`）和 `approval.ErrInvalidBusinessIdentifier`
+（`40008`）与下面目录中的其他错误一样，都是 `result.Error` 值。
 
 内置审批资源通过标准 API envelope 返回模块自有的 `result.Error`。这些值
 位于 internal 包中，宿主应用应把下面的 code/message 对当作公开线上契约，
@@ -873,6 +879,8 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `40021` | `ErrCodeInvalidFlowLabel` | `ErrInvalidFlowLabel` | `approval_invalid_flow_label` | 流程 label 键会无声破坏 JSON 或宿主工具 |
 | `40022` | `ErrCodeInitiatorsNotAllowed` | `ErrInitiatorsNotAllowed` | `approval_initiators_not_allowed` | `isAllInitiationAllowed=true` 与 `initiators` 不能同时存在 |
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | 受限发起必须至少有一条 `ids` 非空的发起人规则 |
+| `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | 全局流程把任务或抄送派给了指定的用户、角色或部门，或把任务转交节点管理员或指定人员 |
+| `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | 流程的分类或分类的上级分类不存在，或属于其他租户 |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | 实例查找失败 |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | 实例已经完结 |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | 调用者不能发起该流程 |
@@ -908,6 +916,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `40601` | `ErrCodeUrgeCooldown` | 动态催办 `result.Err` | `approval_urge_too_frequent` | 无静态哨兵；消息用 `minutes` 渲染；非正的 `urgeCooldownMinutes` 默认 30 分钟 |
 | `40701` | `ErrCodeAccessDenied` | `ErrAccessDenied` | `approval_access_denied` | 调用者缺少审批域访问权 |
 | `40702` | `ErrCodeTerminateNotAllowed` | `ErrTerminateNotAllowed` | `approval_terminate_not_allowed` | 当前实例状态不允许终止 |
+| `40703` | `ErrCodeCrossTenantAccess` | `ErrCrossTenantAccess` | `approval_cross_tenant_access` | 调用方对所操作的租户没有权限——是别的租户、没有租户，或是全局租户 |
 
 `ErrEventRouteNotTransactional` 和 `ErrTenantNotResolved` 等启动与租户解析
 诊断错误位于 `internal/approval/...` 下；它们不是可导入的公开 Go API，但事件

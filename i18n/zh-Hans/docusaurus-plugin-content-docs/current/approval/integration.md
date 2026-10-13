@@ -88,6 +88,19 @@ CC + 流程：
 
 跨租户尝试返回 `approval.ErrCrossTenantAccess`。`IsSuperAdmin(p)` 判定 principal 是否带该 override 角色。override 角色字符串本身以 `approval.SuperAdminRole`（`"approval:super_admin"`）形式导出，方便宿主进行权限装配。
 
+### 全局流程
+
+租户为 `approval.SharedTenantID`（`"0"`）的流程或流程分类是**全局**的：它不属于任何租户，对所有租户开放。宿主绝不能把 `"0"` 用作真实租户的标识。
+
+- **实例运行在发起它的租户里。** 发起全局流程时，实例以及它产生的一切——任务、节点访问记录、业务投影、事件——都记在发起它的租户名下，绝不会记成 `SharedTenantID`。管理端列表、统计、`ForTenants` 过滤和生命周期钩子都把它当作该租户的普通实例处理。
+- **同一编码在一个租户内只对应一个流程。** 按编码发起时，先找本租户该编码的流程，找不到再用全局的。租户自己的同编码流程不论处于什么状态，都会在本租户内取代全局流程——即使本租户的流程已停用，全局流程也不会生效。`my.find_available_flows`、`my.get_start_form` 和 `instance.start` 的解析规则完全一致，所以列表里列出的正好是能发起的流程。
+- **租户由服务端决定。** 普通调用方不论传了什么 `tenantId`，都只在自己的租户里列出和发起流程。超级管理员传的 `tenantId` 会被采用；不传时用其本人所在租户，没有则用 `DefaultTenantID`。`StartInstanceInput.TenantID` 遵循同样的规则。
+- **没有人属于全局租户。** `TenantID` 为 `SharedTenantID` 的 `CallerContext` 与没有租户的调用方一样被拒绝，所以只有超级管理员和系统调用方能创建、修改全局流程与分类——即便宿主的 `PrincipalTenantResolver` 误返回了 `"0"`。
+- **全局流程不把工作派给具体的人。** 部署全局流程时，如果审批人或抄送规则所用类型的 `SelectionMode` 会选具体的用户、角色或部门，或者节点会把任务转交节点管理员或指定人员（`emptyAssigneeAction: transfer_admin | transfer_specified`，以及设有时限的节点上的 `timeoutAction: transfer_admin`），部署会以 `ErrSharedFlowNamesPeople`（`40024`）失败。基于申请人解析的规则（直属上级、部门负责人、申请人本人）、来自表单的规则（`form_field`）和 `SelectionCustom` 宿主目录仍然可用；发起人规则和流程管理员也可用，因为它们授予的权限不会超出实例所在租户。需要在某个租户内解析人员的宿主类型，从 `NodeResolveContext.Instance.TenantID` 读取租户；检查发起权限时从 `InitiatorResolveContext.TenantID` 读取。两者都是发起实例的租户，而不是流程所属的租户。
+- **分类从不跨租户。** 流程的分类、分类的上级分类，都必须与它属于同一租户——全局流程挂在全局分类下——否则保存以 `ErrCategoryNotFound`（`40025`）失败，与分类不存在时的回答相同。分类创建后，所属租户不再改变。
+
+`table` 存储模式下的全局流程，会把所有租户的实例放在同一张投影表里，而这张表没有租户列：按租户统计时需要按 `instance_id` 关联 `apv_instance`。
+
 ## 生命周期扩展点
 
 | 扩展点 | 时机 | 失败语义 |
@@ -119,11 +132,11 @@ type BusinessRefProvider interface {
 }
 
 type BusinessRefResolver interface {
-    ResolveRecordKey(ctx context.Context, flow *Flow, businessRef string) (BusinessRecordKey, error)
+    ResolveRecordKey(ctx context.Context, flow *Flow, instance *Instance) (BusinessRecordKey, error)
 }
 ```
 
-`BusinessRefProvider` 在 `Flow.BindingMode == BindingBusiness` 时提供或分配 opaque 的 `Instance.BusinessRef`；通过 `vef.SupplyBusinessRefProvider` 注入。实例发起时，引擎通过 `BusinessRefResolver` 把 ref 解析成 `approval.BusinessRecordKey`——一个把每个已配置 `KeyColumns` 列映射到取值的 map。默认 resolver 把单列 ref 按原文使用，把多列 ref 按 JSON 对象解码；当 `BusinessRef` 采用别的形状（业务单号、编码元组等）或解析需要宿主查询时，用 `vef.SupplyBusinessRefResolver` 整体替换。无法解析的 ref 会以 `ErrInvalidBusinessRef`（code `40109`）使实例创建失败；业务绑定流程未携带 ref 时返回 `ErrBusinessRefRequired`（code `40107`）。
+`BusinessRefProvider` 在 `Flow.BindingMode == BindingBusiness` 时提供或分配 opaque 的 `Instance.BusinessRef`；通过 `vef.SupplyBusinessRefProvider` 注入。实例发起时，引擎通过 `BusinessRefResolver` 把 ref 解析成 `approval.BusinessRecordKey`——一个把每个已配置 `KeyColumns` 列映射到取值的 map。默认 resolver 把单列 ref 按原文使用，把多列 ref 按 JSON 对象解码；当 `BusinessRef` 采用别的形状（业务单号、编码元组等）或解析需要宿主查询时，用 `vef.SupplyBusinessRefResolver` 整体替换。resolver 拿到的是正在发起的实例——非空的 `BusinessRef`、实例运行的租户和申请人——所以它可以把记录键限定在该租户内（全局流程的绑定服务于所有租户，其 `Flow.TenantID` 是 `SharedTenantID`），并拒绝申请人无权绑定的引用；这一点很重要，因为 `instance.start` 的 ref 来自客户端。无法解析的 ref 会以 `ErrInvalidBusinessRef`（code `40109`）使实例创建失败；业务绑定流程未携带 ref 时返回 `ErrBusinessRefRequired`（code `40107`）。
 
 ### 业务状态投影
 
@@ -273,7 +286,7 @@ type NodeResolveContext struct {
 
 模式为 `SelectionFormField` 的种类，用 `approval.FormFieldIDs(formData, field)` 从表单中读取 ID，`field` 即规则的 `FormField`。值可以是单个字符串或一个列表（多选会提交列表）；各项会去除首尾空白并丢弃空项，保持原有顺序。这些 ID 是字段里存的任何东西——表单存的是职员 ID 的宿主种类，需要自行把它们映射到任务所分配的用户账号。值缺失或为空时返回空列表而不是错误，交由节点的 `EmptyAssigneeAction`（抄送则是空的接收人列表）决定；字段名为 nil 或空时返回 `ErrFormFieldNameEmpty`，其他值类型返回 `ErrUnsupportedFieldValueType`。
 
-`approval.InitiatorResolveContext` 刻意小得多——只有 `FlowID`、`TenantID`、`Applicant`、`Kind`、`IDs`。这里没有实例也没有表单数据，因为谁可以发起某个流程，是人和流程的属性，绝不是他填了什么的属性。需要看表单的规则应该放进条件分支，那里表单才是真实存在的。另外要注意：申请人的显示**姓名**并不保证有值——发起表单查询会在不解析姓名的情况下检查权限，所以请基于 ID 和部门做判断。
+`approval.InitiatorResolveContext` 刻意小得多——只有 `FlowID`、`TenantID`（流程被发起时所在的租户；对全局流程而言是发起它的租户，而不是流程所属的租户）、`Applicant`、`Kind`、`IDs`。这里没有实例也没有表单数据，因为谁可以发起某个流程，是人和流程的属性，绝不是他填了什么的属性。需要看表单的规则应该放进条件分支，那里表单才是真实存在的。另外要注意：申请人的显示**姓名**并不保证有值——发起表单查询会在不解析姓名的情况下检查权限，所以请基于 ID 和部门做判断。
 
 ### 三侧的失败语义并不相同
 
@@ -329,7 +342,7 @@ type Delegation struct {
 
 | 范围 | 公开 API |
 | --- | --- |
-| caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
+| caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `SharedTenantID`, `ErrCrossTenantAccess` |
 | form data | `FormData`, `NewFormData`, `FormFieldIDs`, `ErrFormFieldNameEmpty`, `ErrUnsupportedFieldValueType`, `FormSchemaParser`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `FieldOptionSource`, `OptionSourceKind`, `OptionSourceRemote`, `RemoteOptionRequest`, `RemoteOptionMapping`, `DynamicParam`, `DynamicParamKind`, `DynamicParamLiteral`, `DynamicParamExpression`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
 | table storage | `FormTable`, `FormTableColumn`（`FormTable.SourceFieldKey` 对主表是 `""`，对明细表格子投影是对应 table 字段的 key） |
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `UrgeRecord`, `DefaultTenantID` |

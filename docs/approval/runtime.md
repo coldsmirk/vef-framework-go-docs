@@ -225,9 +225,14 @@ Implement the `InstanceNoGenerator` interface to customize instance numbering:
 
 ```go
 type InstanceNoGenerator interface {
-    Generate(ctx context.Context, flowCode string) (string, error)
+    Generate(ctx context.Context, tenantID, flowCode string) (string, error)
 }
 ```
+
+`tenantID` is the tenant the instance runs in. A flow code is unique only
+within a tenant, and a shared flow's code is every tenant's, so a generator
+numbering each tenant on its own keys its sequence on both — for example a
+`sequence` rule key built from the tenant and the code.
 
 ---
 

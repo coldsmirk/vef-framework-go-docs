@@ -216,9 +216,13 @@ UNIQUE 约束保证），子表按 `row_index` 排序、每条明细一行；每
 
 ```go
 type InstanceNoGenerator interface {
-    Generate(ctx context.Context, flowCode string) (string, error)
+    Generate(ctx context.Context, tenantID, flowCode string) (string, error)
 }
 ```
+
+`tenantID` 是实例运行的租户。流程编码只在租户内唯一，而全局流程的编码属于
+所有租户，所以按租户各自编号的生成器应同时以两者作为序列的键——例如用租户
+和编码拼出 `sequence` 规则的 key。
 
 ---
 

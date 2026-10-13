@@ -131,6 +131,14 @@ rather than a permission error, so a caller cannot probe another tenant's
 flows. Use `approval.SystemCaller` for trusted automation, or
 `approval.CallerContext{TenantID: …}` to pin the operation to one tenant.
 
+`StartInstanceInput.TenantID` is the tenant the instance runs in, and
+`FlowCode` names the tenant's own flow with that code, else the shared flow
+with that code (see [Shared Flows](./integration.md#shared-flows)). The
+tenant only counts for `SystemCaller` and super-admin callers — empty means
+their own tenant, else `DefaultTenantID`; a caller pinned to a tenant always
+starts there. `SharedTenantID` is refused with `ErrFlowNotFound`: an instance
+of a shared flow runs in the real tenant that starts it.
+
 `StartInstanceInput.Globals` deserves the same care. On the request path the
 framework resolves globals server-side through `InstanceGlobalsResolver`
 precisely because they steer condition branches; here the host passes them

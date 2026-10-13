@@ -280,7 +280,12 @@ condition may instead fold a detail table's rows: `aggregate` (`sum` /
 forbidden for `count`) — see
 [Detail-Table Aggregation](#detail-table-aggregation).
 
-`timeoutHours` and `timeoutNotifyBeforeHours` are in hours.
+`timeoutHours` and `timeoutNotifyBeforeHours` are in hours. The node admins
+in `adminUserIds` receive the task both when an assignee-less node uses
+`emptyAssigneeAction: transfer_admin` and when a node with a deadline
+(`timeoutHours` > 0) uses `timeoutAction: transfer_admin`; either live use
+requires at least one admin at deploy, while a timeout action on a node
+without a deadline never fires and needs nothing.
 `urgeCooldownMinutes` is in minutes; values less than or equal to 0 use the
 runtime default of 30 minutes. `rollbackTargetKeys` is checked when
 `rollbackType` is `specified`; it contains node keys, not database node IDs.
@@ -558,6 +563,30 @@ initiator rule with at least one ID is required — an empty rule set or a rule
 whose `ids` is empty returns `ErrInitiatorsRequired` (code `40023`), because
 a rule that selects nobody leaves the flow just as unstartable as no rule at
 all.
+
+### Shared Flows
+
+A shared flow (`approval.SharedTenantID`, see
+[Shared Flows](./integration.md#shared-flows)) runs in every tenant, while a
+specific user — and the users behind a specific role or department — belongs
+to one. Deploying a shared flow therefore returns `ErrSharedFlowNamesPeople`
+(code `40024`) when a node:
+
+- has an assignee or CC rule whose kind's `SelectionMode` is `user`, `role` or
+  `department` — host kinds included, judged by the input they declare;
+- hands an assignee-less node to named fallback users or node admins
+  (`emptyAssigneeAction: transfer_specified | transfer_admin`);
+- escalates timeouts to node admins (`timeoutAction: transfer_admin` on a node
+  with a deadline, `timeoutHours > 0`).
+
+What stays available is everything resolved from the instance: `self`,
+`superior`, `department_leader`, `form_field`, a `SelectionCustom` host
+catalog, and a host kind resolving within `NodeResolveContext.Instance.TenantID`
+— the tenant the instance runs in. Initiator rules and flow admins are not
+restricted: they only ever act inside that tenant. The rule judges the actions,
+so a node admin or fallback list no action routes to does not block a deploy.
+`approval-flow-editor` mirrors it when the host marks the flow shared
+(`EditorPlugins.shared`).
 
 ### Business Binding Schema
 

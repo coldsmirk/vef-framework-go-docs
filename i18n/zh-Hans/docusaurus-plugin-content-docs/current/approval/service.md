@@ -87,6 +87,8 @@ acting.RunInTx(ctx, func(txCtx context.Context, tx orm.DB) error { … })
 
 每个入参都带一个 `Caller`（`approval.CallerContext`），而且是必填的：零值会失败关闭——`StartInstanceInput` 报的是 `ErrFlowNotFound` 而不是权限错误，所以调用方无法借此探测别的租户有哪些流程。可信自动化用 `approval.SystemCaller`，需要钉死单一租户则用 `approval.CallerContext{TenantID: …}`。
 
+`StartInstanceInput.TenantID` 是实例运行的租户，`FlowCode` 先指向该租户自己的同编码流程，没有再指向同编码的全局流程（见[全局流程](./integration.md#全局流程)）。这个租户只对 `SystemCaller` 和 super-admin 调用方生效——留空时用其本人所在租户，没有则用 `DefaultTenantID`；钉死在某个租户的调用方总是在该租户发起。`SharedTenantID` 会以 `ErrFlowNotFound` 被拒绝：全局流程的实例运行在发起它的真实租户里。
+
 `StartInstanceInput.Globals` 同样需要谨慎。在请求路径上，框架之所以坚持通过 `InstanceGlobalsResolver` 在服务端解析 globals，正是因为它们会左右条件分支；在这里由宿主直接传入，因此请传你自己信得过的值，而不要把客户端提交的任何东西原样转发进来。
 
 ## 错误

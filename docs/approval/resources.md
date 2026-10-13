@@ -32,8 +32,11 @@ Conventions used on this page:
 ## `approval/category`
 
 Flow category management (`apv_flow_category`). Reads are tenant-scoped:
-super-admin callers see all tenants, everyone else is confined to their own
-tenant and fails closed without one.
+super-admin callers see all tenants unless they name one, everyone else is
+confined to their own tenant and fails closed without one. A category of
+`approval.SharedTenantID` (`"0"`) is shared — the home of shared flows: every
+tenant may read it through `includeShared`, only super-admins write it. A
+category tree never spans tenants (see [Shared Flows](./integration.md#shared-flows)).
 
 | Action | Permission | Input | Output |
 | --- | --- | --- | --- |
@@ -51,6 +54,8 @@ There is no `find_tree_options` operation; build option lists from
 | --- | --- | --- | --- |
 | `name` | `string` | contains | filter by category name fragment |
 | `isActive` | `bool` | equals | filter by active flag; omit to match both |
+| `tenantId` | `string` | equals | super-admin only: narrow the read to one tenant (`"0"` for the shared categories); ignored for everyone else |
+| `includeShared` | `bool` | — | add the shared categories to the tenant read — what a delegation scope picker needs |
 | `sort` | `OrderSpec[]` | — | sort specifications (`crud.Sortable`) |
 
 `CategoryParams` (create/update, decoded from `params`):
@@ -58,11 +63,11 @@ There is no `find_tree_options` operation; build option lists from
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | `string` | update only | primary key of the row to update |
-| `tenantId` | `string` | Yes | owning tenant. On create, non-super-admin callers have this stamped from their own tenant (the submitted value is ignored); on update/delete the caller must be authorized for the row's tenant |
+| `tenantId` | `string` | No | owning tenant. On create, non-super-admin callers have this stamped from their own tenant (the submitted value is ignored), while a super-admin may name any tenant, `"0"` included — omitted, their own tenant, else `"default"`; on update the row keeps its tenant for every caller (the submitted value is ignored), and update/delete require authority over the row's tenant |
 | `code` | `string` | Yes | category business code |
 | `name` | `string` | Yes | display name |
 | `icon` | `string` | No | display icon identifier |
-| `parentId` | `string` | No | parent category id; `null` makes it a root |
+| `parentId` | `string` | No | parent category id; `null` makes it a root. The parent must belong to the same tenant — `ErrCategoryNotFound` otherwise, the same answer a missing parent gets |
 | `sortOrder` | `int` | No | ordering weight among siblings |
 | `isActive` | `bool` | No | inactive categories stay queryable but hosts typically hide them from pickers |
 | `remark` | `string` | No | free-text remark |
@@ -147,16 +152,16 @@ versions, and the designer-facing graph reads.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | Yes | owning tenant; empty coalesces to `"default"`, and the caller must be authorized for the resulting tenant |
-| `code` | `string` | Yes | unique flow business code; immutable after creation (`start` targets it) |
+| `tenantId` | `string` | No | owning tenant, resolved like a category's: non-super-admin callers create in their own tenant (the submitted value is ignored), a super-admin where it names — omitted, their own tenant, else `"default"`. `"0"` (`approval.SharedTenantID`, super-admin only) creates a shared flow |
+| `code` | `string` | Yes | flow business code, unique within the tenant; immutable after creation (`start` targets it — a tenant flow takes a shared flow's place for its code within that tenant) |
 | `name` | `string` | Yes | display name |
-| `categoryId` | `string` | Yes | owning `FlowCategory` id |
+| `categoryId` | `string` | Yes | owning `FlowCategory` id; must belong to the flow's tenant (`ErrCategoryNotFound`) |
 | `icon` | `string` | No | display icon identifier |
 | `description` | `string` | No | free-text description |
 | `labels` | `object` (string→string) | No | host-owned selection metadata; validated by the shared label rule — see the note below |
 | `bindingMode` | `string` | Yes | `standalone` (form data lives in approval tables) or `business` (links an existing business row) |
 | `businessBinding` | `BusinessBindingConfig` | business mode | write-back target description (below); rejected on standalone flows (`ErrBindingUnexpected`) |
-| `adminUserIds` | `string[]` | No | flow administrators (used by `transfer_admin` empty-assignee handling and admin visibility) |
+| `adminUserIds` | `string[]` | No | flow administrators, who may run node operations (remove an assignee, add a CC) on the flow's instances within their own tenant. Empty-assignee and timeout `transfer_admin` hand tasks to the node's own `adminUserIds` instead |
 | `isAllInitiationAllowed` | `bool` | No | `true` lets every user initiate; `false` restricts initiation to `initiators` |
 | `instanceTitleTemplate` | `string` | No | Go `text/template` for instance titles, e.g. `{{.applicantName}}的请假申请`; bindings: `flowName`, `flowCode`, `instanceNo`, `formData`, `applicantId`, `applicantName` (plus nested `flow.name` / `flow.code`, `applicant.id` / `applicant.name`). Empty falls back to `flowName-instanceNo`; parse failure raises `ErrInvalidTitleTemplate` |
 | `initiators` | `CreateInitiatorParams[]` | No | who may initiate when `isAllInitiationAllowed` is `false` (below) |
@@ -194,14 +199,16 @@ rule: alphanumeric keys with inner `-`/`_` (no dots), ≤ 63 characters;
 values ≤ 256 characters, empty values legal. On `update`, labels are
 replaced wholesale — omitting them clears the flow's labels.
 
-`DeployFlowParams` (`deploy` — creates a new draft version):
+`DeployFlowParams` (`deploy` — creates a new draft version, numbered after
+every version the flow already has, drafts included, so deploying again before
+publishing yields another draft):
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `flowId` | `string` | Yes | flow to deploy under |
 | `description` | `string` | No | version description shown in version lists |
 | `storageMode` | `string` | No | `json` (default; form data stays in `apv_instance.form_data`) or `table` (a dedicated physical projection table is generated at publish) |
-| `flowDefinition` | `FlowDefinition` | Yes | the designer graph document — nodes, edges, and per-node `data`; validated at deploy (`ErrInvalidFlowDesign`). See [Flow Design](./flow-design.md) for the wire shape |
+| `flowDefinition` | `FlowDefinition` | Yes | the designer graph document — nodes, edges, and per-node `data`; validated at deploy (`ErrInvalidFlowDesign`). A shared flow additionally rejects rules routing tasks or CC to specific people (`ErrSharedFlowNamesPeople`, see [Shared Flows](./integration.md#shared-flows)). See [Flow Design](./flow-design.md) for the wire shape |
 | `formSchema` | JSON document | No | host-owned form designer document, passed through opaque and stored verbatim; the flat field list the engine consumes is derived from it at deploy (see [Form Schema and Derived Fields](./flow-design.md#form-schema-and-derived-fields)) |
 
 `PublishVersionParams` (`publish_version` — makes a draft the live version and
@@ -349,8 +356,8 @@ govern which actions a node offers at runtime.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | Yes | tenant to start under; empty coalesces to `"default"`, and the caller must be authorized for the flow's tenant |
-| `flowCode` | `string` | Yes | business code of the flow to start; resolves the latest published version (`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`) |
+| `tenantId` | `string` | No | tenant the instance runs in. Only a super-admin's value counts — omitted, their own tenant, else `"default"`; everyone else always starts in their own tenant. `"0"` is refused (`ErrFlowNotFound`) |
+| `flowCode` | `string` | Yes | business code of the flow to start: the tenant's own flow with that code, else the shared one; resolves its published version (`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`) |
 | `businessRef` | `string` (≤ 512) | business mode | opaque reference to the bound business row; required on business-bound flows unless a registered `BusinessRefProvider` supplies it (`ErrBusinessRefRequired`). Default shapes: single key verbatim, composite key as a JSON object |
 | `formData` | `object` | No | form values keyed by field key; validated against the published version's derived field list (`40401` family), rejected above 64 KiB; unknown keys are rejected (`approval_form_field_not_defined`) |
 
@@ -462,11 +469,11 @@ Request parameters (all decoded from `params`):
 
 | Action | Field | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `find_available_flows` | `tenantId` | `string` | No | tenant filter |
+| `find_available_flows` | `tenantId` | `string` | No | tenant to list for, honored for super-admins only; everyone else is offered their own tenant's flows plus the shared flows it has not replaced, gated exactly as `instance.start` gates them |
 | | `keyword` | `string` | No | contains match against the flow name |
 | | `labels` | `object` | No | label equality filter — every pair must match |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `get_start_form` | `tenantId` | `string` | Yes | tenant of the flow |
+| `get_start_form` | `tenantId` | `string` | No | tenant the instance would run in, resolved as `instance.start` resolves it |
 | | `flowCode` | `string` | Yes | flow to load the start form for |
 | `find_initiated` | `tenantId` | `string` | No | tenant filter |
 | | `status` | `string` | No | instance status filter (`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`) |
@@ -869,16 +876,17 @@ in `kind` (React Flow's `type` belongs to the client):
 
 ## Error Surface
 
-The importable `approval` package exports four plain Go sentinels. They are
+The importable `approval` package exports two plain Go sentinels. They are
 recognized with `errors.Is`, but they are not `result.Error` values and do not
 carry an API code or HTTP status by themselves.
 
 | Error | Source package | Meaning |
 | --- | --- | --- |
-| `approval.ErrCrossTenantAccess` | `approval` | non-super-admin caller attempted cross-tenant access |
-| `approval.ErrInvalidBusinessIdentifier` | `approval` | business table / field identifier failed the SQL-identifier whitelist |
 | `approval.ErrUnknownNodeKind` | `approval` | `NodeDefinition.ParseData` saw an unsupported `kind` |
 | `approval.ErrNodeDataUnmarshal` | `approval` | `NodeDefinition.ParseData` could not decode node `data` |
+
+`approval.ErrCrossTenantAccess` (`40703`) and `approval.ErrInvalidBusinessIdentifier`
+(`40008`) are `result.Error` values like the rest of the catalog below.
 
 Built-in approval resources return module-owned `result.Error` values through
 the normal API envelope. Those values live under internal packages, so host
@@ -910,6 +918,8 @@ surface rather than importing the internal Go symbols.
 | `40021` | `ErrCodeInvalidFlowLabel` | `ErrInvalidFlowLabel` | `approval_invalid_flow_label` | flow label key would silently break JSON or host tooling |
 | `40022` | `ErrCodeInitiatorsNotAllowed` | `ErrInitiatorsNotAllowed` | `approval_initiators_not_allowed` | `isAllInitiationAllowed=true` and `initiators` are mutually exclusive |
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | restricted initiation requires at least one initiator rule with non-empty IDs |
+| `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | a shared flow routes tasks or CC to specific users, roles or departments, or hands tasks to node admins or named fallback users |
+| `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | a flow's category, or a category's parent, is missing or belongs to another tenant |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance lookup failed |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | instance is already complete |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | caller cannot initiate this flow |
@@ -945,6 +955,7 @@ surface rather than importing the internal Go symbols.
 | `40601` | `ErrCodeUrgeCooldown` | dynamic urge `result.Err` | `approval_urge_too_frequent` | no static sentinel; message is rendered with `minutes`; non-positive `urgeCooldownMinutes` defaults to 30 minutes |
 | `40701` | `ErrCodeAccessDenied` | `ErrAccessDenied` | `approval_access_denied` | caller lacks approval-domain access |
 | `40702` | `ErrCodeTerminateNotAllowed` | `ErrTerminateNotAllowed` | `approval_terminate_not_allowed` | terminate is not allowed from the current instance state |
+| `40703` | `ErrCodeCrossTenantAccess` | `ErrCrossTenantAccess` | `approval_cross_tenant_access` | the caller has no authority over the tenant it acts on — another tenant, no tenant, or the shared one |
 
 Startup and tenant-resolution diagnostics such as
 `ErrEventRouteNotTransactional` and `ErrTenantNotResolved` live under

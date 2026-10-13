@@ -91,6 +91,19 @@ Resource and command handlers resolve a `CallerContext` per request that bundles
 
 Cross-tenant attempts return `approval.ErrCrossTenantAccess`. `IsSuperAdmin(p)` reports whether a principal carries the override role. The override role itself is exposed as `approval.SuperAdminRole` (`"approval:super_admin"`) for host wiring.
 
+### Shared Flows
+
+A flow or flow category whose tenant is `approval.SharedTenantID` (`"0"`) is **shared**: it belongs to no tenant and is offered to every tenant. Hosts must never use `"0"` as the identifier of a real tenant.
+
+- **Instances run in the starting tenant.** Starting a shared flow stamps the instance — and everything it produces: tasks, node visits, business projections, events — with the tenant that started it, never with `SharedTenantID`. Admin lists, metrics, `ForTenants` filters and lifecycle hooks treat it like any other instance of that tenant.
+- **A code names one flow per tenant.** A start by code finds the tenant's own flow with that code, else the shared one. A tenant flow takes the shared flow's place within its tenant whatever its state — an inactive tenant flow still hides the shared one. `my.find_available_flows`, `my.get_start_form` and `instance.start` resolve identically, so the list offers exactly the flows a start accepts.
+- **The server picks the tenant.** An ordinary caller always lists and starts in its own tenant, whatever `tenantId` it sends. A super-admin's `tenantId` is honored; omitted, it is the super-admin's own tenant, else `DefaultTenantID`. `StartInstanceInput.TenantID` follows the same rule.
+- **Nobody belongs to the shared tenant.** A `CallerContext` whose `TenantID` is `SharedTenantID` is denied like one with no tenant, so only super-admin and system callers create and change shared flows and categories — even when a host `PrincipalTenantResolver` returns `"0"` by mistake.
+- **A shared flow routes no work to specific people.** Deploying one rejects assignee and CC rules whose kind's `SelectionMode` picks users, roles or departments, and the actions handing a task to node admins or named fallback users (`emptyAssigneeAction: transfer_admin | transfer_specified`, and `timeoutAction: transfer_admin` on a node with a deadline) with `ErrSharedFlowNamesPeople` (`40024`). Rules resolved from the applicant (superior, department leader, the applicant), from the form (`form_field`) or from a `SelectionCustom` host catalog stay available, and so do initiator rules and flow admins, which grant nothing outside the instance's tenant. A host kind that resolves people within a tenant reads it from `NodeResolveContext.Instance.TenantID`, and from `InitiatorResolveContext.TenantID` when checking initiation — both the starting tenant, never the flow's.
+- **Categories never span tenants.** A flow's category, and a category's parent, must belong to the same tenant — a shared flow sits under a shared category — or the save fails with `ErrCategoryNotFound` (`40025`), the same answer a missing category gets. A category's tenant never changes once created.
+
+A shared flow in `table` storage mode keeps every tenant's instances in one projection table, which has no tenant column: join `apv_instance` on `instance_id` to report per tenant.
+
 ## Lifecycle Extension Points
 
 | Extension point | Phase | Failure semantics |
@@ -122,11 +135,11 @@ type BusinessRefProvider interface {
 }
 
 type BusinessRefResolver interface {
-    ResolveRecordKey(ctx context.Context, flow *Flow, businessRef string) (BusinessRecordKey, error)
+    ResolveRecordKey(ctx context.Context, flow *Flow, instance *Instance) (BusinessRecordKey, error)
 }
 ```
 
-`BusinessRefProvider` supplies or allocates the opaque `Instance.BusinessRef` when `Flow.BindingMode == BindingBusiness`; inject it with `vef.SupplyBusinessRefProvider`. At instance start the engine resolves the ref into an `approval.BusinessRecordKey` — a map from every configured `KeyColumns` entry to its value — through `BusinessRefResolver`. The default resolver treats a single-column ref verbatim and decodes a multi-column ref from a JSON object; register a replacement with `vef.SupplyBusinessRefResolver` when `BusinessRef` uses another shape (business number, encoded tuple, …) or resolving the key requires a host lookup. A ref that cannot be resolved fails instance creation with `ErrInvalidBusinessRef` (code `40109`); a business-bound flow started without a ref fails with `ErrBusinessRefRequired` (code `40107`).
+`BusinessRefProvider` supplies or allocates the opaque `Instance.BusinessRef` when `Flow.BindingMode == BindingBusiness`; inject it with `vef.SupplyBusinessRefProvider`. At instance start the engine resolves the ref into an `approval.BusinessRecordKey` — a map from every configured `KeyColumns` entry to its value — through `BusinessRefResolver`. The default resolver treats a single-column ref verbatim and decodes a multi-column ref from a JSON object; register a replacement with `vef.SupplyBusinessRefResolver` when `BusinessRef` uses another shape (business number, encoded tuple, …) or resolving the key requires a host lookup. The resolver receives the instance being started — its non-blank `BusinessRef`, the tenant it runs in and the applicant — so it can scope the key to that tenant (a shared flow's binding serves every tenant, and its `Flow.TenantID` is `SharedTenantID`) and refuse a reference the applicant may not bind, which matters because `instance.start` accepts the ref from the client. A ref that cannot be resolved fails instance creation with `ErrInvalidBusinessRef` (code `40109`); a business-bound flow started without a ref fails with `ErrBusinessRefRequired` (code `40107`).
 
 ### Business-State Projection
 
@@ -311,7 +324,9 @@ recipient list) decides; a nil or blank field name returns
 `ErrFormFieldNameEmpty` and any other value type `ErrUnsupportedFieldValueType`.
 
 `approval.InitiatorResolveContext` is deliberately smaller — `FlowID`,
-`TenantID`, `Applicant`, `Kind`, `IDs`. There is no instance and no form data,
+`TenantID` (the tenant the flow is being started in, which for a shared flow is
+the starting tenant, not the flow's), `Applicant`, `Kind`, `IDs`. There is no
+instance and no form data,
 because who may start a flow is a property of the person and the flow, never of
 what they typed. A rule that needs the form belongs in a condition branch,
 where the form is real. Note too that the applicant's display **name** is not
@@ -393,7 +408,7 @@ type Delegation struct {
 
 | Area | Public API |
 | --- | --- |
-| caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `ErrCrossTenantAccess` |
+| caller safety | `CallerContext`, `SystemCaller`, `IsSuperAdmin`, `SuperAdminRole`, `SharedTenantID`, `ErrCrossTenantAccess` |
 | form data | `FormData`, `NewFormData`, `FormFieldIDs`, `ErrFormFieldNameEmpty`, `ErrUnsupportedFieldValueType`, `FormSchemaParser`, `FormFieldDefinition`, `FormSnapshot`, `ValidationRule`, `StorageMode`, `StorageJSON`, `StorageTable`, `FieldKind`, `FieldInput`, `FieldNumber`, `FieldDate`, `FieldTextarea`, `FieldSelect`, `FieldUpload`, `FieldTable`, `FieldOption`, `FieldOptionSource`, `OptionSourceKind`, `OptionSourceRemote`, `RemoteOptionRequest`, `RemoteOptionMapping`, `DynamicParam`, `DynamicParamKind`, `DynamicParamLiteral`, `DynamicParamExpression`, `ColumnDataType`, `ColumnString`, `ColumnText`, `ColumnInteger`, `ColumnDecimal`, `ColumnBoolean`, `ColumnDate`, `ColumnDatetime`, `ColumnJSON` |
 | table storage | `FormTable`, `FormTableColumn` (`FormTable.SourceFieldKey` is `""` for the main table, or the owning table field's key for a detail-table child projection) |
 | flow models | `FlowCategory`, `Flow`, `FlowVersion`, `FlowNode`, `FlowEdge`, `FlowInitiator`, `FlowNodeAssignee`, `FlowNodeCC`, `VersionStatus`, `VersionDraft`, `VersionPublished`, `VersionArchived`, `ActionLog`, `UrgeRecord`, `DefaultTenantID` |

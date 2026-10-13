@@ -330,9 +330,9 @@ VEF 在框架各处预置了一批 `result.Error`。模块专属错误位于各�
 | `schema` | `schema.ErrTableNotFound` | 2300 |
 | `crud` | `crud.ErrCodeProcessorInvalidReturn`、CRUD import/export 和主键相关 result 错误，以及 `crud.ErrModelNoPrimaryKey`、`crud.ErrAuditUserCompositePK` 等普通 sentinel | 2400-2410 |
 | `expression` | `expression.ErrEvaluationFailed` | 2500 |
-| `approval` | 公开普通 sentinel：`approval.ErrCrossTenantAccess`、`approval.ErrInvalidBusinessIdentifier`、`approval.ErrUnknownNodeKind`、`approval.ErrNodeDataUnmarshal`；内置审批资源返回 internal `result.Error` | 40001-40702 |
+| `approval` | `result.Error` sentinel，如 `approval.ErrCrossTenantAccess`、`approval.ErrInvalidBusinessIdentifier`；以及普通 sentinel `approval.ErrUnknownNodeKind`、`approval.ErrNodeDataUnmarshal` | 40001-40703 |
 
-> `storage.ErrUploadSessionNotFound` 和这四个公开 `approval` sentinel 都是普通 Go 错误，**不**是 `result.Error`，没有 code/status 字段。内置审批资源响应使用 internal 的 40xxx result envelope 目录；完整 code 与 message key 见 [Approval 模块](../approval/)。
+> `storage.ErrUploadSessionNotFound`、`approval.ErrUnknownNodeKind` 和 `approval.ErrNodeDataUnmarshal` 是普通 Go 错误，**不**是 `result.Error`，没有 code/status 字段。其余审批错误都走 40xxx result envelope 目录；完整 code 与 message key 见 [Approval 模块](../approval/)。
 
 ## Practical Patterns
 

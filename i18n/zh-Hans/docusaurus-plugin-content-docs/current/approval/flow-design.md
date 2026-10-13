@@ -246,7 +246,11 @@ type FlowDefinition struct {
 `column` 指定要聚合的数字列（`sum` / `avg` 必填，`count` 禁止填写）——见
 [明细表格聚合](#明细表格聚合)。
 
-`timeoutHours` 和 `timeoutNotifyBeforeHours` 的单位是小时。
+`timeoutHours` 和 `timeoutNotifyBeforeHours` 的单位是小时。`adminUserIds` 中的节点
+管理员会在两种情况下接手任务：无审批人的节点使用 `emptyAssigneeAction: transfer_admin`，
+以及设置了超时（`timeoutHours` > 0）的节点使用 `timeoutAction: transfer_admin`。只要实际
+用到其中一种，部署时就必须至少配置一名管理员；没有设置超时的节点，其超时动作永远不会触发，
+不需要配置。
 `urgeCooldownMinutes` 的单位是分钟；小于等于 0 时使用 30 分钟运行时默认值。`rollbackTargetKeys` 只在
 `rollbackType = specified` 时校验，里面放的是节点 key，不是数据库节点 ID。
 `fieldPermissions` 的语义见[节点字段权限](#节点字段权限)。
@@ -495,6 +499,27 @@ func valueKey(mapping *approval.RemoteOptionMapping) string {
 当限定时，至少需要一个发起人规则且至少包含一个 ID——空规则集或 `ids` 为空
 的规则会返回 `ErrInitiatorsRequired`（code `40023`），因为一个不选中任何人的规则
 和完全没有规则一样，流程都无法被发起。
+
+### 全局流程
+
+全局流程（`approval.SharedTenantID`，见[全局流程](./integration.md#全局流程)）
+会在所有租户中运行，而具体的用户——以及具体角色、部门背后的用户——只属于某
+一个租户。因此，部署全局流程时，节点出现以下情况会返回
+`ErrSharedFlowNamesPeople`（code `40024`）：
+
+- 审批人或抄送规则所用类型的 `SelectionMode` 是 `user`、`role` 或
+  `department`——宿主自定义类型同样适用，按其声明的输入方式判断；
+- 无审批人时转交指定人员或节点管理员
+  （`emptyAssigneeAction: transfer_specified | transfer_admin`）；
+- 设有时限（`timeoutHours > 0`）的节点超时后转交节点管理员
+  （`timeoutAction: transfer_admin`）。
+
+仍然可用的是一切基于实例解析的规则：`self`、`superior`、`department_leader`、
+`form_field`、`SelectionCustom` 宿主目录，以及在
+`NodeResolveContext.Instance.TenantID`（实例所在的租户）内解析人员的宿主类型。
+发起人规则和流程管理员不受限制：它们只在该租户内生效。规则判断的是这些动作，
+所以节点上残留、但没有任何动作使用的管理员或转交人名单不会阻止部署。
+宿主把流程标记为全局（`EditorPlugins.shared`）时，`approval-flow-editor` 会做同样的校验。
 
 ### 业务绑定 Schema
 
