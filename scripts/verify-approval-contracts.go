@@ -177,11 +177,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    554,
+		topLevel:    560,
 		fields:      990,
 		methods:     162,
-		entries:     1706,
-		fingerprint: "593db435773752143a12dba55ce00480ba1d108e0829717c02a1fc38574c58df",
+		entries:     1712,
+		fingerprint: "c30dbe8185c911cc30146e9c4a4bd46cb178f1d48163d7c54f7ad86b018011f6",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -221,7 +221,7 @@ var approvalGroupedSurfaces = []groupedSurface{
 		fieldCount:           990,
 		methodCount:          162,
 		receiverCount:        156,
-		signatureFingerprint: "77035b407fa2bf29d29a226194aa5e043145cddf1a5060091651a31c04da489c",
+		signatureFingerprint: "d58ae7683d7fea9cd48ed2cc758632c0771a3a1ef0e8616db8bea30fea55ef5b",
 		receiverFingerprint:  "d7446e0efbfa366ab59189190b2086d2623a225d61988575bbc322fbd52b7811",
 	},
 	{
@@ -972,8 +972,6 @@ func verifyErrors(sourceRoot string, docs []corpus) []string {
 			}
 		}
 		for _, term := range []string{
-			"approval.ErrCrossTenantAccess",
-			"approval.ErrInvalidBusinessIdentifier",
 			"approval.ErrUnknownNodeKind",
 			"approval.ErrNodeDataUnmarshal",
 		} {

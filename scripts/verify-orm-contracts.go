@@ -18,11 +18,11 @@ const (
 	ormPackage = "github.com/coldsmirk/vef-framework-go/orm"
 
 	ormGroupedEntryCount           = 1352
-	ormGroupedSignatureFingerprint = "0007c9f2aeeb2c462f9f9ec48c3cf0af6de1cc3614b66020aa0925501c200e96"
+	ormGroupedSignatureFingerprint = "d6c50843e9466dda73a696b1c15df3c0bceec85e126ab62f48a05963d21b20a3"
 	ormGroupedReceiverFingerprint  = "874cde2d4e0726680812365c2050f8258681d2cac60ba9fcbdf974cbb74b3f58"
 
 	ormBunGroupedEntryCount           = 237
-	ormBunGroupedSignatureFingerprint = "15339acc44fcf86555dace5fc0f63177864ee437c1666100d0048e1da9a2d22a"
+	ormBunGroupedSignatureFingerprint = "69a4d7e969fec812a3eb5504fe01b697d44ed517ee60428ef88193b086b36a5c"
 
 	ormVEFOwnedGroupedEntryCount           = 1115
 	ormVEFOwnedGroupedSignatureFingerprint = "a20609b911785f56fa4eae16d869b9bf7f04ed03a51b27977b27b603ea1bd0ed"
@@ -114,7 +114,7 @@ func main() {
 		"Exists(ctx context.Context) (bool, error)",
 	})...)
 	failures = append(failures, missingTerms(goMod, []string{
-		"github.com/uptrace/bun v1.2.18",
+		"github.com/uptrace/bun v1.3.0",
 	})...)
 	failures = append(failures, verifyGroupedORMMethodSurface(docsRoot)...)
 
@@ -135,7 +135,7 @@ func main() {
 		"orm.BunUpdateQuery",
 		"orm.BunDeleteQuery",
 		"github.com/uptrace/bun",
-		"v1.2.18",
+		"v1.3.0",
 		"Bun/schema",
 		"Table",
 		"Field",

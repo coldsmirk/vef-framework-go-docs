@@ -175,11 +175,11 @@
    "disposition": "has-semantic-contracts",
    "summary": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
    "reviewed_surface": {
-    "top_level": 554,
+    "top_level": 560,
     "fields": 990,
     "methods": 162,
-    "entry_count": 1706,
-    "fingerprint": "593db435773752143a12dba55ce00480ba1d108e0829717c02a1fc38574c58df",
+    "entry_count": 1712,
+    "fingerprint": "c30dbe8185c911cc30146e9c4a4bd46cb178f1d48163d7c54f7ad86b018011f6",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -766,9 +766,9 @@
    "reviewed_surface": {
     "top_level": 22,
     "fields": 0,
-    "methods": 70,
-    "entry_count": 92,
-    "fingerprint": "ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401",
+    "methods": 73,
+    "entry_count": 95,
+    "fingerprint": "4bbd91ea91edabed86f649a3da2527028c094588500ddacf3353b173ced6100a",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -1530,9 +1530,9 @@
    "reviewed_surface": {
     "top_level": 44,
     "fields": 11,
-    "methods": 64,
-    "entry_count": 119,
-    "fingerprint": "40d5ab2a18c99a3c369d907963fdde2f413699f63bef1a2cca9ae9174f0a2067",
+    "methods": 84,
+    "entry_count": 139,
+    "fingerprint": "3173c55f3d34e399a0694ba47e428c1bdf7226923daf5dbb691ed0fdeae34ca0",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -1685,7 +1685,7 @@
     "fields": 0,
     "methods": 1352,
     "entry_count": 1563,
-    "fingerprint": "ac92353262ead12769e646b0bb8edc998c706cba0819afeab0331058c454b7db",
+    "fingerprint": "f7e4bfefbe5296ba713bb332253fce0cde197fefa8d627f6650121d948e5e392",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -2207,7 +2207,7 @@
     "fields": 0,
     "methods": 0,
     "entry_count": 1,
-    "fingerprint": "b4702563bfc582565e7066c91d1ff3a2f6858b85d2042e5a9fe52d8deb0f1f53",
+    "fingerprint": "ecd1fa5db6bdc2f2d0216a2cec434c840057d937d5ee5e3cdba03649fb55b02d",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -3267,7 +3267,7 @@
    "package": "github.com/coldsmirk/vef-framework-go/decimal",
    "kind": "runtime-contract",
    "contract": "NewFromAny supported input families and unsupported-type behavior",
-   "summary": "decimal.Decimal is a shopspring/decimal v1.4.0 type alias with re-exported constructors, aggregators, constants, and inherited methods; NewFromAny accepts common Go input families, treats nil *Decimal as Zero, parses textual inputs, and reports unsupported values with decimal: unsupported type while MustFromAny panics.",
+   "summary": "decimal.Decimal is a shopspring/decimal v1.5.0 type alias with re-exported constructors, aggregators, constants, and inherited methods; NewFromAny accepts common Go input families, treats nil *Decimal as Zero, parses textual inputs, and reports unsupported values with decimal: unsupported type while MustFromAny panics.",
    "disposition": "documented:semantic-contract",
    "coverage": [
     "docs/utilities/decimal.md"
@@ -3280,7 +3280,7 @@
     "go.mod:41"
    ],
    "terms": [
-    "shopspring/decimal v1.4.0",
+    "shopspring/decimal v1.5.0",
     "type alias",
     "decimal.NewFromFormattedString",
     "*regexp.Regexp",

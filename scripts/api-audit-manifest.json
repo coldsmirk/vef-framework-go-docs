@@ -82,10 +82,10 @@
         "docs/approval/service.md"
       ],
       "notes": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces.",
-      "top_level": 554,
+      "top_level": 560,
       "fields": 990,
       "methods": 162,
-      "fingerprint": "593db435773752143a12dba55ce00480ba1d108e0829717c02a1fc38574c58df"
+      "fingerprint": "c30dbe8185c911cc30146e9c4a4bd46cb178f1d48163d7c54f7ad86b018011f6"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
@@ -319,8 +319,8 @@
       "notes": "Decimal wrapper and forwarded arithmetic/marshal methods.",
       "top_level": 22,
       "fields": 0,
-      "methods": 70,
-      "fingerprint": "ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401"
+      "methods": 73,
+      "fingerprint": "4bbd91ea91edabed86f649a3da2527028c094588500ddacf3353b173ced6100a"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/event",
@@ -660,8 +660,8 @@
       "notes": "MCP provider, definition, schema, and server-info extension APIs.",
       "top_level": 44,
       "fields": 11,
-      "methods": 64,
-      "fingerprint": "40d5ab2a18c99a3c369d907963fdde2f413699f63bef1a2cca9ae9174f0a2067"
+      "methods": 84,
+      "fingerprint": "3173c55f3d34e399a0694ba47e428c1bdf7226923daf5dbb691ed0fdeae34ca0"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/middleware",
@@ -728,7 +728,7 @@
       "top_level": 211,
       "fields": 0,
       "methods": 1352,
-      "fingerprint": "ac92353262ead12769e646b0bb8edc998c706cba0819afeab0331058c454b7db"
+      "fingerprint": "f7e4bfefbe5296ba713bb332253fce0cde197fefa8d627f6650121d948e5e392"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/page",
@@ -944,7 +944,7 @@
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "b4702563bfc582565e7066c91d1ff3a2f6858b85d2042e5a9fe52d8deb0f1f53"
+      "fingerprint": "ecd1fa5db6bdc2f2d0216a2cec434c840057d937d5ee5e3cdba03649fb55b02d"
     }
   ]
 }

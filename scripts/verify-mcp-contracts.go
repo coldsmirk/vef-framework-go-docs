@@ -18,18 +18,18 @@ import (
 const (
 	mcpPackage = "github.com/coldsmirk/vef-framework-go/mcp"
 
-	mcpFingerprint = "40d5ab2a18c99a3c369d907963fdde2f413699f63bef1a2cca9ae9174f0a2067"
+	mcpFingerprint = "3173c55f3d34e399a0694ba47e428c1bdf7226923daf5dbb691ed0fdeae34ca0"
 	mcpTopLevel    = 44
 	mcpFields      = 11
-	mcpMethods     = 64
-	mcpEntries     = 119
+	mcpMethods     = 84
+	mcpEntries     = 139
 
-	mcpGroupedEntries              = 75
+	mcpGroupedEntries              = 95
 	mcpGroupedFields               = 11
-	mcpGroupedMethods              = 64
+	mcpGroupedMethods              = 84
 	mcpGroupedReceivers            = 27
-	mcpGroupedSignatureFingerprint = "e74c2f6abe36c57b9d13f45b4fd99fb934bcbbb549536a6048bb5c99edfdd803"
-	mcpGroupedReceiverFingerprint  = "40cd9bdc2846dd7956f2512d95c1ad927fb400623a402dcbbf12698b99b87410"
+	mcpGroupedSignatureFingerprint = "b187a8d8a838d7803c48af1dc0541a836ed852f2d04e07f8baa841e0affbb172"
+	mcpGroupedReceiverFingerprint  = "edf63094f16758c5a9a5ba9f1d4acfccbf33fbf21ab95013557658698cff9ca0"
 
 	englishMCPPath   = "docs/ai-integration/mcp.md"
 	chineseMCPPath   = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/ai-integration/mcp.md"

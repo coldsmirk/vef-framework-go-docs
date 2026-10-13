@@ -782,7 +782,7 @@ TYPE BusinessRecordKey : github.com/coldsmirk/vef-framework-go/approval.Business
 TYPE BusinessRefProvider : github.com/coldsmirk/vef-framework-go/approval.BusinessRefProvider
   METHOD OnInstanceCreated : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) (businessRef string, err error)
 TYPE BusinessRefResolver : github.com/coldsmirk/vef-framework-go/approval.BusinessRefResolver
-  METHOD ResolveRecordKey : func(ctx context.Context, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, businessRef string) (github.com/coldsmirk/vef-framework-go/approval.BusinessRecordKey, error)
+  METHOD ResolveRecordKey : func(ctx context.Context, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) (github.com/coldsmirk/vef-framework-go/approval.BusinessRecordKey, error)
 TYPE CCDefinition : github.com/coldsmirk/vef-framework-go/approval.CCDefinition
   FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.CCKind [field_order=1 tag="json:\"kind\""]
   FIELD IDs : []string [field_order=2 tag="json:\"ids,omitempty\""]
@@ -863,7 +863,7 @@ TYPE CallerContext : github.com/coldsmirk/vef-framework-go/approval.CallerContex
   FIELD IsSystemInternal : bool [field_order=3 tag=""]
   METHOD Allows : func(entityTenantID string) bool
   METHOD Authorize : func(entityTenantID string) error
-  METHOD ResolveWriteTenant : func(clientTenant string) (string, error)
+  METHOD ResolveWriteTenant : func(requested string) (string, error)
   METHOD TenantScopeFilter : func(override string) (*string, error)
 CONST ColumnBoolean : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType = "boolean"
 TYPE ColumnDataType : github.com/coldsmirk/vef-framework-go/approval.ColumnDataType
@@ -982,6 +982,7 @@ FUNC ErrBindingTableMissing : func(table string) github.com/coldsmirk/vef-framew
 VAR ErrBindingTargetBusy : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrBindingUnexpected : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrBusinessRefRequired : github.com/coldsmirk/vef-framework-go/result.Error
+VAR ErrCategoryNotFound : github.com/coldsmirk/vef-framework-go/result.Error
 CONST ErrCodeAccessDenied : untyped int = 40701
 CONST ErrCodeAddAssigneeNotAllowed : untyped int = 40206
 CONST ErrCodeAssigneeResolveFailed : untyped int = 40302
@@ -994,6 +995,8 @@ CONST ErrCodeBindingStatusMappingInvalid : untyped int = 40020
 CONST ErrCodeBindingTargetBusy : untyped int = 40108
 CONST ErrCodeBindingUnexpected : untyped int = 40017
 CONST ErrCodeBusinessRefRequired : untyped int = 40107
+CONST ErrCodeCategoryNotFound : untyped int = 40025
+CONST ErrCodeCrossTenantAccess : untyped int = 40703
 CONST ErrCodeFlowCodeExists : untyped int = 40006
 CONST ErrCodeFlowNotActive : untyped int = 40002
 CONST ErrCodeFlowNotFound : untyped int = 40001
@@ -1028,6 +1031,7 @@ CONST ErrCodeOpinionRequired : untyped int = 40208
 CONST ErrCodeRemoveAssigneeNotAllowed : untyped int = 40210
 CONST ErrCodeResubmitNotAllowed : untyped int = 40105
 CONST ErrCodeRollbackNotAllowed : untyped int = 40205
+CONST ErrCodeSharedFlowNamesPeople : untyped int = 40024
 CONST ErrCodeTaskNotFound : untyped int = 40201
 CONST ErrCodeTaskNotPending : untyped int = 40202
 CONST ErrCodeTerminateNotAllowed : untyped int = 40702
@@ -1036,7 +1040,7 @@ CONST ErrCodeUrgeCooldown : untyped int = 40601
 CONST ErrCodeVersionNotDraft : untyped int = 40004
 CONST ErrCodeVersionNotFound : untyped int = 40007
 CONST ErrCodeWithdrawNotAllowed : untyped int = 40104
-VAR ErrCrossTenantAccess : error
+VAR ErrCrossTenantAccess : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrDBRequired : error
 VAR ErrDerivedGroupConflict : error
 VAR ErrFlowCodeExists : github.com/coldsmirk/vef-framework-go/result.Error
@@ -1077,6 +1081,7 @@ VAR ErrOpinionRequired : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrRemoveAssigneeNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrResubmitNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrRollbackNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
+VAR ErrSharedFlowNamesPeople : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotFound : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotPending : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTerminateNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
@@ -1505,7 +1510,7 @@ TYPE InstanceLifecycleHook : github.com/coldsmirk/vef-framework-go/approval.Inst
   METHOD OnInstanceCreated : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) error
   METHOD OnInstanceTransition : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, instance *github.com/coldsmirk/vef-framework-go/approval.Instance, from github.com/coldsmirk/vef-framework-go/approval.InstanceStatus, to github.com/coldsmirk/vef-framework-go/approval.InstanceStatus) error
 TYPE InstanceNoGenerator : github.com/coldsmirk/vef-framework-go/approval.InstanceNoGenerator
-  METHOD Generate : func(ctx context.Context, flowCode string) (string, error)
+  METHOD Generate : func(ctx context.Context, tenantID string, flowCode string) (string, error)
 CONST InstanceRejected : github.com/coldsmirk/vef-framework-go/approval.InstanceStatus = "rejected"
 TYPE InstanceResubmittedEvent : github.com/coldsmirk/vef-framework-go/approval.InstanceResubmittedEvent
   FIELD InstanceEventBase : github.com/coldsmirk/vef-framework-go/approval.InstanceEventBase [field_order=1 tag=""]
@@ -1839,6 +1844,7 @@ TYPE Service : github.com/coldsmirk/vef-framework-go/approval.Service
   METHOD TransferTask : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.TransferTaskInput) error
   METHOD UrgeTask : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.UrgeTaskInput) error
   METHOD WithdrawInstance : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.WithdrawInstanceInput) error
+CONST SharedTenantID : untyped string = "0"
 TYPE StartInstanceInput : github.com/coldsmirk/vef-framework-go/approval.StartInstanceInput
   FIELD TenantID : string [field_order=1 tag=""]
   FIELD FlowCode : string [field_order=2 tag=""]
@@ -3931,8 +3937,10 @@ TYPE Decimal : github.com/coldsmirk/vef-framework-go/decimal.Decimal
   METHOD Compare : func(d2 github.com/shopspring/decimal.Decimal) int
   METHOD Copy : func() github.com/shopspring/decimal.Decimal
   METHOD Cos : func() github.com/shopspring/decimal.Decimal
+  METHOD DecodeSpanner : func(val interface{}) error
   METHOD Div : func(d2 github.com/shopspring/decimal.Decimal) github.com/shopspring/decimal.Decimal
   METHOD DivRound : func(d2 github.com/shopspring/decimal.Decimal, precision int32) github.com/shopspring/decimal.Decimal
+  METHOD EncodeSpanner : func() (interface{}, error)
   METHOD Equal : func(d2 github.com/shopspring/decimal.Decimal) bool
   METHOD Equals : func(d2 github.com/shopspring/decimal.Decimal) bool
   METHOD ExpHullAbrham : func(overallPrecision uint32) (github.com/shopspring/decimal.Decimal, error)
@@ -3974,6 +3982,7 @@ TYPE Decimal : github.com/coldsmirk/vef-framework-go/decimal.Decimal
   METHOD RoundFloor : func(places int32) github.com/shopspring/decimal.Decimal
   METHOD RoundUp : func(places int32) github.com/shopspring/decimal.Decimal
   METHOD Scan : func(value interface{}) error
+  METHOD ScientificNotationString : func() string
   METHOD Shift : func(shift int32) github.com/shopspring/decimal.Decimal
   METHOD Sign : func() int
   METHOD Sin : func() github.com/shopspring/decimal.Decimal
@@ -4984,12 +4993,17 @@ TYPE Annotations : github.com/coldsmirk/vef-framework-go/mcp.Annotations
 TYPE AudioContent : github.com/coldsmirk/vef-framework-go/mcp.AudioContent
   METHOD MarshalJSON : func() ([]byte, error)
 TYPE CallToolRequest : github.com/coldsmirk/vef-framework-go/mcp.CallToolRequest
+  METHOD ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities
+  METHOD ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation
   METHOD GetExtra : func() *github.com/modelcontextprotocol/go-sdk/mcp.RequestExtra
   METHOD GetParams : func() github.com/modelcontextprotocol/go-sdk/mcp.Params
   METHOD GetSession : func() github.com/modelcontextprotocol/go-sdk/mcp.Session
+  METHOD ProtocolVersion : func() string
 TYPE CallToolResult : github.com/coldsmirk/vef-framework-go/mcp.CallToolResult
   METHOD GetError : func() error
   METHOD GetMeta : func() map[string]any
+  METHOD MarshalJSON : func() ([]byte, error)
+  METHOD NeedsInput : func() bool
   METHOD SetError : func(err error)
   METHOD SetMeta : func(x map[string]any)
   METHOD UnmarshalJSON : func(data []byte) error
@@ -5003,12 +5017,18 @@ TYPE GetPromptParams : github.com/coldsmirk/vef-framework-go/mcp.GetPromptParams
   METHOD SetMeta : func(x map[string]any)
   METHOD SetProgressToken : func(t any)
 TYPE GetPromptRequest : github.com/coldsmirk/vef-framework-go/mcp.GetPromptRequest
+  METHOD ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities
+  METHOD ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation
   METHOD GetExtra : func() *github.com/modelcontextprotocol/go-sdk/mcp.RequestExtra
   METHOD GetParams : func() github.com/modelcontextprotocol/go-sdk/mcp.Params
   METHOD GetSession : func() github.com/modelcontextprotocol/go-sdk/mcp.Session
+  METHOD ProtocolVersion : func() string
 TYPE GetPromptResult : github.com/coldsmirk/vef-framework-go/mcp.GetPromptResult
   METHOD GetMeta : func() map[string]any
+  METHOD MarshalJSON : func() ([]byte, error)
+  METHOD NeedsInput : func() bool
   METHOD SetMeta : func(x map[string]any)
+  METHOD UnmarshalJSON : func(data []byte) error
 TYPE ImageContent : github.com/coldsmirk/vef-framework-go/mcp.ImageContent
   METHOD MarshalJSON : func() ([]byte, error)
 TYPE Implementation : github.com/coldsmirk/vef-framework-go/mcp.Implementation
@@ -5029,12 +5049,20 @@ TYPE PromptMessage : github.com/coldsmirk/vef-framework-go/mcp.PromptMessage
 TYPE PromptProvider : github.com/coldsmirk/vef-framework-go/mcp.PromptProvider
   METHOD Prompts : func() []github.com/coldsmirk/vef-framework-go/mcp.PromptDefinition
 TYPE ReadResourceRequest : github.com/coldsmirk/vef-framework-go/mcp.ReadResourceRequest
+  METHOD ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities
+  METHOD ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation
   METHOD GetExtra : func() *github.com/modelcontextprotocol/go-sdk/mcp.RequestExtra
   METHOD GetParams : func() github.com/modelcontextprotocol/go-sdk/mcp.Params
   METHOD GetSession : func() github.com/modelcontextprotocol/go-sdk/mcp.Session
+  METHOD ProtocolVersion : func() string
 TYPE ReadResourceResult : github.com/coldsmirk/vef-framework-go/mcp.ReadResourceResult
+  METHOD GetCacheScope : func() string
   METHOD GetMeta : func() map[string]any
+  METHOD GetTTLMs : func() int
+  METHOD MarshalJSON : func() ([]byte, error)
+  METHOD NeedsInput : func() bool
   METHOD SetMeta : func(x map[string]any)
+  METHOD UnmarshalJSON : func(data []byte) error
 TYPE Resource : github.com/coldsmirk/vef-framework-go/mcp.Resource
   METHOD GetMeta : func() map[string]any
   METHOD SetMeta : func(x map[string]any)
@@ -5085,6 +5113,7 @@ TYPE ServerSession : github.com/coldsmirk/vef-framework-go/mcp.ServerSession
   METHOD InitializeParams : func() *github.com/modelcontextprotocol/go-sdk/mcp.InitializeParams
   METHOD ListRoots : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.ListRootsParams) (*github.com/modelcontextprotocol/go-sdk/mcp.ListRootsResult, error)
   METHOD Log : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.LoggingMessageParams) error
+  METHOD NotifyElicitationComplete : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.ElicitationCompleteParams) error
   METHOD NotifyProgress : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.ProgressNotificationParams) error
   METHOD Ping : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.PingParams) error
   METHOD Wait : func() error
@@ -5474,7 +5503,7 @@ TYPE BunDeleteQuery : github.com/coldsmirk/vef-framework-go/orm.BunDeleteQuery
   METHOD ForceDelete : func() *github.com/uptrace/bun.DeleteQuery
   METHOD GetModel : func() github.com/uptrace/bun.Model
   METHOD GetTableName : func() string
-  METHOD Limit : func(n int) *github.com/uptrace/bun.DeleteQuery
+  METHOD Limit : func(n int64) *github.com/uptrace/bun.DeleteQuery
   METHOD Model : func(model any) *github.com/uptrace/bun.DeleteQuery
   METHOD ModelTableExpr : func(query string, args ...any) *github.com/uptrace/bun.DeleteQuery
   METHOD NewAddColumn : func() *github.com/uptrace/bun.AddColumnQuery
@@ -5565,7 +5594,7 @@ TYPE BunSelectQuery : github.com/coldsmirk/vef-framework-go/orm.BunSelectQuery
   METHOD ColumnExpr : func(query string, args ...any) *github.com/uptrace/bun.SelectQuery
   METHOD Comment : func(comment string) *github.com/uptrace/bun.SelectQuery
   METHOD Conn : func(db github.com/uptrace/bun.IConn) *github.com/uptrace/bun.SelectQuery
-  METHOD Count : func(ctx context.Context) (int, error)
+  METHOD Count : func(ctx context.Context) (int64, error)
   METHOD DB : func() *github.com/uptrace/bun.DB
   METHOD Dialect : func() github.com/uptrace/bun/schema.Dialect
   METHOD Distinct : func() *github.com/uptrace/bun.SelectQuery
@@ -5595,7 +5624,7 @@ TYPE BunSelectQuery : github.com/coldsmirk/vef-framework-go/orm.BunSelectQuery
   METHOD Join : func(join string, args ...any) *github.com/uptrace/bun.SelectQuery
   METHOD JoinOn : func(cond string, args ...any) *github.com/uptrace/bun.SelectQuery
   METHOD JoinOnOr : func(cond string, args ...any) *github.com/uptrace/bun.SelectQuery
-  METHOD Limit : func(n int) *github.com/uptrace/bun.SelectQuery
+  METHOD Limit : func(n int64) *github.com/uptrace/bun.SelectQuery
   METHOD Model : func(model any) *github.com/uptrace/bun.SelectQuery
   METHOD ModelTableExpr : func(query string, args ...any) *github.com/uptrace/bun.SelectQuery
   METHOD NewAddColumn : func() *github.com/uptrace/bun.AddColumnQuery
@@ -5611,7 +5640,7 @@ TYPE BunSelectQuery : github.com/coldsmirk/vef-framework-go/orm.BunSelectQuery
   METHOD NewTruncateTable : func() *github.com/uptrace/bun.TruncateTableQuery
   METHOD NewUpdate : func() *github.com/uptrace/bun.UpdateQuery
   METHOD NewValues : func(model any) *github.com/uptrace/bun.ValuesQuery
-  METHOD Offset : func(n int) *github.com/uptrace/bun.SelectQuery
+  METHOD Offset : func(n int64) *github.com/uptrace/bun.SelectQuery
   METHOD Operation : func() string
   METHOD Order : func(orders ...string) *github.com/uptrace/bun.SelectQuery
   METHOD OrderBy : func(colName string, sortDir github.com/uptrace/bun.Order) *github.com/uptrace/bun.SelectQuery
@@ -5621,7 +5650,7 @@ TYPE BunSelectQuery : github.com/coldsmirk/vef-framework-go/orm.BunSelectQuery
   METHOD RelationWithOpts : func(name string, opts github.com/uptrace/bun.RelationOpts) *github.com/uptrace/bun.SelectQuery
   METHOD Rows : func(ctx context.Context) (*database/sql.Rows, error)
   METHOD Scan : func(ctx context.Context, dest ...any) error
-  METHOD ScanAndCount : func(ctx context.Context, dest ...any) (int, error)
+  METHOD ScanAndCount : func(ctx context.Context, dest ...any) (int64, error)
   METHOD String : func() string
   METHOD Table : func(tables ...string) *github.com/uptrace/bun.SelectQuery
   METHOD TableExpr : func(query string, args ...any) *github.com/uptrace/bun.SelectQuery
@@ -5662,7 +5691,7 @@ TYPE BunUpdateQuery : github.com/coldsmirk/vef-framework-go/orm.BunUpdateQuery
   METHOD Join : func(join string, args ...any) *github.com/uptrace/bun.UpdateQuery
   METHOD JoinOn : func(cond string, args ...any) *github.com/uptrace/bun.UpdateQuery
   METHOD JoinOnOr : func(cond string, args ...any) *github.com/uptrace/bun.UpdateQuery
-  METHOD Limit : func(n int) *github.com/uptrace/bun.UpdateQuery
+  METHOD Limit : func(n int64) *github.com/uptrace/bun.UpdateQuery
   METHOD Model : func(model any) *github.com/uptrace/bun.UpdateQuery
   METHOD ModelTableExpr : func(query string, args ...any) *github.com/uptrace/bun.UpdateQuery
   METHOD NewAddColumn : func() *github.com/uptrace/bun.AddColumnQuery
@@ -8561,5 +8590,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.58.0"
+CONST VEFVersion : untyped string = "v0.59.0"
 ```

@@ -15,11 +15,11 @@ import (
 
 const (
 	decimalPackage     = "github.com/coldsmirk/vef-framework-go/decimal"
-	decimalFingerprint = "ea79b685aa80a0df3929fb69b8a3e0941805ce057e5c7ebf81a853da467d8401"
+	decimalFingerprint = "4bbd91ea91edabed86f649a3da2527028c094588500ddacf3353b173ced6100a"
 	decimalTopLevel    = 22
 	decimalFields      = 0
-	decimalMethods     = 70
-	decimalEntries     = 92
+	decimalMethods     = 73
+	decimalEntries     = 95
 
 	englishDecimalPath = "docs/utilities/decimal.md"
 	chineseDecimalPath = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/utilities/decimal.md"
@@ -327,7 +327,7 @@ func hasCodeReference(content, ref string) bool {
 
 func decimalDocTerms(label string) []string {
 	common := []string{
-		"shopspring/decimal v1.4.0",
+		"shopspring/decimal v1.5.0",
 		"type alias",
 		"DivisionPrecision",
 		"MarshalJSONWithoutQuotes",
@@ -344,14 +344,14 @@ func decimalDocTerms(label string) []string {
 	}
 	if strings.HasPrefix(label, "Chinese") {
 		return append(common,
-			"70 个 exported methods",
+			"73 个 exported methods",
 			"没有\nexported fields",
 			"NaN 或 infinity",
 		)
 	}
 
 	return append(common,
-		"70 exported methods",
+		"73 exported methods",
 		"no exported fields",
 		"NaN or infinity",
 	)
@@ -384,7 +384,7 @@ func verifyContractLedger(review contractPackageReview, contract contractEntry, 
 		failures = append(failures, fmt.Sprintf("decimal contract test evidence mismatch: got %v want %v", contract.TestEvidence, expectedTestEvidence))
 	}
 	for _, term := range []string{
-		"shopspring/decimal v1.4.0",
+		"shopspring/decimal v1.5.0",
 		"type alias",
 		"decimal.NewFromFormattedString",
 		"*regexp.Regexp",
@@ -416,7 +416,7 @@ func verifySourceContracts(sourceRoot string) []string {
 		{
 			path: "go.mod",
 			terms: []string{
-				"github.com/shopspring/decimal v1.4.0",
+				"github.com/shopspring/decimal v1.5.0",
 			},
 		},
 		{
@@ -503,22 +503,26 @@ func verifyUpstreamContracts(sourceRoot string) []string {
 	if err != nil {
 		return []string{err.Error()}
 	}
-	upstreamRoot := filepath.Join(strings.TrimSpace(modPath), "github.com/shopspring/decimal@v1.4.0")
-	upstream := readSourceFile(upstreamRoot, "decimal.go")
-	return missingTerms(upstream, []string{
+	upstreamRoot := filepath.Join(strings.TrimSpace(modPath), "github.com/shopspring/decimal@v1.5.0")
+	failures := missingTerms(readSourceFile(upstreamRoot, "decimal.go"), []string{
 		"var DivisionPrecision = 16",
 		"var MarshalJSONWithoutQuotes = false",
 		"var ExpMaxIterations = 1000",
+		"var MaxDecodeExponent = 10000",
 		"func NewFromFormattedString(value string, replRegexp *regexp.Regexp) (Decimal, error)",
 		"func (d Decimal) Div(d2 Decimal) Decimal",
 		"return d.DivRound(d2, int32(DivisionPrecision))",
 		"panic(\"decimal division by 0\")",
 		"func (d Decimal) Float64() (f float64, exact bool)",
 		"func (d Decimal) InexactFloat64() float64",
+	})
+
+	// Since v1.5.0 the upstream keeps its encoding methods in encoding.go.
+	return append(failures, missingTerms(readSourceFile(upstreamRoot, "encoding.go"), []string{
 		"func (d *Decimal) UnmarshalJSON(decimalBytes []byte) error",
 		"func (d Decimal) MarshalJSON() ([]byte, error)",
 		"if MarshalJSONWithoutQuotes",
-	})
+	})...)
 }
 
 func runSourceTests(sourceRoot string) []string {

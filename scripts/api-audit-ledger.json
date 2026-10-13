@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8385,
-  "fingerprint": "bd3b94f5f4e2168bcdbf0ff6c1d45eef0aa1b213f3cecf871cd014371ddc8dc4",
+  "entry_count": 8414,
+  "fingerprint": "b3fff1ffc3dc85774c906409df434e2d8ff2c74446857fecd9cfee941d75e307",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -23546,7 +23546,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "method",
       "symbol": "BusinessRefResolver.ResolveRecordKey",
-      "signature": "ResolveRecordKey : func(ctx context.Context, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, businessRef string) (github.com/coldsmirk/vef-framework-go/approval.BusinessRecordKey, error)",
+      "signature": "ResolveRecordKey : func(ctx context.Context, flow *github.com/coldsmirk/vef-framework-go/approval.Flow, instance *github.com/coldsmirk/vef-framework-go/approval.Instance) (github.com/coldsmirk/vef-framework-go/approval.BusinessRecordKey, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -23784,7 +23784,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "method",
       "symbol": "CallerContext.ResolveWriteTenant",
-      "signature": "ResolveWriteTenant : func(clientTenant string) (string, error)",
+      "signature": "ResolveWriteTenant : func(requested string) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -24600,7 +24600,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "method",
       "symbol": "InstanceNoGenerator.Generate",
-      "signature": "Generate : func(ctx context.Context, flowCode string) (string, error)",
+      "signature": "Generate : func(ctx context.Context, tenantID string, flowCode string) (string, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -28404,6 +28404,23 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCategoryNotFound",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrCategoryNotFound",
+      "signature": "ErrCategoryNotFound : github.com/coldsmirk/vef-framework-go/result.Error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeAccessDenied",
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "top",
@@ -28596,6 +28613,40 @@
       "kind": "top",
       "symbol": "ErrCodeBusinessRefRequired",
       "signature": "ErrCodeBusinessRefRequired : untyped int = 40107",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeCategoryNotFound",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrCodeCategoryNotFound",
+      "signature": "ErrCodeCategoryNotFound : untyped int = 40025",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeCrossTenantAccess",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrCodeCrossTenantAccess",
+      "signature": "ErrCodeCrossTenantAccess : untyped int = 40703",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -29186,6 +29237,23 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeSharedFlowNamesPeople",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrCodeSharedFlowNamesPeople",
+      "signature": "ErrCodeSharedFlowNamesPeople : untyped int = 40024",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeTaskNotFound",
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "top",
@@ -29326,7 +29394,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "top",
       "symbol": "ErrCrossTenantAccess",
-      "signature": "ErrCrossTenantAccess : error",
+      "signature": "ErrCrossTenantAccess : github.com/coldsmirk/vef-framework-go/result.Error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -30007,6 +30075,23 @@
       "kind": "top",
       "symbol": "ErrRollbackNotAllowed",
       "signature": "ErrRollbackNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrSharedFlowNamesPeople",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrSharedFlowNamesPeople",
+      "signature": "ErrSharedFlowNamesPeople : github.com/coldsmirk/vef-framework-go/result.Error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -34087,6 +34172,23 @@
       "kind": "top",
       "symbol": "Service",
       "signature": "Service : github.com/coldsmirk/vef-framework-go/approval.Service",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:SharedTenantID",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "SharedTenantID",
+      "signature": "SharedTenantID : untyped string = \"0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -55222,6 +55324,17 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/decimal#method:Decimal.DecodeSpanner",
+      "package": "github.com/coldsmirk/vef-framework-go/decimal",
+      "kind": "method",
+      "symbol": "Decimal.DecodeSpanner",
+      "signature": "DecodeSpanner : func(val interface{}) error",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/utilities/decimal.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/decimal#method:Decimal.Div",
       "package": "github.com/coldsmirk/vef-framework-go/decimal",
       "kind": "method",
@@ -55238,6 +55351,17 @@
       "kind": "method",
       "symbol": "Decimal.DivRound",
       "signature": "DivRound : func(d2 github.com/shopspring/decimal.Decimal, precision int32) github.com/shopspring/decimal.Decimal",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/utilities/decimal.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/decimal#method:Decimal.EncodeSpanner",
+      "package": "github.com/coldsmirk/vef-framework-go/decimal",
+      "kind": "method",
+      "symbol": "Decimal.EncodeSpanner",
+      "signature": "EncodeSpanner : func() (interface{}, error)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/utilities/decimal.md"
@@ -55689,6 +55813,17 @@
       "kind": "method",
       "symbol": "Decimal.Scan",
       "signature": "Scan : func(value interface{}) error",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/utilities/decimal.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/decimal#method:Decimal.ScientificNotationString",
+      "package": "github.com/coldsmirk/vef-framework-go/decimal",
+      "kind": "method",
+      "symbol": "Decimal.ScientificNotationString",
+      "signature": "ScientificNotationString : func() string",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/utilities/decimal.md"
@@ -67459,6 +67594,28 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolRequest.ClientCapabilities",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "CallToolRequest.ClientCapabilities",
+      "signature": "ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolRequest.ClientInfo",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "CallToolRequest.ClientInfo",
+      "signature": "ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolRequest.GetExtra",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67492,6 +67649,17 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolRequest.ProtocolVersion",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "CallToolRequest.ProtocolVersion",
+      "signature": "ProtocolVersion : func() string",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolResult.GetError",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67508,6 +67676,28 @@
       "kind": "method",
       "symbol": "CallToolResult.GetMeta",
       "signature": "GetMeta : func() map[string]any",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolResult.MarshalJSON",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "CallToolResult.MarshalJSON",
+      "signature": "MarshalJSON : func() ([]byte, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:CallToolResult.NeedsInput",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "CallToolResult.NeedsInput",
+      "signature": "NeedsInput : func() bool",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/ai-integration/mcp.md"
@@ -67602,6 +67792,28 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptRequest.ClientCapabilities",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptRequest.ClientCapabilities",
+      "signature": "ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptRequest.ClientInfo",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptRequest.ClientInfo",
+      "signature": "ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptRequest.GetExtra",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67635,6 +67847,17 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptRequest.ProtocolVersion",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptRequest.ProtocolVersion",
+      "signature": "ProtocolVersion : func() string",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptResult.GetMeta",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67646,11 +67869,44 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptResult.MarshalJSON",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptResult.MarshalJSON",
+      "signature": "MarshalJSON : func() ([]byte, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptResult.NeedsInput",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptResult.NeedsInput",
+      "signature": "NeedsInput : func() bool",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptResult.SetMeta",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
       "symbol": "GetPromptResult.SetMeta",
       "signature": "SetMeta : func(x map[string]any)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:GetPromptResult.UnmarshalJSON",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "GetPromptResult.UnmarshalJSON",
+      "signature": "UnmarshalJSON : func(data []byte) error",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/ai-integration/mcp.md"
@@ -67712,6 +67968,28 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceRequest.ClientCapabilities",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceRequest.ClientCapabilities",
+      "signature": "ClientCapabilities : func() *github.com/modelcontextprotocol/go-sdk/mcp.ClientCapabilities",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceRequest.ClientInfo",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceRequest.ClientInfo",
+      "signature": "ClientInfo : func() *github.com/modelcontextprotocol/go-sdk/mcp.Implementation",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceRequest.GetExtra",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67745,6 +68023,28 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceRequest.ProtocolVersion",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceRequest.ProtocolVersion",
+      "signature": "ProtocolVersion : func() string",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.GetCacheScope",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceResult.GetCacheScope",
+      "signature": "GetCacheScope : func() string",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.GetMeta",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
@@ -67756,11 +68056,55 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.GetTTLMs",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceResult.GetTTLMs",
+      "signature": "GetTTLMs : func() int",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.MarshalJSON",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceResult.MarshalJSON",
+      "signature": "MarshalJSON : func() ([]byte, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.NeedsInput",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceResult.NeedsInput",
+      "signature": "NeedsInput : func() bool",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.SetMeta",
       "package": "github.com/coldsmirk/vef-framework-go/mcp",
       "kind": "method",
       "symbol": "ReadResourceResult.SetMeta",
       "signature": "SetMeta : func(x map[string]any)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ReadResourceResult.UnmarshalJSON",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ReadResourceResult.UnmarshalJSON",
+      "signature": "UnmarshalJSON : func(data []byte) error",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/ai-integration/mcp.md"
@@ -68069,6 +68413,17 @@
       "kind": "method",
       "symbol": "ServerSession.Log",
       "signature": "Log : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.LoggingMessageParams) error",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/ai-integration/mcp.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/mcp#method:ServerSession.NotifyElicitationComplete",
+      "package": "github.com/coldsmirk/vef-framework-go/mcp",
+      "kind": "method",
+      "symbol": "ServerSession.NotifyElicitationComplete",
+      "signature": "NotifyElicitationComplete : func(ctx context.Context, params *github.com/modelcontextprotocol/go-sdk/mcp.ElicitationCompleteParams) error",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/ai-integration/mcp.md"
@@ -72960,7 +73315,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunDeleteQuery.Limit",
-      "signature": "Limit : func(n int) *github.com/uptrace/bun.DeleteQuery",
+      "signature": "Limit : func(n int64) *github.com/uptrace/bun.DeleteQuery",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -74473,7 +74828,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunSelectQuery.Count",
-      "signature": "Count : func(ctx context.Context) (int, error)",
+      "signature": "Count : func(ctx context.Context) (int64, error)",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -74983,7 +75338,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunSelectQuery.Limit",
-      "signature": "Limit : func(n int) *github.com/uptrace/bun.SelectQuery",
+      "signature": "Limit : func(n int64) *github.com/uptrace/bun.SelectQuery",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -75255,7 +75610,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunSelectQuery.Offset",
-      "signature": "Offset : func(n int) *github.com/uptrace/bun.SelectQuery",
+      "signature": "Offset : func(n int64) *github.com/uptrace/bun.SelectQuery",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -75425,7 +75780,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunSelectQuery.ScanAndCount",
-      "signature": "ScanAndCount : func(ctx context.Context, dest ...any) (int, error)",
+      "signature": "ScanAndCount : func(ctx context.Context, dest ...any) (int64, error)",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -76105,7 +76460,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/orm",
       "kind": "method",
       "symbol": "BunUpdateQuery.Limit",
-      "signature": "Limit : func(n int) *github.com/uptrace/bun.UpdateQuery",
+      "signature": "Limit : func(n int64) *github.com/uptrace/bun.UpdateQuery",
       "disposition": "grouped:builder-member-family",
       "coverage": [
         "docs/data-access/orm-querying.md",
@@ -121146,7 +121501,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.58.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.59.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"
