@@ -385,6 +385,55 @@ Department selection is a required business input and is normally left
 unfiltered. How a trust-login handoff meets the chain is covered in
 [Trust Login](./trust-login).
 
+### Choices that outlive the login
+
+Most challenges are proofs: a one-time code is checked once and forgotten.
+Department selection is different. Its answer is a choice the session is built
+on, so it has to survive every refresh of that session. Under `jwt_token`,
+`refresh` rebuilds the principal through `UserLoader.LoadByID`, which knows the
+user but not what the user chose at login. On its own it would replace the
+chosen department with whatever the user record yields, typically the user's
+default department, about 30 minutes into the session when the access token
+first refreshes.
+
+A provider whose answer is such a choice implements
+`security.SessionChoiceProvider` on top of `ChallengeProvider`:
+
+| Method | Called | Does |
+| --- | --- | --- |
+| `SessionChoice(response)` | after `Resolve` accepts the answer | returns what of the answer the session keeps, or false to keep nothing |
+| `ReapplyChoice(ctx, principal, choice)` | on every `refresh`, after `LoadByID` | applies the recorded choice to the reloaded principal, validating it again |
+
+The login flow records each kept choice in `Principal.SessionChoices`, keyed by
+challenge type. The refresh token carries them; the access token never does.
+Every refresh re-applies them in login order and records them again for the
+next one.
+
+`NewDepartmentSelectionChallengeProvider` is such a provider. Its choice is the
+department ID, re-applied through the same `DepartmentSelector.SelectDepartment`
+that accepted it at login. A refresh can therefore fail in two ways, and either
+way the user logs in again and chooses afresh:
+
+- The selector refuses a department the user no longer holds, and the refresh
+  fails with the selector's own error.
+- No registered provider re-applies a recorded choice (the provider was
+  removed), and the refresh fails with `ErrTokenInvalid`.
+
+Wrapping a provider with `NewFilteredChallengeProvider` keeps it a
+`SessionChoiceProvider`. Opaque sessions keep the login's principal and are
+never reloaded, so they need no re-application.
+
+A `DepartmentLoader` that applies a user's only department itself, without
+presenting the challenge, records no choice. Its application's
+`UserLoader.LoadByID` must then yield that same department, or the session
+changes at the first refresh.
+
+:::caution[Keep a choice, never a proof]
+Return a value from `SessionChoice` only when the answer names a choice. A
+credential or a one-time code must never be kept: the refresh token would carry
+it for the whole lifetime of the session.
+:::
+
 ## What Applications Usually Provide
 
 The exact application-owned pieces depend on which auth paths you use:
@@ -501,7 +550,7 @@ The error semantics match what the built-in authenticators expect:
 
 - `Scan` already maps "no rows" to `result.ErrRecordNotFound`, so returning the error unchanged is correct. Filtering on `is_active` makes disabled users indistinguishable from missing ones.
 - During `login`, any `LoadByUsername` error — and equally a `nil` principal or an empty hash — collapses into the generic invalid-credentials error (code `1008`), so usernames cannot be enumerated. Record-not-found errors are logged at info level, everything else at warn level.
-- During `refresh`, a `LoadByID` error is returned to the caller as-is; the refresh authenticator reloads the user precisely so deactivated accounts stop refreshing.
+- During `refresh`, a `LoadByID` error is returned to the caller as-is; the refresh authenticator reloads the user precisely so deactivated accounts stop refreshing. It then re-applies what the login chose, such as the selected department, so `LoadByID` only has to yield the user's defaults; see [Choices that outlive the login](#choices-that-outlive-the-login).
 
 ### Permissions and user info
 

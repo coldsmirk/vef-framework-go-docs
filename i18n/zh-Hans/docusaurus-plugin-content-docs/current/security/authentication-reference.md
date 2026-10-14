@@ -11,7 +11,7 @@ sidebar_position: 2
 | principal | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType`, `IsReserved` |
 | JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
 | auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
-| challenge token | `ChallengeProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge token | `ChallengeProvider`, `SessionChoiceProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
 | challenge scoping | `LoginFilter`, `ForAuthTypes`, `ExceptAuthTypes`, `NewFilteredChallengeProvider` |
 | OTP/challenge | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
 | TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
@@ -63,11 +63,14 @@ JWT 签名始终使用 `HS256`（在 JWT 术语中即 `HMAC-SHA256`）。`securi
 内置 access token 和 refresh token generator 会把 subject 写成 `id@name`。
 `JWTTokenAuthenticator` 会直接从这个 subject 重建用户 principal，不查数据库。
 `JWTRefreshAuthenticator` 也要求 `id@name`，但会取其中的 `id` 调用
-`UserLoader.LoadByID(...)` 重新加载用户。
+`UserLoader.LoadByID(...)` 重新加载用户，再重新应用 refresh token 携带的会话选择
+（见 [`refresh`](#refresh)）。
 
 `JWTClaimsBuilder` 用 `WithID`、`WithSubject`、`WithRoles`、`WithDetails`、
-`WithType`、`WithClaim` 写入紧凑 token claims。`JWTClaimsAccessor` 用
-`ID`、`Subject`、`Roles`、`Details`、`Type`、`Claim` 读取同一份 payload。
+`WithSessionChoices`、`WithType`、`WithClaim` 写入紧凑 token claims。
+`JWTClaimsAccessor` 用 `ID`、`Subject`、`Roles`、`Details`、`SessionChoices`、
+`Type`、`Claim` 读取同一份 payload。`WithSessionChoices` 遇到空集合时不写该 claim，
+token 不带会话选择时 `SessionChoices` 返回 nil。
 可以用 `NewJWTClaimsBuilder()` 和 `NewJWTClaimsAccessor(...)` 直接创建这两个 helper。
 
 `PrincipalTypeUser`、`PrincipalTypeExternalApp`、`PrincipalTypeSystem` 描述
@@ -75,7 +78,10 @@ JWT 签名始终使用 `HS256`（在 JWT 术语中即 `HMAC-SHA256`）。`securi
 `SetExternalAppDetailsType[T]()` 会配置进程级 details 反序列化目标，应在启动阶段调用，
 不要等服务开始处理请求后再修改。
 
-`Principal` 的 JSON 字段是 `type`、`id`、`name`、`roles` 和 `details`。
+`Principal` 的 JSON 字段是 `type`、`id`、`name`、`roles`、`details` 和
+`sessionChoices`，最后一项为空时省略。`SessionChoices` 把挑战类型映射到该类型的
+`SessionChoiceProvider` 在登录时保留的选择；见
+[认证：登录之后仍然有效的选择](./authentication#登录之后仍然有效的选择)。
 `SetUserDetailsType[T]()` 与 `SetExternalAppDetailsType[T]()` 要求 `T` 是 struct
 或 struct pointer；否则会分别以 `ErrUserDetailsNotStruct` 或
 `ErrExternalAppDetailsNotStruct` panic。它们会修改 package-level 状态，应视为启动期配置。
@@ -164,6 +170,7 @@ principal type——`system`、空值与未知类型一律以 `ErrTokenInvalid` 
 
 | Claim Key | Constant | 内容 |
 | --- | --- | --- |
+| `chs` | （标准 JWT claim） | 会话选择（`claimChoices`）——即 `Principal.SessionChoices`，由 refresh token 与 challenge token 携带，access token 从不携带；为空时省略 |
 | `atp` | `ClaimChallengeAuthType` | 登录方式（`LoginContext.AuthType`）——后续每一步都针对这次登录评估、解决与审计；缺少它的 token 会被拒绝 |
 | `det` | （标准 JWT claim） | 用户详情（`claimDetails`）——应用自定义载荷，同时存在于 access token 和 challenge token 中 |
 | `pnd` | `ClaimChallengePending` | 待处理的挑战类型，按评估顺序排列——尚未解决的类型，第一个即当前呈现的挑战 |
@@ -190,6 +197,13 @@ access token claim 一致，这样挑战流程无需数据库查询即可重建 
 `Evaluate` 返回 nil；`Resolve` 校验应答，并返回登录继续使用的 principal——
 `login.Principal` 或其充实后的副本。
 
+`SessionChoiceProvider` 是另外具备 `SessionChoice(response any) (string, bool)`
+与 `ReapplyChoice(ctx, principal, choice string) (*Principal, error)` 的
+`ChallengeProvider`。`Resolve` 接受应答后，`resolve_challenge` 会把 `SessionChoice`
+保留的值，以 provider 的类型为键，记录到 principal 的 `SessionChoices` 副本中。
+`refresh` 把每个记录下的选择交还给 `ReapplyChoice`，作用于重新加载的 principal。
+多个 provider 类型相同时，由登录流程会先找到的那个重新应用。
+
 challenge provider 会按 `Order()` 升序排序。内置 convenience provider 的顺序是：
 TOTP 为 `100`，SMS 为 `200`，email 为 `300`，password change 为 `400`，
 department selection 为 `500`。未注册的 provider，或者 `Evaluate(...)`
@@ -203,7 +217,8 @@ provider。`ForAuthTypes(types...)` 构造允许列表 filter（`AuthTypes`）�
 `ExceptAuthTypes(types...)` 构造排除列表 filter（`ExcludedAuthTypes`），
 `LoginFilter.Matches(login)` 判断一次登录能否通过某个 filter：在单个 filter 内，
 空维度不做约束，已填写的 `AuthTypes` 与 `ExcludedAuthTypes` 必须同时满足。包装器
-原样转发 `Type`、`Order` 与 `Resolve`；它的 `Evaluate` 只有在每个 filter 都匹配时
+原样转发 `Type`、`Order` 与 `Resolve`，被包装的 `SessionChoiceProvider` 仍然是
+`SessionChoiceProvider`，并转发 `SessionChoice` 与 `ReapplyChoice`；它的 `Evaluate` 只有在每个 filter 都匹配时
 才转发同一个 login，否则返回 nil。`Resolve` 不需要自己的 filter——登录流程只会解决
 `Evaluate` 呈现过的挑战，而一次登录的登录方式在各步骤之间不会改变。不传 filter 时
 原样返回该 provider。何时用允许列表、何时用排除列表，以及完整示例，见
@@ -255,7 +270,8 @@ delivered-code helper 会把 `OTPCodeStore` 和 `OTPCodeDelivery` 组合起来�
 `PasswordChangeReasonExpired`（`expired`）。具体 provider
 类型是 `PasswordChangeChallengeProvider`。`NewDepartmentSelectionChallengeProvider` 使用
 `DepartmentLoader` 与 `DepartmentSelector`；resolve 时要求传入 department ID
-字符串。`DepartmentLoader.LoadDepartments` 返回
+字符串。它是 `SessionChoiceProvider`：department ID 就是会话的选择，每次刷新都会
+通过 `DepartmentSelector.SelectDepartment` 重新选中它。`DepartmentLoader.LoadDepartments` 返回
 `*DepartmentSelectionChallengeData`，让宿主同时控制可选选项和挑战级元数据。
 返回 nil 或 data 中没有部门都会跳过该 challenge。
 
@@ -552,6 +568,11 @@ JSON 响应载荷中不携带过期时间字段——令牌有效期属于部署
   内不可用——过早兑换会以 `1004`（`ErrCodeTokenNotValidYet`）失败。
 - 会通过 `UserLoader.LoadByID(...)` 重新加载用户，使被停用的账号无法继续
   刷新；loader 的错误原样返回给调用方。
+- 随后按登录时的顺序，通过各自的 `SessionChoiceProvider` 重新应用 refresh token
+  携带的会话选择（其 `chs` claim），新的 refresh token 会再次携带它们，因此登录时
+  所选的部门在整个会话期间保持不变。provider 的拒绝原样返回；没有已注册 provider
+  能重新应用的选择，以及 provider 返回空 principal，都以 `1003`
+  （`ErrCodeTokenInvalid`）失败。
 - 每次兑换返回全新 token 对。提交的 refresh token 不会在服务端吊销——该
   机制是无状态的——它只会自然过期。
 - 典型失败：`1003`（令牌畸形、`typ` 不对、subject 形状不对，HTTP 401）、

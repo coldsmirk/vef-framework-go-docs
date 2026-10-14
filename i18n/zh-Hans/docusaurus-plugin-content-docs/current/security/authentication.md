@@ -345,6 +345,46 @@ checker、changer 与 TOTP 密钥加载器由应用提供；`PasswordValidator` 
 部门选择是必需的业务输入，通常不加 filter。信任登录的交接如何经过挑战链，见
 [信任登录](./trust-login)。
 
+### 登录之后仍然有效的选择
+
+大多数挑战是一次性的证明：验证码校验一次就丢弃。部门选择不同，它的应答是会话赖以
+建立的选择，必须在会话的每一次刷新之后依然有效。在 `jwt_token` 下，`refresh` 通过
+`UserLoader.LoadByID` 重建 principal。`LoadByID` 认识用户，却不知道用户登录时选了
+什么，单靠它会把所选部门换成用户记录本身给出的部门，通常是默认部门。这会发生在会话
+开始约 30 分钟、access token 第一次刷新的时候。
+
+应答属于这类选择的 provider，在 `ChallengeProvider` 之上再实现
+`security.SessionChoiceProvider`：
+
+| 方法 | 调用时机 | 作用 |
+| --- | --- | --- |
+| `SessionChoice(response)` | `Resolve` 接受应答之后 | 返回应答中会话要保留的部分；返回 false 表示什么都不保留 |
+| `ReapplyChoice(ctx, principal, choice)` | 每次 `refresh`，`LoadByID` 之后 | 把记录下的选择重新应用到重新加载的 principal 上，并重新校验 |
+
+登录流程把保留下来的每个选择记录在 `Principal.SessionChoices` 中，键是挑战类型。
+refresh token 携带这些选择，access token 从不携带。每次刷新都按登录时的顺序重新应用
+它们，并为下一次刷新再次记录。
+
+`NewDepartmentSelectionChallengeProvider` 就是这样的 provider。它保留的选择是
+department ID，刷新时通过登录时接受它的同一个 `DepartmentSelector.SelectDepartment`
+重新应用。因此刷新可能以两种方式失败，无论哪种，用户都要重新登录、重新选择：
+
+- 用户已不再属于该部门，selector 拒绝，刷新以 selector 自己的错误失败。
+- 没有任何已注册的 provider 能重新应用某个记录下的选择（provider 被移除了），刷新以
+  `ErrTokenInvalid` 失败。
+
+用 `NewFilteredChallengeProvider` 包装后，provider 仍然是 `SessionChoiceProvider`。
+opaque 会话保存的是登录时的 principal、从不重新加载，因此不需要重新应用。
+
+如果 `DepartmentLoader` 在用户只有一个部门时自行套用该部门、不呈现挑战，就不会记录
+任何选择。这时应用的 `UserLoader.LoadByID` 必须给出同一个部门，否则会话会在第一次
+刷新时改变。
+
+:::caution[只保留选择，不保留证明]
+只有当应答指明的是一个选择时，`SessionChoice` 才应返回值。凭据或一次性验证码绝不能
+保留：refresh token 会在整个会话期间携带它。
+:::
+
 ## 应用通常还需要提供什么
 
 这里要分场景来看：
@@ -461,7 +501,7 @@ func toPrincipal(user *User) *security.Principal {
 
 - `Scan` 已经把“无记录”映射为 `result.ErrRecordNotFound`，所以直接原样返回错误即可。查询里过滤 `is_active`，可以让被禁用的用户与不存在的用户表现完全一致。
 - `login` 期间，`LoadByUsername` 返回的任何错误——以及 `nil` principal 或空哈希——都会归并为通用的凭证无效错误（code `1008`），因此无法通过响应枚举用户名。record-not-found 记录 info 级日志，其他错误记录 warn 级。
-- `refresh` 期间，`LoadByID` 的错误会原样返回给调用方；refresh authenticator 之所以重新加载用户，正是为了让被停用的账号无法继续刷新。
+- `refresh` 期间，`LoadByID` 的错误会原样返回给调用方；refresh authenticator 之所以重新加载用户，正是为了让被停用的账号无法继续刷新。之后它会重新应用登录时的选择（例如所选部门），因此 `LoadByID` 只需给出用户的默认值；见[登录之后仍然有效的选择](#登录之后仍然有效的选择)。
 
 ### 权限与用户信息
 

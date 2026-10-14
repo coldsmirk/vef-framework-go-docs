@@ -11,7 +11,7 @@ The public `security` package surface for authentication: principals, JWT, the a
 | principals | `Principal`, `PrincipalType`, `NewUser`, `NewExternalApp`, `PrincipalSystem`, `PrincipalAnonymous`, `SetUserDetailsType`, `SetExternalAppDetailsType`, `IsReserved` |
 | JWT | `JWT`, `JWTConfig`, `JWTClaimsBuilder`, `JWTClaimsAccessor`, `NewJWT`, `GenerateSecret`, token type constants, `DefaultJWTAudience`, `DefaultJWTSecret`, `JWTIssuer` |
 | auth manager | `Authentication`, `AuthTokens`, `Authenticator`, `AuthManager`, `TokenGenerator`, `UserLoader`, `ExternalAppLoader`, `ExternalAppConfig`, `PasswordDecryptor` |
-| challenge tokens | `ChallengeProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
+| challenge tokens | `ChallengeProvider`, `SessionChoiceProvider`, `LoginContext`, `ChallengeState`, `ChallengeTokenStore`, `NewMemoryChallengeTokenStore`, `NewRedisChallengeTokenStore`, `NewJWTChallengeTokenStore` |
 | challenge scoping | `LoginFilter`, `ForAuthTypes`, `ExceptAuthTypes`, `NewFilteredChallengeProvider` |
 | OTP/challenges | `OTPEvaluator`, `OTPCodeSender`, `OTPCodeVerifier`, `OTPCodeStore`, `NewOTPChallengeProvider`, `NewDeliveredCodeSender`, `NewDeliveredCodeVerifier`, `NewDeliveredChallengeProvider`, `NewSMSChallengeProvider`, `NewEmailChallengeProvider` |
 | TOTP/password/department | `NewTOTPEvaluator`, `NewTOTPVerifier`, `NewTOTPChallengeProvider`, `WithTOTPDestination`, `NewPasswordChangeChallengeProvider`, `NewDepartmentSelectionChallengeProvider` |
@@ -66,12 +66,16 @@ authenticator in `security/signature.go` supports three algorithms:
 The built-in access and refresh token generator stores the subject as
 `id@name`. `JWTTokenAuthenticator` rebuilds a user principal from that subject
 without a database lookup. `JWTRefreshAuthenticator` also expects `id@name`,
-but then reloads the user with `UserLoader.LoadByID(...)` using the `id` part.
+but then reloads the user with `UserLoader.LoadByID(...)` using the `id` part
+and re-applies the session choices the refresh token carries (see
+[`refresh`](#refresh)).
 
 `JWTClaimsBuilder` writes compact token claims with `WithID`, `WithSubject`,
-`WithRoles`, `WithDetails`, `WithType`, and `WithClaim`. `JWTClaimsAccessor`
-reads the same payload back with `ID`, `Subject`, `Roles`, `Details`, `Type`,
-and `Claim`. Use `NewJWTClaimsBuilder()` and `NewJWTClaimsAccessor(...)` to
+`WithRoles`, `WithDetails`, `WithSessionChoices`, `WithType`, and `WithClaim`.
+`JWTClaimsAccessor` reads the same payload back with `ID`, `Subject`, `Roles`,
+`Details`, `SessionChoices`, `Type`, and `Claim`. `WithSessionChoices` leaves
+the claim out for an empty set, and `SessionChoices` returns nil when a token
+carries none. Use `NewJWTClaimsBuilder()` and `NewJWTClaimsAccessor(...)` to
 create those helpers directly.
 
 `PrincipalTypeUser`, `PrincipalTypeExternalApp`, and `PrincipalTypeSystem`
@@ -79,7 +83,10 @@ describe the supported principal kinds. `SetUserDetailsType[T]()` and
 `SetExternalAppDetailsType[T]()` configure process-global detail unmarshalling
 targets; call them during startup before serving requests.
 
-`Principal` serializes as JSON `type`, `id`, `name`, `roles`, and `details`.
+`Principal` serializes as JSON `type`, `id`, `name`, `roles`, `details`, and
+`sessionChoices`, the last omitted when empty. `SessionChoices` maps a challenge
+type to the choice its `SessionChoiceProvider` kept at login; see
+[Authentication: Choices that outlive the login](./authentication#choices-that-outlive-the-login).
 `SetUserDetailsType[T]()` and `SetExternalAppDetailsType[T]()` require `T` to
 be a struct or struct pointer and panic with `ErrUserDetailsNotStruct` or
 `ErrExternalAppDetailsNotStruct` otherwise. They mutate package-level state and
@@ -182,6 +189,7 @@ The following claim keys appear in challenge tokens and in the standard
 
 | Claim Key | Constant | Holds |
 | --- | --- | --- |
+| `chs` | (standard JWT claim) | Session choices (`claimChoices`) — `Principal.SessionChoices`, carried in refresh tokens and challenge tokens, never in access tokens; omitted when empty |
 | `atp` | `ClaimChallengeAuthType` | Login mechanism (`LoginContext.AuthType`) — the login every later step is evaluated, resolved, and audited against; a token without it is rejected |
 | `det` | (standard JWT claim) | User details (`claimDetails`) — application-defined payload, carried in both access tokens and challenge tokens |
 | `pnd` | `ClaimChallengePending` | Pending challenge types in evaluation order — the types not yet resolved, the first being the challenge presented |
@@ -212,6 +220,15 @@ in [Authentication: The login context](./authentication#the-login-context).
 `Resolve` validates the response and returns the principal the login continues
 with — `login.Principal`, or an enriched copy.
 
+A `SessionChoiceProvider` is a `ChallengeProvider` that also has
+`SessionChoice(response any) (string, bool)` and
+`ReapplyChoice(ctx, principal, choice string) (*Principal, error)`. After
+`Resolve` accepts an answer, `resolve_challenge` records what `SessionChoice`
+keeps in a copy of the principal's `SessionChoices` under the provider's type.
+`refresh` hands each recorded choice back to `ReapplyChoice` on the reloaded
+principal. For providers sharing a type, the one the login flow would find
+first re-applies it.
+
 Challenge providers are sorted by `Order()` in ascending order. The built-in
 convenience providers use `100` for TOTP, `200` for SMS, `300` for email, `400`
 for password change, and `500` for department selection. Providers that are not
@@ -226,8 +243,9 @@ challenge type or the framework returns `ErrChallengeTypeInvalid`.
 (`ExcludedAuthTypes`), and `LoginFilter.Matches(login)` reports whether a login
 passes one: within a filter an empty dimension is unconstrained, and a
 populated `AuthTypes` and `ExcludedAuthTypes` must both hold. The wrapper
-forwards `Type`, `Order`, and `Resolve` unchanged; its `Evaluate` returns nil
-unless every filter matches, and otherwise forwards the same login. `Resolve`
+forwards `Type`, `Order`, and `Resolve` unchanged, and a wrapped
+`SessionChoiceProvider` stays one, forwarding `SessionChoice` and
+`ReapplyChoice`; its `Evaluate` returns nil unless every filter matches, and otherwise forwards the same login. `Resolve`
 needs no filter of its own — the flow resolves only the challenge `Evaluate`
 presented, and a login's mechanism never changes between steps. Passing no
 filters returns the provider unchanged. When to allow-list and when to
@@ -287,7 +305,9 @@ constants are `PasswordChangeReasonFirstLogin`
 (`first_login`) and `PasswordChangeReasonExpired` (`expired`). The concrete provider type is
 `PasswordChangeChallengeProvider`.
 `NewDepartmentSelectionChallengeProvider` uses `DepartmentLoader` and
-`DepartmentSelector`; resolve expects a department ID string.
+`DepartmentSelector`; resolve expects a department ID string. It is a
+`SessionChoiceProvider`: the department ID is the session's choice, and every
+refresh selects it again through `DepartmentSelector.SelectDepartment`.
 `DepartmentLoader.LoadDepartments` returns
 `*DepartmentSelectionChallengeData` so the host controls both the selectable
 options and the challenge-scoped metadata around them. A nil return, or data
@@ -615,6 +635,12 @@ Behavior notes:
   `1004` (`ErrCodeTokenNotValidYet`).
 - The user is reloaded through `UserLoader.LoadByID(...)` so deactivated
   accounts stop refreshing; a loader error is returned to the caller as-is.
+- The session choices the refresh token carries (its `chs` claim) are then
+  re-applied through their `SessionChoiceProvider`s in login order, and the new
+  refresh token carries them again, so the department chosen at login holds for
+  the whole session. A provider's refusal is returned as-is. A choice that no
+  registered provider re-applies fails with `1003` (`ErrCodeTokenInvalid`), and
+  so does a provider answering no principal.
 - Each exchange returns a fresh pair. The presented refresh token is not
   revoked server-side — the mechanism is stateless — it simply ages out.
 - Typical failures: `1003` (malformed token, wrong `typ`, wrong subject
