@@ -7423,7 +7423,9 @@ TYPE DepartmentSelectionChallengeData : github.com/coldsmirk/vef-framework-go/se
 TYPE DepartmentSelectionChallengeProvider : github.com/coldsmirk/vef-framework-go/security.DepartmentSelectionChallengeProvider
   METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
   METHOD Order : func() int
+  METHOD ReapplyChoice : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, choice string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
   METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD SessionChoice : func(response any) (string, bool)
   METHOD Type : func() string
 TYPE DepartmentSelector : github.com/coldsmirk/vef-framework-go/security.DepartmentSelector
   METHOD SelectDepartment : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, departmentID string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
@@ -7568,6 +7570,7 @@ TYPE JWTClaimsAccessor : github.com/coldsmirk/vef-framework-go/security.JWTClaim
   METHOD Details : func() any
   METHOD ID : func() string
   METHOD Roles : func() []string
+  METHOD SessionChoices : func() map[string]string
   METHOD Subject : func() string
   METHOD Type : func() string
 TYPE JWTClaimsBuilder : github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
@@ -7581,6 +7584,7 @@ TYPE JWTClaimsBuilder : github.com/coldsmirk/vef-framework-go/security.JWTClaims
   METHOD WithDetails : func(details any) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
   METHOD WithID : func(id string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
   METHOD WithRoles : func(roles []string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
+  METHOD WithSessionChoices : func(choices map[string]string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
   METHOD WithSubject : func(subject string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
   METHOD WithType : func(typ string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder
 TYPE JWTConfig : github.com/coldsmirk/vef-framework-go/security.JWTConfig
@@ -7779,6 +7783,7 @@ TYPE Principal : github.com/coldsmirk/vef-framework-go/security.Principal
   FIELD Name : string [field_order=3 tag="json:\"name\""]
   FIELD Roles : []string [field_order=4 tag="json:\"roles\""]
   FIELD Details : any [field_order=5 tag="json:\"details\""]
+  FIELD SessionChoices : map[string]string [field_order=6 tag="json:\"sessionChoices,omitempty\""]
   METHOD AttemptUnmarshalDetails : func(details any)
   METHOD IsReserved : func() bool
   METHOD UnmarshalJSON : func(data []byte) error
@@ -7839,6 +7844,13 @@ TYPE Session : github.com/coldsmirk/vef-framework-go/security.Session
   FIELD CreatedAt : time.Time [field_order=6 tag=""]
   FIELD LastSeenAt : time.Time [field_order=7 tag=""]
   FIELD ExpiresAt : time.Time [field_order=8 tag=""]
+TYPE SessionChoiceProvider : github.com/coldsmirk/vef-framework-go/security.SessionChoiceProvider
+  METHOD Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)
+  METHOD Order : func() int
+  METHOD ReapplyChoice : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, choice string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)
+  METHOD SessionChoice : func(response any) (string, bool)
+  METHOD Type : func() string
 CONST SessionExceedEvictOldest : github.com/coldsmirk/vef-framework-go/security.SessionExceedPolicy = "evict_oldest"
 TYPE SessionExceedPolicy : github.com/coldsmirk/vef-framework-go/security.SessionExceedPolicy
 CONST SessionExceedReject : github.com/coldsmirk/vef-framework-go/security.SessionExceedPolicy = "reject"
@@ -8590,5 +8602,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.59.0"
+CONST VEFVersion : untyped string = "v0.60.0"
 ```

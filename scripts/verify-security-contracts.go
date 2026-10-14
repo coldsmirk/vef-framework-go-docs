@@ -16,12 +16,12 @@ const (
 	auditLedgerPath = "scripts/api-audit-ledger.json"
 	securityPackage = "github.com/coldsmirk/vef-framework-go/security"
 
-	securityGroupedEntryCount           = 273
-	securityGroupedFieldCount           = 124
-	securityGroupedMethodCount          = 149
-	securityGroupedReceiverCount        = 99
-	securityGroupedSignatureFingerprint = "68d6228d652e62ea06b523f0cea2393a0086a45003b68e3dd9608c5fe04afa61"
-	securityGroupedReceiverFingerprint  = "90db563959becc7c9646b60560b9dc5be236c0cdfed712f0b44567b255a1c8e5"
+	securityGroupedEntryCount           = 284
+	securityGroupedFieldCount           = 125
+	securityGroupedMethodCount          = 159
+	securityGroupedReceiverCount        = 100
+	securityGroupedSignatureFingerprint = "021cbb01baf907f2fe042bd59dcc918e0368cefaca4beeba042e0f95cedfbd27"
+	securityGroupedReceiverFingerprint  = "7eac48a6313945628c48171bab9a00b5ec65cd958faa0d08918eab00959fe626"
 )
 
 type corpus struct {

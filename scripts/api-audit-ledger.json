@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8414,
-  "fingerprint": "b3fff1ffc3dc85774c906409df434e2d8ff2c74446857fecd9cfee941d75e307",
+  "entry_count": 8426,
+  "fingerprint": "092ae6908bfc47d4888d136da3c14ad7fc52fcb29b30a0249f0eee730596fe77",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -104190,6 +104190,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#field:Principal.SessionChoices",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "field",
+      "symbol": "Principal.SessionChoices",
+      "signature": "SessionChoices : map[string]string [field_order=6 tag=\"json:\\\"sessionChoices,omitempty\\\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#field:Principal.Type",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "field",
@@ -105596,11 +105615,49 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:DepartmentSelectionChallengeProvider.ReapplyChoice",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "DepartmentSelectionChallengeProvider.ReapplyChoice",
+      "signature": "ReapplyChoice : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, choice string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#method:DepartmentSelectionChallengeProvider.Resolve",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
       "symbol": "DepartmentSelectionChallengeProvider.Resolve",
       "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:DepartmentSelectionChallengeProvider.SessionChoice",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "DepartmentSelectionChallengeProvider.SessionChoice",
+      "signature": "SessionChoice : func(response any) (string, bool)",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -105900,6 +105957,25 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:JWTClaimsAccessor.SessionChoices",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "JWTClaimsAccessor.SessionChoices",
+      "signature": "SessionChoices : func() map[string]string",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/security#method:JWTClaimsAccessor.Subject",
       "package": "github.com/coldsmirk/vef-framework-go/security",
       "kind": "method",
@@ -106114,6 +106190,25 @@
       "kind": "method",
       "symbol": "JWTClaimsBuilder.WithRoles",
       "signature": "WithRoles : func(roles []string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:JWTClaimsBuilder.WithSessionChoices",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "JWTClaimsBuilder.WithSessionChoices",
+      "signature": "WithSessionChoices : func(choices map[string]string) *github.com/coldsmirk/vef-framework-go/security.JWTClaimsBuilder",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -107482,6 +107577,120 @@
       "kind": "method",
       "symbol": "SelfDataScope.Supports",
       "signature": "Supports : func(_ *github.com/coldsmirk/vef-framework-go/security.Principal, table *github.com/coldsmirk/vef-framework-go/orm.Table) bool",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.Evaluate",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.Evaluate",
+      "signature": "Evaluate : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext) (*github.com/coldsmirk/vef-framework-go/security.LoginChallenge, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.Order",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.Order",
+      "signature": "Order : func() int",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.ReapplyChoice",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.ReapplyChoice",
+      "signature": "ReapplyChoice : func(ctx context.Context, principal *github.com/coldsmirk/vef-framework-go/security.Principal, choice string) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.Resolve",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.Resolve",
+      "signature": "Resolve : func(ctx context.Context, login *github.com/coldsmirk/vef-framework-go/security.LoginContext, response any) (*github.com/coldsmirk/vef-framework-go/security.Principal, error)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.SessionChoice",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.SessionChoice",
+      "signature": "SessionChoice : func(response any) (string, bool)",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#method:SessionChoiceProvider.Type",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "method",
+      "symbol": "SessionChoiceProvider.Type",
+      "signature": "Type : func() string",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/security/authentication.md",
@@ -113258,6 +113467,25 @@
       "kind": "top",
       "symbol": "Session",
       "signature": "Session : github.com/coldsmirk/vef-framework-go/security.Session",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/security/authentication.md",
+        "docs/security/authentication-reference.md",
+        "docs/security/authorization.md",
+        "docs/security/data-permissions.md",
+        "docs/security/login-hardening.md",
+        "docs/security/session-management.md",
+        "docs/security/password.md",
+        "docs/security/cryptox.md",
+        "docs/security/trust-login.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/security#top:SessionChoiceProvider",
+      "package": "github.com/coldsmirk/vef-framework-go/security",
+      "kind": "top",
+      "symbol": "SessionChoiceProvider",
+      "signature": "SessionChoiceProvider : github.com/coldsmirk/vef-framework-go/security.SessionChoiceProvider",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/security/authentication.md",
@@ -121501,7 +121729,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.59.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.60.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"

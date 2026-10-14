@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3300,
-  "fingerprint": "f388742903e36f8805307d2bdcd18418cb53c61f20c74bd05093b2f1d652adc8",
+  "entry_count": 3301,
+  "fingerprint": "79390fe2759ade7eeea3e9a3fd7e57806383b6f6157e5942497364e414b22f39",
   "coverage": [
     {
       "category": "API default",
@@ -78,7 +78,7 @@
     },
     {
       "category": "JSON wire field",
-      "entry_count": 1702,
+      "entry_count": 1703,
       "tier": "Tier 2 scoped DTO AST with closed-world boundary check",
       "extractor": "extractJSONFields",
       "method": "AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field.",
@@ -26173,7 +26173,7 @@
       ]
     },
     {
-      "id": "5ec6933b6b9e1a777cb40b50",
+      "id": "3de2fbc29033eb618678dcd8",
       "category": "JSON wire field",
       "name": "LoginParams.Credentials",
       "value": "credentials",
@@ -26183,7 +26183,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:125"
+        "internal/security/auth_resource.go:126"
       ],
       "terms": [
         "Go",
@@ -26200,7 +26200,7 @@
       ]
     },
     {
-      "id": "5b6da4af97c57e2f0fc7d492",
+      "id": "9d92790ac0298bf8b8083e1f",
       "category": "JSON wire field",
       "name": "LoginParams.Principal",
       "value": "principal",
@@ -26210,7 +26210,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:124"
+        "internal/security/auth_resource.go:125"
       ],
       "terms": [
         "Go",
@@ -26227,7 +26227,7 @@
       ]
     },
     {
-      "id": "426849ae2a2896a972a08714",
+      "id": "edc12b555bafe4f4cbebc5c3",
       "category": "JSON wire field",
       "name": "LoginParams.Type",
       "value": "type",
@@ -26237,7 +26237,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:123"
+        "internal/security/auth_resource.go:124"
       ],
       "terms": [
         "Go",
@@ -29367,6 +29367,31 @@
       ]
     },
     {
+      "id": "3675d8549479118fa3edb271",
+      "category": "JSON wire field",
+      "name": "Principal.SessionChoices",
+      "value": "sessionChoices",
+      "details": [
+        "Go field: Principal.SessionChoices",
+        "type: map[string]string"
+      ],
+      "source_evidence": [
+        "security/principal.go:88"
+      ],
+      "terms": [
+        "Go",
+        "JSON",
+        "Principal.SessionChoices",
+        "field",
+        "field:",
+        "map",
+        "sessionChoices",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
       "id": "917ff27d7ed15c6bc660f68f",
       "category": "JSON wire field",
       "name": "Principal.Type",
@@ -30639,7 +30664,7 @@
       ]
     },
     {
-      "id": "bfea485f96b664d10e4bbece",
+      "id": "8e5258b7af8980d328520f93",
       "category": "JSON wire field",
       "name": "RefreshParams.RefreshToken",
       "value": "refreshToken",
@@ -30649,7 +30674,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:245"
+        "internal/security/auth_resource.go:246"
       ],
       "terms": [
         "Go",
@@ -31298,7 +31323,7 @@
       ]
     },
     {
-      "id": "c7903be9f3bf9190307bd70a",
+      "id": "b1d72af4bb61910e4998ffd3",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.ChallengeToken",
       "value": "challengeToken",
@@ -31308,7 +31333,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:304"
+        "internal/security/auth_resource.go:305"
       ],
       "terms": [
         "Go",
@@ -31325,7 +31350,7 @@
       ]
     },
     {
-      "id": "c30c5b1bccb747f0efe0bb84",
+      "id": "85cd05cdf66b5ae4d09bf594",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.Response",
       "value": "response",
@@ -31335,7 +31360,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:306"
+        "internal/security/auth_resource.go:307"
       ],
       "terms": [
         "Go",
@@ -31352,7 +31377,7 @@
       ]
     },
     {
-      "id": "7d06570ff6b074d9403021f5",
+      "id": "c82338241e4115a3e389de93",
       "category": "JSON wire field",
       "name": "ResolveChallengeParams.Type",
       "value": "type",
@@ -31362,7 +31387,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:305"
+        "internal/security/auth_resource.go:306"
       ],
       "terms": [
         "Go",
@@ -44747,12 +44772,12 @@
       ]
     },
     {
-      "id": "1e1127fb7aef55c00ea7e0a2",
+      "id": "7014a2bc9ad99e437239c80b",
       "category": "auth type",
       "name": "AuthTypeRefresh",
       "value": "refresh",
       "source_evidence": [
-        "internal/security/jwt_refresh_authenticator.go:13"
+        "internal/security/jwt_refresh_authenticator.go:15"
       ],
       "terms": [
         "AuthTypeRefresh",
@@ -45002,12 +45027,12 @@
       ]
     },
     {
-      "id": "f7e1f990a48b02163cbf00ac",
+      "id": "e0598c44f27bd209ce5a9018",
       "category": "built-in resource",
       "name": "security/auth",
       "value": "rpc",
       "source_evidence": [
-        "internal/security/auth_resource.go:96"
+        "internal/security/auth_resource.go:97"
       ],
       "terms": [
         "built-in",
@@ -56788,7 +56813,7 @@
       ]
     },
     {
-      "id": "8281dd7e8d1d841fba61449d",
+      "id": "6d458856f59921535daebedd",
       "category": "i18n message key",
       "name": "auth_challenge_response",
       "value": "auth_challenge_response",
@@ -56796,7 +56821,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:306"
+        "internal/security/auth_resource.go:307"
       ],
       "terms": [
         "auth_challenge_response",
@@ -56809,7 +56834,7 @@
       ]
     },
     {
-      "id": "cb24807c0331f959f7004aa3",
+      "id": "6e5d266131241552840360bc",
       "category": "i18n message key",
       "name": "auth_challenge_token",
       "value": "auth_challenge_token",
@@ -56817,7 +56842,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:304"
+        "internal/security/auth_resource.go:305"
       ],
       "terms": [
         "auth_challenge_token",
@@ -56830,7 +56855,7 @@
       ]
     },
     {
-      "id": "36603d03c273eecdda915e71",
+      "id": "53b8f5d2f09b128515f6b070",
       "category": "i18n message key",
       "name": "auth_challenge_type",
       "value": "auth_challenge_type",
@@ -56838,7 +56863,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:305"
+        "internal/security/auth_resource.go:306"
       ],
       "terms": [
         "auth_challenge_type",
@@ -56851,7 +56876,7 @@
       ]
     },
     {
-      "id": "cc99323c7135dd4b0b16e70b",
+      "id": "3fa300ed26c44301a56befb0",
       "category": "i18n message key",
       "name": "auth_credentials",
       "value": "auth_credentials",
@@ -56859,7 +56884,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:125"
+        "internal/security/auth_resource.go:126"
       ],
       "terms": [
         "auth_credentials",
@@ -56872,7 +56897,7 @@
       ]
     },
     {
-      "id": "1884aa30a3aebab7deb30f8b",
+      "id": "2a64c9c4de1c23d98781c414",
       "category": "i18n message key",
       "name": "auth_principal",
       "value": "auth_principal",
@@ -56880,7 +56905,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:124"
+        "internal/security/auth_resource.go:125"
       ],
       "terms": [
         "auth_principal",
@@ -56893,7 +56918,7 @@
       ]
     },
     {
-      "id": "5076f55c6e2842793dbada1b",
+      "id": "e6837a6ce1c85dd86d5f4a09",
       "category": "i18n message key",
       "name": "auth_refresh_token",
       "value": "auth_refresh_token",
@@ -56901,7 +56926,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:245"
+        "internal/security/auth_resource.go:246"
       ],
       "terms": [
         "auth_refresh_token",
@@ -56914,7 +56939,7 @@
       ]
     },
     {
-      "id": "8a0514675affc7002c9145f1",
+      "id": "e7de6d3441c20fb76bf130aa",
       "category": "i18n message key",
       "name": "auth_type",
       "value": "auth_type",
@@ -56922,7 +56947,7 @@
         "label_i18n struct tag"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:123"
+        "internal/security/auth_resource.go:124"
       ],
       "terms": [
         "auth_type",
@@ -59458,7 +59483,7 @@
       ]
     },
     {
-      "id": "a775fc1cf3fd059bfd4e5a5f",
+      "id": "19a2c505b64a5f2676a24f67",
       "category": "i18n message key",
       "name": "security_user_info_loader_not_implemented",
       "value": "security_user_info_loader_not_implemented",
@@ -59466,7 +59491,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/auth_resource.go:406"
+        "internal/security/auth_resource.go:431"
       ],
       "terms": [
         "call",
@@ -59498,7 +59523,7 @@
       ]
     },
     {
-      "id": "bfdaf4e8afdee9d0692407a2",
+      "id": "8dab5ae2e53104b97ffda338",
       "category": "i18n message key",
       "name": "security_user_loader_not_implemented",
       "value": "security_user_loader_not_implemented",
@@ -59506,7 +59531,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/security/jwt_refresh_authenticator.go:34"
+        "internal/security/jwt_refresh_authenticator.go:81"
       ],
       "terms": [
         "call",

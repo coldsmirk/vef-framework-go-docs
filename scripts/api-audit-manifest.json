@@ -830,10 +830,10 @@
         "docs/security/trust-login.md"
       ],
       "notes": "Authentication, JWT, signature, challenge, RBAC, data-scope, principal, event, and error APIs.",
-      "top_level": 330,
-      "fields": 124,
-      "methods": 149,
-      "fingerprint": "eb0e33f5dde4e1d739c60daf7d21bbfb3803ca7d4c935001ef56d9dac77794df"
+      "top_level": 331,
+      "fields": 125,
+      "methods": 159,
+      "fingerprint": "98dfde8e2db88780d6b720abb4f339afd1220883dd57c3cc195b75edb8e578b3"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/sequence",
@@ -944,7 +944,7 @@
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "ecd1fa5db6bdc2f2d0216a2cec434c840057d937d5ee5e3cdba03649fb55b02d"
+      "fingerprint": "88501367df0905a27a3ac37ec621492db9bc1cab887c40f14da89be3bd7242a0"
     }
   ]
 }

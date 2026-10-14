@@ -261,7 +261,7 @@ every drift.
 
 ```json
 {
-  "framework": "v0.59.0",
+  "framework": "v0.60.0",
   "resources": [
     {
       "name": "security/auth",
