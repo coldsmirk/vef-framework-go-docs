@@ -309,7 +309,7 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
   静态来源无论是内联配置在字段上，还是通过表单全局的 `ref` 引用到的，都会被
   枚举出来。
 - `optionSource`（`*FieldOptionSource`）——选项**无法**被枚举，投影于是输出
-  消费方自行拉取所需的描述符。只有远程来源会走到这个形状。
+  消费方自行拉取所需的描述符。远程来源和数据字典（code set）会走到这个形状。
 
 两者都没有的字段就是自由输入：没有任何东西约束它的取值。
 
@@ -321,9 +321,10 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `kind` | `OptionSourceKind` | 来源分类；目前只会输出 `OptionSourceRemote`（`remote`） |
-| `request` | `*RemoteOptionRequest` | 返回选项记录的那个操作 |
+| `kind` | `OptionSourceKind` | 来源分类：`OptionSourceRemote`（`remote`）或 `OptionSourceCodeSet`（`codeSet`） |
+| `request` | `*RemoteOptionRequest` | 远程来源返回选项记录的那个操作 |
 | `mapping` | `*RemoteOptionMapping` | 如何从每条记录里读出 label 和 value；`nil` 表示用默认值 |
+| `codeSet` | `string` | 数据字典来源对应的宿主字典——即 `mold.CodeSetLoader` 加载的那个 code set |
 
 设计器自身的来源联合类型还有 `static` 和 `ref`，但两者都活不过投影，所以
 `OptionSourceKind` 的词汇表刻意比设计器的更窄。
@@ -334,15 +335,24 @@ schema 也会执行这个大小限制。有 schema 时，额外的表单 key 会
 `valueKey`（默认 `value`）、`disabledKey` 和 `descriptionKey`；留空的条目回落到
 各自的默认值。
 
-**框架从不解析选项来源**：表单数据校验只读 `options`，而没有 options 的
-`select` 字段接受任意提交值——所以 `optionSource` 在服务端不约束任何东西。它的
-存在是为了那些必须把**已存储的值**渲染成 label 的消费方：业务列表页展示一个存下来
-的 select 值时需要的是 label 而不是原始编码，而静态那一半早就由 `options` 覆盖了。
+**框架从不解析远程来源**：表单数据校验只读 `options`，而没有 options 的
+`select` 字段接受任意提交值——所以远程的 `optionSource` 在服务端不约束任何东西。
+它的存在是为了那些必须把**已存储的值**渲染成 label 的消费方：业务列表页展示一个
+存下来的 select 值时需要的是 label 而不是原始编码，而静态那一半早就由 `options`
+覆盖了。
+
+**数据字典会被校验**：宿主注册了 `mold.CodeSetLoader` 时，`codeSet` 字段提交的值
+必须是该字典里的编码——多选的每一项、明细表格列的每个单元格都一样。校验在发起、
+重新提交和审批人修改表单时进行，排在结构校验之后；字典之外的值会被拒绝，错误与
+静态选项不匹配时相同（表单校验失败，`40401`）。每次提交中每个字典只加载一次，直接
+走加载器：mold 模块里带缓存的 `CodeSetResolver` 作用域限于该模块，审批模块拿不到。
+没有加载器的宿主会像远程来源一样接受任意值；加载器出错则提交失败。消费方渲染已存储
+的值时，一个字典查一次就能翻译整列——数据字典没有参数。
 
 部署校验同样覆盖选项来源，顶层字段和明细表格列一视同仁：`kind` 不在词汇表内的
-`optionSource`，或者 `request` 缺失、`resource` / `action` 为空白的远程来源，都会
-让部署失败。这两种情况在别处都不会失败——框架从不解析来源——于是版本会干干净净地
-部署上去，然后在每一个回放它的消费方那里渲染成原始值。
+`optionSource`、`request` 缺失或 `resource` / `action` 为空白的远程来源，以及没有
+指定字典的数据字典来源，都会让部署失败。这些情况在别处都不会失败，于是版本会干干净净
+地部署上去，然后在每一个回放它的消费方那里渲染成原始值——数据字典则是没有任何选项。
 
 明细表格的列自带这一份：`columns` 里的条目本身就是完整的 `FormFieldDefinition`，
 所以 `table` 字段内部的 `select` 列拥有和顶层字段一样的 `options` /
@@ -563,7 +573,7 @@ func valueKey(mapping *approval.RemoteOptionMapping) string {
 | `FieldKind` | `input`、`textarea`、`select`、`number`、`date`、`upload`、`table` |
 | `ColumnDataType` | `string`、`text`、`integer`、`decimal`、`boolean`、`date`、`datetime`、`json` |
 | `Permission` | `visible`、`editable`、`hidden`、`required` |
-| `OptionSourceKind` | `remote` |
+| `OptionSourceKind` | `remote`、`codeSet` |
 | `DynamicParamKind` | `literal`、`expression` |
 
 ---

@@ -356,7 +356,8 @@ both:
   configured inline on the field or reached through a form-global `ref`.
 - `optionSource` (`*FieldOptionSource`) — the options could **not** be
   enumerated, so the projection emits the descriptor a consumer needs to fetch
-  them itself. Only remote sources reach this shape.
+  them itself. Remote sources and data dictionaries (code sets) reach this
+  shape.
 
 A field with neither is free-form: nothing constrains its value.
 
@@ -369,9 +370,10 @@ nor `optionSource` — exactly like a field with no source at all.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `kind` | `OptionSourceKind` | classifies the source; `OptionSourceRemote` (`remote`) is the only value emitted |
-| `request` | `*RemoteOptionRequest` | the operation returning the option records |
+| `kind` | `OptionSourceKind` | classifies the source: `OptionSourceRemote` (`remote`) or `OptionSourceCodeSet` (`codeSet`) |
+| `request` | `*RemoteOptionRequest` | a remote source's operation returning the option records |
 | `mapping` | `*RemoteOptionMapping` | how to read a label and a value out of each record; `nil` means the defaults |
+| `codeSet` | `string` | a code set source's host data dictionary — the code set a `mold.CodeSetLoader` loads |
 
 The designer's own source union also has `static` and `ref`, but neither
 survives projection, so `OptionSourceKind` is deliberately narrower than it.
@@ -382,19 +384,32 @@ default), and `params`. `RemoteOptionMapping` names the record keys —
 `labelKey` (default `label`), `valueKey` (default `value`), `disabledKey`, and
 `descriptionKey`; an empty entry falls back to its default.
 
-**The framework never resolves an option source.** Form-data validation reads
+**The framework never resolves a remote source.** Form-data validation reads
 `options` only, and a `select` field with no options accepts any submitted
-value — so an `optionSource` constrains nothing on the server. It exists for
-consumers that must render a *stored* value as its label: a business list view
-showing a stored select value needs the label, not the raw code, and the static
-case was already covered by `options`.
+value — so a remote `optionSource` constrains nothing on the server. It exists
+for consumers that must render a *stored* value as its label: a business list
+view showing a stored select value needs the label, not the raw code, and the
+static case was already covered by `options`.
+
+**A code set is checked.** When the host registers a `mold.CodeSetLoader`, a
+submitted value of a `codeSet` field must be one of its dictionary's codes —
+every item of a multiple selection, and every cell of a detail-table column.
+The check runs on start, on resubmit, and on an approver's form edit, after the
+structural validation, and rejects a value outside the dictionary with the same
+form validation error (`40401`) an unknown static option gets. Each dictionary
+is loaded once per submission, through the loader itself: the mold module's
+cached `CodeSetResolver` is scoped to that module and is not visible to
+approval. A host with no loader accepts any value, as for a remote source; a
+loader that fails fails the submission. A consumer rendering a stored value
+translates it with one dictionary lookup for the whole column — a code set has
+no parameters.
 
 Deploy validation covers option sources at the top level and inside a detail
-table alike: an `optionSource` whose `kind` is outside the vocabulary, or a
-remote one whose `request` is absent or names a blank `resource` / `action`,
-fails the deploy. Neither would fail anywhere else — the framework never
-resolves the source — so the version would deploy cleanly and then render as a
-raw value in every consumer that replayed it.
+table alike: an `optionSource` whose `kind` is outside the vocabulary, a remote
+one whose `request` is absent or names a blank `resource` / `action`, or a code
+set one naming no dictionary fails the deploy. None would fail anywhere else,
+so the version would deploy cleanly and then render as a raw value — or, for a
+code set, offer no options — in every consumer that replayed it.
 
 Detail-table columns carry their own: `columns` entries are full
 `FormFieldDefinition` values, so a `select` column inside a `table` field has
@@ -635,7 +650,7 @@ Additional flow-designer enums:
 | `FieldKind` | `input`, `textarea`, `select`, `number`, `date`, `upload`, `table` |
 | `ColumnDataType` | `string`, `text`, `integer`, `decimal`, `boolean`, `date`, `datetime`, `json` |
 | `Permission` | `visible`, `editable`, `hidden`, `required` |
-| `OptionSourceKind` | `remote` |
+| `OptionSourceKind` | `remote`, `codeSet` |
 | `DynamicParamKind` | `literal`, `expression` |
 
 ---
