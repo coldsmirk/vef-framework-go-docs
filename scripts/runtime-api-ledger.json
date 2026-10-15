@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3294,
-  "fingerprint": "4c4a28ba241eb84ff99cade9e9694c51230b4ac91ff39fb7946cbf40bffebe05",
+  "entry_count": 3300,
+  "fingerprint": "ad4ad8b60319b99bcd9e8a041b871671bf0b741e055b0720e6883ed202ec43d4",
   "coverage": [
     {
       "category": "API default",
@@ -78,7 +78,7 @@
     },
     {
       "category": "JSON wire field",
-      "entry_count": 1694,
+      "entry_count": 1696,
       "tier": "Tier 2 scoped DTO AST with closed-world boundary check",
       "extractor": "extractJSONFields",
       "method": "AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field.",
@@ -230,7 +230,7 @@
     },
     {
       "category": "i18n message key",
-      "entry_count": 286,
+      "entry_count": 289,
       "tier": "Tier 2 AST call/tag scan",
       "extractor": "extractI18NMessageKeys",
       "method": "AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags.",
@@ -278,7 +278,7 @@
     },
     {
       "category": "runtime enum value",
-      "entry_count": 382,
+      "entry_count": 383,
       "tier": "Tier 2 typed string constants",
       "extractor": "extractRuntimeEnumValues",
       "method": "AST scan of typed string constants in public packages plus runtime internal DTO/transport packages.",
@@ -13587,7 +13587,7 @@
       ]
     },
     {
-      "id": "60b672e845e3b516cf2420a0",
+      "id": "78afa8e1adaeca8067bded39",
       "category": "JSON wire field",
       "name": "DynamicParam.Kind",
       "value": "kind",
@@ -13596,7 +13596,7 @@
         "type: DynamicParamKind"
       ],
       "source_evidence": [
-        "approval/form_field.go:115"
+        "approval/form_field.go:122"
       ],
       "terms": [
         "DynamicParam.Kind",
@@ -13611,7 +13611,7 @@
       ]
     },
     {
-      "id": "c17e82544bc2ff302b75a2ff",
+      "id": "9fd339a27780200e9ea78f6c",
       "category": "JSON wire field",
       "name": "DynamicParam.Source",
       "value": "source",
@@ -13620,7 +13620,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:122"
+        "approval/form_field.go:129"
       ],
       "terms": [
         "DynamicParam.Source",
@@ -13635,7 +13635,7 @@
       ]
     },
     {
-      "id": "961a2e07f855a0503682d497",
+      "id": "8dae4ea3f5451cd4fef61c9e",
       "category": "JSON wire field",
       "name": "DynamicParam.Value",
       "value": "value",
@@ -13644,7 +13644,7 @@
         "type: any"
       ],
       "source_evidence": [
-        "approval/form_field.go:119"
+        "approval/form_field.go:126"
       ],
       "terms": [
         "DynamicParam.Value",
@@ -13877,7 +13877,7 @@
       ]
     },
     {
-      "id": "e0822879119f81996cddaf3b",
+      "id": "01074cb71a3a3d89b47d0885",
       "category": "JSON wire field",
       "name": "FieldOption.Label",
       "value": "label",
@@ -13886,7 +13886,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:51"
+        "approval/form_field.go:53"
       ],
       "terms": [
         "FieldOption.Label",
@@ -13901,7 +13901,7 @@
       ]
     },
     {
-      "id": "aefc2fb5dca7f816567c36de",
+      "id": "9d6c72d3db427904f0bcfeb4",
       "category": "JSON wire field",
       "name": "FieldOption.Value",
       "value": "value",
@@ -13910,7 +13910,7 @@
         "type: any"
       ],
       "source_evidence": [
-        "approval/form_field.go:52"
+        "approval/form_field.go:54"
       ],
       "terms": [
         "FieldOption.Value",
@@ -13925,7 +13925,31 @@
       ]
     },
     {
-      "id": "2f1c3f9d1beec9e46caf2928",
+      "id": "953cfaa8d5df5bdb365b840a",
+      "category": "JSON wire field",
+      "name": "FieldOptionSource.CodeSet",
+      "value": "codeSet",
+      "details": [
+        "Go field: FieldOptionSource.CodeSet",
+        "type: string"
+      ],
+      "source_evidence": [
+        "approval/form_field.go:74"
+      ],
+      "terms": [
+        "FieldOptionSource.CodeSet",
+        "Go",
+        "JSON",
+        "codeSet",
+        "field",
+        "field:",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "f62b07787937709e22289549",
       "category": "JSON wire field",
       "name": "FieldOptionSource.Kind",
       "value": "kind",
@@ -13934,7 +13958,7 @@
         "type: OptionSourceKind"
       ],
       "source_evidence": [
-        "approval/form_field.go:60"
+        "approval/form_field.go:62"
       ],
       "terms": [
         "FieldOptionSource.Kind",
@@ -13949,7 +13973,7 @@
       ]
     },
     {
-      "id": "5c1b3b0ce3fd05db7ca7f065",
+      "id": "406dc5362c6947ce07d29096",
       "category": "JSON wire field",
       "name": "FieldOptionSource.Mapping",
       "value": "mapping",
@@ -13958,7 +13982,7 @@
         "type: *RemoteOptionMapping"
       ],
       "source_evidence": [
-        "approval/form_field.go:67"
+        "approval/form_field.go:70"
       ],
       "terms": [
         "FieldOptionSource.Mapping",
@@ -13973,7 +13997,7 @@
       ]
     },
     {
-      "id": "dd247790350f66c2a7942584",
+      "id": "627048f7994948a1250f76e5",
       "category": "JSON wire field",
       "name": "FieldOptionSource.Request",
       "value": "request",
@@ -13982,7 +14006,7 @@
         "type: *RemoteOptionRequest"
       ],
       "source_evidence": [
-        "approval/form_field.go:64"
+        "approval/form_field.go:67"
       ],
       "terms": [
         "FieldOptionSource.Request",
@@ -18688,7 +18712,7 @@
       ]
     },
     {
-      "id": "4b8a0ff03e6db6b433895d47",
+      "id": "82a3fd4ede63c43533555b43",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.ColumnType",
       "value": "columnType",
@@ -18697,7 +18721,7 @@
         "type: ColumnDataType"
       ],
       "source_evidence": [
-        "approval/form_field.go:36"
+        "approval/form_field.go:38"
       ],
       "terms": [
         "ColumnDataType",
@@ -18712,7 +18736,7 @@
       ]
     },
     {
-      "id": "46a73bf43c59813c7d9a7002",
+      "id": "1412732700e7134fb2e4e8cd",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.Columns",
       "value": "columns",
@@ -18721,7 +18745,7 @@
         "type: []FormFieldDefinition"
       ],
       "source_evidence": [
-        "approval/form_field.go:46"
+        "approval/form_field.go:48"
       ],
       "terms": [
         "FormFieldDefinition",
@@ -18856,7 +18880,7 @@
       ]
     },
     {
-      "id": "0ac231b265da53cb77af7e73",
+      "id": "31417cdb71e8fcb0636f7321",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.OptionSource",
       "value": "optionSource",
@@ -18865,7 +18889,7 @@
         "type: *FieldOptionSource"
       ],
       "source_evidence": [
-        "approval/form_field.go:26"
+        "approval/form_field.go:28"
       ],
       "terms": [
         "FieldOptionSource",
@@ -18928,7 +18952,7 @@
       ]
     },
     {
-      "id": "15efb8e51481132f6df3ea8b",
+      "id": "5934448178e239c68a63558b",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.Props",
       "value": "props",
@@ -18937,7 +18961,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "approval/form_field.go:30"
+        "approval/form_field.go:32"
       ],
       "terms": [
         "FormFieldDefinition.Props",
@@ -18954,7 +18978,7 @@
       ]
     },
     {
-      "id": "913b2a2303fdb52a9ce22987",
+      "id": "73a151178080eb9eecc1031e",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.Scale",
       "value": "scale",
@@ -18963,7 +18987,7 @@
         "type: *int"
       ],
       "source_evidence": [
-        "approval/form_field.go:39"
+        "approval/form_field.go:41"
       ],
       "terms": [
         "FormFieldDefinition.Scale",
@@ -18978,7 +19002,7 @@
       ]
     },
     {
-      "id": "d21bfda434d4721e2900c01d",
+      "id": "e5b07af93dbf0f5c100476ba",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.SortOrder",
       "value": "sortOrder",
@@ -18987,7 +19011,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/form_field.go:32"
+        "approval/form_field.go:34"
       ],
       "terms": [
         "FormFieldDefinition.SortOrder",
@@ -19002,7 +19026,7 @@
       ]
     },
     {
-      "id": "f3e3195d16a9aa71854d054e",
+      "id": "c8fbd383f17dc503e4884bd5",
       "category": "JSON wire field",
       "name": "FormFieldDefinition.Validation",
       "value": "validation",
@@ -19011,7 +19035,7 @@
         "type: *ValidationRule"
       ],
       "source_evidence": [
-        "approval/form_field.go:28"
+        "approval/form_field.go:30"
       ],
       "terms": [
         "FormFieldDefinition.Validation",
@@ -30502,7 +30526,7 @@
       ]
     },
     {
-      "id": "e09efa8d308141b7f2883acb",
+      "id": "13ca5bd12e811536ea1b2453",
       "category": "JSON wire field",
       "name": "RemoteOptionMapping.DescriptionKey",
       "value": "descriptionKey",
@@ -30511,7 +30535,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:136"
+        "approval/form_field.go:143"
       ],
       "terms": [
         "Go",
@@ -30526,7 +30550,7 @@
       ]
     },
     {
-      "id": "2ecaa3d440bcae8e1e3e6970",
+      "id": "4ceef1ab355e2353dc7b1050",
       "category": "JSON wire field",
       "name": "RemoteOptionMapping.DisabledKey",
       "value": "disabledKey",
@@ -30535,7 +30559,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:134"
+        "approval/form_field.go:141"
       ],
       "terms": [
         "Go",
@@ -30550,7 +30574,7 @@
       ]
     },
     {
-      "id": "f742402302f7cb51ae0f2d27",
+      "id": "4f895918c762edf6c4fbfa5b",
       "category": "JSON wire field",
       "name": "RemoteOptionMapping.LabelKey",
       "value": "labelKey",
@@ -30559,7 +30583,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:130"
+        "approval/form_field.go:137"
       ],
       "terms": [
         "Go",
@@ -30574,7 +30598,7 @@
       ]
     },
     {
-      "id": "98542cad9c25489ca8567fc4",
+      "id": "3eaf1bf7afeb31a4552a250a",
       "category": "JSON wire field",
       "name": "RemoteOptionMapping.ValueKey",
       "value": "valueKey",
@@ -30583,7 +30607,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:132"
+        "approval/form_field.go:139"
       ],
       "terms": [
         "Go",
@@ -30598,7 +30622,7 @@
       ]
     },
     {
-      "id": "571279104e3a5e9c71491ce3",
+      "id": "b5d410f74b2ec4dd072bd3c8",
       "category": "JSON wire field",
       "name": "RemoteOptionRequest.Action",
       "value": "action",
@@ -30607,7 +30631,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:81"
+        "approval/form_field.go:88"
       ],
       "terms": [
         "Go",
@@ -30622,7 +30646,7 @@
       ]
     },
     {
-      "id": "af4c4077c7fe23ce971a771c",
+      "id": "af6ba1411ba8e27a73138598",
       "category": "JSON wire field",
       "name": "RemoteOptionRequest.Params",
       "value": "params",
@@ -30631,7 +30655,7 @@
         "type: map[string]DynamicParam"
       ],
       "source_evidence": [
-        "approval/form_field.go:89"
+        "approval/form_field.go:96"
       ],
       "terms": [
         "DynamicParam",
@@ -30648,7 +30672,7 @@
       ]
     },
     {
-      "id": "87052da1e172689ab05fb0f7",
+      "id": "6124e5ca0f962f36fd2a4960",
       "category": "JSON wire field",
       "name": "RemoteOptionRequest.Resource",
       "value": "resource",
@@ -30657,7 +30681,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:79"
+        "approval/form_field.go:86"
       ],
       "terms": [
         "Go",
@@ -30672,7 +30696,7 @@
       ]
     },
     {
-      "id": "6a53bbf0b9562a9697adcf5e",
+      "id": "4d5d019ab26b0b4b3859d7cd",
       "category": "JSON wire field",
       "name": "RemoteOptionRequest.Version",
       "value": "version",
@@ -30681,7 +30705,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:83"
+        "approval/form_field.go:90"
       ],
       "terms": [
         "Go",
@@ -40386,7 +40410,7 @@
       ]
     },
     {
-      "id": "c70c5c4feb70b506fb21ff28",
+      "id": "c90edeb445452e2c2334c8dd",
       "category": "JSON wire field",
       "name": "ValidationRule.Max",
       "value": "max",
@@ -40395,7 +40419,7 @@
         "type: *float64"
       ],
       "source_evidence": [
-        "approval/form_field.go:144"
+        "approval/form_field.go:151"
       ],
       "terms": [
         "Go",
@@ -40410,7 +40434,7 @@
       ]
     },
     {
-      "id": "fc0b56af5c21c19718dab35c",
+      "id": "84e0be95c61ff52c1689a0c6",
       "category": "JSON wire field",
       "name": "ValidationRule.MaxLength",
       "value": "maxLength",
@@ -40419,7 +40443,7 @@
         "type: *int"
       ],
       "source_evidence": [
-        "approval/form_field.go:142"
+        "approval/form_field.go:149"
       ],
       "terms": [
         "Go",
@@ -40434,7 +40458,7 @@
       ]
     },
     {
-      "id": "2ba69745c95e725914116b0b",
+      "id": "f6a5790fe950e76f350a288c",
       "category": "JSON wire field",
       "name": "ValidationRule.Message",
       "value": "message",
@@ -40443,7 +40467,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:146"
+        "approval/form_field.go:153"
       ],
       "terms": [
         "Go",
@@ -40458,7 +40482,7 @@
       ]
     },
     {
-      "id": "b3aca1389658a174f0528073",
+      "id": "44f0ed823151531224ca2d30",
       "category": "JSON wire field",
       "name": "ValidationRule.Min",
       "value": "min",
@@ -40467,7 +40491,7 @@
         "type: *float64"
       ],
       "source_evidence": [
-        "approval/form_field.go:143"
+        "approval/form_field.go:150"
       ],
       "terms": [
         "Go",
@@ -40482,7 +40506,7 @@
       ]
     },
     {
-      "id": "f505b0b31f32e1154a50b2cf",
+      "id": "7320c169caefd8e2068598b1",
       "category": "JSON wire field",
       "name": "ValidationRule.MinLength",
       "value": "minLength",
@@ -40491,7 +40515,7 @@
         "type: *int"
       ],
       "source_evidence": [
-        "approval/form_field.go:141"
+        "approval/form_field.go:148"
       ],
       "terms": [
         "Go",
@@ -40506,7 +40530,7 @@
       ]
     },
     {
-      "id": "5f201a434f991ae831b06fc3",
+      "id": "b249263d80a2dddf2b8deb73",
       "category": "JSON wire field",
       "name": "ValidationRule.Pattern",
       "value": "pattern",
@@ -40515,7 +40539,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/form_field.go:145"
+        "approval/form_field.go:152"
       ],
       "terms": [
         "Go",
@@ -43019,7 +43043,7 @@
       ]
     },
     {
-      "id": "e1db507e26d95ffa3cb2d761",
+      "id": "f04a15ae687375e1e4dc0024",
       "category": "JSON wire field",
       "name": "richDataSource.ID",
       "value": "id",
@@ -43028,7 +43052,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:98"
+        "internal/approval/formeditor/schema.go:100"
       ],
       "terms": [
         "Go",
@@ -43043,7 +43067,7 @@
       ]
     },
     {
-      "id": "82a6167fd4e1a24597c3b284",
+      "id": "1f99c4c6dc60fdd90a04ea69",
       "category": "JSON wire field",
       "name": "richDataSource.Kind",
       "value": "kind",
@@ -43052,7 +43076,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:99"
+        "internal/approval/formeditor/schema.go:101"
       ],
       "terms": [
         "Go",
@@ -43067,7 +43091,7 @@
       ]
     },
     {
-      "id": "c3ddba321a58d72f6e606691",
+      "id": "39e7f1c8e6b3c1e41dc8daae",
       "category": "JSON wire field",
       "name": "richDataSource.Mapping",
       "value": "mapping",
@@ -43076,7 +43100,7 @@
         "type: *approval.RemoteOptionMapping"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:102"
+        "internal/approval/formeditor/schema.go:104"
       ],
       "terms": [
         "Go",
@@ -43091,7 +43115,7 @@
       ]
     },
     {
-      "id": "63b2dfd1d4a0db28fb6bef72",
+      "id": "e08987b460da13e901bbcac4",
       "category": "JSON wire field",
       "name": "richDataSource.Options",
       "value": "options",
@@ -43100,7 +43124,7 @@
         "type: []approval.FieldOption"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:100"
+        "internal/approval/formeditor/schema.go:102"
       ],
       "terms": [
         "Go",
@@ -43115,7 +43139,7 @@
       ]
     },
     {
-      "id": "58d9744f468edc1502292b4c",
+      "id": "87db7f25f250c3e5d6d7ed6b",
       "category": "JSON wire field",
       "name": "richDataSource.Request",
       "value": "request",
@@ -43124,7 +43148,7 @@
         "type: *approval.RemoteOptionRequest"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:101"
+        "internal/approval/formeditor/schema.go:103"
       ],
       "terms": [
         "Go",
@@ -43163,7 +43187,31 @@
       ]
     },
     {
-      "id": "97de420aae15ad05f3ff45f7",
+      "id": "456b7f7e4cf4ca2be4264515",
+      "category": "JSON wire field",
+      "name": "richOptionSource.CodeSet",
+      "value": "codeSet",
+      "details": [
+        "Go field: richOptionSource.CodeSet",
+        "type: string"
+      ],
+      "source_evidence": [
+        "internal/approval/formeditor/schema.go:91"
+      ],
+      "terms": [
+        "Go",
+        "JSON",
+        "codeSet",
+        "field",
+        "field:",
+        "richOptionSource.CodeSet",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "d8959cfd3b99c4196e69771d",
       "category": "JSON wire field",
       "name": "richOptionSource.DataSourceID",
       "value": "dataSourceId",
@@ -43172,7 +43220,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:87"
+        "internal/approval/formeditor/schema.go:88"
       ],
       "terms": [
         "Go",
@@ -43187,7 +43235,7 @@
       ]
     },
     {
-      "id": "98167fa6f068a39b786e2619",
+      "id": "9e468247739aaddfb032c5e7",
       "category": "JSON wire field",
       "name": "richOptionSource.Kind",
       "value": "kind",
@@ -43196,7 +43244,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:85"
+        "internal/approval/formeditor/schema.go:86"
       ],
       "terms": [
         "Go",
@@ -43211,7 +43259,7 @@
       ]
     },
     {
-      "id": "87938c85e6b6e889b93039d3",
+      "id": "c2572ce2a1a8c95a86e62978",
       "category": "JSON wire field",
       "name": "richOptionSource.Mapping",
       "value": "mapping",
@@ -43220,7 +43268,7 @@
         "type: *approval.RemoteOptionMapping"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:89"
+        "internal/approval/formeditor/schema.go:90"
       ],
       "terms": [
         "Go",
@@ -43235,7 +43283,7 @@
       ]
     },
     {
-      "id": "df541d641bfd310dbe75f8a5",
+      "id": "df7bd72b12c31bc126c53287",
       "category": "JSON wire field",
       "name": "richOptionSource.Options",
       "value": "options",
@@ -43244,7 +43292,7 @@
         "type: []approval.FieldOption"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:86"
+        "internal/approval/formeditor/schema.go:87"
       ],
       "terms": [
         "Go",
@@ -43259,7 +43307,7 @@
       ]
     },
     {
-      "id": "d2983eeb08fdc6fd08634ee4",
+      "id": "ddb67c7a5d894eac0978b667",
       "category": "JSON wire field",
       "name": "richOptionSource.Request",
       "value": "request",
@@ -43268,7 +43316,7 @@
         "type: *approval.RemoteOptionRequest"
       ],
       "source_evidence": [
-        "internal/approval/formeditor/schema.go:88"
+        "internal/approval/formeditor/schema.go:89"
       ],
       "terms": [
         "Go",
@@ -55100,7 +55148,7 @@
       ]
     },
     {
-      "id": "1fa24a0caa3f2e0f60b12fb9",
+      "id": "32fb1e0a0e0c74cb888e77a8",
       "category": "i18n message key",
       "name": "approval_form_field_empty",
       "value": "approval_form_field_empty",
@@ -55108,7 +55156,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:491"
+        "internal/approval/service/validation.go:512"
       ],
       "terms": [
         "approval_form_field_empty",
@@ -55120,7 +55168,7 @@
       ]
     },
     {
-      "id": "9ffd7319756164d7267a87cb",
+      "id": "ad411a57e5cf83d0157edd5a",
       "category": "i18n message key",
       "name": "approval_form_field_empty",
       "value": "approval_form_field_empty",
@@ -55128,7 +55176,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:484"
+        "internal/approval/service/validation.go:505"
       ],
       "terms": [
         "approval_form_field_empty",
@@ -55140,7 +55188,7 @@
       ]
     },
     {
-      "id": "9357416a2bf29052bbc7a4f3",
+      "id": "1ad2c61818e19c34d8d9fc79",
       "category": "i18n message key",
       "name": "approval_form_field_invalid_file_item",
       "value": "approval_form_field_invalid_file_item",
@@ -55148,7 +55196,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:504"
+        "internal/approval/service/validation.go:518"
       ],
       "terms": [
         "approval_form_field_invalid_file_item",
@@ -55160,7 +55208,7 @@
       ]
     },
     {
-      "id": "538880cdf44dd78ba6ac51da",
+      "id": "8deabf685cd49e0de1a01656",
       "category": "i18n message key",
       "name": "approval_form_field_invalid_validation",
       "value": "approval_form_field_invalid_validation",
@@ -55168,7 +55216,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:440"
+        "internal/approval/service/validation.go:454"
       ],
       "terms": [
         "approval_form_field_invalid_validation",
@@ -55180,7 +55228,7 @@
       ]
     },
     {
-      "id": "e5abde73ddedc55bbb794025",
+      "id": "474a88180e8829af1517e2ec",
       "category": "i18n message key",
       "name": "approval_form_field_invalid_value",
       "value": "approval_form_field_invalid_value",
@@ -55188,7 +55236,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:527"
+        "internal/approval/service/validation.go:541"
       ],
       "terms": [
         "approval_form_field_invalid_value",
@@ -55200,7 +55248,47 @@
       ]
     },
     {
-      "id": "dd6811de04254e6aac147cc2",
+      "id": "6a6d13486388c06793a4a22c",
+      "category": "i18n message key",
+      "name": "approval_form_field_invalid_value",
+      "value": "approval_form_field_invalid_value",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "internal/approval/service/code_set_validation.go:86"
+      ],
+      "terms": [
+        "approval_form_field_invalid_value",
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message"
+      ]
+    },
+    {
+      "id": "c6c275674e16585b03224a53",
+      "category": "i18n message key",
+      "name": "approval_form_field_invalid_value",
+      "value": "approval_form_field_invalid_value",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "internal/approval/service/code_set_validation.go:50"
+      ],
+      "terms": [
+        "approval_form_field_invalid_value",
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message"
+      ]
+    },
+    {
+      "id": "c42e1dc8dbfbf4387b39299a",
       "category": "i18n message key",
       "name": "approval_form_field_max_length",
       "value": "approval_form_field_max_length",
@@ -55208,7 +55296,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:431"
+        "internal/approval/service/validation.go:445"
       ],
       "terms": [
         "approval_form_field_max_length",
@@ -55220,7 +55308,7 @@
       ]
     },
     {
-      "id": "2a85820db6280b68926e1e69",
+      "id": "60ce258fc30be2180192af3b",
       "category": "i18n message key",
       "name": "approval_form_field_max_rows",
       "value": "approval_form_field_max_rows",
@@ -55228,7 +55316,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:349"
+        "internal/approval/service/validation.go:363"
       ],
       "terms": [
         "approval_form_field_max_rows",
@@ -55240,7 +55328,7 @@
       ]
     },
     {
-      "id": "52b4c2acaabecb029f28fb14",
+      "id": "f89acbf75a8ca05d29b2eda7",
       "category": "i18n message key",
       "name": "approval_form_field_max_value",
       "value": "approval_form_field_max_value",
@@ -55248,7 +55336,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:471"
+        "internal/approval/service/validation.go:485"
       ],
       "terms": [
         "approval_form_field_max_value",
@@ -55260,7 +55348,7 @@
       ]
     },
     {
-      "id": "a0069b06445404973c26d082",
+      "id": "13cf164e05ecb29b64615cd8",
       "category": "i18n message key",
       "name": "approval_form_field_min_length",
       "value": "approval_form_field_min_length",
@@ -55268,7 +55356,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:424"
+        "internal/approval/service/validation.go:438"
       ],
       "terms": [
         "approval_form_field_min_length",
@@ -55280,7 +55368,7 @@
       ]
     },
     {
-      "id": "b672e42644d10bb18b3bb26b",
+      "id": "0884b26f656d02927529a916",
       "category": "i18n message key",
       "name": "approval_form_field_min_rows",
       "value": "approval_form_field_min_rows",
@@ -55288,7 +55376,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:343"
+        "internal/approval/service/validation.go:357"
       ],
       "terms": [
         "approval_form_field_min_rows",
@@ -55300,7 +55388,7 @@
       ]
     },
     {
-      "id": "c357f5203d58bf131ffb7373",
+      "id": "cf182af573516fc33510e497",
       "category": "i18n message key",
       "name": "approval_form_field_min_value",
       "value": "approval_form_field_min_value",
@@ -55308,7 +55396,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:464"
+        "internal/approval/service/validation.go:478"
       ],
       "terms": [
         "approval_form_field_min_value",
@@ -55320,7 +55408,7 @@
       ]
     },
     {
-      "id": "f2ec0c8fbd422ae0d4c7a16a",
+      "id": "f72808bc01febbfba962a7f3",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_file",
       "value": "approval_form_field_must_be_file",
@@ -55328,7 +55416,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:511"
+        "internal/approval/service/validation.go:525"
       ],
       "terms": [
         "approval_form_field_must_be_file",
@@ -55340,7 +55428,7 @@
       ]
     },
     {
-      "id": "160596941add04f93b140309",
+      "id": "580fa5141763a9bdc7153cac",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_integer",
       "value": "approval_form_field_must_be_integer",
@@ -55348,7 +55436,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:456"
+        "internal/approval/service/validation.go:470"
       ],
       "terms": [
         "approval_form_field_must_be_integer",
@@ -55360,7 +55448,7 @@
       ]
     },
     {
-      "id": "ba5a1de1c53d38cb7787e9c9",
+      "id": "049bbcb897fc2b324fc08b62",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_number",
       "value": "approval_form_field_must_be_number",
@@ -55368,7 +55456,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:317"
+        "internal/approval/service/validation.go:331"
       ],
       "terms": [
         "approval_form_field_must_be_number",
@@ -55380,7 +55468,7 @@
       ]
     },
     {
-      "id": "edb2ad9d2a64ff8d01229095",
+      "id": "59a646780d2cf490b270d250",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_row_list",
       "value": "approval_form_field_must_be_row_list",
@@ -55388,7 +55476,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:338"
+        "internal/approval/service/validation.go:352"
       ],
       "terms": [
         "approval_form_field_must_be_row_list",
@@ -55400,7 +55488,7 @@
       ]
     },
     {
-      "id": "fcfee8aab8c21f94e71c576c",
+      "id": "193083c927608d99149e77ce",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_row_object",
       "value": "approval_form_field_must_be_row_object",
@@ -55408,7 +55496,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:358"
+        "internal/approval/service/validation.go:372"
       ],
       "terms": [
         "approval_form_field_must_be_row_object",
@@ -55420,7 +55508,7 @@
       ]
     },
     {
-      "id": "e894693fb66a6b7a3ecfd4c3",
+      "id": "b8b5671f8c2dbc523aed2002",
       "category": "i18n message key",
       "name": "approval_form_field_must_be_string",
       "value": "approval_form_field_must_be_string",
@@ -55428,7 +55516,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:303"
+        "internal/approval/service/validation.go:317"
       ],
       "terms": [
         "approval_form_field_must_be_string",
@@ -55440,7 +55528,7 @@
       ]
     },
     {
-      "id": "8b063f48cb0a90959ccd36dd",
+      "id": "319a68fcf2107f529bbcbe29",
       "category": "i18n message key",
       "name": "approval_form_field_not_defined",
       "value": "approval_form_field_not_defined",
@@ -55448,7 +55536,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:647"
+        "internal/approval/service/validation.go:115"
       ],
       "terms": [
         "approval_form_field_not_defined",
@@ -55460,7 +55548,7 @@
       ]
     },
     {
-      "id": "b0502dd747b74679bbfb2184",
+      "id": "5fa80a7ca589a53190fc8f7e",
       "category": "i18n message key",
       "name": "approval_form_field_not_defined",
       "value": "approval_form_field_not_defined",
@@ -55468,7 +55556,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:385"
+        "internal/approval/service/validation.go:661"
       ],
       "terms": [
         "approval_form_field_not_defined",
@@ -55480,7 +55568,7 @@
       ]
     },
     {
-      "id": "e375ec0e2bc6c220f0d6bca3",
+      "id": "e12ec9a2b7aa8ea7d4b1ecc2",
       "category": "i18n message key",
       "name": "approval_form_field_not_defined",
       "value": "approval_form_field_not_defined",
@@ -55488,7 +55576,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:101"
+        "internal/approval/service/validation.go:399"
       ],
       "terms": [
         "approval_form_field_not_defined",
@@ -55500,7 +55588,7 @@
       ]
     },
     {
-      "id": "150a00344d4d7fbd50c3b7a7",
+      "id": "802322274dcdcce7d64e8790",
       "category": "i18n message key",
       "name": "approval_form_field_pattern_mismatch",
       "value": "approval_form_field_pattern_mismatch",
@@ -55508,7 +55596,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:444"
+        "internal/approval/service/validation.go:458"
       ],
       "terms": [
         "approval_form_field_pattern_mismatch",
@@ -55520,7 +55608,7 @@
       ]
     },
     {
-      "id": "7249ca8151e1003c6fea67c7",
+      "id": "16e7a0d6d169d2efdeddba6a",
       "category": "i18n message key",
       "name": "approval_form_field_required",
       "value": "approval_form_field_required",
@@ -55528,7 +55616,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:396"
+        "internal/approval/service/validation.go:123"
       ],
       "terms": [
         "approval_form_field_required",
@@ -55540,7 +55628,7 @@
       ]
     },
     {
-      "id": "99273998bcd3b836fdb322de",
+      "id": "2cca2a72c99681e757129a0e",
       "category": "i18n message key",
       "name": "approval_form_field_required",
       "value": "approval_form_field_required",
@@ -55548,7 +55636,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:109"
+        "internal/approval/service/validation.go:410"
       ],
       "terms": [
         "approval_form_field_required",
@@ -55560,7 +55648,7 @@
       ]
     },
     {
-      "id": "a4bd7bf47bb6b0a2534277fe",
+      "id": "835879469595a2f26e057af4",
       "category": "i18n message key",
       "name": "approval_form_field_required",
       "value": "approval_form_field_required",
@@ -55568,7 +55656,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:144"
+        "internal/approval/service/validation.go:158"
       ],
       "terms": [
         "approval_form_field_required",
@@ -55580,7 +55668,7 @@
       ]
     },
     {
-      "id": "4607e6c41a90f92dacb16692",
+      "id": "6cb9a5fbac43adffa5964730",
       "category": "i18n message key",
       "name": "approval_form_field_table_cell",
       "value": "approval_form_field_table_cell",
@@ -55588,7 +55676,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:404"
+        "internal/approval/service/code_set_validation.go:84"
       ],
       "terms": [
         "approval_form_field_table_cell",
@@ -55600,7 +55688,7 @@
       ]
     },
     {
-      "id": "83c439c247027f7820078d89",
+      "id": "76d9c2c7200f33fef9c66a8e",
       "category": "i18n message key",
       "name": "approval_form_field_table_cell",
       "value": "approval_form_field_table_cell",
@@ -55608,7 +55696,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:394"
+        "internal/approval/service/validation.go:418"
       ],
       "terms": [
         "approval_form_field_table_cell",
@@ -55620,7 +55708,7 @@
       ]
     },
     {
-      "id": "c21208302f4c8e538f2f2178",
+      "id": "f0cc8684c5257f2a150ba398",
       "category": "i18n message key",
       "name": "approval_form_field_table_cell",
       "value": "approval_form_field_table_cell",
@@ -55628,7 +55716,27 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/service/validation.go:383"
+        "internal/approval/service/validation.go:408"
+      ],
+      "terms": [
+        "approval_form_field_table_cell",
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message"
+      ]
+    },
+    {
+      "id": "f74ccd619f1bc77dd71f9dd5",
+      "category": "i18n message key",
+      "name": "approval_form_field_table_cell",
+      "value": "approval_form_field_table_cell",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "internal/approval/service/validation.go:397"
       ],
       "terms": [
         "approval_form_field_table_cell",
@@ -65640,12 +65748,12 @@
       ]
     },
     {
-      "id": "858aed48ae3c0ccdb260b76a",
+      "id": "7cf3a3d33093a5883e067948",
       "category": "runtime enum value",
       "name": "DynamicParamExpression (DynamicParamKind)",
       "value": "expression",
       "source_evidence": [
-        "approval/enums.go:494"
+        "approval/enums.go:499"
       ],
       "terms": [
         "DynamicParamExpression",
@@ -65657,12 +65765,12 @@
       ]
     },
     {
-      "id": "57861b1f50c90e0daa17f483",
+      "id": "8afeeeeb55f9c829fec1c8d6",
       "category": "runtime enum value",
       "name": "DynamicParamLiteral (DynamicParamKind)",
       "value": "literal",
       "source_evidence": [
-        "approval/enums.go:491"
+        "approval/enums.go:496"
       ],
       "terms": [
         "DynamicParamKind",
@@ -67901,6 +68009,23 @@
       ]
     },
     {
+      "id": "38e30ad4a89ed34bf218851c",
+      "category": "runtime enum value",
+      "name": "OptionSourceCodeSet (OptionSourceKind)",
+      "value": "codeSet",
+      "source_evidence": [
+        "approval/enums.go:481"
+      ],
+      "terms": [
+        "OptionSourceCodeSet",
+        "OptionSourceKind",
+        "codeSet",
+        "enum",
+        "runtime",
+        "value"
+      ]
+    },
+    {
       "id": "97e09bedcc8e2b743cc87eeb",
       "category": "runtime enum value",
       "name": "OptionSourceRemote (OptionSourceKind)",
@@ -68054,12 +68179,12 @@
       ]
     },
     {
-      "id": "3471ecde6417d442a72dc2be",
+      "id": "52d8ab5ec865149ce7efaf6c",
       "category": "runtime enum value",
       "name": "PermissionEditable (Permission)",
       "value": "editable",
       "source_evidence": [
-        "approval/enums.go:534"
+        "approval/enums.go:539"
       ],
       "terms": [
         "Permission",
@@ -68071,12 +68196,12 @@
       ]
     },
     {
-      "id": "6dbe167852d1cce7dadad2f6",
+      "id": "a9ff0051b79d9a3fef6daf4e",
       "category": "runtime enum value",
       "name": "PermissionHidden (Permission)",
       "value": "hidden",
       "source_evidence": [
-        "approval/enums.go:535"
+        "approval/enums.go:540"
       ],
       "terms": [
         "Permission",
@@ -68088,12 +68213,12 @@
       ]
     },
     {
-      "id": "0b48eb7d547b45c7ba75e605",
+      "id": "6a20b68e9618c8c446ac59d8",
       "category": "runtime enum value",
       "name": "PermissionRequired (Permission)",
       "value": "required",
       "source_evidence": [
-        "approval/enums.go:536"
+        "approval/enums.go:541"
       ],
       "terms": [
         "Permission",
@@ -68105,12 +68230,12 @@
       ]
     },
     {
-      "id": "836dcd5f80fbf84abe045f8f",
+      "id": "94279354dbc7f4ca4f5595c4",
       "category": "runtime enum value",
       "name": "PermissionVisible (Permission)",
       "value": "visible",
       "source_evidence": [
-        "approval/enums.go:533"
+        "approval/enums.go:538"
       ],
       "terms": [
         "Permission",
@@ -69890,12 +70015,12 @@
       ]
     },
     {
-      "id": "f10e1600694e8dbd69f4bdcb",
+      "id": "c7524e2e43b8b03bf9b0e477",
       "category": "runtime enum value",
       "name": "TimeoutActionAutoPass (TimeoutAction)",
       "value": "auto_pass",
       "source_evidence": [
-        "approval/enums.go:512"
+        "approval/enums.go:517"
       ],
       "terms": [
         "TimeoutAction",
@@ -69907,12 +70032,12 @@
       ]
     },
     {
-      "id": "f39d706d2d5d5879e805edde",
+      "id": "e68f113b352e6f935f9eb95c",
       "category": "runtime enum value",
       "name": "TimeoutActionAutoReject (TimeoutAction)",
       "value": "auto_reject",
       "source_evidence": [
-        "approval/enums.go:513"
+        "approval/enums.go:518"
       ],
       "terms": [
         "TimeoutAction",
@@ -69924,12 +70049,12 @@
       ]
     },
     {
-      "id": "d4611b3ddc502106da3334ad",
+      "id": "9d49c8f4a38a54fb3fa4c47d",
       "category": "runtime enum value",
       "name": "TimeoutActionNone (TimeoutAction)",
       "value": "none",
       "source_evidence": [
-        "approval/enums.go:511"
+        "approval/enums.go:516"
       ],
       "terms": [
         "TimeoutAction",
@@ -69941,12 +70066,12 @@
       ]
     },
     {
-      "id": "4d439af94fd6fce3a535fa55",
+      "id": "aa353707f2691c75e1adde5f",
       "category": "runtime enum value",
       "name": "TimeoutActionNotify (TimeoutAction)",
       "value": "notify",
       "source_evidence": [
-        "approval/enums.go:514"
+        "approval/enums.go:519"
       ],
       "terms": [
         "TimeoutAction",
@@ -69958,12 +70083,12 @@
       ]
     },
     {
-      "id": "80f048bcc32dba3be5e72530",
+      "id": "9f4365871479f750a1b44106",
       "category": "runtime enum value",
       "name": "TimeoutActionTransferAdmin (TimeoutAction)",
       "value": "transfer_admin",
       "source_evidence": [
-        "approval/enums.go:515"
+        "approval/enums.go:520"
       ],
       "terms": [
         "TimeoutAction",

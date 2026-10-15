@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8428,
-  "fingerprint": "d9983050aa24cf1893500e0cc785542839513fac82a928519c9eb4f776cfc198",
+  "entry_count": 8430,
+  "fingerprint": "ee5671b338ee4e02cf8df65c4eeea2d18856c01c093806d13137000455757764",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -10508,6 +10508,23 @@
       "kind": "field",
       "symbol": "FieldOption.Value",
       "signature": "Value : any [field_order=2 tag=\"json:\\\"value\\\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#field:FieldOptionSource.CodeSet",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "field",
+      "symbol": "FieldOptionSource.CodeSet",
+      "signature": "CodeSet : string [field_order=4 tag=\"json:\\\"codeSet,omitempty\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -33305,6 +33322,23 @@
       "kind": "top",
       "symbol": "OperatorStartsWith",
       "signature": "OperatorStartsWith : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = \"starts_with\"",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:OptionSourceCodeSet",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "OptionSourceCodeSet",
+      "signature": "OptionSourceCodeSet : github.com/coldsmirk/vef-framework-go/approval.OptionSourceKind = \"codeSet\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -121763,7 +121797,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.62.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.63.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"

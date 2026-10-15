@@ -17,8 +17,8 @@ sidebar_position: 91
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `4c4a28ba241eb84ff99cade9e9694c51230b4ac91ff39fb7946cbf40bffebe05`
-Entries: `3294`
+Fingerprint: `ad4ad8b60319b99bcd9e8a041b871671bf0b741e055b0720e6883ed202ec43d4`
+Entries: `3300`
 
 ## Coverage Evidence
 
@@ -33,7 +33,7 @@ Entries: `3294`
 | `HTTP endpoint` | 2 | Tier 2 source-derived constants | `extractProtocolConstants` | Source-derived REST/RPC/MCP endpoint constants and call-site evidence. | None for framework-owned default endpoints. |
 | `HTTP header` | 7 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/header.go Header* constants. | None. |
 | `HTTP wire field` | 8 | Tier 3 curated protocol fields | `extractProtocolConstants` | Curated source references for fundamental request/result fields shared by REST/RPC. | None in generated index; JSON DTO fields are covered separately. |
-| `JSON wire field` | 1694 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
+| `JSON wire field` | 1696 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
 | `MCP endpoint` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of the MCP Streamable HTTP endpoint constant. | None. |
 | `MCP jsonschema tag` | 32 | Tier 2 pinned dependency parser catalog | `extractJSONSchemaTags` | Catalog of struct-tag keywords accepted by github.com/invopop/jsonschema v0.14.0, with boundary verification that fails on dependency-version drift and uncovered in-source jsonschema tags. | None for the pinned jsonschema parser version. |
 | `MCP prompt` | 1 | Tier 2 MCP AST | `extractMCP` | AST scan of internal/mcp Prompt composites. | None in scanned MCP package. |
@@ -52,13 +52,13 @@ Entries: `3294`
 | `event topic` | 36 | Tier 2 event constant/method scan | `extractProtocolConstants, extractMoldGrammar` | AST scan of EventType*/eventType* constants, EventType() return values, and built-in subscription/route-inspection topic call sites. | None for framework-owned non-test event topics. |
 | `event transport contract` | 6 | Tier 2 scoped AST constants | `extractEventTransportContracts` | AST/source-derived extraction of outbox DLQ headers, topic prefix, retry backoff, and persisted-error bounds. | None for current built-in event transports. |
 | `i18n key indirection` | 4 | Tier 2 AST call scan | `extractI18NMessageKeys` | AST scan of dynamic i18n.T call sites whose key source is another audited surface such as label_i18n tags, validator rules, or Fiber error mappings. | None for current dynamic i18n.T call sites. |
-| `i18n message key` | 286 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
+| `i18n message key` | 289 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
 | `meta tag grammar` | 7 | Tier 2 AST constants | `extractStructTagGrammars` | Catalog of storage meta tag name, dive value, file-reference kinds, and attribute grammar delimiters. | None for the current parser constants and tag parsing rules. |
 | `mold tag grammar` | 9 | Tier 2 parser grammar scan | `extractMoldGrammar` | AST scan of the default mold tag name and restricted parser token constants, with boundary verification for parser token coverage. | None for current mold parser token constants. |
 | `mold transformer tag` | 2 | Tier 2 transformer scan | `extractMoldGrammar` | AST scan of built-in FieldTransformer Tag() methods. | None for current built-in mold transformer Tag() methods. |
 | `result error code` | 183 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
 | `result message key` | 44 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of ErrMessage* constants. | Inline i18n keys are covered by the i18n message key category. |
-| `runtime enum value` | 382 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
+| `runtime enum value` | 383 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
 | `search tag grammar` | 38 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of search tag name, attributes, params, ignore marker, and operator/type tokens. | None for constants in search/constants.go. |
 | `tabular tag grammar` | 10 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of tabular tag name, attributes, and ignore marker. | None for constants in tabular/constants.go. |
 | `validator label tag` | 2 | Tier 2 validator tag scan | `extractValidatorRules` | AST scan of validator struct-tag key constants used by Field.Tag.Get. | None for current validator label tag lookups. |
@@ -668,9 +668,9 @@ Entries: `3294`
 | `DryRunResult.FailureKind` | `failureKind` | Go field: DryRunResult.FailureKind<br/>type: integration.FailureKind | `internal/integration/exec/invoker.go:170` |
 | `DryRunResult.Output` | `output` | Go field: DryRunResult.Output<br/>type: any | `internal/integration/exec/invoker.go:168` |
 | `DryRunResult.Trace` | `trace` | Go field: DryRunResult.Trace<br/>type: []integration.HTTPExchange | `internal/integration/exec/invoker.go:169` |
-| `DynamicParam.Kind` | `kind` | Go field: DynamicParam.Kind<br/>type: DynamicParamKind | `approval/form_field.go:115` |
-| `DynamicParam.Source` | `source` | Go field: DynamicParam.Source<br/>type: string | `approval/form_field.go:122` |
-| `DynamicParam.Value` | `value` | Go field: DynamicParam.Value<br/>type: any | `approval/form_field.go:119` |
+| `DynamicParam.Kind` | `kind` | Go field: DynamicParam.Kind<br/>type: DynamicParamKind | `approval/form_field.go:122` |
+| `DynamicParam.Source` | `source` | Go field: DynamicParam.Source<br/>type: string | `approval/form_field.go:129` |
+| `DynamicParam.Value` | `value` | Go field: DynamicParam.Value<br/>type: any | `approval/form_field.go:126` |
 | `EdgeDefinition.Data` | `data` | Go field: EdgeDefinition.Data<br/>type: map[string]any | `approval/flow_definition.go:80` |
 | `EdgeDefinition.ID` | `id` | Go field: EdgeDefinition.ID<br/>type: string | `approval/flow_definition.go:76` |
 | `EdgeDefinition.Source` | `source` | Go field: EdgeDefinition.Source<br/>type: string | `approval/flow_definition.go:77` |
@@ -680,11 +680,12 @@ Entries: `3294`
 | `EventStreamsInfo.Streams` | `streams` | Go field: EventStreamsInfo.Streams<br/>type: []event.StreamInfo | `monitor/event_streams.go:13` |
 | `ExternalAppConfig.Enabled` | `enabled` | Go field: ExternalAppConfig.Enabled<br/>type: bool | `security/security.go:29` |
 | `ExternalAppConfig.IPWhitelist` | `ipWhitelist` | Go field: ExternalAppConfig.IPWhitelist<br/>type: string | `security/security.go:30` |
-| `FieldOption.Label` | `label` | Go field: FieldOption.Label<br/>type: string | `approval/form_field.go:51` |
-| `FieldOption.Value` | `value` | Go field: FieldOption.Value<br/>type: any | `approval/form_field.go:52` |
-| `FieldOptionSource.Kind` | `kind` | Go field: FieldOptionSource.Kind<br/>type: OptionSourceKind | `approval/form_field.go:60` |
-| `FieldOptionSource.Mapping` | `mapping` | Go field: FieldOptionSource.Mapping<br/>type: *RemoteOptionMapping | `approval/form_field.go:67` |
-| `FieldOptionSource.Request` | `request` | Go field: FieldOptionSource.Request<br/>type: *RemoteOptionRequest | `approval/form_field.go:64` |
+| `FieldOption.Label` | `label` | Go field: FieldOption.Label<br/>type: string | `approval/form_field.go:53` |
+| `FieldOption.Value` | `value` | Go field: FieldOption.Value<br/>type: any | `approval/form_field.go:54` |
+| `FieldOptionSource.CodeSet` | `codeSet` | Go field: FieldOptionSource.CodeSet<br/>type: string | `approval/form_field.go:74` |
+| `FieldOptionSource.Kind` | `kind` | Go field: FieldOptionSource.Kind<br/>type: OptionSourceKind | `approval/form_field.go:62` |
+| `FieldOptionSource.Mapping` | `mapping` | Go field: FieldOptionSource.Mapping<br/>type: *RemoteOptionMapping | `approval/form_field.go:70` |
+| `FieldOptionSource.Request` | `request` | Go field: FieldOptionSource.Request<br/>type: *RemoteOptionRequest | `approval/form_field.go:67` |
 | `FileClaimedEvent.FileKey` | `fileKey` | Go field: FileClaimedEvent.FileKey<br/>type: string | `storage/events.go:35` |
 | `FileDeletedEvent.FileKey` | `fileKey` | Go field: FileDeletedEvent.FileKey<br/>type: string | `storage/events.go:51` |
 | `FileDeletedEvent.Reason` | `reason` | Go field: FileDeletedEvent.Reason<br/>type: DeleteReason | `storage/events.go:53` |
@@ -880,20 +881,20 @@ Entries: `3294`
 | `ForeignKey.OnUpdate` | `onUpdate` | Go field: ForeignKey.OnUpdate<br/>type: string | `schema/service.go:68` |
 | `ForeignKey.RefColumns` | `refColumns` | Go field: ForeignKey.RefColumns<br/>type: []string | `schema/service.go:67` |
 | `ForeignKey.RefTable` | `refTable` | Go field: ForeignKey.RefTable<br/>type: string | `schema/service.go:66` |
-| `FormFieldDefinition.ColumnType` | `columnType` | Go field: FormFieldDefinition.ColumnType<br/>type: ColumnDataType | `approval/form_field.go:36` |
-| `FormFieldDefinition.Columns` | `columns` | Go field: FormFieldDefinition.Columns<br/>type: []FormFieldDefinition | `approval/form_field.go:46` |
+| `FormFieldDefinition.ColumnType` | `columnType` | Go field: FormFieldDefinition.ColumnType<br/>type: ColumnDataType | `approval/form_field.go:38` |
+| `FormFieldDefinition.Columns` | `columns` | Go field: FormFieldDefinition.Columns<br/>type: []FormFieldDefinition | `approval/form_field.go:48` |
 | `FormFieldDefinition.DefaultValue` | `defaultValue` | Go field: FormFieldDefinition.DefaultValue<br/>type: any | `approval/form_field.go:14` |
 | `FormFieldDefinition.IsRequired` | `isRequired` | Go field: FormFieldDefinition.IsRequired<br/>type: bool | `approval/form_field.go:16` |
 | `FormFieldDefinition.Key` | `key` | Go field: FormFieldDefinition.Key<br/>type: string | `approval/form_field.go:6` |
 | `FormFieldDefinition.Kind` | `kind` | Go field: FormFieldDefinition.Kind<br/>type: FieldKind | `approval/form_field.go:8` |
 | `FormFieldDefinition.Label` | `label` | Go field: FormFieldDefinition.Label<br/>type: string | `approval/form_field.go:10` |
-| `FormFieldDefinition.OptionSource` | `optionSource` | Go field: FormFieldDefinition.OptionSource<br/>type: *FieldOptionSource | `approval/form_field.go:26` |
+| `FormFieldDefinition.OptionSource` | `optionSource` | Go field: FormFieldDefinition.OptionSource<br/>type: *FieldOptionSource | `approval/form_field.go:28` |
 | `FormFieldDefinition.Options` | `options` | Go field: FormFieldDefinition.Options<br/>type: []FieldOption | `approval/form_field.go:18` |
 | `FormFieldDefinition.Placeholder` | `placeholder` | Go field: FormFieldDefinition.Placeholder<br/>type: string | `approval/form_field.go:12` |
-| `FormFieldDefinition.Props` | `props` | Go field: FormFieldDefinition.Props<br/>type: map[string]any | `approval/form_field.go:30` |
-| `FormFieldDefinition.Scale` | `scale` | Go field: FormFieldDefinition.Scale<br/>type: *int | `approval/form_field.go:39` |
-| `FormFieldDefinition.SortOrder` | `sortOrder` | Go field: FormFieldDefinition.SortOrder<br/>type: int | `approval/form_field.go:32` |
-| `FormFieldDefinition.Validation` | `validation` | Go field: FormFieldDefinition.Validation<br/>type: *ValidationRule | `approval/form_field.go:28` |
+| `FormFieldDefinition.Props` | `props` | Go field: FormFieldDefinition.Props<br/>type: map[string]any | `approval/form_field.go:32` |
+| `FormFieldDefinition.Scale` | `scale` | Go field: FormFieldDefinition.Scale<br/>type: *int | `approval/form_field.go:41` |
+| `FormFieldDefinition.SortOrder` | `sortOrder` | Go field: FormFieldDefinition.SortOrder<br/>type: int | `approval/form_field.go:34` |
+| `FormFieldDefinition.Validation` | `validation` | Go field: FormFieldDefinition.Validation<br/>type: *ValidationRule | `approval/form_field.go:30` |
 | `FormSnapshot.FormData` | `formData` | Go field: FormSnapshot.FormData<br/>type: map[string]any | `approval/models.go:401` |
 | `FormSnapshot.InstanceID` | `instanceId` | Go field: FormSnapshot.InstanceID<br/>type: string | `approval/models.go:399` |
 | `FormSnapshot.NodeID` | `nodeId` | Go field: FormSnapshot.NodeID<br/>type: string | `approval/models.go:400` |
@@ -1364,14 +1365,14 @@ Entries: `3294`
 | `Record.Status` | `status` | Go field: Record.Status<br/>type: Status | `event/inbox/inbox.go:52` |
 | `Record.TraceID` | `traceId` | Go field: Record.TraceID<br/>type: string | `event/transport/outbox/outbox.go:46` |
 | `RefreshParams.RefreshToken` | `refreshToken` | Go field: RefreshParams.RefreshToken<br/>type: string<br/>validate: "required" | `internal/security/auth_resource.go:246` |
-| `RemoteOptionMapping.DescriptionKey` | `descriptionKey` | Go field: RemoteOptionMapping.DescriptionKey<br/>type: string | `approval/form_field.go:136` |
-| `RemoteOptionMapping.DisabledKey` | `disabledKey` | Go field: RemoteOptionMapping.DisabledKey<br/>type: string | `approval/form_field.go:134` |
-| `RemoteOptionMapping.LabelKey` | `labelKey` | Go field: RemoteOptionMapping.LabelKey<br/>type: string | `approval/form_field.go:130` |
-| `RemoteOptionMapping.ValueKey` | `valueKey` | Go field: RemoteOptionMapping.ValueKey<br/>type: string | `approval/form_field.go:132` |
-| `RemoteOptionRequest.Action` | `action` | Go field: RemoteOptionRequest.Action<br/>type: string | `approval/form_field.go:81` |
-| `RemoteOptionRequest.Params` | `params` | Go field: RemoteOptionRequest.Params<br/>type: map[string]DynamicParam | `approval/form_field.go:89` |
-| `RemoteOptionRequest.Resource` | `resource` | Go field: RemoteOptionRequest.Resource<br/>type: string | `approval/form_field.go:79` |
-| `RemoteOptionRequest.Version` | `version` | Go field: RemoteOptionRequest.Version<br/>type: string | `approval/form_field.go:83` |
+| `RemoteOptionMapping.DescriptionKey` | `descriptionKey` | Go field: RemoteOptionMapping.DescriptionKey<br/>type: string | `approval/form_field.go:143` |
+| `RemoteOptionMapping.DisabledKey` | `disabledKey` | Go field: RemoteOptionMapping.DisabledKey<br/>type: string | `approval/form_field.go:141` |
+| `RemoteOptionMapping.LabelKey` | `labelKey` | Go field: RemoteOptionMapping.LabelKey<br/>type: string | `approval/form_field.go:137` |
+| `RemoteOptionMapping.ValueKey` | `valueKey` | Go field: RemoteOptionMapping.ValueKey<br/>type: string | `approval/form_field.go:139` |
+| `RemoteOptionRequest.Action` | `action` | Go field: RemoteOptionRequest.Action<br/>type: string | `approval/form_field.go:88` |
+| `RemoteOptionRequest.Params` | `params` | Go field: RemoteOptionRequest.Params<br/>type: map[string]DynamicParam | `approval/form_field.go:96` |
+| `RemoteOptionRequest.Resource` | `resource` | Go field: RemoteOptionRequest.Resource<br/>type: string | `approval/form_field.go:86` |
+| `RemoteOptionRequest.Version` | `version` | Go field: RemoteOptionRequest.Version<br/>type: string | `approval/form_field.go:90` |
 | `RemovableAssignee.Assignee` | `assignee` | Go field: RemovableAssignee.Assignee<br/>type: approval.UserInfo | `approval/my/instance_detail.go:66` |
 | `RemovableAssignee.Status` | `status` | Go field: RemovableAssignee.Status<br/>type: string | `approval/my/instance_detail.go:68` |
 | `RemovableAssignee.TaskID` | `taskId` | Go field: RemovableAssignee.TaskID<br/>type: string | `approval/my/instance_detail.go:65` |
@@ -1768,12 +1769,12 @@ Entries: `3294`
 | `UserMenu.Name` | `name` | Go field: UserMenu.Name<br/>type: string | `security/user_info.go:35` |
 | `UserMenu.Path` | `path` | Go field: UserMenu.Path<br/>type: string | `security/user_info.go:34` |
 | `UserMenu.Type` | `type` | Go field: UserMenu.Type<br/>type: UserMenuType | `security/user_info.go:33` |
-| `ValidationRule.Max` | `max` | Go field: ValidationRule.Max<br/>type: *float64 | `approval/form_field.go:144` |
-| `ValidationRule.MaxLength` | `maxLength` | Go field: ValidationRule.MaxLength<br/>type: *int | `approval/form_field.go:142` |
-| `ValidationRule.Message` | `message` | Go field: ValidationRule.Message<br/>type: string | `approval/form_field.go:146` |
-| `ValidationRule.Min` | `min` | Go field: ValidationRule.Min<br/>type: *float64 | `approval/form_field.go:143` |
-| `ValidationRule.MinLength` | `minLength` | Go field: ValidationRule.MinLength<br/>type: *int | `approval/form_field.go:141` |
-| `ValidationRule.Pattern` | `pattern` | Go field: ValidationRule.Pattern<br/>type: string | `approval/form_field.go:145` |
+| `ValidationRule.Max` | `max` | Go field: ValidationRule.Max<br/>type: *float64 | `approval/form_field.go:151` |
+| `ValidationRule.MaxLength` | `maxLength` | Go field: ValidationRule.MaxLength<br/>type: *int | `approval/form_field.go:149` |
+| `ValidationRule.Message` | `message` | Go field: ValidationRule.Message<br/>type: string | `approval/form_field.go:153` |
+| `ValidationRule.Min` | `min` | Go field: ValidationRule.Min<br/>type: *float64 | `approval/form_field.go:150` |
+| `ValidationRule.MinLength` | `minLength` | Go field: ValidationRule.MinLength<br/>type: *int | `approval/form_field.go:148` |
+| `ValidationRule.Pattern` | `pattern` | Go field: ValidationRule.Pattern<br/>type: string | `approval/form_field.go:152` |
 | `View.Columns` | `columns` | Go field: View.Columns<br/>type: []string | `schema/service.go:84` |
 | `View.Comment` | `comment` | Go field: View.Comment<br/>type: string | `schema/service.go:83` |
 | `View.Definition` | `definition` | Go field: View.Definition<br/>type: string | `schema/service.go:82` |
@@ -1877,17 +1878,18 @@ Entries: `3294`
 | `richBlock.Template` | `template` | Go field: richBlock.Template<br/>type: []richBlock | `internal/approval/formeditor/schema.go:57` |
 | `richBlock.Type` | `type` | Go field: richBlock.Type<br/>type: string | `internal/approval/formeditor/schema.go:41` |
 | `richBlock.Validate` | `validate` | Go field: richBlock.Validate<br/>type: *richValidate | `internal/approval/formeditor/schema.go:50` |
-| `richDataSource.ID` | `id` | Go field: richDataSource.ID<br/>type: string | `internal/approval/formeditor/schema.go:98` |
-| `richDataSource.Kind` | `kind` | Go field: richDataSource.Kind<br/>type: string | `internal/approval/formeditor/schema.go:99` |
-| `richDataSource.Mapping` | `mapping` | Go field: richDataSource.Mapping<br/>type: *approval.RemoteOptionMapping | `internal/approval/formeditor/schema.go:102` |
-| `richDataSource.Options` | `options` | Go field: richDataSource.Options<br/>type: []approval.FieldOption | `internal/approval/formeditor/schema.go:100` |
-| `richDataSource.Request` | `request` | Go field: richDataSource.Request<br/>type: *approval.RemoteOptionRequest | `internal/approval/formeditor/schema.go:101` |
+| `richDataSource.ID` | `id` | Go field: richDataSource.ID<br/>type: string | `internal/approval/formeditor/schema.go:100` |
+| `richDataSource.Kind` | `kind` | Go field: richDataSource.Kind<br/>type: string | `internal/approval/formeditor/schema.go:101` |
+| `richDataSource.Mapping` | `mapping` | Go field: richDataSource.Mapping<br/>type: *approval.RemoteOptionMapping | `internal/approval/formeditor/schema.go:104` |
+| `richDataSource.Options` | `options` | Go field: richDataSource.Options<br/>type: []approval.FieldOption | `internal/approval/formeditor/schema.go:102` |
+| `richDataSource.Request` | `request` | Go field: richDataSource.Request<br/>type: *approval.RemoteOptionRequest | `internal/approval/formeditor/schema.go:103` |
 | `richLayer.Children` | `children` | Go field: richLayer.Children<br/>type: []richBlock | `internal/approval/formeditor/schema.go:25` |
-| `richOptionSource.DataSourceID` | `dataSourceId` | Go field: richOptionSource.DataSourceID<br/>type: string | `internal/approval/formeditor/schema.go:87` |
-| `richOptionSource.Kind` | `kind` | Go field: richOptionSource.Kind<br/>type: string | `internal/approval/formeditor/schema.go:85` |
-| `richOptionSource.Mapping` | `mapping` | Go field: richOptionSource.Mapping<br/>type: *approval.RemoteOptionMapping | `internal/approval/formeditor/schema.go:89` |
-| `richOptionSource.Options` | `options` | Go field: richOptionSource.Options<br/>type: []approval.FieldOption | `internal/approval/formeditor/schema.go:86` |
-| `richOptionSource.Request` | `request` | Go field: richOptionSource.Request<br/>type: *approval.RemoteOptionRequest | `internal/approval/formeditor/schema.go:88` |
+| `richOptionSource.CodeSet` | `codeSet` | Go field: richOptionSource.CodeSet<br/>type: string | `internal/approval/formeditor/schema.go:91` |
+| `richOptionSource.DataSourceID` | `dataSourceId` | Go field: richOptionSource.DataSourceID<br/>type: string | `internal/approval/formeditor/schema.go:88` |
+| `richOptionSource.Kind` | `kind` | Go field: richOptionSource.Kind<br/>type: string | `internal/approval/formeditor/schema.go:86` |
+| `richOptionSource.Mapping` | `mapping` | Go field: richOptionSource.Mapping<br/>type: *approval.RemoteOptionMapping | `internal/approval/formeditor/schema.go:90` |
+| `richOptionSource.Options` | `options` | Go field: richOptionSource.Options<br/>type: []approval.FieldOption | `internal/approval/formeditor/schema.go:87` |
+| `richOptionSource.Request` | `request` | Go field: richOptionSource.Request<br/>type: *approval.RemoteOptionRequest | `internal/approval/formeditor/schema.go:89` |
 | `richPresentations.Mobile` | `mobile` | Go field: richPresentations.Mobile<br/>type: *richLayer | `internal/approval/formeditor/schema.go:20` |
 | `richPresentations.PC` | `pc` | Go field: richPresentations.PC<br/>type: *richLayer | `internal/approval/formeditor/schema.go:19` |
 | `richSchema.DataSources` | `dataSources` | Go field: richSchema.DataSources<br/>type: []richDataSource | `internal/approval/formeditor/schema.go:12` |
@@ -2577,33 +2579,36 @@ Entries: `3294`
 | `approval_form_data_too_large` | `approval_form_data_too_large` | i18n.T call | `approval/api_errors.go:225` |
 | `approval_form_field_assignee_unresolved` | `approval_form_field_assignee_unresolved` | i18n.T call | `internal/approval/strategy/assignee.go:252` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:498` |
-| `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:491` |
-| `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:484` |
-| `approval_form_field_invalid_file_item` | `approval_form_field_invalid_file_item` | i18n.T call | `internal/approval/service/validation.go:504` |
-| `approval_form_field_invalid_validation` | `approval_form_field_invalid_validation` | i18n.T call | `internal/approval/service/validation.go:440` |
-| `approval_form_field_invalid_value` | `approval_form_field_invalid_value` | i18n.T call | `internal/approval/service/validation.go:527` |
-| `approval_form_field_max_length` | `approval_form_field_max_length` | i18n.T call | `internal/approval/service/validation.go:431` |
-| `approval_form_field_max_rows` | `approval_form_field_max_rows` | i18n.T call | `internal/approval/service/validation.go:349` |
-| `approval_form_field_max_value` | `approval_form_field_max_value` | i18n.T call | `internal/approval/service/validation.go:471` |
-| `approval_form_field_min_length` | `approval_form_field_min_length` | i18n.T call | `internal/approval/service/validation.go:424` |
-| `approval_form_field_min_rows` | `approval_form_field_min_rows` | i18n.T call | `internal/approval/service/validation.go:343` |
-| `approval_form_field_min_value` | `approval_form_field_min_value` | i18n.T call | `internal/approval/service/validation.go:464` |
-| `approval_form_field_must_be_file` | `approval_form_field_must_be_file` | i18n.T call | `internal/approval/service/validation.go:511` |
-| `approval_form_field_must_be_integer` | `approval_form_field_must_be_integer` | i18n.T call | `internal/approval/service/validation.go:456` |
-| `approval_form_field_must_be_number` | `approval_form_field_must_be_number` | i18n.T call | `internal/approval/service/validation.go:317` |
-| `approval_form_field_must_be_row_list` | `approval_form_field_must_be_row_list` | i18n.T call | `internal/approval/service/validation.go:338` |
-| `approval_form_field_must_be_row_object` | `approval_form_field_must_be_row_object` | i18n.T call | `internal/approval/service/validation.go:358` |
-| `approval_form_field_must_be_string` | `approval_form_field_must_be_string` | i18n.T call | `internal/approval/service/validation.go:303` |
-| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:647` |
-| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:385` |
-| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:101` |
-| `approval_form_field_pattern_mismatch` | `approval_form_field_pattern_mismatch` | i18n.T call | `internal/approval/service/validation.go:444` |
-| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:396` |
-| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:109` |
-| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:144` |
-| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:404` |
-| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:394` |
-| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:383` |
+| `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:512` |
+| `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:505` |
+| `approval_form_field_invalid_file_item` | `approval_form_field_invalid_file_item` | i18n.T call | `internal/approval/service/validation.go:518` |
+| `approval_form_field_invalid_validation` | `approval_form_field_invalid_validation` | i18n.T call | `internal/approval/service/validation.go:454` |
+| `approval_form_field_invalid_value` | `approval_form_field_invalid_value` | i18n.T call | `internal/approval/service/validation.go:541` |
+| `approval_form_field_invalid_value` | `approval_form_field_invalid_value` | i18n.T call | `internal/approval/service/code_set_validation.go:86` |
+| `approval_form_field_invalid_value` | `approval_form_field_invalid_value` | i18n.T call | `internal/approval/service/code_set_validation.go:50` |
+| `approval_form_field_max_length` | `approval_form_field_max_length` | i18n.T call | `internal/approval/service/validation.go:445` |
+| `approval_form_field_max_rows` | `approval_form_field_max_rows` | i18n.T call | `internal/approval/service/validation.go:363` |
+| `approval_form_field_max_value` | `approval_form_field_max_value` | i18n.T call | `internal/approval/service/validation.go:485` |
+| `approval_form_field_min_length` | `approval_form_field_min_length` | i18n.T call | `internal/approval/service/validation.go:438` |
+| `approval_form_field_min_rows` | `approval_form_field_min_rows` | i18n.T call | `internal/approval/service/validation.go:357` |
+| `approval_form_field_min_value` | `approval_form_field_min_value` | i18n.T call | `internal/approval/service/validation.go:478` |
+| `approval_form_field_must_be_file` | `approval_form_field_must_be_file` | i18n.T call | `internal/approval/service/validation.go:525` |
+| `approval_form_field_must_be_integer` | `approval_form_field_must_be_integer` | i18n.T call | `internal/approval/service/validation.go:470` |
+| `approval_form_field_must_be_number` | `approval_form_field_must_be_number` | i18n.T call | `internal/approval/service/validation.go:331` |
+| `approval_form_field_must_be_row_list` | `approval_form_field_must_be_row_list` | i18n.T call | `internal/approval/service/validation.go:352` |
+| `approval_form_field_must_be_row_object` | `approval_form_field_must_be_row_object` | i18n.T call | `internal/approval/service/validation.go:372` |
+| `approval_form_field_must_be_string` | `approval_form_field_must_be_string` | i18n.T call | `internal/approval/service/validation.go:317` |
+| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:115` |
+| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:661` |
+| `approval_form_field_not_defined` | `approval_form_field_not_defined` | i18n.T call | `internal/approval/service/validation.go:399` |
+| `approval_form_field_pattern_mismatch` | `approval_form_field_pattern_mismatch` | i18n.T call | `internal/approval/service/validation.go:458` |
+| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:123` |
+| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:410` |
+| `approval_form_field_required` | `approval_form_field_required` | i18n.T call | `internal/approval/service/validation.go:158` |
+| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/code_set_validation.go:84` |
+| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:418` |
+| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:408` |
+| `approval_form_field_table_cell` | `approval_form_field_table_cell` | i18n.T call | `internal/approval/service/validation.go:397` |
 | `approval_form_nested_subform` | `approval_form_nested_subform` | i18n.T call | `internal/approval/formeditor/api_errors.go:41` |
 | `approval_form_schema_malformed` | `approval_form_schema_malformed` | i18n.T call | `internal/approval/formeditor/api_errors.go:67` |
 | `approval_form_table_columns_empty` | `approval_form_table_columns_empty` | i18n.T call | `internal/approval/formeditor/api_errors.go:46` |
@@ -3198,8 +3203,8 @@ Entries: `3294`
 | `DeleteReasonReplaced (DeleteReason)` | `replaced` |  | `storage/delete_enqueuer.go:18` |
 | `DirectionInbound (Direction)` | `inbound` |  | `integration/models.go:217` |
 | `DirectionOutbound (Direction)` | `outbound` |  | `integration/models.go:213` |
-| `DynamicParamExpression (DynamicParamKind)` | `expression` |  | `approval/enums.go:494` |
-| `DynamicParamLiteral (DynamicParamKind)` | `literal` |  | `approval/enums.go:491` |
+| `DynamicParamExpression (DynamicParamKind)` | `expression` |  | `approval/enums.go:499` |
+| `DynamicParamLiteral (DynamicParamKind)` | `literal` |  | `approval/enums.go:496` |
 | `EcdsaCurveP224 (ECDSACurve)` | `P224` |  | `cryptox/ecdsa_cipher.go:20` |
 | `EcdsaCurveP256 (ECDSACurve)` | `P256` |  | `cryptox/ecdsa_cipher.go:21` |
 | `EcdsaCurveP384 (ECDSACurve)` | `P384` |  | `cryptox/ecdsa_cipher.go:22` |
@@ -3331,6 +3336,7 @@ Entries: `3294`
 | `OperatorNotEquals (ConditionOperator)` | `ne` |  | `approval/condition.go:17` |
 | `OperatorNotIn (ConditionOperator)` | `not_in` |  | `approval/condition.go:23` |
 | `OperatorStartsWith (ConditionOperator)` | `starts_with` |  | `approval/condition.go:26` |
+| `OptionSourceCodeSet (OptionSourceKind)` | `codeSet` |  | `approval/enums.go:481` |
 | `OptionSourceRemote (OptionSourceKind)` | `remote` |  | `approval/enums.go:476` |
 | `Oracle (DBKind)` | `oracle` |  | `config/data_sources.go:16` |
 | `OverflowError (OverflowStrategy)` | `error` |  | `sequence/rule.go:22` |
@@ -3340,10 +3346,10 @@ Entries: `3294`
 | `PassAny (PassRule)` | `any` |  | `approval/enums.go:121` |
 | `PassFixedCount (PassRule)` | `fixed_count` |  | `approval/enums.go:123` |
 | `PassRatio (PassRule)` | `ratio` |  | `approval/enums.go:122` |
-| `PermissionEditable (Permission)` | `editable` |  | `approval/enums.go:534` |
-| `PermissionHidden (Permission)` | `hidden` |  | `approval/enums.go:535` |
-| `PermissionRequired (Permission)` | `required` |  | `approval/enums.go:536` |
-| `PermissionVisible (Permission)` | `visible` |  | `approval/enums.go:533` |
+| `PermissionEditable (Permission)` | `editable` |  | `approval/enums.go:539` |
+| `PermissionHidden (Permission)` | `hidden` |  | `approval/enums.go:540` |
+| `PermissionRequired (Permission)` | `required` |  | `approval/enums.go:541` |
+| `PermissionVisible (Permission)` | `visible` |  | `approval/enums.go:538` |
 | `Postgres (DBKind)` | `postgres` |  | `config/data_sources.go:18` |
 | `PrincipalTypeExternalApp (PrincipalType)` | `external_app` |  | `security/principal.go:20` |
 | `PrincipalTypeSystem (PrincipalType)` | `system` |  | `security/principal.go:22` |
@@ -3448,11 +3454,11 @@ Entries: `3294`
 | `TimelineEntryStart (TimelineEntryKind)` | `start` |  | `approval/timeline_view.go:22` |
 | `TimelineEntryTerminate (TimelineEntryKind)` | `terminate` |  | `approval/timeline_view.go:28` |
 | `TimelineEntryWithdraw (TimelineEntryKind)` | `withdraw` |  | `approval/timeline_view.go:27` |
-| `TimeoutActionAutoPass (TimeoutAction)` | `auto_pass` |  | `approval/enums.go:512` |
-| `TimeoutActionAutoReject (TimeoutAction)` | `auto_reject` |  | `approval/enums.go:513` |
-| `TimeoutActionNone (TimeoutAction)` | `none` |  | `approval/enums.go:511` |
-| `TimeoutActionNotify (TimeoutAction)` | `notify` |  | `approval/enums.go:514` |
-| `TimeoutActionTransferAdmin (TimeoutAction)` | `transfer_admin` |  | `approval/enums.go:515` |
+| `TimeoutActionAutoPass (TimeoutAction)` | `auto_pass` |  | `approval/enums.go:517` |
+| `TimeoutActionAutoReject (TimeoutAction)` | `auto_reject` |  | `approval/enums.go:518` |
+| `TimeoutActionNone (TimeoutAction)` | `none` |  | `approval/enums.go:516` |
+| `TimeoutActionNotify (TimeoutAction)` | `notify` |  | `approval/enums.go:519` |
+| `TimeoutActionTransferAdmin (TimeoutAction)` | `transfer_admin` |  | `approval/enums.go:520` |
 | `TokenTypeJWT (TokenType)` | `jwt_token` |  | `config/security.go:91` |
 | `TokenTypeOpaque (TokenType)` | `opaque_token` |  | `config/security.go:93` |
 | `TriggerCron (TriggerKind)` | `cron` |  | `cron/trigger.go:21` |

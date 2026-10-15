@@ -1143,6 +1143,7 @@ TYPE FieldOptionSource : github.com/coldsmirk/vef-framework-go/approval.FieldOpt
   FIELD Kind : github.com/coldsmirk/vef-framework-go/approval.OptionSourceKind [field_order=1 tag="json:\"kind\""]
   FIELD Request : *github.com/coldsmirk/vef-framework-go/approval.RemoteOptionRequest [field_order=2 tag="json:\"request,omitempty\""]
   FIELD Mapping : *github.com/coldsmirk/vef-framework-go/approval.RemoteOptionMapping [field_order=3 tag="json:\"mapping,omitempty\""]
+  FIELD CodeSet : string [field_order=4 tag="json:\"codeSet,omitempty\""]
 CONST FieldSelect : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "select"
 CONST FieldTable : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "table"
 CONST FieldTextarea : github.com/coldsmirk/vef-framework-go/approval.FieldKind = "textarea"
@@ -1719,6 +1720,7 @@ CONST OperatorNotContains : github.com/coldsmirk/vef-framework-go/approval.Condi
 CONST OperatorNotEquals : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "ne"
 CONST OperatorNotIn : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "not_in"
 CONST OperatorStartsWith : github.com/coldsmirk/vef-framework-go/approval.ConditionOperator = "starts_with"
+CONST OptionSourceCodeSet : github.com/coldsmirk/vef-framework-go/approval.OptionSourceKind = "codeSet"
 TYPE OptionSourceKind : github.com/coldsmirk/vef-framework-go/approval.OptionSourceKind
   METHOD IsValid : func() bool
 CONST OptionSourceRemote : github.com/coldsmirk/vef-framework-go/approval.OptionSourceKind = "remote"
@@ -8604,5 +8606,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.62.0"
+CONST VEFVersion : untyped string = "v0.63.0"
 ```

@@ -82,10 +82,10 @@
         "docs/approval/service.md"
       ],
       "notes": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces.",
-      "top_level": 561,
-      "fields": 991,
+      "top_level": 562,
+      "fields": 992,
       "methods": 162,
-      "fingerprint": "5d442db621820038bff1ccaaae1b307afe948034f6a658d4ebe76ad2b8100971"
+      "fingerprint": "83f83ab5270460d9b173f6e8e02fd04d692ab7601bd1769287b2bbaaca2c5211"
     },
     {
       "package": "github.com/coldsmirk/vef-framework-go/approval/admin",
@@ -944,7 +944,7 @@
       "top_level": 1,
       "fields": 0,
       "methods": 0,
-      "fingerprint": "e3f8d80d291ed9d70dcde0bbfe74d2d4afa92e8cb4ab803ffede7eff798d2ad6"
+      "fingerprint": "6a4d290af5be8a672a6fc1650ec587aafcd0453801d2c01600e3950312d3e3d5"
     }
   ]
 }

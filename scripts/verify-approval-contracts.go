@@ -177,11 +177,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    561,
-		fields:      991,
+		topLevel:    562,
+		fields:      992,
 		methods:     162,
-		entries:     1714,
-		fingerprint: "5d442db621820038bff1ccaaae1b307afe948034f6a658d4ebe76ad2b8100971",
+		entries:     1716,
+		fingerprint: "83f83ab5270460d9b173f6e8e02fd04d692ab7601bd1769287b2bbaaca2c5211",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
@@ -217,12 +217,12 @@ var approvalPackages = []expectedPackage{
 var approvalGroupedSurfaces = []groupedSurface{
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval",
-		entryCount:           1152,
-		fieldCount:           990,
+		entryCount:           1154,
+		fieldCount:           992,
 		methodCount:          162,
 		receiverCount:        156,
-		signatureFingerprint: "d58ae7683d7fea9cd48ed2cc758632c0771a3a1ef0e8616db8bea30fea55ef5b",
-		receiverFingerprint:  "d7446e0efbfa366ab59189190b2086d2623a225d61988575bbc322fbd52b7811",
+		signatureFingerprint: "3312537cddeba18768e5de70c98ad7b4fe6db9dd33e5a28ed8212922d31d7f72",
+		receiverFingerprint:  "9043952fd20ddc0fd273ee351f37401606ed5876a9652742ee775308f19ffbd3",
 	},
 	{
 		pkg:                  "github.com/coldsmirk/vef-framework-go/approval/admin",
@@ -287,7 +287,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Approval contract docs verified: 3 public packages, 1336 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
+	fmt.Printf("Approval contract docs verified: 3 public packages, 1338 grouped field/method entries, %d runtime approval resources/actions, source-derived state/event/error/DTO contracts, 2 doc mirrors\n", approvalRuntimeSurfaceCount(runtime))
 }
 
 func verifyPackageSurfaces(m manifest, contracts contractLedger, live map[string]liveInventoryEntry) []string {
@@ -441,8 +441,8 @@ func verifyGroupedApprovalSurfaces(audit auditLedger, docs []corpus) []string {
 		receiverRows := receiverRows(receiverCountsByPackage[surface.pkg])
 		failures = append(failures, verifyGroupedSurfaceFingerprint(surface.pkg+" receiver families", receiverRows, surface.receiverCount, surface.receiverFingerprint)...)
 	}
-	if totalGrouped != 1336 {
-		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1336", totalGrouped))
+	if totalGrouped != 1338 {
+		failures = append(failures, fmt.Sprintf("approval grouped surface total mismatch: got %d want 1338", totalGrouped))
 	}
 
 	return failures
