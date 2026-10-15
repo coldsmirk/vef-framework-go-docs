@@ -17,8 +17,8 @@ Regenerate and verify this page whenever the framework runtime surface changes:
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `79390fe2759ade7eeea3e9a3fd7e57806383b6f6157e5942497364e414b22f39`
-Entries: `3301`
+Fingerprint: `bba5a1754fab2d6c699453e9a6743be4114e80da0020259f52f1af9700cf5ded`
+Entries: `3290`
 
 ## Coverage Evidence
 
@@ -33,7 +33,7 @@ Entries: `3301`
 | `HTTP endpoint` | 2 | Tier 2 source-derived constants | `extractProtocolConstants` | Source-derived REST/RPC/MCP endpoint constants and call-site evidence. | None for framework-owned default endpoints. |
 | `HTTP header` | 7 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of api/header.go Header* constants. | None. |
 | `HTTP wire field` | 8 | Tier 3 curated protocol fields | `extractProtocolConstants` | Curated source references for fundamental request/result fields shared by REST/RPC. | None in generated index; JSON DTO fields are covered separately. |
-| `JSON wire field` | 1703 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
+| `JSON wire field` | 1692 | Tier 2 scoped DTO AST with closed-world boundary check | `extractJSONFields` | AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field. | None for current non-test source; new json-tagged runtime fields must be indexed or explicitly excluded. |
 | `MCP endpoint` | 1 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of the MCP Streamable HTTP endpoint constant. | None. |
 | `MCP jsonschema tag` | 32 | Tier 2 pinned dependency parser catalog | `extractJSONSchemaTags` | Catalog of struct-tag keywords accepted by github.com/invopop/jsonschema v0.14.0, with boundary verification that fails on dependency-version drift and uncovered in-source jsonschema tags. | None for the pinned jsonschema parser version. |
 | `MCP prompt` | 1 | Tier 2 MCP AST | `extractMCP` | AST scan of internal/mcp Prompt composites. | None in scanned MCP package. |
@@ -274,11 +274,11 @@ Entries: `3301`
 | `AdapterSearch.Direction` | `direction` | Go field: AdapterSearch.Direction<br/>search: "eq,column=direction"<br/>type: integration.Direction | `internal/integration/resource/adapter.go:32` |
 | `AdapterSearch.IsEnabled` | `isEnabled` | Go field: AdapterSearch.IsEnabled<br/>search: "eq,column=is_enabled"<br/>type: *bool | `internal/integration/resource/adapter.go:33` |
 | `AdapterSearch.SystemID` | `systemId` | Go field: AdapterSearch.SystemID<br/>search: "eq,column=system_id"<br/>type: string | `internal/integration/resource/adapter.go:30` |
-| `AddAssigneeParams.AddType` | `addType` | Go field: AddAssigneeParams.AddType<br/>type: string<br/>validate: "required,oneof=before after parallel" | `internal/approval/resource/instance.go:400` |
-| `AddAssigneeParams.TaskID` | `taskId` | Go field: AddAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:398` |
-| `AddAssigneeParams.UserIDs` | `userIds` | Go field: AddAssigneeParams.UserIDs<br/>type: []string<br/>validate: "required,min=1,max=50" | `internal/approval/resource/instance.go:399` |
-| `AddCCParams.CCUserIDs` | `ccUserIds` | Go field: AddCCParams.CCUserIDs<br/>type: []string<br/>validate: "required,min=1,max=50" | `internal/approval/resource/instance.go:347` |
-| `AddCCParams.InstanceID` | `instanceId` | Go field: AddCCParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:346` |
+| `AddAssigneeParams.AddType` | `addType` | Go field: AddAssigneeParams.AddType<br/>type: string<br/>validate: "required,oneof=before after parallel" | `internal/approval/resource/instance.go:396` |
+| `AddAssigneeParams.TaskID` | `taskId` | Go field: AddAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:394` |
+| `AddAssigneeParams.UserIDs` | `userIds` | Go field: AddAssigneeParams.UserIDs<br/>type: []string<br/>validate: "required,min=1,max=50" | `internal/approval/resource/instance.go:395` |
+| `AddCCParams.CCUserIDs` | `ccUserIds` | Go field: AddCCParams.CCUserIDs<br/>type: []string<br/>validate: "required,min=1,max=50" | `internal/approval/resource/instance.go:343` |
+| `AddCCParams.InstanceID` | `instanceId` | Go field: AddCCParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:342` |
 | `AdminFindActionLogsParams.InstanceID` | `instanceId` | Go field: AdminFindActionLogsParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/admin.go:181` |
 | `AdminFindActionLogsParams.Page` | `page` | Go field: AdminFindActionLogsParams.Page<br/>type: int | `internal/approval/resource/admin.go:183` |
 | `AdminFindActionLogsParams.PageSize` | `pageSize` | Go field: AdminFindActionLogsParams.PageSize<br/>type: int | `internal/approval/resource/admin.go:184` |
@@ -459,19 +459,19 @@ Entries: `3301`
 | `CPUSummary.LogicalCores` | `logicalCores` | Go field: CPUSummary.LogicalCores<br/>type: int | `monitor/service.go:51` |
 | `CPUSummary.PhysicalCores` | `physicalCores` | Go field: CPUSummary.PhysicalCores<br/>type: int | `monitor/service.go:50` |
 | `CPUSummary.UsagePercent` | `usagePercent` | Go field: CPUSummary.UsagePercent<br/>type: float64 | `monitor/service.go:52` |
-| `CategoryParams.Code` | `code` | Go field: CategoryParams.Code<br/>type: string<br/>validate: "required" | `internal/approval/resource/category.go:28` |
-| `CategoryParams.ID` | `id` | Go field: CategoryParams.ID<br/>type: string | `internal/approval/resource/category.go:22` |
-| `CategoryParams.Icon` | `icon` | Go field: CategoryParams.Icon<br/>type: *string | `internal/approval/resource/category.go:30` |
-| `CategoryParams.IsActive` | `isActive` | Go field: CategoryParams.IsActive<br/>type: bool | `internal/approval/resource/category.go:33` |
-| `CategoryParams.Name` | `name` | Go field: CategoryParams.Name<br/>type: string<br/>validate: "required" | `internal/approval/resource/category.go:29` |
-| `CategoryParams.ParentID` | `parentId` | Go field: CategoryParams.ParentID<br/>type: *string | `internal/approval/resource/category.go:31` |
-| `CategoryParams.Remark` | `remark` | Go field: CategoryParams.Remark<br/>type: *string | `internal/approval/resource/category.go:34` |
-| `CategoryParams.SortOrder` | `sortOrder` | Go field: CategoryParams.SortOrder<br/>type: int | `internal/approval/resource/category.go:32` |
-| `CategoryParams.TenantID` | `tenantId` | Go field: CategoryParams.TenantID<br/>type: string | `internal/approval/resource/category.go:27` |
-| `CategorySearch.IncludeShared` | `includeShared` | Go field: CategorySearch.IncludeShared<br/>search: "-"<br/>type: bool | `internal/approval/resource/category.go:50` |
-| `CategorySearch.IsActive` | `isActive` | Go field: CategorySearch.IsActive<br/>search: "eq,column=is_active"<br/>type: *bool | `internal/approval/resource/category.go:42` |
-| `CategorySearch.Name` | `name` | Go field: CategorySearch.Name<br/>search: "contains"<br/>type: string | `internal/approval/resource/category.go:41` |
-| `CategorySearch.TenantID` | `tenantId` | Go field: CategorySearch.TenantID<br/>search: "-"<br/>type: string | `internal/approval/resource/category.go:46` |
+| `CategoryParams.Code` | `code` | Go field: CategoryParams.Code<br/>type: string<br/>validate: "required" | `internal/approval/resource/category.go:26` |
+| `CategoryParams.ID` | `id` | Go field: CategoryParams.ID<br/>type: string | `internal/approval/resource/category.go:21` |
+| `CategoryParams.Icon` | `icon` | Go field: CategoryParams.Icon<br/>type: *string | `internal/approval/resource/category.go:28` |
+| `CategoryParams.IsActive` | `isActive` | Go field: CategoryParams.IsActive<br/>type: bool | `internal/approval/resource/category.go:31` |
+| `CategoryParams.Name` | `name` | Go field: CategoryParams.Name<br/>type: string<br/>validate: "required" | `internal/approval/resource/category.go:27` |
+| `CategoryParams.ParentID` | `parentId` | Go field: CategoryParams.ParentID<br/>type: *string | `internal/approval/resource/category.go:29` |
+| `CategoryParams.Remark` | `remark` | Go field: CategoryParams.Remark<br/>type: *string | `internal/approval/resource/category.go:32` |
+| `CategoryParams.SortOrder` | `sortOrder` | Go field: CategoryParams.SortOrder<br/>type: int | `internal/approval/resource/category.go:30` |
+| `CategoryParams.TenantID` | `tenantId` | Go field: CategoryParams.TenantID<br/>type: string<br/>validate: "required" | `internal/approval/resource/category.go:25` |
+| `CategorySearch.IncludeShared` | `includeShared` | Go field: CategorySearch.IncludeShared<br/>search: "-"<br/>type: bool | `internal/approval/resource/category.go:48` |
+| `CategorySearch.IsActive` | `isActive` | Go field: CategorySearch.IsActive<br/>search: "eq,column=is_active"<br/>type: *bool | `internal/approval/resource/category.go:40` |
+| `CategorySearch.Name` | `name` | Go field: CategorySearch.Name<br/>search: "contains"<br/>type: string | `internal/approval/resource/category.go:39` |
+| `CategorySearch.TenantID` | `tenantId` | Go field: CategorySearch.TenantID<br/>search: "-"<br/>type: string | `internal/approval/resource/category.go:44` |
 | `Check.Expr` | `expr` | Go field: Check.Expr<br/>type: string | `schema/service.go:75` |
 | `Check.Name` | `name` | Go field: Check.Name<br/>type: string | `schema/service.go:74` |
 | `CodeCatalog.Codes` | `codes` | Go field: CodeCatalog.Codes<br/>type: []mold.CodeInfo | `internal/integration/resource/code_set_catalog.go:30` |
@@ -577,7 +577,7 @@ Entries: `3301`
 | `CreateFlowParams.IsAllInitiationAllowed` | `isAllInitiationAllowed` | Go field: CreateFlowParams.IsAllInitiationAllowed<br/>type: bool | `internal/approval/resource/flow.go:68` |
 | `CreateFlowParams.Labels` | `labels` | Go field: CreateFlowParams.Labels<br/>type: map[string]string | `internal/approval/resource/flow.go:64` |
 | `CreateFlowParams.Name` | `name` | Go field: CreateFlowParams.Name<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:60` |
-| `CreateFlowParams.TenantID` | `tenantId` | Go field: CreateFlowParams.TenantID<br/>type: string | `internal/approval/resource/flow.go:58` |
+| `CreateFlowParams.TenantID` | `tenantId` | Go field: CreateFlowParams.TenantID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:58` |
 | `CreateInitiatorParams.IDs` | `ids` | Go field: CreateInitiatorParams.IDs<br/>type: []string<br/>validate: "required" | `internal/approval/resource/flow.go:76` |
 | `CreateInitiatorParams.Kind` | `kind` | Go field: CreateInitiatorParams.Kind<br/>type: approval.InitiatorKind<br/>validate: "required" | `internal/approval/resource/flow.go:75` |
 | `CreateManyParams.List` | `list` | Go field: CreateManyParams.List<br/>type: []TParams<br/>validate: "required,min=1,dive" | `crud/params.go:12` |
@@ -642,11 +642,11 @@ Entries: `3301`
 | `DepartmentOption.Name` | `name` | Go field: DepartmentOption.Name<br/>type: string | `security/department_selection.go:17` |
 | `DepartmentSelectionChallengeData.Departments` | `departments` | Go field: DepartmentSelectionChallengeData.Departments<br/>type: []DepartmentOption | `security/department_selection.go:30` |
 | `DepartmentSelectionChallengeData.Meta` | `meta` | Go field: DepartmentSelectionChallengeData.Meta<br/>type: map[string]any | `security/department_selection.go:40` |
-| `DeployFlowParams.Description` | `description` | Go field: DeployFlowParams.Description<br/>type: *string | `internal/approval/resource/flow.go:128` |
-| `DeployFlowParams.FlowDefinition` | `flowDefinition` | Go field: DeployFlowParams.FlowDefinition<br/>type: approval.FlowDefinition<br/>validate: "required" | `internal/approval/resource/flow.go:130` |
-| `DeployFlowParams.FlowID` | `flowId` | Go field: DeployFlowParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:127` |
-| `DeployFlowParams.FormSchema` | `formSchema` | Go field: DeployFlowParams.FormSchema<br/>type: json.RawMessage | `internal/approval/resource/flow.go:131` |
-| `DeployFlowParams.StorageMode` | `storageMode` | Go field: DeployFlowParams.StorageMode<br/>type: approval.StorageMode | `internal/approval/resource/flow.go:129` |
+| `DeployFlowParams.Description` | `description` | Go field: DeployFlowParams.Description<br/>type: *string | `internal/approval/resource/flow.go:122` |
+| `DeployFlowParams.FlowDefinition` | `flowDefinition` | Go field: DeployFlowParams.FlowDefinition<br/>type: approval.FlowDefinition<br/>validate: "required" | `internal/approval/resource/flow.go:124` |
+| `DeployFlowParams.FlowID` | `flowId` | Go field: DeployFlowParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:121` |
+| `DeployFlowParams.FormSchema` | `formSchema` | Go field: DeployFlowParams.FormSchema<br/>type: json.RawMessage | `internal/approval/resource/flow.go:125` |
+| `DeployFlowParams.StorageMode` | `storageMode` | Go field: DeployFlowParams.StorageMode<br/>type: approval.StorageMode | `internal/approval/resource/flow.go:123` |
 | `DiskInfo.IOCounters` | `ioCounters` | Go field: DiskInfo.IOCounters<br/>type: map[string]*IOCounter | `monitor/service.go:155` |
 | `DiskInfo.Partitions` | `partitions` | Go field: DiskInfo.Partitions<br/>type: []*PartitionInfo | `monitor/service.go:154` |
 | `DiskSummary.Partitions` | `partitions` | Go field: DiskSummary.Partitions<br/>type: int | `monitor/service.go:149` |
@@ -698,53 +698,46 @@ Entries: `3301`
 | `FileRecord.Size` | `size` | Go field: FileRecord.Size<br/>type: int64 | `storage/file_record.go:58` |
 | `FileRecord.StartedAt` | `startedAt` | Go field: FileRecord.StartedAt<br/>type: timex.DateTime | `storage/file_record.go:70` |
 | `FileRecord.Status` | `status` | Go field: FileRecord.Status<br/>type: FileStatus | `storage/file_record.go:62` |
-| `FindAvailableFlowsParams.Keyword` | `keyword` | Go field: FindAvailableFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:63` |
-| `FindAvailableFlowsParams.Labels` | `labels` | Go field: FindAvailableFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/my.go:64` |
-| `FindAvailableFlowsParams.Page` | `page` | Go field: FindAvailableFlowsParams.Page<br/>type: int | `internal/approval/resource/my.go:65` |
-| `FindAvailableFlowsParams.PageSize` | `pageSize` | Go field: FindAvailableFlowsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:66` |
-| `FindAvailableFlowsParams.TenantID` | `tenantId` | Go field: FindAvailableFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:62` |
-| `FindCCRecordsParams.IsRead` | `isRead` | Go field: FindCCRecordsParams.IsRead<br/>type: *bool | `internal/approval/resource/my.go:250` |
-| `FindCCRecordsParams.Page` | `page` | Go field: FindCCRecordsParams.Page<br/>type: int | `internal/approval/resource/my.go:251` |
-| `FindCCRecordsParams.PageSize` | `pageSize` | Go field: FindCCRecordsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:252` |
-| `FindCCRecordsParams.TenantID` | `tenantId` | Go field: FindCCRecordsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:249` |
-| `FindCompletedTasksParams.ApplicantID` | `applicantId` | Go field: FindCompletedTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:211` |
-| `FindCompletedTasksParams.ApplicantName` | `applicantName` | Go field: FindCompletedTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:212` |
-| `FindCompletedTasksParams.FinishedAtFrom` | `finishedAtFrom` | Go field: FindCompletedTasksParams.FinishedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:216` |
-| `FindCompletedTasksParams.FinishedAtTo` | `finishedAtTo` | Go field: FindCompletedTasksParams.FinishedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:217` |
-| `FindCompletedTasksParams.FlowID` | `flowId` | Go field: FindCompletedTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:213` |
-| `FindCompletedTasksParams.InstanceStatus` | `instanceStatus` | Go field: FindCompletedTasksParams.InstanceStatus<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:215` |
-| `FindCompletedTasksParams.Keyword` | `keyword` | Go field: FindCompletedTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:210` |
-| `FindCompletedTasksParams.Page` | `page` | Go field: FindCompletedTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:218` |
-| `FindCompletedTasksParams.PageSize` | `pageSize` | Go field: FindCompletedTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:219` |
-| `FindCompletedTasksParams.Status` | `status` | Go field: FindCompletedTasksParams.Status<br/>type: *approval.TaskStatus | `internal/approval/resource/my.go:214` |
-| `FindCompletedTasksParams.TenantID` | `tenantId` | Go field: FindCompletedTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:209` |
-| `FindFlowsParams.BindingMode` | `bindingMode` | Go field: FindFlowsParams.BindingMode<br/>type: *approval.BindingMode | `internal/approval/resource/flow.go:248` |
-| `FindFlowsParams.CategoryID` | `categoryId` | Go field: FindFlowsParams.CategoryID<br/>type: *string | `internal/approval/resource/flow.go:244` |
-| `FindFlowsParams.IsActive` | `isActive` | Go field: FindFlowsParams.IsActive<br/>type: *bool | `internal/approval/resource/flow.go:246` |
-| `FindFlowsParams.Keyword` | `keyword` | Go field: FindFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/flow.go:245` |
-| `FindFlowsParams.Labels` | `labels` | Go field: FindFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/flow.go:247` |
-| `FindFlowsParams.Page` | `page` | Go field: FindFlowsParams.Page<br/>type: int | `internal/approval/resource/flow.go:249` |
-| `FindFlowsParams.PageSize` | `pageSize` | Go field: FindFlowsParams.PageSize<br/>type: int | `internal/approval/resource/flow.go:250` |
-| `FindFlowsParams.TenantID` | `tenantId` | Go field: FindFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:243` |
-| `FindInitiatedParams.Keyword` | `keyword` | Go field: FindInitiatedParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:143` |
-| `FindInitiatedParams.Page` | `page` | Go field: FindInitiatedParams.Page<br/>type: int | `internal/approval/resource/my.go:144` |
-| `FindInitiatedParams.PageSize` | `pageSize` | Go field: FindInitiatedParams.PageSize<br/>type: int | `internal/approval/resource/my.go:145` |
-| `FindInitiatedParams.Status` | `status` | Go field: FindInitiatedParams.Status<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:142` |
-| `FindInitiatedParams.TenantID` | `tenantId` | Go field: FindInitiatedParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:141` |
-| `FindInitiatorsParams.FlowID` | `flowId` | Go field: FindInitiatorsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:404` |
-| `FindInitiatorsParams.TenantID` | `tenantId` | Go field: FindInitiatorsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:405` |
-| `FindPendingTasksParams.ApplicantID` | `applicantId` | Go field: FindPendingTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:172` |
-| `FindPendingTasksParams.ApplicantName` | `applicantName` | Go field: FindPendingTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:173` |
-| `FindPendingTasksParams.CreatedAtFrom` | `createdAtFrom` | Go field: FindPendingTasksParams.CreatedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:176` |
-| `FindPendingTasksParams.CreatedAtTo` | `createdAtTo` | Go field: FindPendingTasksParams.CreatedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:177` |
-| `FindPendingTasksParams.FlowID` | `flowId` | Go field: FindPendingTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:174` |
-| `FindPendingTasksParams.IsTimeout` | `isTimeout` | Go field: FindPendingTasksParams.IsTimeout<br/>type: *bool | `internal/approval/resource/my.go:175` |
-| `FindPendingTasksParams.Keyword` | `keyword` | Go field: FindPendingTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:171` |
-| `FindPendingTasksParams.Page` | `page` | Go field: FindPendingTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:178` |
-| `FindPendingTasksParams.PageSize` | `pageSize` | Go field: FindPendingTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:179` |
-| `FindPendingTasksParams.TenantID` | `tenantId` | Go field: FindPendingTasksParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:170` |
-| `FindVersionsParams.FlowID` | `flowId` | Go field: FindVersionsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:373` |
-| `FindVersionsParams.TenantID` | `tenantId` | Go field: FindVersionsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:374` |
+| `FindAvailableFlowsParams.Keyword` | `keyword` | Go field: FindAvailableFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:60` |
+| `FindAvailableFlowsParams.Labels` | `labels` | Go field: FindAvailableFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/my.go:61` |
+| `FindAvailableFlowsParams.Page` | `page` | Go field: FindAvailableFlowsParams.Page<br/>type: int | `internal/approval/resource/my.go:62` |
+| `FindAvailableFlowsParams.PageSize` | `pageSize` | Go field: FindAvailableFlowsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:63` |
+| `FindCCRecordsParams.IsRead` | `isRead` | Go field: FindCCRecordsParams.IsRead<br/>type: *bool | `internal/approval/resource/my.go:236` |
+| `FindCCRecordsParams.Page` | `page` | Go field: FindCCRecordsParams.Page<br/>type: int | `internal/approval/resource/my.go:237` |
+| `FindCCRecordsParams.PageSize` | `pageSize` | Go field: FindCCRecordsParams.PageSize<br/>type: int | `internal/approval/resource/my.go:238` |
+| `FindCompletedTasksParams.ApplicantID` | `applicantId` | Go field: FindCompletedTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:199` |
+| `FindCompletedTasksParams.ApplicantName` | `applicantName` | Go field: FindCompletedTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:200` |
+| `FindCompletedTasksParams.FinishedAtFrom` | `finishedAtFrom` | Go field: FindCompletedTasksParams.FinishedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:204` |
+| `FindCompletedTasksParams.FinishedAtTo` | `finishedAtTo` | Go field: FindCompletedTasksParams.FinishedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:205` |
+| `FindCompletedTasksParams.FlowID` | `flowId` | Go field: FindCompletedTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:201` |
+| `FindCompletedTasksParams.InstanceStatus` | `instanceStatus` | Go field: FindCompletedTasksParams.InstanceStatus<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:203` |
+| `FindCompletedTasksParams.Keyword` | `keyword` | Go field: FindCompletedTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:198` |
+| `FindCompletedTasksParams.Page` | `page` | Go field: FindCompletedTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:206` |
+| `FindCompletedTasksParams.PageSize` | `pageSize` | Go field: FindCompletedTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:207` |
+| `FindCompletedTasksParams.Status` | `status` | Go field: FindCompletedTasksParams.Status<br/>type: *approval.TaskStatus | `internal/approval/resource/my.go:202` |
+| `FindFlowsParams.BindingMode` | `bindingMode` | Go field: FindFlowsParams.BindingMode<br/>type: *approval.BindingMode | `internal/approval/resource/flow.go:216` |
+| `FindFlowsParams.CategoryID` | `categoryId` | Go field: FindFlowsParams.CategoryID<br/>type: *string | `internal/approval/resource/flow.go:212` |
+| `FindFlowsParams.IsActive` | `isActive` | Go field: FindFlowsParams.IsActive<br/>type: *bool | `internal/approval/resource/flow.go:214` |
+| `FindFlowsParams.Keyword` | `keyword` | Go field: FindFlowsParams.Keyword<br/>type: *string | `internal/approval/resource/flow.go:213` |
+| `FindFlowsParams.Labels` | `labels` | Go field: FindFlowsParams.Labels<br/>type: map[string]string | `internal/approval/resource/flow.go:215` |
+| `FindFlowsParams.Page` | `page` | Go field: FindFlowsParams.Page<br/>type: int | `internal/approval/resource/flow.go:217` |
+| `FindFlowsParams.PageSize` | `pageSize` | Go field: FindFlowsParams.PageSize<br/>type: int | `internal/approval/resource/flow.go:218` |
+| `FindFlowsParams.TenantID` | `tenantId` | Go field: FindFlowsParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:211` |
+| `FindInitiatedParams.Keyword` | `keyword` | Go field: FindInitiatedParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:135` |
+| `FindInitiatedParams.Page` | `page` | Go field: FindInitiatedParams.Page<br/>type: int | `internal/approval/resource/my.go:136` |
+| `FindInitiatedParams.PageSize` | `pageSize` | Go field: FindInitiatedParams.PageSize<br/>type: int | `internal/approval/resource/my.go:137` |
+| `FindInitiatedParams.Status` | `status` | Go field: FindInitiatedParams.Status<br/>type: *approval.InstanceStatus | `internal/approval/resource/my.go:134` |
+| `FindInitiatorsParams.FlowID` | `flowId` | Go field: FindInitiatorsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:346` |
+| `FindPendingTasksParams.ApplicantID` | `applicantId` | Go field: FindPendingTasksParams.ApplicantID<br/>type: *string | `internal/approval/resource/my.go:162` |
+| `FindPendingTasksParams.ApplicantName` | `applicantName` | Go field: FindPendingTasksParams.ApplicantName<br/>type: *string | `internal/approval/resource/my.go:163` |
+| `FindPendingTasksParams.CreatedAtFrom` | `createdAtFrom` | Go field: FindPendingTasksParams.CreatedAtFrom<br/>type: *timex.DateTime | `internal/approval/resource/my.go:166` |
+| `FindPendingTasksParams.CreatedAtTo` | `createdAtTo` | Go field: FindPendingTasksParams.CreatedAtTo<br/>type: *timex.DateTime | `internal/approval/resource/my.go:167` |
+| `FindPendingTasksParams.FlowID` | `flowId` | Go field: FindPendingTasksParams.FlowID<br/>type: *string | `internal/approval/resource/my.go:164` |
+| `FindPendingTasksParams.IsTimeout` | `isTimeout` | Go field: FindPendingTasksParams.IsTimeout<br/>type: *bool | `internal/approval/resource/my.go:165` |
+| `FindPendingTasksParams.Keyword` | `keyword` | Go field: FindPendingTasksParams.Keyword<br/>type: *string | `internal/approval/resource/my.go:161` |
+| `FindPendingTasksParams.Page` | `page` | Go field: FindPendingTasksParams.Page<br/>type: int | `internal/approval/resource/my.go:168` |
+| `FindPendingTasksParams.PageSize` | `pageSize` | Go field: FindPendingTasksParams.PageSize<br/>type: int | `internal/approval/resource/my.go:169` |
+| `FindVersionsParams.FlowID` | `flowId` | Go field: FindVersionsParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:323` |
 | `FiresPreview.NextFiresUnixMs` | `nextFiresUnixMs` | Go field: FiresPreview.NextFiresUnixMs<br/>type: []int64 | `internal/cron/store/schedule_resource.go:142` |
 | `Flow.AdminUserIDs` | `adminUserIds` | Go field: Flow.AdminUserIDs<br/>type: []string | `approval/models.go:50` |
 | `Flow.BindingMode` | `bindingMode` | Go field: Flow.BindingMode<br/>type: BindingMode | `approval/models.go:48` |
@@ -925,13 +918,10 @@ Entries: `3301`
 | `FullTrackedModel.UpdatedAt` | `updatedAt` | Go field: FullTrackedModel.UpdatedAt<br/>type: timex.DateTime | `internal/orm/model.go:24` |
 | `FullTrackedModel.UpdatedBy` | `updatedBy` | Go field: FullTrackedModel.UpdatedBy<br/>mold: "translate=user?"<br/>type: string | `internal/orm/model.go:25` |
 | `FullTrackedModel.UpdatedByName` | `updatedByName` | Go field: FullTrackedModel.UpdatedByName<br/>type: string | `internal/orm/model.go:26` |
-| `GetGraphParams.FlowID` | `flowId` | Go field: GetGraphParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:193` |
-| `GetGraphParams.TenantID` | `tenantId` | Go field: GetGraphParams.TenantID<br/>type: *string | `internal/approval/resource/flow.go:197` |
-| `GetGraphParams.VersionID` | `versionId` | Go field: GetGraphParams.VersionID<br/>type: *string | `internal/approval/resource/flow.go:201` |
-| `GetInstanceDetailParams.InstanceID` | `instanceId` | Go field: GetInstanceDetailParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:295` |
-| `GetPendingCountsParams.TenantID` | `tenantId` | Go field: GetPendingCountsParams.TenantID<br/>type: *string | `internal/approval/resource/my.go:275` |
-| `GetStartFormParams.FlowCode` | `flowCode` | Go field: GetStartFormParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:105` |
-| `GetStartFormParams.TenantID` | `tenantId` | Go field: GetStartFormParams.TenantID<br/>type: string | `internal/approval/resource/my.go:104` |
+| `GetGraphParams.FlowID` | `flowId` | Go field: GetGraphParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:175` |
+| `GetGraphParams.VersionID` | `versionId` | Go field: GetGraphParams.VersionID<br/>type: *string | `internal/approval/resource/flow.go:179` |
+| `GetInstanceDetailParams.InstanceID` | `instanceId` | Go field: GetInstanceDetailParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:272` |
+| `GetStartFormParams.FlowCode` | `flowCode` | Go field: GetStartFormParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/my.go:99` |
 | `GetTableSchemaParams.Name` | `name` | Go field: GetTableSchemaParams.Name<br/>type: string<br/>validate: "required" | `internal/schema/resource.go:49` |
 | `HTTPExchange.ClientAddr` | `clientAddr` | Go field: HTTPExchange.ClientAddr<br/>type: string | `integration/models.go:298` |
 | `HTTPExchange.DurationMs` | `durationMs` | Go field: HTTPExchange.DurationMs<br/>type: int64 | `integration/models.go:294` |
@@ -1193,7 +1183,7 @@ Entries: `3301`
 | `LoginResult.Challenge` | `challenge` | Go field: LoginResult.Challenge<br/>type: *LoginChallenge | `security/challenge.go:18` |
 | `LoginResult.ChallengeToken` | `challengeToken` | Go field: LoginResult.ChallengeToken<br/>type: string | `security/challenge.go:17` |
 | `LoginResult.Tokens` | `tokens` | Go field: LoginResult.Tokens<br/>type: *AuthTokens | `security/challenge.go:16` |
-| `MarkCCReadParams.InstanceID` | `instanceId` | Go field: MarkCCReadParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:373` |
+| `MarkCCReadParams.InstanceID` | `instanceId` | Go field: MarkCCReadParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:369` |
 | `MemoryInfo.Swap` | `swap` | Go field: MemoryInfo.Swap<br/>type: *SwapMemory | `monitor/service.go:85` |
 | `MemoryInfo.Virtual` | `virtual` | Go field: MemoryInfo.Virtual<br/>type: *VirtualMemory | `monitor/service.go:84` |
 | `MemorySummary.Total` | `total` | Go field: MemorySummary.Total<br/>type: uint64 | `monitor/service.go:77` |
@@ -1341,14 +1331,14 @@ Entries: `3301`
 | `ProcessSummary.MemoryPercent` | `memoryPercent` | Go field: ProcessSummary.MemoryPercent<br/>type: float32 | `monitor/service.go:237` |
 | `ProcessSummary.Name` | `name` | Go field: ProcessSummary.Name<br/>type: string | `monitor/service.go:235` |
 | `ProcessSummary.PID` | `pid` | Go field: ProcessSummary.PID<br/>type: int32 | `monitor/service.go:234` |
-| `ProcessTaskParams.Action` | `action` | Go field: ProcessTaskParams.Action<br/>type: string<br/>validate: "required,oneof=approve reject transfer rollback handle" | `internal/approval/resource/instance.go:187` |
-| `ProcessTaskParams.Attachments` | `attachments` | Go field: ProcessTaskParams.Attachments<br/>type: []string<br/>validate: "max=20,dive,max=512" | `internal/approval/resource/instance.go:190` |
-| `ProcessTaskParams.FormData` | `formData` | Go field: ProcessTaskParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:189` |
-| `ProcessTaskParams.Opinion` | `opinion` | Go field: ProcessTaskParams.Opinion<br/>type: string<br/>validate: "max=2000" | `internal/approval/resource/instance.go:188` |
-| `ProcessTaskParams.TargetNodeID` | `targetNodeId` | Go field: ProcessTaskParams.TargetNodeID<br/>type: string | `internal/approval/resource/instance.go:192` |
-| `ProcessTaskParams.TaskID` | `taskId` | Go field: ProcessTaskParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:186` |
-| `ProcessTaskParams.TransferToID` | `transferToId` | Go field: ProcessTaskParams.TransferToID<br/>type: string | `internal/approval/resource/instance.go:191` |
-| `PublishVersionParams.VersionID` | `versionId` | Go field: PublishVersionParams.VersionID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:164` |
+| `ProcessTaskParams.Action` | `action` | Go field: ProcessTaskParams.Action<br/>type: string<br/>validate: "required,oneof=approve reject transfer rollback handle" | `internal/approval/resource/instance.go:183` |
+| `ProcessTaskParams.Attachments` | `attachments` | Go field: ProcessTaskParams.Attachments<br/>type: []string<br/>validate: "max=20,dive,max=512" | `internal/approval/resource/instance.go:186` |
+| `ProcessTaskParams.FormData` | `formData` | Go field: ProcessTaskParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:185` |
+| `ProcessTaskParams.Opinion` | `opinion` | Go field: ProcessTaskParams.Opinion<br/>type: string<br/>validate: "max=2000" | `internal/approval/resource/instance.go:184` |
+| `ProcessTaskParams.TargetNodeID` | `targetNodeId` | Go field: ProcessTaskParams.TargetNodeID<br/>type: string | `internal/approval/resource/instance.go:188` |
+| `ProcessTaskParams.TaskID` | `taskId` | Go field: ProcessTaskParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:182` |
+| `ProcessTaskParams.TransferToID` | `transferToId` | Go field: ProcessTaskParams.TransferToID<br/>type: string | `internal/approval/resource/instance.go:187` |
+| `PublishVersionParams.VersionID` | `versionId` | Go field: PublishVersionParams.VersionID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:152` |
 | `QueryArgs.Params` | `params` | Go field: QueryArgs.Params<br/>jsonschema: "description=Parameters for the SQL query placeholders"<br/>type: []any | `internal/mcp/tools/query.go:17` |
 | `QueryArgs.SQL` | `sql` | Go field: QueryArgs.SQL<br/>jsonschema: "required,description=The SQL query with placeholders (?) for parameters"<br/>type: string | `internal/mcp/tools/query.go:16` |
 | `Record.CompletedAt` | `completedAt` | Go field: Record.CompletedAt<br/>type: *timex.DateTime | `event/inbox/inbox.go:59` |
@@ -1383,7 +1373,7 @@ Entries: `3301`
 | `RemovableAssignee.Assignee` | `assignee` | Go field: RemovableAssignee.Assignee<br/>type: approval.UserInfo | `approval/my/instance_detail.go:66` |
 | `RemovableAssignee.Status` | `status` | Go field: RemovableAssignee.Status<br/>type: string | `approval/my/instance_detail.go:68` |
 | `RemovableAssignee.TaskID` | `taskId` | Go field: RemovableAssignee.TaskID<br/>type: string | `approval/my/instance_detail.go:65` |
-| `RemoveAssigneeParams.TaskID` | `taskId` | Go field: RemoveAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:427` |
+| `RemoveAssigneeParams.TaskID` | `taskId` | Go field: RemoveAssigneeParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:423` |
 | `ReplayParams.ID` | `id` | Go field: ReplayParams.ID<br/>type: string<br/>validate: "required" | `internal/integration/resource/log.go:28` |
 | `ReplayParams.Script` | `script` | Go field: ReplayParams.Script<br/>type: string | `internal/integration/resource/log.go:29` |
 | `ReplayPayload.Dispatches` | `dispatches` | Go field: ReplayPayload.Dispatches<br/>type: []DispatchResult | `internal/integration/exec/replay.go:35` |
@@ -1410,8 +1400,8 @@ Entries: `3301`
 | `ResolvedFile.Status` | `status` | Go field: ResolvedFile.Status<br/>type: storage.FileStatus | `internal/storage/file_resource.go:62` |
 | `ResolvedFile.UploadedAt` | `uploadedAt` | Go field: ResolvedFile.UploadedAt<br/>type: timex.DateTime | `internal/storage/file_resource.go:63` |
 | `ResolvedFile.UploadedBy` | `uploadedBy` | Go field: ResolvedFile.UploadedBy<br/>type: string | `internal/storage/file_resource.go:64` |
-| `ResubmitParams.FormData` | `formData` | Go field: ResubmitParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:320` |
-| `ResubmitParams.InstanceID` | `instanceId` | Go field: ResubmitParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:319` |
+| `ResubmitParams.FormData` | `formData` | Go field: ResubmitParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:316` |
+| `ResubmitParams.InstanceID` | `instanceId` | Go field: ResubmitParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:315` |
 | `Result.Code` | `code` | Go field: Result.Code<br/>type: int | `result/result.go:11` |
 | `Result.Data` | `data` | Go field: Result.Data<br/>type: any | `result/result.go:13` |
 | `Result.Message` | `message` | Go field: Result.Message<br/>type: string | `result/result.go:12` |
@@ -1532,10 +1522,9 @@ Entries: `3301`
 | `StartForm.Globals` | `globals` | Go field: StartForm.Globals<br/>type: map[string]any | `approval/my/start_form.go:32` |
 | `StartForm.Version` | `version` | Go field: StartForm.Version<br/>type: int | `approval/my/start_form.go:22` |
 | `StartForm.VersionID` | `versionId` | Go field: StartForm.VersionID<br/>type: string | `approval/my/start_form.go:21` |
-| `StartParams.BusinessRef` | `businessRef` | Go field: StartParams.BusinessRef<br/>type: *string<br/>validate: "omitempty,max=512" | `internal/approval/resource/instance.go:147` |
-| `StartParams.FlowCode` | `flowCode` | Go field: StartParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:146` |
-| `StartParams.FormData` | `formData` | Go field: StartParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:148` |
-| `StartParams.TenantID` | `tenantId` | Go field: StartParams.TenantID<br/>type: string | `internal/approval/resource/instance.go:145` |
+| `StartParams.BusinessRef` | `businessRef` | Go field: StartParams.BusinessRef<br/>type: *string<br/>validate: "omitempty,max=512" | `internal/approval/resource/instance.go:143` |
+| `StartParams.FlowCode` | `flowCode` | Go field: StartParams.FlowCode<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:142` |
+| `StartParams.FormData` | `formData` | Go field: StartParams.FormData<br/>type: map[string]any | `internal/approval/resource/instance.go:144` |
 | `StreamGroupInfo.Consumers` | `consumers` | Go field: StreamGroupInfo.Consumers<br/>type: int64 | `event/streams.go:38` |
 | `StreamGroupInfo.Lag` | `lag` | Go field: StreamGroupInfo.Lag<br/>type: int64 | `event/streams.go:44` |
 | `StreamGroupInfo.LastDeliveredID` | `lastDeliveredId` | Go field: StreamGroupInfo.LastDeliveredID<br/>type: string | `event/streams.go:47` |
@@ -1694,8 +1683,8 @@ Entries: `3301`
 | `TimelineEntry.PassRule` | `passRule` | Go field: TimelineEntry.PassRule<br/>type: string | `approval/timeline_view.go:53` |
 | `TimelineEntry.StartedAt` | `startedAt` | Go field: TimelineEntry.StartedAt<br/>type: timex.DateTime | `approval/timeline_view.go:59` |
 | `TimelineEntry.Status` | `status` | Go field: TimelineEntry.Status<br/>type: NodeVisitStatus | `approval/timeline_view.go:50` |
-| `ToggleActiveParams.FlowID` | `flowId` | Go field: ToggleActiveParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:343` |
-| `ToggleActiveParams.IsActive` | `isActive` | Go field: ToggleActiveParams.IsActive<br/>type: bool | `internal/approval/resource/flow.go:344` |
+| `ToggleActiveParams.FlowID` | `flowId` | Go field: ToggleActiveParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:299` |
+| `ToggleActiveParams.IsActive` | `isActive` | Go field: ToggleActiveParams.IsActive<br/>type: bool | `internal/approval/resource/flow.go:300` |
 | `TreeDataOption.Children` | `children` | Go field: TreeDataOption.Children<br/>type: []TreeDataOption | `crud/option.go:57` |
 | `TriggerParams.AtUnixMs` | `atUnixMs` | Go field: TriggerParams.AtUnixMs<br/>type: *int64 | `internal/cron/store/schedule_resource.go:26` |
 | `TriggerParams.EveryMs` | `everyMs` | Go field: TriggerParams.EveryMs<br/>type: *int64 | `internal/cron/store/schedule_resource.go:25` |
@@ -1711,17 +1700,17 @@ Entries: `3301`
 | `UniqueKey.HasExpressions` | `hasExpressions` | Go field: UniqueKey.HasExpressions<br/>type: bool | `schema/service.go:59` |
 | `UniqueKey.Name` | `name` | Go field: UniqueKey.Name<br/>type: string | `schema/service.go:56` |
 | `UniqueKey.Predicate` | `predicate` | Go field: UniqueKey.Predicate<br/>type: string | `schema/service.go:58` |
-| `UpdateFlowParams.AdminUserIDs` | `adminUserIds` | Go field: UpdateFlowParams.AdminUserIDs<br/>type: []string | `internal/approval/resource/flow.go:293` |
-| `UpdateFlowParams.BindingMode` | `bindingMode` | Go field: UpdateFlowParams.BindingMode<br/>type: approval.BindingMode<br/>validate: "required" | `internal/approval/resource/flow.go:291` |
-| `UpdateFlowParams.BusinessBinding` | `businessBinding` | Go field: UpdateFlowParams.BusinessBinding<br/>type: *approval.BusinessBindingConfig | `internal/approval/resource/flow.go:292` |
-| `UpdateFlowParams.Description` | `description` | Go field: UpdateFlowParams.Description<br/>type: *string | `internal/approval/resource/flow.go:289` |
-| `UpdateFlowParams.FlowID` | `flowId` | Go field: UpdateFlowParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:286` |
-| `UpdateFlowParams.Icon` | `icon` | Go field: UpdateFlowParams.Icon<br/>type: *string | `internal/approval/resource/flow.go:288` |
-| `UpdateFlowParams.Initiators` | `initiators` | Go field: UpdateFlowParams.Initiators<br/>type: []CreateInitiatorParams | `internal/approval/resource/flow.go:296` |
-| `UpdateFlowParams.InstanceTitleTemplate` | `instanceTitleTemplate` | Go field: UpdateFlowParams.InstanceTitleTemplate<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:295` |
-| `UpdateFlowParams.IsAllInitiationAllowed` | `isAllInitiationAllowed` | Go field: UpdateFlowParams.IsAllInitiationAllowed<br/>type: bool | `internal/approval/resource/flow.go:294` |
-| `UpdateFlowParams.Labels` | `labels` | Go field: UpdateFlowParams.Labels<br/>type: map[string]string | `internal/approval/resource/flow.go:290` |
-| `UpdateFlowParams.Name` | `name` | Go field: UpdateFlowParams.Name<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:287` |
+| `UpdateFlowParams.AdminUserIDs` | `adminUserIds` | Go field: UpdateFlowParams.AdminUserIDs<br/>type: []string | `internal/approval/resource/flow.go:255` |
+| `UpdateFlowParams.BindingMode` | `bindingMode` | Go field: UpdateFlowParams.BindingMode<br/>type: approval.BindingMode<br/>validate: "required" | `internal/approval/resource/flow.go:253` |
+| `UpdateFlowParams.BusinessBinding` | `businessBinding` | Go field: UpdateFlowParams.BusinessBinding<br/>type: *approval.BusinessBindingConfig | `internal/approval/resource/flow.go:254` |
+| `UpdateFlowParams.Description` | `description` | Go field: UpdateFlowParams.Description<br/>type: *string | `internal/approval/resource/flow.go:251` |
+| `UpdateFlowParams.FlowID` | `flowId` | Go field: UpdateFlowParams.FlowID<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:248` |
+| `UpdateFlowParams.Icon` | `icon` | Go field: UpdateFlowParams.Icon<br/>type: *string | `internal/approval/resource/flow.go:250` |
+| `UpdateFlowParams.Initiators` | `initiators` | Go field: UpdateFlowParams.Initiators<br/>type: []CreateInitiatorParams | `internal/approval/resource/flow.go:258` |
+| `UpdateFlowParams.InstanceTitleTemplate` | `instanceTitleTemplate` | Go field: UpdateFlowParams.InstanceTitleTemplate<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:257` |
+| `UpdateFlowParams.IsAllInitiationAllowed` | `isAllInitiationAllowed` | Go field: UpdateFlowParams.IsAllInitiationAllowed<br/>type: bool | `internal/approval/resource/flow.go:256` |
+| `UpdateFlowParams.Labels` | `labels` | Go field: UpdateFlowParams.Labels<br/>type: map[string]string | `internal/approval/resource/flow.go:252` |
+| `UpdateFlowParams.Name` | `name` | Go field: UpdateFlowParams.Name<br/>type: string<br/>validate: "required" | `internal/approval/resource/flow.go:249` |
 | `UpdateManyParams.List` | `list` | Go field: UpdateManyParams.List<br/>type: []TParams<br/>validate: "required,min=1,dive" | `crud/params.go:19` |
 | `UploadClaim.ContentType` | `contentType` | Go field: UploadClaim.ContentType<br/>type: string | `internal/storage/store/claim.go:50` |
 | `UploadClaim.CreatedAt` | `createdAt` | Go field: UploadClaim.CreatedAt<br/>type: timex.DateTime | `internal/storage/store/claim.go:45` |
@@ -1758,8 +1747,8 @@ Entries: `3301`
 | `UrgeRecord.UrgerDepartmentName` | `urgerDepartmentName` | Go field: UrgeRecord.UrgerDepartmentName<br/>type: *string | `approval/models.go:527` |
 | `UrgeRecord.UrgerID` | `urgerId` | Go field: UrgeRecord.UrgerID<br/>type: string | `approval/models.go:524` |
 | `UrgeRecord.UrgerName` | `urgerName` | Go field: UrgeRecord.UrgerName<br/>type: string | `approval/models.go:525` |
-| `UrgeTaskParams.Message` | `message` | Go field: UrgeTaskParams.Message<br/>type: string<br/>validate: "max=500" | `internal/approval/resource/instance.go:453` |
-| `UrgeTaskParams.TaskID` | `taskId` | Go field: UrgeTaskParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:452` |
+| `UrgeTaskParams.Message` | `message` | Go field: UrgeTaskParams.Message<br/>type: string<br/>validate: "max=500" | `internal/approval/resource/instance.go:449` |
+| `UrgeTaskParams.TaskID` | `taskId` | Go field: UrgeTaskParams.TaskID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:448` |
 | `UserInfo.Avatar` | `avatar` | Go field: UserInfo.Avatar<br/>type: *string | `security/user_info.go:45` |
 | `UserInfo.DepartmentID` | `departmentId` | Go field: UserInfo.DepartmentID<br/>type: *string | `approval/assignee.go:22` |
 | `UserInfo.DepartmentName` | `departmentName` | Go field: UserInfo.DepartmentName<br/>type: *string | `approval/assignee.go:23` |
@@ -1832,8 +1821,8 @@ Entries: `3301`
 | `VirtualMemory.Wired` | `wired` | Go field: VirtualMemory.Wired<br/>type: uint64 | `monitor/service.go:97` |
 | `VirtualMemory.WriteBack` | `writeBack` | Go field: VirtualMemory.WriteBack<br/>type: uint64 | `monitor/service.go:101` |
 | `VirtualMemory.WriteBackTmp` | `writeBackTmp` | Go field: VirtualMemory.WriteBackTmp<br/>type: uint64 | `monitor/service.go:103` |
-| `WithdrawParams.InstanceID` | `instanceId` | Go field: WithdrawParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:292` |
-| `WithdrawParams.Reason` | `reason` | Go field: WithdrawParams.Reason<br/>type: string<br/>validate: "max=2000" | `internal/approval/resource/instance.go:293` |
+| `WithdrawParams.InstanceID` | `instanceId` | Go field: WithdrawParams.InstanceID<br/>type: string<br/>validate: "required" | `internal/approval/resource/instance.go:288` |
+| `WithdrawParams.Reason` | `reason` | Go field: WithdrawParams.Reason<br/>type: string<br/>validate: "max=2000" | `internal/approval/resource/instance.go:289` |
 | `exportConfig.Format` | `format` | Go field: exportConfig.Format<br/>type: TabularFormat | `crud/export.go:87` |
 | `fetchInit.Body` | `body` | Go field: fetchInit.Body<br/>type: any | `js/jshttp/jshttp.go:100` |
 | `fetchInit.Body` | `body` | Go field: fetchInit.Body<br/>type: any | `internal/integration/exec/http_lib.go:71` |
@@ -2017,7 +2006,7 @@ Entries: `3301`
 | Name | Value | Details | Source |
 | --- | --- | --- | --- |
 | `approval/admin` | `rpc` |  | `internal/approval/resource/admin.go:44` |
-| `approval/category` | `rpc` |  | `internal/approval/resource/category.go:172` |
+| `approval/category` | `rpc` |  | `internal/approval/resource/category.go:137` |
 | `approval/delegation` | `rpc` |  | `internal/approval/resource/delegation.go:52` |
 | `approval/flow` | `rpc` |  | `internal/approval/resource/flow.go:32` |
 | `approval/instance` | `rpc` |  | `internal/approval/resource/instance.go:104` |
@@ -2049,10 +2038,10 @@ Entries: `3301`
 | `approval/admin/reassign_task` | `reassign_task` | audit enabled<br/>permission: approval.task.reassign<br/>resource kind: rpc | `internal/approval/resource/admin.go:56` |
 | `approval/admin/retry_business_projection` | `retry_business_projection` | audit enabled<br/>permission: approval.binding.retry<br/>resource kind: rpc | `internal/approval/resource/admin.go:57` |
 | `approval/admin/terminate_instance` | `terminate_instance` | audit enabled<br/>permission: approval.instance.terminate<br/>resource kind: rpc | `internal/approval/resource/admin.go:55` |
-| `approval/category/create` | `create` | permission: approval.category.create<br/>resource kind: rpc | `internal/approval/resource/category.go:176` |
-| `approval/category/delete` | `delete` | permission: approval.category.delete<br/>resource kind: rpc | `internal/approval/resource/category.go:212` |
-| `approval/category/find_tree` | `find_tree` | permission: approval.category.query<br/>resource kind: rpc | `internal/approval/resource/category.go:173` |
-| `approval/category/update` | `update` | permission: approval.category.update<br/>resource kind: rpc | `internal/approval/resource/category.go:197` |
+| `approval/category/create` | `create` | permission: approval.category.create<br/>resource kind: rpc | `internal/approval/resource/category.go:141` |
+| `approval/category/delete` | `delete` | permission: approval.category.delete<br/>resource kind: rpc | `internal/approval/resource/category.go:156` |
+| `approval/category/find_tree` | `find_tree` | permission: approval.category.query<br/>resource kind: rpc | `internal/approval/resource/category.go:138` |
+| `approval/category/update` | `update` | permission: approval.category.update<br/>resource kind: rpc | `internal/approval/resource/category.go:146` |
 | `approval/delegation/create` | `create` | permission: approval.delegation.create<br/>resource kind: rpc | `internal/approval/resource/delegation.go:74` |
 | `approval/delegation/delete` | `delete` | permission: approval.delegation.delete<br/>resource kind: rpc | `internal/approval/resource/delegation.go:111` |
 | `approval/delegation/find_page` | `find_page` | permission: approval.delegation.query<br/>resource kind: rpc | `internal/approval/resource/delegation.go:53` |
@@ -3476,11 +3465,11 @@ Entries: `3301`
 | `VersionArchived (VersionStatus)` | `archived` |  | `approval/enums.go:29` |
 | `VersionDraft (VersionStatus)` | `draft` |  | `approval/enums.go:27` |
 | `VersionPublished (VersionStatus)` | `published` |  | `approval/enums.go:28` |
-| `actionApprove (processTaskAction)` | `approve` |  | `internal/approval/resource/instance.go:205` |
-| `actionHandle (processTaskAction)` | `handle` |  | `internal/approval/resource/instance.go:206` |
-| `actionReject (processTaskAction)` | `reject` |  | `internal/approval/resource/instance.go:207` |
-| `actionRollback (processTaskAction)` | `rollback` |  | `internal/approval/resource/instance.go:209` |
-| `actionTransfer (processTaskAction)` | `transfer` |  | `internal/approval/resource/instance.go:208` |
+| `actionApprove (processTaskAction)` | `approve` |  | `internal/approval/resource/instance.go:201` |
+| `actionHandle (processTaskAction)` | `handle` |  | `internal/approval/resource/instance.go:202` |
+| `actionReject (processTaskAction)` | `reject` |  | `internal/approval/resource/instance.go:203` |
+| `actionRollback (processTaskAction)` | `rollback` |  | `internal/approval/resource/instance.go:205` |
+| `actionTransfer (processTaskAction)` | `transfer` |  | `internal/approval/resource/instance.go:204` |
 | `fireRequestManual (fireRequestKind)` | `manual` |  | `internal/cron/store/fire_request.go:12` |
 | `fireRequestRecovery (fireRequestKind)` | `recovery` |  | `internal/cron/store/fire_request.go:13` |
 

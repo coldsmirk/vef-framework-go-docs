@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3301,
-  "fingerprint": "79390fe2759ade7eeea3e9a3fd7e57806383b6f6157e5942497364e414b22f39",
+  "entry_count": 3290,
+  "fingerprint": "bba5a1754fab2d6c699453e9a6743be4114e80da0020259f52f1af9700cf5ded",
   "coverage": [
     {
       "category": "API default",
@@ -78,7 +78,7 @@
     },
     {
       "category": "JSON wire field",
-      "entry_count": 1703,
+      "entry_count": 1692,
       "tier": "Tier 2 scoped DTO AST with closed-world boundary check",
       "extractor": "extractJSONFields",
       "method": "AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field.",
@@ -3904,7 +3904,7 @@
       ]
     },
     {
-      "id": "9d0e909e634462fd60df95a5",
+      "id": "9a016916d017e8c700ae5b4c",
       "category": "JSON wire field",
       "name": "AddAssigneeParams.AddType",
       "value": "addType",
@@ -3914,7 +3914,7 @@
         "validate: \"required,oneof=before after parallel\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:400"
+        "internal/approval/resource/instance.go:396"
       ],
       "terms": [
         "AddAssigneeParams.AddType",
@@ -3935,7 +3935,7 @@
       ]
     },
     {
-      "id": "9fcd4d120fd9635f0fe4bc55",
+      "id": "7c2fbe2c3900fcdd791170f0",
       "category": "JSON wire field",
       "name": "AddAssigneeParams.TaskID",
       "value": "taskId",
@@ -3945,7 +3945,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:398"
+        "internal/approval/resource/instance.go:394"
       ],
       "terms": [
         "AddAssigneeParams.TaskID",
@@ -3962,7 +3962,7 @@
       ]
     },
     {
-      "id": "e320f6eb5b28579c4a916436",
+      "id": "670feaa9e54856f78873aad8",
       "category": "JSON wire field",
       "name": "AddAssigneeParams.UserIDs",
       "value": "userIds",
@@ -3972,7 +3972,7 @@
         "validate: \"required,min=1,max=50\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:399"
+        "internal/approval/resource/instance.go:395"
       ],
       "terms": [
         "1",
@@ -3993,7 +3993,7 @@
       ]
     },
     {
-      "id": "3c84908e8ffd85b551b1399d",
+      "id": "53420dc747302d4f4a695e5d",
       "category": "JSON wire field",
       "name": "AddCCParams.CCUserIDs",
       "value": "ccUserIds",
@@ -4003,7 +4003,7 @@
         "validate: \"required,min=1,max=50\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:347"
+        "internal/approval/resource/instance.go:343"
       ],
       "terms": [
         "1",
@@ -4024,7 +4024,7 @@
       ]
     },
     {
-      "id": "86d6a67510e58397a505176b",
+      "id": "4ff15deca512a0b6d7338427",
       "category": "JSON wire field",
       "name": "AddCCParams.InstanceID",
       "value": "instanceId",
@@ -4034,7 +4034,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:346"
+        "internal/approval/resource/instance.go:342"
       ],
       "terms": [
         "AddCCParams.InstanceID",
@@ -8406,7 +8406,7 @@
       ]
     },
     {
-      "id": "cb5e90e072aedcf42f59ab57",
+      "id": "650f29d8c7b426f24d7ba03e",
       "category": "JSON wire field",
       "name": "CategoryParams.Code",
       "value": "code",
@@ -8416,7 +8416,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:28"
+        "internal/approval/resource/category.go:26"
       ],
       "terms": [
         "CategoryParams.Code",
@@ -8433,7 +8433,7 @@
       ]
     },
     {
-      "id": "0b080d172c195318fe919bbe",
+      "id": "544a6da2fc015568f5b51aaf",
       "category": "JSON wire field",
       "name": "CategoryParams.ID",
       "value": "id",
@@ -8442,7 +8442,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:22"
+        "internal/approval/resource/category.go:21"
       ],
       "terms": [
         "CategoryParams.ID",
@@ -8457,7 +8457,7 @@
       ]
     },
     {
-      "id": "ce278611fc66623107a0627a",
+      "id": "07f32899b6a18e094837600c",
       "category": "JSON wire field",
       "name": "CategoryParams.Icon",
       "value": "icon",
@@ -8466,7 +8466,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:30"
+        "internal/approval/resource/category.go:28"
       ],
       "terms": [
         "CategoryParams.Icon",
@@ -8481,7 +8481,7 @@
       ]
     },
     {
-      "id": "06a33be261eeba1349381c5f",
+      "id": "93d4311b9deb72615c50542b",
       "category": "JSON wire field",
       "name": "CategoryParams.IsActive",
       "value": "isActive",
@@ -8490,7 +8490,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:33"
+        "internal/approval/resource/category.go:31"
       ],
       "terms": [
         "CategoryParams.IsActive",
@@ -8505,7 +8505,7 @@
       ]
     },
     {
-      "id": "fe8c65d4a92533cc7c41a8c0",
+      "id": "d182fdbcc87e1688dcf2a366",
       "category": "JSON wire field",
       "name": "CategoryParams.Name",
       "value": "name",
@@ -8515,7 +8515,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:29"
+        "internal/approval/resource/category.go:27"
       ],
       "terms": [
         "CategoryParams.Name",
@@ -8532,7 +8532,7 @@
       ]
     },
     {
-      "id": "9c1292f36b9a4361880d374c",
+      "id": "1f644b4d1483b12e538425ee",
       "category": "JSON wire field",
       "name": "CategoryParams.ParentID",
       "value": "parentId",
@@ -8541,7 +8541,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:31"
+        "internal/approval/resource/category.go:29"
       ],
       "terms": [
         "CategoryParams.ParentID",
@@ -8556,7 +8556,7 @@
       ]
     },
     {
-      "id": "344672ddec93349d5c59a75e",
+      "id": "131264f318db5002fba3ed7e",
       "category": "JSON wire field",
       "name": "CategoryParams.Remark",
       "value": "remark",
@@ -8565,7 +8565,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:34"
+        "internal/approval/resource/category.go:32"
       ],
       "terms": [
         "CategoryParams.Remark",
@@ -8580,7 +8580,7 @@
       ]
     },
     {
-      "id": "90a056ff3d925a5bc270db2f",
+      "id": "dcdff16c15c72411f61048d7",
       "category": "JSON wire field",
       "name": "CategoryParams.SortOrder",
       "value": "sortOrder",
@@ -8589,7 +8589,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:32"
+        "internal/approval/resource/category.go:30"
       ],
       "terms": [
         "CategoryParams.SortOrder",
@@ -8604,16 +8604,17 @@
       ]
     },
     {
-      "id": "1ae330d45d574f92f2ece911",
+      "id": "005bc307bf4db1d470668ac3",
       "category": "JSON wire field",
       "name": "CategoryParams.TenantID",
       "value": "tenantId",
       "details": [
         "Go field: CategoryParams.TenantID",
-        "type: string"
+        "type: string",
+        "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:27"
+        "internal/approval/resource/category.go:25"
       ],
       "terms": [
         "CategoryParams.TenantID",
@@ -8621,14 +8622,16 @@
         "JSON",
         "field",
         "field:",
+        "required",
         "string",
         "tenantId",
         "type:",
+        "validate:",
         "wire"
       ]
     },
     {
-      "id": "cd8dc0bf876cf97fae688bd7",
+      "id": "69a296b27b454ff7c2727c96",
       "category": "JSON wire field",
       "name": "CategorySearch.IncludeShared",
       "value": "includeShared",
@@ -8638,7 +8641,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:50"
+        "internal/approval/resource/category.go:48"
       ],
       "terms": [
         "-",
@@ -8655,7 +8658,7 @@
       ]
     },
     {
-      "id": "b7e268a5ee46df8a699c0eb7",
+      "id": "978c4368ad3232c163882cb8",
       "category": "JSON wire field",
       "name": "CategorySearch.IsActive",
       "value": "isActive",
@@ -8665,7 +8668,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:42"
+        "internal/approval/resource/category.go:40"
       ],
       "terms": [
         "CategorySearch.IsActive",
@@ -8684,7 +8687,7 @@
       ]
     },
     {
-      "id": "2aa9501ff3d68b74a29e42fd",
+      "id": "379a0516cf51c382454c7c10",
       "category": "JSON wire field",
       "name": "CategorySearch.Name",
       "value": "name",
@@ -8694,7 +8697,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:41"
+        "internal/approval/resource/category.go:39"
       ],
       "terms": [
         "CategorySearch.Name",
@@ -8711,7 +8714,7 @@
       ]
     },
     {
-      "id": "7a3f4ea1f799c711e4184451",
+      "id": "1d663d4698b035e655fb17c0",
       "category": "JSON wire field",
       "name": "CategorySearch.TenantID",
       "value": "tenantId",
@@ -8721,7 +8724,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:46"
+        "internal/approval/resource/category.go:44"
       ],
       "terms": [
         "-",
@@ -11328,7 +11331,8 @@
       "value": "tenantId",
       "details": [
         "Go field: CreateFlowParams.TenantID",
-        "type: string"
+        "type: string",
+        "validate: \"required\""
       ],
       "source_evidence": [
         "internal/approval/resource/flow.go:58"
@@ -11339,9 +11343,11 @@
         "JSON",
         "field",
         "field:",
+        "required",
         "string",
         "tenantId",
         "type:",
+        "validate:",
         "wire"
       ]
     },
@@ -12940,7 +12946,7 @@
       ]
     },
     {
-      "id": "f552edadd60765af56944213",
+      "id": "c6d90cfcadc7eee0760cc7ec",
       "category": "JSON wire field",
       "name": "DeployFlowParams.Description",
       "value": "description",
@@ -12949,7 +12955,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:128"
+        "internal/approval/resource/flow.go:122"
       ],
       "terms": [
         "DeployFlowParams.Description",
@@ -12964,7 +12970,7 @@
       ]
     },
     {
-      "id": "29232dbca9c4fdc51270b006",
+      "id": "a7175724a97865f2f5d19f0d",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FlowDefinition",
       "value": "flowDefinition",
@@ -12974,7 +12980,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:130"
+        "internal/approval/resource/flow.go:124"
       ],
       "terms": [
         "DeployFlowParams.FlowDefinition",
@@ -12991,7 +12997,7 @@
       ]
     },
     {
-      "id": "f148a5aca677472361fc690a",
+      "id": "2107ab4d5b7fb7e4f34d9aca",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FlowID",
       "value": "flowId",
@@ -13001,7 +13007,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:127"
+        "internal/approval/resource/flow.go:121"
       ],
       "terms": [
         "DeployFlowParams.FlowID",
@@ -13018,7 +13024,7 @@
       ]
     },
     {
-      "id": "24f1f5ff09267c5166bd18d7",
+      "id": "20948cf2621132fe1b9cbbae",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FormSchema",
       "value": "formSchema",
@@ -13027,7 +13033,7 @@
         "type: json.RawMessage"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:131"
+        "internal/approval/resource/flow.go:125"
       ],
       "terms": [
         "DeployFlowParams.FormSchema",
@@ -13042,7 +13048,7 @@
       ]
     },
     {
-      "id": "9d425b369fd9e650226e79f1",
+      "id": "77f4654c3acd055240f04141",
       "category": "JSON wire field",
       "name": "DeployFlowParams.StorageMode",
       "value": "storageMode",
@@ -13051,7 +13057,7 @@
         "type: approval.StorageMode"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:129"
+        "internal/approval/resource/flow.go:123"
       ],
       "terms": [
         "DeployFlowParams.StorageMode",
@@ -14306,7 +14312,7 @@
       ]
     },
     {
-      "id": "49f7c2e1617f803773ba3731",
+      "id": "2a25b4f2f7c8420be2e90ed1",
       "category": "JSON wire field",
       "name": "FindAvailableFlowsParams.Keyword",
       "value": "keyword",
@@ -14315,7 +14321,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:63"
+        "internal/approval/resource/my.go:60"
       ],
       "terms": [
         "FindAvailableFlowsParams.Keyword",
@@ -14330,7 +14336,7 @@
       ]
     },
     {
-      "id": "2cd8794efc9338a388ec0cdd",
+      "id": "05db68077fec62d92710c931",
       "category": "JSON wire field",
       "name": "FindAvailableFlowsParams.Labels",
       "value": "labels",
@@ -14339,7 +14345,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:64"
+        "internal/approval/resource/my.go:61"
       ],
       "terms": [
         "FindAvailableFlowsParams.Labels",
@@ -14355,7 +14361,7 @@
       ]
     },
     {
-      "id": "58ef7607f0054edc8d865f23",
+      "id": "74b9a1a97591b4fb4b6e1e61",
       "category": "JSON wire field",
       "name": "FindAvailableFlowsParams.Page",
       "value": "page",
@@ -14364,7 +14370,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:65"
+        "internal/approval/resource/my.go:62"
       ],
       "terms": [
         "FindAvailableFlowsParams.Page",
@@ -14379,7 +14385,7 @@
       ]
     },
     {
-      "id": "12a02cd993c57f807511ddac",
+      "id": "81c43592d75f2c6b8ac7a8c3",
       "category": "JSON wire field",
       "name": "FindAvailableFlowsParams.PageSize",
       "value": "pageSize",
@@ -14388,7 +14394,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:66"
+        "internal/approval/resource/my.go:63"
       ],
       "terms": [
         "FindAvailableFlowsParams.PageSize",
@@ -14403,31 +14409,7 @@
       ]
     },
     {
-      "id": "c94ac2205f787e7eb5bb5afd",
-      "category": "JSON wire field",
-      "name": "FindAvailableFlowsParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindAvailableFlowsParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:62"
-      ],
-      "terms": [
-        "FindAvailableFlowsParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "e12a4d46fc76e5a913faebdb",
+      "id": "abd8a67b6331f1a4e79d3fad",
       "category": "JSON wire field",
       "name": "FindCCRecordsParams.IsRead",
       "value": "isRead",
@@ -14436,7 +14418,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:250"
+        "internal/approval/resource/my.go:236"
       ],
       "terms": [
         "FindCCRecordsParams.IsRead",
@@ -14451,7 +14433,7 @@
       ]
     },
     {
-      "id": "08b514627a3be25fbf7048a7",
+      "id": "c62a0dae132c432bce103038",
       "category": "JSON wire field",
       "name": "FindCCRecordsParams.Page",
       "value": "page",
@@ -14460,7 +14442,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:251"
+        "internal/approval/resource/my.go:237"
       ],
       "terms": [
         "FindCCRecordsParams.Page",
@@ -14475,7 +14457,7 @@
       ]
     },
     {
-      "id": "cadb723d124b71b3f868fb98",
+      "id": "a63268396ffc5afb8c2a7436",
       "category": "JSON wire field",
       "name": "FindCCRecordsParams.PageSize",
       "value": "pageSize",
@@ -14484,7 +14466,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:252"
+        "internal/approval/resource/my.go:238"
       ],
       "terms": [
         "FindCCRecordsParams.PageSize",
@@ -14499,31 +14481,7 @@
       ]
     },
     {
-      "id": "de1b6214dd0597cfc6dd6b1b",
-      "category": "JSON wire field",
-      "name": "FindCCRecordsParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindCCRecordsParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:249"
-      ],
-      "terms": [
-        "FindCCRecordsParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "af6ea0889d820947ec54f6fc",
+      "id": "53d62c7c1d9e94e375cb58f2",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.ApplicantID",
       "value": "applicantId",
@@ -14532,7 +14490,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:211"
+        "internal/approval/resource/my.go:199"
       ],
       "terms": [
         "FindCompletedTasksParams.ApplicantID",
@@ -14547,7 +14505,7 @@
       ]
     },
     {
-      "id": "b46f81b5669779bd13fccc19",
+      "id": "0026c8743edc5d20c58d82f1",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.ApplicantName",
       "value": "applicantName",
@@ -14556,7 +14514,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:212"
+        "internal/approval/resource/my.go:200"
       ],
       "terms": [
         "FindCompletedTasksParams.ApplicantName",
@@ -14571,7 +14529,7 @@
       ]
     },
     {
-      "id": "a4e8e4e3fe00841740f51c16",
+      "id": "4c20e52e378f6c54aa7141be",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.FinishedAtFrom",
       "value": "finishedAtFrom",
@@ -14580,7 +14538,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:216"
+        "internal/approval/resource/my.go:204"
       ],
       "terms": [
         "FindCompletedTasksParams.FinishedAtFrom",
@@ -14595,7 +14553,7 @@
       ]
     },
     {
-      "id": "af46318f577d4a547af0f03c",
+      "id": "605b654cbc060bfc7d830410",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.FinishedAtTo",
       "value": "finishedAtTo",
@@ -14604,7 +14562,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:217"
+        "internal/approval/resource/my.go:205"
       ],
       "terms": [
         "FindCompletedTasksParams.FinishedAtTo",
@@ -14619,7 +14577,7 @@
       ]
     },
     {
-      "id": "fe1e42e9572be27105657989",
+      "id": "5a43ac103c286d935d6e73d0",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.FlowID",
       "value": "flowId",
@@ -14628,7 +14586,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:213"
+        "internal/approval/resource/my.go:201"
       ],
       "terms": [
         "FindCompletedTasksParams.FlowID",
@@ -14643,7 +14601,7 @@
       ]
     },
     {
-      "id": "19b6da0be6ab4db87aa8580d",
+      "id": "447971c59cc6bed586c375d6",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.InstanceStatus",
       "value": "instanceStatus",
@@ -14652,7 +14610,7 @@
         "type: *approval.InstanceStatus"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:215"
+        "internal/approval/resource/my.go:203"
       ],
       "terms": [
         "FindCompletedTasksParams.InstanceStatus",
@@ -14667,7 +14625,7 @@
       ]
     },
     {
-      "id": "5f9e7ee2b56456eccdc767e3",
+      "id": "74ad450d03749a38e63a9262",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.Keyword",
       "value": "keyword",
@@ -14676,7 +14634,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:210"
+        "internal/approval/resource/my.go:198"
       ],
       "terms": [
         "FindCompletedTasksParams.Keyword",
@@ -14691,7 +14649,7 @@
       ]
     },
     {
-      "id": "abd9239c94e6e4f07fcc1fae",
+      "id": "2c9fe554c3ab936969dcec00",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.Page",
       "value": "page",
@@ -14700,7 +14658,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:218"
+        "internal/approval/resource/my.go:206"
       ],
       "terms": [
         "FindCompletedTasksParams.Page",
@@ -14715,7 +14673,7 @@
       ]
     },
     {
-      "id": "91eef963b5a788ac95d0aa7c",
+      "id": "e35f738ebeebe43d47bf684c",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.PageSize",
       "value": "pageSize",
@@ -14724,7 +14682,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:219"
+        "internal/approval/resource/my.go:207"
       ],
       "terms": [
         "FindCompletedTasksParams.PageSize",
@@ -14739,7 +14697,7 @@
       ]
     },
     {
-      "id": "603f788d7920647c99f1c557",
+      "id": "7ac98a820e9a1fe0deacc96e",
       "category": "JSON wire field",
       "name": "FindCompletedTasksParams.Status",
       "value": "status",
@@ -14748,7 +14706,7 @@
         "type: *approval.TaskStatus"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:214"
+        "internal/approval/resource/my.go:202"
       ],
       "terms": [
         "FindCompletedTasksParams.Status",
@@ -14763,31 +14721,7 @@
       ]
     },
     {
-      "id": "67437ee8e1d89ee8244569b6",
-      "category": "JSON wire field",
-      "name": "FindCompletedTasksParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindCompletedTasksParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:209"
-      ],
-      "terms": [
-        "FindCompletedTasksParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "44ba7f88fa908cead9e52931",
+      "id": "461a1a2c18d18ab47b2c5fbd",
       "category": "JSON wire field",
       "name": "FindFlowsParams.BindingMode",
       "value": "bindingMode",
@@ -14796,7 +14730,7 @@
         "type: *approval.BindingMode"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:248"
+        "internal/approval/resource/flow.go:216"
       ],
       "terms": [
         "FindFlowsParams.BindingMode",
@@ -14811,7 +14745,7 @@
       ]
     },
     {
-      "id": "1d9148b0bf9da7f8edf0420d",
+      "id": "9c361a9b5ed88274814a3a0d",
       "category": "JSON wire field",
       "name": "FindFlowsParams.CategoryID",
       "value": "categoryId",
@@ -14820,7 +14754,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:244"
+        "internal/approval/resource/flow.go:212"
       ],
       "terms": [
         "FindFlowsParams.CategoryID",
@@ -14835,7 +14769,7 @@
       ]
     },
     {
-      "id": "0d817cd2d6852c80b8aedf7e",
+      "id": "35e78c26ec6ffb6f1a501204",
       "category": "JSON wire field",
       "name": "FindFlowsParams.IsActive",
       "value": "isActive",
@@ -14844,7 +14778,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:246"
+        "internal/approval/resource/flow.go:214"
       ],
       "terms": [
         "FindFlowsParams.IsActive",
@@ -14859,7 +14793,7 @@
       ]
     },
     {
-      "id": "a9d9c117da60689e93ae410c",
+      "id": "16e5cf240bd20a75a262162d",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Keyword",
       "value": "keyword",
@@ -14868,7 +14802,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:245"
+        "internal/approval/resource/flow.go:213"
       ],
       "terms": [
         "FindFlowsParams.Keyword",
@@ -14883,7 +14817,7 @@
       ]
     },
     {
-      "id": "bafd5d06467d979396fd4824",
+      "id": "b7b5f7f657a0d50a20e44433",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Labels",
       "value": "labels",
@@ -14892,7 +14826,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:247"
+        "internal/approval/resource/flow.go:215"
       ],
       "terms": [
         "FindFlowsParams.Labels",
@@ -14908,7 +14842,7 @@
       ]
     },
     {
-      "id": "00d770b7d5571b8cd7e2d72b",
+      "id": "6cad1f0e77098b9c9a64eeb8",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Page",
       "value": "page",
@@ -14917,7 +14851,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:249"
+        "internal/approval/resource/flow.go:217"
       ],
       "terms": [
         "FindFlowsParams.Page",
@@ -14932,7 +14866,7 @@
       ]
     },
     {
-      "id": "f92794430714dba179b44349",
+      "id": "883ab6fc34c2632cb54fa4a5",
       "category": "JSON wire field",
       "name": "FindFlowsParams.PageSize",
       "value": "pageSize",
@@ -14941,7 +14875,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:250"
+        "internal/approval/resource/flow.go:218"
       ],
       "terms": [
         "FindFlowsParams.PageSize",
@@ -14956,7 +14890,7 @@
       ]
     },
     {
-      "id": "205d3266e673437b5e24b93a",
+      "id": "98cdc8215e1b42f4b2f28913",
       "category": "JSON wire field",
       "name": "FindFlowsParams.TenantID",
       "value": "tenantId",
@@ -14965,7 +14899,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:243"
+        "internal/approval/resource/flow.go:211"
       ],
       "terms": [
         "FindFlowsParams.TenantID",
@@ -14980,7 +14914,7 @@
       ]
     },
     {
-      "id": "12ae58419906c24d9cbd1deb",
+      "id": "be0be929a3ac302696e1cc55",
       "category": "JSON wire field",
       "name": "FindInitiatedParams.Keyword",
       "value": "keyword",
@@ -14989,7 +14923,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:143"
+        "internal/approval/resource/my.go:135"
       ],
       "terms": [
         "FindInitiatedParams.Keyword",
@@ -15004,7 +14938,7 @@
       ]
     },
     {
-      "id": "e1f43f97907c46bb8558a8ad",
+      "id": "a0823236836da355e6ad0641",
       "category": "JSON wire field",
       "name": "FindInitiatedParams.Page",
       "value": "page",
@@ -15013,7 +14947,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:144"
+        "internal/approval/resource/my.go:136"
       ],
       "terms": [
         "FindInitiatedParams.Page",
@@ -15028,7 +14962,7 @@
       ]
     },
     {
-      "id": "b6840c30272f4156a3d7f099",
+      "id": "de39d3eeaa8615992931cf9a",
       "category": "JSON wire field",
       "name": "FindInitiatedParams.PageSize",
       "value": "pageSize",
@@ -15037,7 +14971,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:145"
+        "internal/approval/resource/my.go:137"
       ],
       "terms": [
         "FindInitiatedParams.PageSize",
@@ -15052,7 +14986,7 @@
       ]
     },
     {
-      "id": "dfeb48d4d82bb2bb24e22c79",
+      "id": "b9c0eb8b12939ec349d9ad16",
       "category": "JSON wire field",
       "name": "FindInitiatedParams.Status",
       "value": "status",
@@ -15061,7 +14995,7 @@
         "type: *approval.InstanceStatus"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:142"
+        "internal/approval/resource/my.go:134"
       ],
       "terms": [
         "FindInitiatedParams.Status",
@@ -15076,31 +15010,7 @@
       ]
     },
     {
-      "id": "c947d8d73713b4ff51de6d77",
-      "category": "JSON wire field",
-      "name": "FindInitiatedParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindInitiatedParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:141"
-      ],
-      "terms": [
-        "FindInitiatedParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "48de4c4293656d06a467e186",
+      "id": "b2e867ef1da9dff0bad49e54",
       "category": "JSON wire field",
       "name": "FindInitiatorsParams.FlowID",
       "value": "flowId",
@@ -15110,7 +15020,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:404"
+        "internal/approval/resource/flow.go:346"
       ],
       "terms": [
         "FindInitiatorsParams.FlowID",
@@ -15127,31 +15037,7 @@
       ]
     },
     {
-      "id": "4af258a0f8dbe169963d38e8",
-      "category": "JSON wire field",
-      "name": "FindInitiatorsParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindInitiatorsParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/flow.go:405"
-      ],
-      "terms": [
-        "FindInitiatorsParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "8cdb4c9b9f68eafb3e4cc5a4",
+      "id": "e3cc4729187b37abc8101455",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.ApplicantID",
       "value": "applicantId",
@@ -15160,7 +15046,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:172"
+        "internal/approval/resource/my.go:162"
       ],
       "terms": [
         "FindPendingTasksParams.ApplicantID",
@@ -15175,7 +15061,7 @@
       ]
     },
     {
-      "id": "595f8c749118f7c0cc2a6844",
+      "id": "38a2d2b17cea9ac6e9dd7839",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.ApplicantName",
       "value": "applicantName",
@@ -15184,7 +15070,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:173"
+        "internal/approval/resource/my.go:163"
       ],
       "terms": [
         "FindPendingTasksParams.ApplicantName",
@@ -15199,7 +15085,7 @@
       ]
     },
     {
-      "id": "03ad7126ba6c37af5f7844bc",
+      "id": "94849edd4e8efbca1fcf8c7d",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.CreatedAtFrom",
       "value": "createdAtFrom",
@@ -15208,7 +15094,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:176"
+        "internal/approval/resource/my.go:166"
       ],
       "terms": [
         "FindPendingTasksParams.CreatedAtFrom",
@@ -15223,7 +15109,7 @@
       ]
     },
     {
-      "id": "ee5cc61cf91bfe66974be7dd",
+      "id": "840f50b9cb1162a53f7845ed",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.CreatedAtTo",
       "value": "createdAtTo",
@@ -15232,7 +15118,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:177"
+        "internal/approval/resource/my.go:167"
       ],
       "terms": [
         "FindPendingTasksParams.CreatedAtTo",
@@ -15247,7 +15133,7 @@
       ]
     },
     {
-      "id": "f39b902451a7787795db06a2",
+      "id": "8879e0f659cf7e0eb23daf44",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.FlowID",
       "value": "flowId",
@@ -15256,7 +15142,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:174"
+        "internal/approval/resource/my.go:164"
       ],
       "terms": [
         "FindPendingTasksParams.FlowID",
@@ -15271,7 +15157,7 @@
       ]
     },
     {
-      "id": "163604c9f2e0b03fd518880e",
+      "id": "d62940f5fc126759ef1339c0",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.IsTimeout",
       "value": "isTimeout",
@@ -15280,7 +15166,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:175"
+        "internal/approval/resource/my.go:165"
       ],
       "terms": [
         "FindPendingTasksParams.IsTimeout",
@@ -15295,7 +15181,7 @@
       ]
     },
     {
-      "id": "20cfac04dce779fa08ca0a49",
+      "id": "c52b29d54c4d4cee43d1890e",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.Keyword",
       "value": "keyword",
@@ -15304,7 +15190,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:171"
+        "internal/approval/resource/my.go:161"
       ],
       "terms": [
         "FindPendingTasksParams.Keyword",
@@ -15319,7 +15205,7 @@
       ]
     },
     {
-      "id": "42b5c5ebbee91e1400dc7238",
+      "id": "11f5213b9eacbdbb81553cfe",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.Page",
       "value": "page",
@@ -15328,7 +15214,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:178"
+        "internal/approval/resource/my.go:168"
       ],
       "terms": [
         "FindPendingTasksParams.Page",
@@ -15343,7 +15229,7 @@
       ]
     },
     {
-      "id": "142a578b3a6cd6f47006feb5",
+      "id": "203f0b9390a79513ea12cd39",
       "category": "JSON wire field",
       "name": "FindPendingTasksParams.PageSize",
       "value": "pageSize",
@@ -15352,7 +15238,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:179"
+        "internal/approval/resource/my.go:169"
       ],
       "terms": [
         "FindPendingTasksParams.PageSize",
@@ -15367,31 +15253,7 @@
       ]
     },
     {
-      "id": "271e0da523a0a86329c4730f",
-      "category": "JSON wire field",
-      "name": "FindPendingTasksParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindPendingTasksParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:170"
-      ],
-      "terms": [
-        "FindPendingTasksParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "24e1fb28c878a6516692f744",
+      "id": "d2c506240f241ddf8eba0f45",
       "category": "JSON wire field",
       "name": "FindVersionsParams.FlowID",
       "value": "flowId",
@@ -15401,7 +15263,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:373"
+        "internal/approval/resource/flow.go:323"
       ],
       "terms": [
         "FindVersionsParams.FlowID",
@@ -15414,30 +15276,6 @@
         "string",
         "type:",
         "validate:",
-        "wire"
-      ]
-    },
-    {
-      "id": "30430b7d3a7afda507e10ab4",
-      "category": "JSON wire field",
-      "name": "FindVersionsParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: FindVersionsParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/flow.go:374"
-      ],
-      "terms": [
-        "FindVersionsParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
         "wire"
       ]
     },
@@ -19785,7 +19623,7 @@
       ]
     },
     {
-      "id": "452a3d27db33b94692575355",
+      "id": "2aaa4942530799cde3540e15",
       "category": "JSON wire field",
       "name": "GetGraphParams.FlowID",
       "value": "flowId",
@@ -19795,7 +19633,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:193"
+        "internal/approval/resource/flow.go:175"
       ],
       "terms": [
         "GetGraphParams.FlowID",
@@ -19812,31 +19650,7 @@
       ]
     },
     {
-      "id": "d6a85461410a4c09e7c0981a",
-      "category": "JSON wire field",
-      "name": "GetGraphParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: GetGraphParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/flow.go:197"
-      ],
-      "terms": [
-        "GetGraphParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "67623ac6c12a00cab50b939b",
+      "id": "1dbcc5456b353fc6def30e3a",
       "category": "JSON wire field",
       "name": "GetGraphParams.VersionID",
       "value": "versionId",
@@ -19845,7 +19659,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:201"
+        "internal/approval/resource/flow.go:179"
       ],
       "terms": [
         "GetGraphParams.VersionID",
@@ -19860,7 +19674,7 @@
       ]
     },
     {
-      "id": "6c8b23d3be13074e5f5bfdbd",
+      "id": "ff5a0abb6cb2f99015609e6b",
       "category": "JSON wire field",
       "name": "GetInstanceDetailParams.InstanceID",
       "value": "instanceId",
@@ -19870,7 +19684,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:295"
+        "internal/approval/resource/my.go:272"
       ],
       "terms": [
         "GetInstanceDetailParams.InstanceID",
@@ -19887,31 +19701,7 @@
       ]
     },
     {
-      "id": "00bec123e044221d1a71e458",
-      "category": "JSON wire field",
-      "name": "GetPendingCountsParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: GetPendingCountsParams.TenantID",
-        "type: *string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:275"
-      ],
-      "terms": [
-        "GetPendingCountsParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "243274c0fe4da17ebbc42188",
+      "id": "3fe1cde43a9d32391530b793",
       "category": "JSON wire field",
       "name": "GetStartFormParams.FlowCode",
       "value": "flowCode",
@@ -19921,7 +19711,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/my.go:105"
+        "internal/approval/resource/my.go:99"
       ],
       "terms": [
         "GetStartFormParams.FlowCode",
@@ -19934,30 +19724,6 @@
         "string",
         "type:",
         "validate:",
-        "wire"
-      ]
-    },
-    {
-      "id": "8f9b43ec7776cfde222aea20",
-      "category": "JSON wire field",
-      "name": "GetStartFormParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: GetStartFormParams.TenantID",
-        "type: string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/my.go:104"
-      ],
-      "terms": [
-        "GetStartFormParams.TenantID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
-        "type:",
         "wire"
       ]
     },
@@ -26326,7 +26092,7 @@
       ]
     },
     {
-      "id": "c3824e23f7a588128642416d",
+      "id": "ee6a199daf6f1773314cf483",
       "category": "JSON wire field",
       "name": "MarkCCReadParams.InstanceID",
       "value": "instanceId",
@@ -26336,7 +26102,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:373"
+        "internal/approval/resource/instance.go:369"
       ],
       "terms": [
         "Go",
@@ -29896,7 +29662,7 @@
       ]
     },
     {
-      "id": "699443910071ae74aa2efef1",
+      "id": "298294434f02449360c2b7fa",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.Action",
       "value": "action",
@@ -29906,7 +29672,7 @@
         "validate: \"required,oneof=approve reject transfer rollback handle\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:187"
+        "internal/approval/resource/instance.go:183"
       ],
       "terms": [
         "Go",
@@ -29929,7 +29695,7 @@
       ]
     },
     {
-      "id": "f69ade4486a79e2c3e2c0094",
+      "id": "2e6cb6ce2e97845d99efe1a5",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.Attachments",
       "value": "attachments",
@@ -29939,7 +29705,7 @@
         "validate: \"max=20,dive,max=512\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:190"
+        "internal/approval/resource/instance.go:186"
       ],
       "terms": [
         "20",
@@ -29959,7 +29725,7 @@
       ]
     },
     {
-      "id": "024c5d28946542bb98d4d5fb",
+      "id": "0994004924ce234d6e37fd6c",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.FormData",
       "value": "formData",
@@ -29968,7 +29734,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:189"
+        "internal/approval/resource/instance.go:185"
       ],
       "terms": [
         "Go",
@@ -29985,7 +29751,7 @@
       ]
     },
     {
-      "id": "631801b6db356f9fb2072353",
+      "id": "5fbdc7fdd75be7fc72eb49a5",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.Opinion",
       "value": "opinion",
@@ -29995,7 +29761,7 @@
         "validate: \"max=2000\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:188"
+        "internal/approval/resource/instance.go:184"
       ],
       "terms": [
         "2000",
@@ -30013,7 +29779,7 @@
       ]
     },
     {
-      "id": "1133e3354975b5c2395268ba",
+      "id": "6b2947299a09d1697d39a206",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.TargetNodeID",
       "value": "targetNodeId",
@@ -30022,7 +29788,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:192"
+        "internal/approval/resource/instance.go:188"
       ],
       "terms": [
         "Go",
@@ -30037,7 +29803,7 @@
       ]
     },
     {
-      "id": "b164c71f532a95c74e70a30c",
+      "id": "3973fb1cacbba146ce109761",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.TaskID",
       "value": "taskId",
@@ -30047,7 +29813,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:186"
+        "internal/approval/resource/instance.go:182"
       ],
       "terms": [
         "Go",
@@ -30064,7 +29830,7 @@
       ]
     },
     {
-      "id": "d4694d53de5c12735f9cef71",
+      "id": "37657caddb3f9251d0006989",
       "category": "JSON wire field",
       "name": "ProcessTaskParams.TransferToID",
       "value": "transferToId",
@@ -30073,7 +29839,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:191"
+        "internal/approval/resource/instance.go:187"
       ],
       "terms": [
         "Go",
@@ -30088,7 +29854,7 @@
       ]
     },
     {
-      "id": "5b9d9e47283b1703edc51d3e",
+      "id": "75f9a274712d02a3a4407393",
       "category": "JSON wire field",
       "name": "PublishVersionParams.VersionID",
       "value": "versionId",
@@ -30098,7 +29864,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:164"
+        "internal/approval/resource/flow.go:152"
       ],
       "terms": [
         "Go",
@@ -30957,7 +30723,7 @@
       ]
     },
     {
-      "id": "4b4ffc786e43a0579c249ef3",
+      "id": "99d7c9455579743130de610c",
       "category": "JSON wire field",
       "name": "RemoveAssigneeParams.TaskID",
       "value": "taskId",
@@ -30967,7 +30733,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:427"
+        "internal/approval/resource/instance.go:423"
       ],
       "terms": [
         "Go",
@@ -31628,7 +31394,7 @@
       ]
     },
     {
-      "id": "df333f350f9eda9b22b13c41",
+      "id": "01254308d16f393e0f1559e8",
       "category": "JSON wire field",
       "name": "ResubmitParams.FormData",
       "value": "formData",
@@ -31637,7 +31403,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:320"
+        "internal/approval/resource/instance.go:316"
       ],
       "terms": [
         "Go",
@@ -31654,7 +31420,7 @@
       ]
     },
     {
-      "id": "9743bdd288dd361991d5b8be",
+      "id": "313f410c48cb04392d52ef98",
       "category": "JSON wire field",
       "name": "ResubmitParams.InstanceID",
       "value": "instanceId",
@@ -31664,7 +31430,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:319"
+        "internal/approval/resource/instance.go:315"
       ],
       "terms": [
         "Go",
@@ -34643,7 +34409,7 @@
       ]
     },
     {
-      "id": "91f589caa23e85443d367fc6",
+      "id": "b00697791527aeaa4dad728d",
       "category": "JSON wire field",
       "name": "StartParams.BusinessRef",
       "value": "businessRef",
@@ -34653,7 +34419,7 @@
         "validate: \"omitempty,max=512\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:147"
+        "internal/approval/resource/instance.go:143"
       ],
       "terms": [
         "512",
@@ -34672,7 +34438,7 @@
       ]
     },
     {
-      "id": "8af5bd31f01499c5d32b23d6",
+      "id": "c4ed0ed0ffed25762e2959ff",
       "category": "JSON wire field",
       "name": "StartParams.FlowCode",
       "value": "flowCode",
@@ -34682,7 +34448,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:146"
+        "internal/approval/resource/instance.go:142"
       ],
       "terms": [
         "Go",
@@ -34699,7 +34465,7 @@
       ]
     },
     {
-      "id": "a7d577fbe2d890d18f1634ed",
+      "id": "6ba620c32318f3c7b8707f2b",
       "category": "JSON wire field",
       "name": "StartParams.FormData",
       "value": "formData",
@@ -34708,7 +34474,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:148"
+        "internal/approval/resource/instance.go:144"
       ],
       "terms": [
         "Go",
@@ -34720,30 +34486,6 @@
         "formData",
         "map",
         "string",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "8682c38f698d73810cef874e",
-      "category": "JSON wire field",
-      "name": "StartParams.TenantID",
-      "value": "tenantId",
-      "details": [
-        "Go field: StartParams.TenantID",
-        "type: string"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/instance.go:145"
-      ],
-      "terms": [
-        "Go",
-        "JSON",
-        "StartParams.TenantID",
-        "field",
-        "field:",
-        "string",
-        "tenantId",
         "type:",
         "wire"
       ]
@@ -38565,7 +38307,7 @@
       ]
     },
     {
-      "id": "c7969638fd6b4213639b6154",
+      "id": "c2f3054cb99d423115c0284d",
       "category": "JSON wire field",
       "name": "ToggleActiveParams.FlowID",
       "value": "flowId",
@@ -38575,7 +38317,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:343"
+        "internal/approval/resource/flow.go:299"
       ],
       "terms": [
         "Go",
@@ -38592,7 +38334,7 @@
       ]
     },
     {
-      "id": "2339f9c7b29f85b5f61f97d5",
+      "id": "cdead0cc442fa694c5dc500a",
       "category": "JSON wire field",
       "name": "ToggleActiveParams.IsActive",
       "value": "isActive",
@@ -38601,7 +38343,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:344"
+        "internal/approval/resource/flow.go:300"
       ],
       "terms": [
         "Go",
@@ -38979,7 +38721,7 @@
       ]
     },
     {
-      "id": "3d88c08e7699dd9a2535f44e",
+      "id": "5ca9cd062d93000455808367",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.AdminUserIDs",
       "value": "adminUserIds",
@@ -38988,7 +38730,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:293"
+        "internal/approval/resource/flow.go:255"
       ],
       "terms": [
         "Go",
@@ -39003,7 +38745,7 @@
       ]
     },
     {
-      "id": "601ec3664d3cf4b06e914cd9",
+      "id": "bda87761d790d484cfff4747",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.BindingMode",
       "value": "bindingMode",
@@ -39013,7 +38755,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:291"
+        "internal/approval/resource/flow.go:253"
       ],
       "terms": [
         "Go",
@@ -39030,7 +38772,7 @@
       ]
     },
     {
-      "id": "8d37e6996039ef76eacfd0dd",
+      "id": "2433a0a5c505a141cfcd09f2",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.BusinessBinding",
       "value": "businessBinding",
@@ -39039,7 +38781,7 @@
         "type: *approval.BusinessBindingConfig"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:292"
+        "internal/approval/resource/flow.go:254"
       ],
       "terms": [
         "Go",
@@ -39054,7 +38796,7 @@
       ]
     },
     {
-      "id": "9052b855a45dd2734e9ba820",
+      "id": "873b3c6d4529f0c2ef383866",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Description",
       "value": "description",
@@ -39063,7 +38805,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:289"
+        "internal/approval/resource/flow.go:251"
       ],
       "terms": [
         "Go",
@@ -39078,7 +38820,7 @@
       ]
     },
     {
-      "id": "47f143aace777c4d99986333",
+      "id": "376c09dd9ce48641b28c1be8",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.FlowID",
       "value": "flowId",
@@ -39088,7 +38830,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:286"
+        "internal/approval/resource/flow.go:248"
       ],
       "terms": [
         "Go",
@@ -39105,7 +38847,7 @@
       ]
     },
     {
-      "id": "639f14b3bae2b5c1b90878dc",
+      "id": "c5c34541e1bb0de68139c522",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Icon",
       "value": "icon",
@@ -39114,7 +38856,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:288"
+        "internal/approval/resource/flow.go:250"
       ],
       "terms": [
         "Go",
@@ -39129,7 +38871,7 @@
       ]
     },
     {
-      "id": "3afe2086f9b2a18030742682",
+      "id": "94aebfa030cbde321891fc3d",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Initiators",
       "value": "initiators",
@@ -39138,7 +38880,7 @@
         "type: []CreateInitiatorParams"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:296"
+        "internal/approval/resource/flow.go:258"
       ],
       "terms": [
         "CreateInitiatorParams",
@@ -39153,7 +38895,7 @@
       ]
     },
     {
-      "id": "583d16f483afd3d8dab38436",
+      "id": "4554f02359fc0e4ec19eb0b7",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.InstanceTitleTemplate",
       "value": "instanceTitleTemplate",
@@ -39163,7 +38905,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:295"
+        "internal/approval/resource/flow.go:257"
       ],
       "terms": [
         "Go",
@@ -39180,7 +38922,7 @@
       ]
     },
     {
-      "id": "c025d4288b7c82d581251261",
+      "id": "4c1f229063768e42f3c85f8c",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.IsAllInitiationAllowed",
       "value": "isAllInitiationAllowed",
@@ -39189,7 +38931,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:294"
+        "internal/approval/resource/flow.go:256"
       ],
       "terms": [
         "Go",
@@ -39204,7 +38946,7 @@
       ]
     },
     {
-      "id": "ae39f446406d3083fbb18cd4",
+      "id": "61fbbaf8f396bba4eadf15bb",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Labels",
       "value": "labels",
@@ -39213,7 +38955,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:290"
+        "internal/approval/resource/flow.go:252"
       ],
       "terms": [
         "Go",
@@ -39229,7 +38971,7 @@
       ]
     },
     {
-      "id": "9b4352c048d1a5339f833edd",
+      "id": "cff222de4032f8cc10018d41",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Name",
       "value": "name",
@@ -39239,7 +38981,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:287"
+        "internal/approval/resource/flow.go:249"
       ],
       "terms": [
         "Go",
@@ -40134,7 +39876,7 @@
       ]
     },
     {
-      "id": "aecfa72787335c4868dc34e6",
+      "id": "2dcc2e3f461d3343534db46e",
       "category": "JSON wire field",
       "name": "UrgeTaskParams.Message",
       "value": "message",
@@ -40144,7 +39886,7 @@
         "validate: \"max=500\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:453"
+        "internal/approval/resource/instance.go:449"
       ],
       "terms": [
         "500",
@@ -40162,7 +39904,7 @@
       ]
     },
     {
-      "id": "d9a4f26ef896c9075564d796",
+      "id": "f7d73a177633d8fb6e6a1476",
       "category": "JSON wire field",
       "name": "UrgeTaskParams.TaskID",
       "value": "taskId",
@@ -40172,7 +39914,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:452"
+        "internal/approval/resource/instance.go:448"
       ],
       "terms": [
         "Go",
@@ -41919,7 +41661,7 @@
       ]
     },
     {
-      "id": "7a6de6c81aef2ad3d9bfd5b3",
+      "id": "02a5032f6b02d1bd242b7526",
       "category": "JSON wire field",
       "name": "WithdrawParams.InstanceID",
       "value": "instanceId",
@@ -41929,7 +41671,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:292"
+        "internal/approval/resource/instance.go:288"
       ],
       "terms": [
         "Go",
@@ -41946,7 +41688,7 @@
       ]
     },
     {
-      "id": "e6b55f965d33e7700383e998",
+      "id": "834681aaaf7ca9454db726aa",
       "category": "JSON wire field",
       "name": "WithdrawParams.Reason",
       "value": "reason",
@@ -41956,7 +41698,7 @@
         "validate: \"max=2000\""
       ],
       "source_evidence": [
-        "internal/approval/resource/instance.go:293"
+        "internal/approval/resource/instance.go:289"
       ],
       "terms": [
         "2000",
@@ -44832,12 +44574,12 @@
       ]
     },
     {
-      "id": "703b05b9df03ed8185f96cc4",
+      "id": "3f95a0bf88654417e1759d04",
       "category": "built-in resource",
       "name": "approval/category",
       "value": "rpc",
       "source_evidence": [
-        "internal/approval/resource/category.go:172"
+        "internal/approval/resource/category.go:137"
       ],
       "terms": [
         "approval/category",
@@ -45327,7 +45069,7 @@
       ]
     },
     {
-      "id": "8fa38edd464d402ad4ce90e4",
+      "id": "d934ffc12dd8ec5cd2822222",
       "category": "built-in resource action",
       "name": "approval/category/create",
       "value": "create",
@@ -45336,7 +45078,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:176"
+        "internal/approval/resource/category.go:141"
       ],
       "terms": [
         "action",
@@ -45351,7 +45093,7 @@
       ]
     },
     {
-      "id": "4f62c18b5837f4b9abe74dd9",
+      "id": "c0be4fd280b82f4fd9619858",
       "category": "built-in resource action",
       "name": "approval/category/delete",
       "value": "delete",
@@ -45360,7 +45102,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:212"
+        "internal/approval/resource/category.go:156"
       ],
       "terms": [
         "action",
@@ -45375,7 +45117,7 @@
       ]
     },
     {
-      "id": "a0d7bfbe5070f00052dc7ef6",
+      "id": "c33d8377959c9af939a9c5db",
       "category": "built-in resource action",
       "name": "approval/category/find_tree",
       "value": "find_tree",
@@ -45384,7 +45126,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:173"
+        "internal/approval/resource/category.go:138"
       ],
       "terms": [
         "action",
@@ -45399,7 +45141,7 @@
       ]
     },
     {
-      "id": "f1f5f87f835d19e55a45be51",
+      "id": "2af3a24bff365ca389247563",
       "category": "built-in resource action",
       "name": "approval/category/update",
       "value": "update",
@@ -45408,7 +45150,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:197"
+        "internal/approval/resource/category.go:146"
       ],
       "terms": [
         "action",
@@ -70424,12 +70166,12 @@
       ]
     },
     {
-      "id": "4a7a949b3c42cbc26ba454cf",
+      "id": "db48895e9b74f9274bb5ed25",
       "category": "runtime enum value",
       "name": "actionApprove (processTaskAction)",
       "value": "approve",
       "source_evidence": [
-        "internal/approval/resource/instance.go:205"
+        "internal/approval/resource/instance.go:201"
       ],
       "terms": [
         "actionApprove",
@@ -70441,12 +70183,12 @@
       ]
     },
     {
-      "id": "0a03d8127f63776d79cd85e1",
+      "id": "5ef4013473b4852b554a7ada",
       "category": "runtime enum value",
       "name": "actionHandle (processTaskAction)",
       "value": "handle",
       "source_evidence": [
-        "internal/approval/resource/instance.go:206"
+        "internal/approval/resource/instance.go:202"
       ],
       "terms": [
         "actionHandle",
@@ -70458,12 +70200,12 @@
       ]
     },
     {
-      "id": "8bf5ee0b1d72d8282e607303",
+      "id": "c2862b61a638a244f6a767f2",
       "category": "runtime enum value",
       "name": "actionReject (processTaskAction)",
       "value": "reject",
       "source_evidence": [
-        "internal/approval/resource/instance.go:207"
+        "internal/approval/resource/instance.go:203"
       ],
       "terms": [
         "actionReject",
@@ -70475,12 +70217,12 @@
       ]
     },
     {
-      "id": "735d2038d438fdaf88598611",
+      "id": "022943dc3189f39b8b975aea",
       "category": "runtime enum value",
       "name": "actionRollback (processTaskAction)",
       "value": "rollback",
       "source_evidence": [
-        "internal/approval/resource/instance.go:209"
+        "internal/approval/resource/instance.go:205"
       ],
       "terms": [
         "actionRollback",
@@ -70492,12 +70234,12 @@
       ]
     },
     {
-      "id": "a4cc5120c4ab61bebde2ffd3",
+      "id": "884a45d10617ed7b3f1aee6b",
       "category": "runtime enum value",
       "name": "actionTransfer (processTaskAction)",
       "value": "transfer",
       "source_evidence": [
-        "internal/approval/resource/instance.go:208"
+        "internal/approval/resource/instance.go:204"
       ],
       "terms": [
         "actionTransfer",

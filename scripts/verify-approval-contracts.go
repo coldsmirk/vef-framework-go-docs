@@ -715,7 +715,6 @@ func verifyRequestDTOs(sourceRoot string, docs []corpus) []string {
 		"FindPendingTasksParams":       {"internal/approval/resource/my.go", "params"},
 		"FindCompletedTasksParams":     {"internal/approval/resource/my.go", "params"},
 		"FindCCRecordsParams":          {"internal/approval/resource/my.go", "params"},
-		"GetPendingCountsParams":       {"internal/approval/resource/my.go", "params"},
 		"GetInstanceDetailParams":      {"internal/approval/resource/my.go", "params"},
 		"AdminFindInstancesParams":     {"internal/approval/resource/admin.go", "params"},
 		"AdminFindTasksParams":         {"internal/approval/resource/admin.go", "params"},
