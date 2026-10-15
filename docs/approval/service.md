@@ -136,8 +136,8 @@ flows. Use `approval.SystemCaller` for trusted automation, or
 with that code (see [Shared Flows](./integration.md#shared-flows)). The
 tenant only counts for `SystemCaller` and super-admin callers — empty means
 their own tenant, else `DefaultTenantID`; a caller pinned to a tenant always
-starts there. `SharedTenantID` is refused with `ErrFlowNotFound`: an instance
-of a shared flow runs in the real tenant that starts it.
+starts there. An instance of a shared flow runs in the tenant that starts it,
+never in the tenant owning the flow.
 
 `StartInstanceInput.Globals` deserves the same care. On the request path the
 framework resolves globals server-side through `InstanceGlobalsResolver`

@@ -28,9 +28,8 @@ sidebar_position: 2
 ## `approval/category`
 
 流程分类管理（`apv_flow_category`）。分类跨租户管理，由下表中的权限把关：
-分类的租户就是请求指定的租户，不会校验调用者自己所在的租户。租户为
-`approval.SharedTenantID`（`"0"`）的分类是全局分类，也就是全局流程所在的分类，
-管理方式与其他分类相同。分类创建后不会改变租户，分类树也从不跨租户（见
+分类的租户就是请求指定的租户，不会校验调用者自己所在的租户。分类创建后不会
+改变租户，分类树也从不跨租户；全局流程挂在所属租户的某个分类下（见
 [全局流程](./integration.md#全局流程)）。
 
 | Action | 权限 | 入参 | 出参 |
@@ -48,8 +47,7 @@ sidebar_position: 2
 | --- | --- | --- | --- |
 | `name` | `string` | contains | 按分类名称片段过滤 |
 | `isActive` | `bool` | equals | 按启用状态过滤；省略则两者都匹配 |
-| `tenantId` | `string` | equals | 把读取范围限定为一个租户（`"0"` 表示全局分类）；不传时读取所有租户的分类 |
-| `includeShared` | `bool` | — | 在所指定租户的分类之外再加上全局分类——委托范围选择器需要它 |
+| `tenantId` | `string` | equals | 把读取范围限定为一个租户；不传时读取所有租户的分类 |
 | `sort` | `OrderSpec[]` | — | 排序声明（`crud.Sortable`） |
 
 `CategoryParams`（create/update，从 `params` 解码）：
@@ -57,7 +55,7 @@ sidebar_position: 2
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `id` | `string` | 仅 update | 要更新记录的主键 |
-| `tenantId` | `string` | 是 | 所属租户，按请求指定——`"0"` 表示全局分类。update 时记录保持原有租户（提交值被忽略） |
+| `tenantId` | `string` | 是 | 所属租户，按请求指定。update 时记录保持原有租户（提交值被忽略） |
 | `code` | `string` | 是 | 分类业务编码 |
 | `name` | `string` | 是 | 显示名称 |
 | `icon` | `string` | 否 | 显示图标标识 |
@@ -145,8 +143,9 @@ sidebar_position: 2
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 是 | 所属租户，按请求指定——`"0"`（`approval.SharedTenantID`）表示创建全局流程 |
-| `code` | `string` | 是 | 流程业务编码，在租户内唯一；创建后不可变（`start` 以它定位流程——租户自己的同编码流程会在本租户内取代全局流程） |
+| `tenantId` | `string` | 是 | 所属租户，按请求指定 |
+| `isShared` | `bool` | 否 | 在本租户之外把流程开放给所有租户；创建时确定（`update` 不会修改它）。见[全局流程](./integration.md#全局流程) |
+| `code` | `string` | 是 | 流程业务编码，在租户内唯一——全局流程还要在所有租户的全局流程中唯一（`ErrSharedFlowCodeExists`）；创建后不可变（`start` 以它定位流程——租户自己的同编码流程会在本租户内取代全局流程） |
 | `name` | `string` | 是 | 显示名称 |
 | `categoryId` | `string` | 是 | 所属 `FlowCategory` id；必须属于流程所在的租户（`ErrCategoryNotFound`） |
 | `icon` | `string` | 否 | 显示图标标识 |
@@ -250,7 +249,8 @@ sidebar_position: 2
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 否 | 租户过滤（`"0"` 表示全局流程）；不传时列出所有租户的流程 |
+| `tenantId` | `string` | 否 | 列出该租户拥有的流程，包括它的全局流程；不传时列出所有租户的流程 |
+| `includeShared` | `bool` | 否 | 与 `tenantId` 一起使用时，再列出其他租户的、编码未被该租户自有流程占用的全局流程——即在该租户按编码发起能找到的流程 |
 | `categoryId` | `string` | 否 | 按分类过滤 |
 | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
 | `isActive` | `bool` | 否 | 按启用状态过滤 |
@@ -264,6 +264,7 @@ sidebar_position: 2
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `tenantId` | `string` | 所属租户 |
+| `isShared` | `bool` | 是否在本租户之外开放给所有租户 |
 | `categoryId` | `string` | 所属分类 |
 | `code` | `string` | 唯一流程业务编码（不可变） |
 | `name` | `string` | 显示名称 |
@@ -876,6 +877,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份，�
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | 受限发起必须至少有一条 `ids` 非空的发起人规则 |
 | `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | 全局流程把任务或抄送派给了指定的用户、角色或部门，或把任务转交节点管理员或指定人员 |
 | `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | 流程的分类或分类的上级分类不存在，或属于其他租户 |
+| `40026` | `ErrCodeSharedFlowCodeExists` | `ErrSharedFlowCodeExists` | `approval_shared_flow_code_exists` | 创建全局流程时，其编码已被其他租户的全局流程占用 |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | 实例查找失败 |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | 实例已经完结 |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | 调用者不能发起该流程 |

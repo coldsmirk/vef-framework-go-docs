@@ -502,7 +502,7 @@ func valueKey(mapping *approval.RemoteOptionMapping) string {
 
 ### 全局流程
 
-全局流程（`approval.SharedTenantID`，见[全局流程](./integration.md#全局流程)）
+全局流程（`Flow.IsShared`，见[全局流程](./integration.md#全局流程)）
 会在所有租户中运行，而具体的用户——以及具体角色、部门背后的用户——只属于某
 一个租户。因此，部署全局流程时，节点出现以下情况会返回
 `ErrSharedFlowNamesPeople`（code `40024`）：

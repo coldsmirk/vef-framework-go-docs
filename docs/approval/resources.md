@@ -33,10 +33,9 @@ Conventions used on this page:
 
 Flow category management (`apv_flow_category`). Categories are managed across
 tenants, gated by the permissions below: a category's tenant is the one the
-request names, and the caller's own tenant is never checked. A category of
-`approval.SharedTenantID` (`"0"`) is shared — the home of shared flows — and is
-managed like any other. A category never changes tenant, and a tree never spans
-tenants (see [Shared Flows](./integration.md#shared-flows)).
+request names, and the caller's own tenant is never checked. A category never
+changes tenant, and a tree never spans tenants; a shared flow sits under one of
+its owner's categories (see [Shared Flows](./integration.md#shared-flows)).
 
 | Action | Permission | Input | Output |
 | --- | --- | --- | --- |
@@ -54,8 +53,7 @@ There is no `find_tree_options` operation; build option lists from
 | --- | --- | --- | --- |
 | `name` | `string` | contains | filter by category name fragment |
 | `isActive` | `bool` | equals | filter by active flag; omit to match both |
-| `tenantId` | `string` | equals | narrow the read to one tenant (`"0"` for the shared categories); omitted, every tenant's categories are read |
-| `includeShared` | `bool` | — | add the shared categories to the named tenant's — what a delegation scope picker needs |
+| `tenantId` | `string` | equals | narrow the read to one tenant; omitted, every tenant's categories are read |
 | `sort` | `OrderSpec[]` | — | sort specifications (`crud.Sortable`) |
 
 `CategoryParams` (create/update, decoded from `params`):
@@ -63,7 +61,7 @@ There is no `find_tree_options` operation; build option lists from
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | `string` | update only | primary key of the row to update |
-| `tenantId` | `string` | Yes | owning tenant, as named — `"0"` makes a shared category. On update the row keeps its tenant (the submitted value is ignored) |
+| `tenantId` | `string` | Yes | owning tenant, as named. On update the row keeps its tenant (the submitted value is ignored) |
 | `code` | `string` | Yes | category business code |
 | `name` | `string` | Yes | display name |
 | `icon` | `string` | No | display icon identifier |
@@ -156,8 +154,9 @@ flow is managed like any other.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | Yes | owning tenant, as named — `"0"` (`approval.SharedTenantID`) creates a shared flow |
-| `code` | `string` | Yes | flow business code, unique within the tenant; immutable after creation (`start` targets it — a tenant flow takes a shared flow's place for its code within that tenant) |
+| `tenantId` | `string` | Yes | owning tenant, as named |
+| `isShared` | `bool` | No | offer the flow to every tenant beside its own flows; fixed at creation (`update` never changes it). See [Shared Flows](./integration.md#shared-flows) |
+| `code` | `string` | Yes | flow business code, unique within the tenant — and, for a shared flow, among the shared flows of every tenant (`ErrSharedFlowCodeExists`); immutable after creation (`start` targets it — a tenant flow takes a shared flow's place for its code within that tenant) |
 | `name` | `string` | Yes | display name |
 | `categoryId` | `string` | Yes | owning `FlowCategory` id; must belong to the flow's tenant (`ErrCategoryNotFound`) |
 | `icon` | `string` | No | display icon identifier |
@@ -266,7 +265,8 @@ are immutable):
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | No | tenant filter (`"0"` for the shared flows); omitted, every tenant's flows are listed |
+| `tenantId` | `string` | No | list the flows this tenant owns, its shared ones included; omitted, every tenant's flows are listed |
+| `includeShared` | `bool` | No | with `tenantId`, also list the other tenants' shared flows whose code that tenant has not taken for a flow of its own — the flows a start by code finds there |
 | `categoryId` | `string` | No | filter by category |
 | `keyword` | `string` | No | contains match against the flow name |
 | `isActive` | `bool` | No | filter by active flag |
@@ -280,6 +280,7 @@ are immutable):
 | Field | Type | Description |
 | --- | --- | --- |
 | `tenantId` | `string` | owning tenant |
+| `isShared` | `bool` | offered to every tenant beside its own flows |
 | `categoryId` | `string` | owning category |
 | `code` | `string` | unique flow business code (immutable) |
 | `name` | `string` | display name |
@@ -916,6 +917,7 @@ surface rather than importing the internal Go symbols.
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | restricted initiation requires at least one initiator rule with non-empty IDs |
 | `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | a shared flow routes tasks or CC to specific users, roles or departments, or hands tasks to node admins or named fallback users |
 | `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | a flow's category, or a category's parent, is missing or belongs to another tenant |
+| `40026` | `ErrCodeSharedFlowCodeExists` | `ErrSharedFlowCodeExists` | `approval_shared_flow_code_exists` | another tenant's shared flow already holds the code of a shared flow being created |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance lookup failed |
 | `40102` | `ErrCodeInstanceCompleted` | `ErrInstanceCompleted` | `approval_instance_completed` | instance is already complete |
 | `40103` | `ErrCodeNotAllowedInitiate` | `ErrNotAllowedInitiate` | `approval_not_allowed_initiate` | caller cannot initiate this flow |

@@ -566,7 +566,7 @@ all.
 
 ### Shared Flows
 
-A shared flow (`approval.SharedTenantID`, see
+A shared flow (`Flow.IsShared`, see
 [Shared Flows](./integration.md#shared-flows)) runs in every tenant, while a
 specific user — and the users behind a specific role or department — belongs
 to one. Deploying a shared flow therefore returns `ErrSharedFlowNamesPeople`
