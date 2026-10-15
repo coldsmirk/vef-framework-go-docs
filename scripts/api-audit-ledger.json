@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8426,
-  "fingerprint": "9eac57d2ecd6e5963c6fb3852c56674f98f7b930cd7ab7d74e8d694a78d33a9a",
+  "entry_count": 8428,
+  "fingerprint": "d9983050aa24cf1893500e0cc785542839513fac82a928519c9eb4f776cfc198",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -10575,7 +10575,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.AdminUserIDs",
-      "signature": "AdminUserIDs : []string [field_order=12 tag=\"json:\\\"adminUserIds\\\" bun:\\\"admin_user_ids,type:jsonb\\\"\"]",
+      "signature": "AdminUserIDs : []string [field_order=13 tag=\"json:\\\"adminUserIds\\\" bun:\\\"admin_user_ids,type:jsonb\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10609,7 +10609,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.BindingMode",
-      "signature": "BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode [field_order=10 tag=\"json:\\\"bindingMode\\\" bun:\\\"binding_mode\\\"\"]",
+      "signature": "BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode [field_order=11 tag=\"json:\\\"bindingMode\\\" bun:\\\"binding_mode\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10626,7 +10626,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.BusinessBinding",
-      "signature": "BusinessBinding : *github.com/coldsmirk/vef-framework-go/approval.BusinessBindingConfig [field_order=11 tag=\"json:\\\"businessBinding,omitempty\\\" bun:\\\"business_binding,type:jsonb,nullzero\\\"\"]",
+      "signature": "BusinessBinding : *github.com/coldsmirk/vef-framework-go/approval.BusinessBindingConfig [field_order=12 tag=\"json:\\\"businessBinding,omitempty\\\" bun:\\\"business_binding,type:jsonb,nullzero\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10643,7 +10643,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.CategoryID",
-      "signature": "CategoryID : string [field_order=4 tag=\"json:\\\"categoryId\\\" bun:\\\"category_id\\\"\"]",
+      "signature": "CategoryID : string [field_order=5 tag=\"json:\\\"categoryId\\\" bun:\\\"category_id\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10660,7 +10660,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.Code",
-      "signature": "Code : string [field_order=5 tag=\"json:\\\"code\\\" bun:\\\"code\\\"\"]",
+      "signature": "Code : string [field_order=6 tag=\"json:\\\"code\\\" bun:\\\"code\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10677,7 +10677,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.CurrentVersion",
-      "signature": "CurrentVersion : int [field_order=16 tag=\"json:\\\"currentVersion\\\" bun:\\\"current_version\\\"\"]",
+      "signature": "CurrentVersion : int [field_order=17 tag=\"json:\\\"currentVersion\\\" bun:\\\"current_version\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10694,7 +10694,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.Description",
-      "signature": "Description : *string [field_order=8 tag=\"json:\\\"description\\\" bun:\\\"description,nullzero\\\"\"]",
+      "signature": "Description : *string [field_order=9 tag=\"json:\\\"description\\\" bun:\\\"description,nullzero\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10728,7 +10728,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.Icon",
-      "signature": "Icon : *string [field_order=7 tag=\"json:\\\"icon\\\" bun:\\\"icon,nullzero\\\"\"]",
+      "signature": "Icon : *string [field_order=8 tag=\"json:\\\"icon\\\" bun:\\\"icon,nullzero\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10745,7 +10745,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.InstanceTitleTemplate",
-      "signature": "InstanceTitleTemplate : string [field_order=14 tag=\"json:\\\"instanceTitleTemplate\\\" bun:\\\"instance_title_template\\\"\"]",
+      "signature": "InstanceTitleTemplate : string [field_order=15 tag=\"json:\\\"instanceTitleTemplate\\\" bun:\\\"instance_title_template\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10762,7 +10762,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.IsActive",
-      "signature": "IsActive : bool [field_order=15 tag=\"json:\\\"isActive\\\" bun:\\\"is_active\\\"\"]",
+      "signature": "IsActive : bool [field_order=16 tag=\"json:\\\"isActive\\\" bun:\\\"is_active\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10779,7 +10779,24 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.IsAllInitiationAllowed",
-      "signature": "IsAllInitiationAllowed : bool [field_order=13 tag=\"json:\\\"isAllInitiationAllowed\\\" bun:\\\"is_all_initiation_allowed\\\"\"]",
+      "signature": "IsAllInitiationAllowed : bool [field_order=14 tag=\"json:\\\"isAllInitiationAllowed\\\" bun:\\\"is_all_initiation_allowed\\\"\"]",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#field:Flow.IsShared",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "field",
+      "symbol": "Flow.IsShared",
+      "signature": "IsShared : bool [field_order=4 tag=\"json:\\\"isShared\\\" bun:\\\"is_shared\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10796,7 +10813,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.Labels",
-      "signature": "Labels : map[string]string [field_order=9 tag=\"json:\\\"labels,omitempty\\\" bun:\\\"labels,type:jsonb,nullzero\\\"\"]",
+      "signature": "Labels : map[string]string [field_order=10 tag=\"json:\\\"labels,omitempty\\\" bun:\\\"labels,type:jsonb,nullzero\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -10813,7 +10830,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "field",
       "symbol": "Flow.Name",
-      "signature": "Name : string [field_order=6 tag=\"json:\\\"name\\\" bun:\\\"name\\\"\"]",
+      "signature": "Name : string [field_order=7 tag=\"json:\\\"name\\\" bun:\\\"name\\\"\"]",
       "disposition": "grouped:type-member-family",
       "coverage": [
         "docs/approval/overview.md",
@@ -29237,6 +29254,23 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeSharedFlowCodeExists",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrCodeSharedFlowCodeExists",
+      "signature": "ErrCodeSharedFlowCodeExists : untyped int = 40026",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeSharedFlowNamesPeople",
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "top",
@@ -30075,6 +30109,23 @@
       "kind": "top",
       "symbol": "ErrRollbackNotAllowed",
       "signature": "ErrRollbackNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error",
+      "disposition": "documented:top-level",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrSharedFlowCodeExists",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "top",
+      "symbol": "ErrSharedFlowCodeExists",
+      "signature": "ErrSharedFlowCodeExists : github.com/coldsmirk/vef-framework-go/result.Error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -34172,23 +34223,6 @@
       "kind": "top",
       "symbol": "Service",
       "signature": "Service : github.com/coldsmirk/vef-framework-go/approval.Service",
-      "disposition": "documented:top-level",
-      "coverage": [
-        "docs/approval/overview.md",
-        "docs/approval/flow-design.md",
-        "docs/approval/runtime.md",
-        "docs/approval/resources.md",
-        "docs/approval/integration.md",
-        "docs/reference/built-in-resources.md",
-        "docs/approval/service.md"
-      ]
-    },
-    {
-      "id": "github.com/coldsmirk/vef-framework-go/approval#top:SharedTenantID",
-      "package": "github.com/coldsmirk/vef-framework-go/approval",
-      "kind": "top",
-      "symbol": "SharedTenantID",
-      "signature": "SharedTenantID : untyped string = \"0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -121729,7 +121763,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.61.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.62.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"

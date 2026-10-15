@@ -19,8 +19,8 @@ const (
 	chineseIndexPath  = "i18n/zh-Hans/docusaurus-plugin-content-docs/current/reference/public-api-index.md"
 	runtimeLedgerPath = "scripts/runtime-api-ledger.json"
 
-	groupedPublicEntryCount           = 5260
-	groupedPublicSignatureFingerprint = "c86868ca85466768a9b6326bdbc4e019bf01fb50aeca1b27b60a47f4c4e7fa0d"
+	groupedPublicEntryCount           = 5261
+	groupedPublicSignatureFingerprint = "865ea440ed3ce0d5769c221ac4c5b203ed86c17fb5337d8edd6cafa02a6e191a"
 )
 
 type auditLedger struct {

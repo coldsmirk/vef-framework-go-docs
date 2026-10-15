@@ -1031,6 +1031,7 @@ CONST ErrCodeOpinionRequired : untyped int = 40208
 CONST ErrCodeRemoveAssigneeNotAllowed : untyped int = 40210
 CONST ErrCodeResubmitNotAllowed : untyped int = 40105
 CONST ErrCodeRollbackNotAllowed : untyped int = 40205
+CONST ErrCodeSharedFlowCodeExists : untyped int = 40026
 CONST ErrCodeSharedFlowNamesPeople : untyped int = 40024
 CONST ErrCodeTaskNotFound : untyped int = 40201
 CONST ErrCodeTaskNotPending : untyped int = 40202
@@ -1081,6 +1082,7 @@ VAR ErrOpinionRequired : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrRemoveAssigneeNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrResubmitNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrRollbackNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
+VAR ErrSharedFlowCodeExists : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrSharedFlowNamesPeople : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotFound : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotPending : github.com/coldsmirk/vef-framework-go/result.Error
@@ -1149,19 +1151,20 @@ TYPE Flow : github.com/coldsmirk/vef-framework-go/approval.Flow
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow,alias:af\""]
   FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
   FIELD TenantID : string [field_order=3 tag="json:\"tenantId\" bun:\"tenant_id\""]
-  FIELD CategoryID : string [field_order=4 tag="json:\"categoryId\" bun:\"category_id\""]
-  FIELD Code : string [field_order=5 tag="json:\"code\" bun:\"code\""]
-  FIELD Name : string [field_order=6 tag="json:\"name\" bun:\"name\""]
-  FIELD Icon : *string [field_order=7 tag="json:\"icon\" bun:\"icon,nullzero\""]
-  FIELD Description : *string [field_order=8 tag="json:\"description\" bun:\"description,nullzero\""]
-  FIELD Labels : map[string]string [field_order=9 tag="json:\"labels,omitempty\" bun:\"labels,type:jsonb,nullzero\""]
-  FIELD BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode [field_order=10 tag="json:\"bindingMode\" bun:\"binding_mode\""]
-  FIELD BusinessBinding : *github.com/coldsmirk/vef-framework-go/approval.BusinessBindingConfig [field_order=11 tag="json:\"businessBinding,omitempty\" bun:\"business_binding,type:jsonb,nullzero\""]
-  FIELD AdminUserIDs : []string [field_order=12 tag="json:\"adminUserIds\" bun:\"admin_user_ids,type:jsonb\""]
-  FIELD IsAllInitiationAllowed : bool [field_order=13 tag="json:\"isAllInitiationAllowed\" bun:\"is_all_initiation_allowed\""]
-  FIELD InstanceTitleTemplate : string [field_order=14 tag="json:\"instanceTitleTemplate\" bun:\"instance_title_template\""]
-  FIELD IsActive : bool [field_order=15 tag="json:\"isActive\" bun:\"is_active\""]
-  FIELD CurrentVersion : int [field_order=16 tag="json:\"currentVersion\" bun:\"current_version\""]
+  FIELD IsShared : bool [field_order=4 tag="json:\"isShared\" bun:\"is_shared\""]
+  FIELD CategoryID : string [field_order=5 tag="json:\"categoryId\" bun:\"category_id\""]
+  FIELD Code : string [field_order=6 tag="json:\"code\" bun:\"code\""]
+  FIELD Name : string [field_order=7 tag="json:\"name\" bun:\"name\""]
+  FIELD Icon : *string [field_order=8 tag="json:\"icon\" bun:\"icon,nullzero\""]
+  FIELD Description : *string [field_order=9 tag="json:\"description\" bun:\"description,nullzero\""]
+  FIELD Labels : map[string]string [field_order=10 tag="json:\"labels,omitempty\" bun:\"labels,type:jsonb,nullzero\""]
+  FIELD BindingMode : github.com/coldsmirk/vef-framework-go/approval.BindingMode [field_order=11 tag="json:\"bindingMode\" bun:\"binding_mode\""]
+  FIELD BusinessBinding : *github.com/coldsmirk/vef-framework-go/approval.BusinessBindingConfig [field_order=12 tag="json:\"businessBinding,omitempty\" bun:\"business_binding,type:jsonb,nullzero\""]
+  FIELD AdminUserIDs : []string [field_order=13 tag="json:\"adminUserIds\" bun:\"admin_user_ids,type:jsonb\""]
+  FIELD IsAllInitiationAllowed : bool [field_order=14 tag="json:\"isAllInitiationAllowed\" bun:\"is_all_initiation_allowed\""]
+  FIELD InstanceTitleTemplate : string [field_order=15 tag="json:\"instanceTitleTemplate\" bun:\"instance_title_template\""]
+  FIELD IsActive : bool [field_order=16 tag="json:\"isActive\" bun:\"is_active\""]
+  FIELD CurrentVersion : int [field_order=17 tag="json:\"currentVersion\" bun:\"current_version\""]
 TYPE FlowCategory : github.com/coldsmirk/vef-framework-go/approval.FlowCategory
   FIELD BaseModel : github.com/coldsmirk/vef-framework-go/orm.BaseModel [field_order=1 tag="bun:\"table:apv_flow_category,alias:afc\""]
   FIELD FullAuditedModel : github.com/coldsmirk/vef-framework-go/orm.FullAuditedModel [field_order=2 tag=""]
@@ -1844,7 +1847,6 @@ TYPE Service : github.com/coldsmirk/vef-framework-go/approval.Service
   METHOD TransferTask : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.TransferTaskInput) error
   METHOD UrgeTask : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.UrgeTaskInput) error
   METHOD WithdrawInstance : func(ctx context.Context, db github.com/coldsmirk/vef-framework-go/orm.DB, in github.com/coldsmirk/vef-framework-go/approval.WithdrawInstanceInput) error
-CONST SharedTenantID : untyped string = "0"
 TYPE StartInstanceInput : github.com/coldsmirk/vef-framework-go/approval.StartInstanceInput
   FIELD TenantID : string [field_order=1 tag=""]
   FIELD FlowCode : string [field_order=2 tag=""]
@@ -8602,5 +8604,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.61.0"
+CONST VEFVersion : untyped string = "v0.62.0"
 ```

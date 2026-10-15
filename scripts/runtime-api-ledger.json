@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3290,
-  "fingerprint": "bba5a1754fab2d6c699453e9a6743be4114e80da0020259f52f1af9700cf5ded",
+  "entry_count": 3294,
+  "fingerprint": "4c4a28ba241eb84ff99cade9e9694c51230b4ac91ff39fb7946cbf40bffebe05",
   "coverage": [
     {
       "category": "API default",
@@ -78,7 +78,7 @@
     },
     {
       "category": "JSON wire field",
-      "entry_count": 1692,
+      "entry_count": 1694,
       "tier": "Tier 2 scoped DTO AST with closed-world boundary check",
       "extractor": "extractJSONFields",
       "method": "AST scan of json tags on runtime DTO structs plus a boundary check over every non-test json-tagged struct field.",
@@ -230,7 +230,7 @@
     },
     {
       "category": "i18n message key",
-      "entry_count": 285,
+      "entry_count": 286,
       "tier": "Tier 2 AST call/tag scan",
       "extractor": "extractI18NMessageKeys",
       "method": "AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags.",
@@ -262,7 +262,7 @@
     },
     {
       "category": "result error code",
-      "entry_count": 182,
+      "entry_count": 183,
       "tier": "Tier 1 AST constants",
       "extractor": "extractErrorCodes",
       "method": "AST scan of ErrCode* constants in api_errors.go and result/constants.go.",
@@ -2338,7 +2338,7 @@
       ]
     },
     {
-      "id": "4254cc9b20c398fa83f9d6c6",
+      "id": "627151f85dccd19fcc70519d",
       "category": "JSON wire field",
       "name": "ActionLog.Action",
       "value": "action",
@@ -2347,7 +2347,7 @@
         "type: ActionType"
       ],
       "source_evidence": [
-        "approval/models.go:413"
+        "approval/models.go:418"
       ],
       "terms": [
         "ActionLog.Action",
@@ -2386,7 +2386,7 @@
       ]
     },
     {
-      "id": "f81b4612f780def26d8555b9",
+      "id": "9f93883a052088230fff0c5f",
       "category": "JSON wire field",
       "name": "ActionLog.AddAssigneeType",
       "value": "addAssigneeType",
@@ -2395,7 +2395,7 @@
         "type: *AddAssigneeType"
       ],
       "source_evidence": [
-        "approval/models.go:426"
+        "approval/models.go:431"
       ],
       "terms": [
         "ActionLog.AddAssigneeType",
@@ -2410,7 +2410,7 @@
       ]
     },
     {
-      "id": "66ba3e2442b4a37567d18d36",
+      "id": "c914143a6e27331986d54da3",
       "category": "JSON wire field",
       "name": "ActionLog.AddedAssignees",
       "value": "addedAssignees",
@@ -2419,7 +2419,7 @@
         "type: []UserInfo"
       ],
       "source_evidence": [
-        "approval/models.go:427"
+        "approval/models.go:432"
       ],
       "terms": [
         "ActionLog.AddedAssignees",
@@ -2482,7 +2482,7 @@
       ]
     },
     {
-      "id": "6d5f644dee9f3127b0301f35",
+      "id": "3a7183d4c774e528bbfc3b32",
       "category": "JSON wire field",
       "name": "ActionLog.Attachments",
       "value": "attachments",
@@ -2491,7 +2491,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:430"
+        "approval/models.go:435"
       ],
       "terms": [
         "ActionLog.Attachments",
@@ -2501,30 +2501,6 @@
         "field",
         "field:",
         "string",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "0e37fd99c17a5ef12626d35e",
-      "category": "JSON wire field",
-      "name": "ActionLog.CCUsers",
-      "value": "ccUsers",
-      "details": [
-        "Go field: ActionLog.CCUsers",
-        "type: []UserInfo"
-      ],
-      "source_evidence": [
-        "approval/models.go:429"
-      ],
-      "terms": [
-        "ActionLog.CCUsers",
-        "Go",
-        "JSON",
-        "UserInfo",
-        "ccUsers",
-        "field",
-        "field:",
         "type:",
         "wire"
       ]
@@ -2546,6 +2522,30 @@
         "Go",
         "JSON",
         "approval.UserInfo",
+        "ccUsers",
+        "field",
+        "field:",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "b29ca57068faf05ac25f4d2c",
+      "category": "JSON wire field",
+      "name": "ActionLog.CCUsers",
+      "value": "ccUsers",
+      "details": [
+        "Go field: ActionLog.CCUsers",
+        "type: []UserInfo"
+      ],
+      "source_evidence": [
+        "approval/models.go:434"
+      ],
+      "terms": [
+        "ActionLog.CCUsers",
+        "Go",
+        "JSON",
+        "UserInfo",
         "ccUsers",
         "field",
         "field:",
@@ -2578,7 +2578,7 @@
       ]
     },
     {
-      "id": "a29bcc5c2ccebce54b164542",
+      "id": "f7691221f81a8e077ab124c4",
       "category": "JSON wire field",
       "name": "ActionLog.IPAddress",
       "value": "ipAddress",
@@ -2587,7 +2587,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:418"
+        "approval/models.go:423"
       ],
       "terms": [
         "ActionLog.IPAddress",
@@ -2602,7 +2602,7 @@
       ]
     },
     {
-      "id": "961845fe4aa4786c52b237f0",
+      "id": "87e17cf4694598953e02630c",
       "category": "JSON wire field",
       "name": "ActionLog.InstanceID",
       "value": "instanceId",
@@ -2611,7 +2611,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:410"
+        "approval/models.go:415"
       ],
       "terms": [
         "ActionLog.InstanceID",
@@ -2650,7 +2650,7 @@
       ]
     },
     {
-      "id": "2c311650d6aafe54eaa963d6",
+      "id": "d07a2e3cb5feb2904350c009",
       "category": "JSON wire field",
       "name": "ActionLog.Meta",
       "value": "meta",
@@ -2659,7 +2659,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "approval/models.go:431"
+        "approval/models.go:436"
       ],
       "terms": [
         "ActionLog.Meta",
@@ -2676,7 +2676,7 @@
       ]
     },
     {
-      "id": "76d4fc68ad99cba7b7e163db",
+      "id": "68ccae30a920fe5e91f4b265",
       "category": "JSON wire field",
       "name": "ActionLog.NodeID",
       "value": "nodeId",
@@ -2685,7 +2685,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/admin/instance_detail.go:57"
+        "approval/models.go:416"
       ],
       "terms": [
         "ActionLog.NodeID",
@@ -2700,7 +2700,7 @@
       ]
     },
     {
-      "id": "b2fc9c1eb4b34d3d5168b7d8",
+      "id": "76d4fc68ad99cba7b7e163db",
       "category": "JSON wire field",
       "name": "ActionLog.NodeID",
       "value": "nodeId",
@@ -2709,7 +2709,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:411"
+        "approval/admin/instance_detail.go:57"
       ],
       "terms": [
         "ActionLog.NodeID",
@@ -2748,7 +2748,7 @@
       ]
     },
     {
-      "id": "5b633a6ffb644c0d18ec09d4",
+      "id": "05ded2195544859ff990d34b",
       "category": "JSON wire field",
       "name": "ActionLog.OperatorDepartmentID",
       "value": "operatorDepartmentId",
@@ -2757,7 +2757,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:416"
+        "approval/models.go:421"
       ],
       "terms": [
         "ActionLog.OperatorDepartmentID",
@@ -2772,7 +2772,7 @@
       ]
     },
     {
-      "id": "a8be5a702fce8ed4882baea7",
+      "id": "8f290a4353cd9d4451331c3b",
       "category": "JSON wire field",
       "name": "ActionLog.OperatorDepartmentName",
       "value": "operatorDepartmentName",
@@ -2781,7 +2781,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:417"
+        "approval/models.go:422"
       ],
       "terms": [
         "ActionLog.OperatorDepartmentName",
@@ -2796,7 +2796,7 @@
       ]
     },
     {
-      "id": "03b0a725aec41901f43afad4",
+      "id": "ee1ec162c43ae50deacd22ad",
       "category": "JSON wire field",
       "name": "ActionLog.OperatorID",
       "value": "operatorId",
@@ -2805,7 +2805,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:414"
+        "approval/models.go:419"
       ],
       "terms": [
         "ActionLog.OperatorID",
@@ -2820,7 +2820,7 @@
       ]
     },
     {
-      "id": "6f00888d3cd309d4116de66a",
+      "id": "d1065c419f3001ff2144d84a",
       "category": "JSON wire field",
       "name": "ActionLog.OperatorName",
       "value": "operatorName",
@@ -2829,7 +2829,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:415"
+        "approval/models.go:420"
       ],
       "terms": [
         "ActionLog.OperatorName",
@@ -2868,7 +2868,7 @@
       ]
     },
     {
-      "id": "5ea739e00d7f30490defb598",
+      "id": "f7279d44adcb838a6c35cc8d",
       "category": "JSON wire field",
       "name": "ActionLog.Opinion",
       "value": "opinion",
@@ -2877,7 +2877,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:420"
+        "approval/models.go:425"
       ],
       "terms": [
         "ActionLog.Opinion",
@@ -2916,7 +2916,7 @@
       ]
     },
     {
-      "id": "dcaac358f24b5eeb908d86a5",
+      "id": "ef46bbc3b4b8b861999d7cb4",
       "category": "JSON wire field",
       "name": "ActionLog.RemovedAssignees",
       "value": "removedAssignees",
@@ -2925,7 +2925,7 @@
         "type: []UserInfo"
       ],
       "source_evidence": [
-        "approval/models.go:428"
+        "approval/models.go:433"
       ],
       "terms": [
         "ActionLog.RemovedAssignees",
@@ -2964,7 +2964,7 @@
       ]
     },
     {
-      "id": "f11476f6ce8c3f2b5ac19b19",
+      "id": "e2acc8ec248dd1c10b69befc",
       "category": "JSON wire field",
       "name": "ActionLog.RollbackToNodeID",
       "value": "rollbackToNodeId",
@@ -2973,7 +2973,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:425"
+        "approval/models.go:430"
       ],
       "terms": [
         "ActionLog.RollbackToNodeID",
@@ -2988,7 +2988,7 @@
       ]
     },
     {
-      "id": "4f46e6c3f0f06c1ad7cd3e06",
+      "id": "1607cf976e5d0ccf8d965350",
       "category": "JSON wire field",
       "name": "ActionLog.TaskID",
       "value": "taskId",
@@ -2997,7 +2997,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:412"
+        "approval/models.go:417"
       ],
       "terms": [
         "ActionLog.TaskID",
@@ -3060,7 +3060,7 @@
       ]
     },
     {
-      "id": "795380bf72f2c20ade7141ac",
+      "id": "6434ddee863d1ad2f274e5e4",
       "category": "JSON wire field",
       "name": "ActionLog.TransferToDepartmentID",
       "value": "transferToDepartmentId",
@@ -3069,7 +3069,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:423"
+        "approval/models.go:428"
       ],
       "terms": [
         "ActionLog.TransferToDepartmentID",
@@ -3084,7 +3084,7 @@
       ]
     },
     {
-      "id": "6c105566809a3305beac933d",
+      "id": "fe814fc3263aeb6ea3286b8b",
       "category": "JSON wire field",
       "name": "ActionLog.TransferToDepartmentName",
       "value": "transferToDepartmentName",
@@ -3093,7 +3093,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:424"
+        "approval/models.go:429"
       ],
       "terms": [
         "ActionLog.TransferToDepartmentName",
@@ -3108,7 +3108,7 @@
       ]
     },
     {
-      "id": "a7156d4aaa4a7740bd100d94",
+      "id": "b459ec80f673a3c52f2b6392",
       "category": "JSON wire field",
       "name": "ActionLog.TransferToID",
       "value": "transferToId",
@@ -3117,7 +3117,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:421"
+        "approval/models.go:426"
       ],
       "terms": [
         "ActionLog.TransferToID",
@@ -3132,7 +3132,7 @@
       ]
     },
     {
-      "id": "d38dc728e5004cb9b1006190",
+      "id": "d3fcc964135fb7fbfc87c2c1",
       "category": "JSON wire field",
       "name": "ActionLog.TransferToName",
       "value": "transferToName",
@@ -3141,7 +3141,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:422"
+        "approval/models.go:427"
       ],
       "terms": [
         "ActionLog.TransferToName",
@@ -3156,7 +3156,7 @@
       ]
     },
     {
-      "id": "1ef77ff03a109ad504294bd2",
+      "id": "9a689e01ab965b2e7c709ad6",
       "category": "JSON wire field",
       "name": "ActionLog.UserAgent",
       "value": "userAgent",
@@ -3165,7 +3165,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:419"
+        "approval/models.go:424"
       ],
       "terms": [
         "ActionLog.UserAgent",
@@ -6244,7 +6244,7 @@
       ]
     },
     {
-      "id": "719216fc0de15ee2d5a10f9f",
+      "id": "474194e6b2ad9d222c6d0b21",
       "category": "JSON wire field",
       "name": "BusinessProjection.AppliedAt",
       "value": "appliedAt",
@@ -6253,7 +6253,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:298"
+        "approval/models.go:303"
       ],
       "terms": [
         "BusinessProjection.AppliedAt",
@@ -6268,7 +6268,7 @@
       ]
     },
     {
-      "id": "078bbdb4771297aa6e3c128e",
+      "id": "38b05eb4f82b2b4db580b3f4",
       "category": "JSON wire field",
       "name": "BusinessProjection.AppliedOwnerInstanceID",
       "value": "appliedOwnerInstanceId",
@@ -6277,7 +6277,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:283"
+        "approval/models.go:288"
       ],
       "terms": [
         "BusinessProjection.AppliedOwnerInstanceID",
@@ -6316,7 +6316,7 @@
       ]
     },
     {
-      "id": "dcb14a89bf285380670770fb",
+      "id": "df40bf0e901849d018da0d32",
       "category": "JSON wire field",
       "name": "BusinessProjection.AppliedRevision",
       "value": "appliedRevision",
@@ -6325,7 +6325,7 @@
         "type: int64"
       ],
       "source_evidence": [
-        "approval/models.go:292"
+        "approval/admin/business_projection.go:27"
       ],
       "terms": [
         "BusinessProjection.AppliedRevision",
@@ -6340,7 +6340,7 @@
       ]
     },
     {
-      "id": "df40bf0e901849d018da0d32",
+      "id": "e9fa082191746312e3c1e858",
       "category": "JSON wire field",
       "name": "BusinessProjection.AppliedRevision",
       "value": "appliedRevision",
@@ -6349,7 +6349,7 @@
         "type: int64"
       ],
       "source_evidence": [
-        "approval/admin/business_projection.go:27"
+        "approval/models.go:297"
       ],
       "terms": [
         "BusinessProjection.AppliedRevision",
@@ -6388,7 +6388,7 @@
       ]
     },
     {
-      "id": "b0a9bd8f317909455af89368",
+      "id": "6a3863653f7bdf7a1b5c02f0",
       "category": "JSON wire field",
       "name": "BusinessProjection.AttemptCount",
       "value": "attemptCount",
@@ -6397,7 +6397,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:294"
+        "approval/models.go:299"
       ],
       "terms": [
         "BusinessProjection.AttemptCount",
@@ -6412,7 +6412,7 @@
       ]
     },
     {
-      "id": "f9ef8e67af57eef7a7b71726",
+      "id": "cf90f6470e816082e2563a40",
       "category": "JSON wire field",
       "name": "BusinessProjection.Binding",
       "value": "binding",
@@ -6421,7 +6421,7 @@
         "type: *BusinessBindingConfig"
       ],
       "source_evidence": [
-        "approval/models.go:286"
+        "approval/models.go:291"
       ],
       "terms": [
         "BusinessBindingConfig",
@@ -6460,7 +6460,7 @@
       ]
     },
     {
-      "id": "1bd5656a8c85f0a91f058965",
+      "id": "ca01b05b051fdbf247fc1819",
       "category": "JSON wire field",
       "name": "BusinessProjection.Consistency",
       "value": "consistency",
@@ -6469,7 +6469,7 @@
         "type: config.ApprovalBindingConsistency"
       ],
       "source_evidence": [
-        "approval/models.go:285"
+        "approval/admin/business_projection.go:22"
       ],
       "terms": [
         "BusinessProjection.Consistency",
@@ -6484,7 +6484,7 @@
       ]
     },
     {
-      "id": "ca01b05b051fdbf247fc1819",
+      "id": "d711198ec8bb220e1ab480c7",
       "category": "JSON wire field",
       "name": "BusinessProjection.Consistency",
       "value": "consistency",
@@ -6493,7 +6493,7 @@
         "type: config.ApprovalBindingConsistency"
       ],
       "source_evidence": [
-        "approval/admin/business_projection.go:22"
+        "approval/models.go:290"
       ],
       "terms": [
         "BusinessProjection.Consistency",
@@ -6532,7 +6532,7 @@
       ]
     },
     {
-      "id": "20fb4707de026596c3996f80",
+      "id": "a20aa211d1b7efddce60c4a2",
       "category": "JSON wire field",
       "name": "BusinessProjection.DesiredFinishedAt",
       "value": "desiredFinishedAt",
@@ -6541,7 +6541,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:290"
+        "approval/models.go:295"
       ],
       "terms": [
         "BusinessProjection.DesiredFinishedAt",
@@ -6556,7 +6556,7 @@
       ]
     },
     {
-      "id": "55a7ff237cba055f79f3d6ac",
+      "id": "891969baee7fc408f0bda005",
       "category": "JSON wire field",
       "name": "BusinessProjection.DesiredRevision",
       "value": "desiredRevision",
@@ -6565,7 +6565,7 @@
         "type: int64"
       ],
       "source_evidence": [
-        "approval/models.go:291"
+        "approval/models.go:296"
       ],
       "terms": [
         "BusinessProjection.DesiredRevision",
@@ -6628,7 +6628,7 @@
       ]
     },
     {
-      "id": "c9ce7aded1c4a2257470b75c",
+      "id": "e9958862a373e81ccf18ab4b",
       "category": "JSON wire field",
       "name": "BusinessProjection.DesiredStartedAt",
       "value": "desiredStartedAt",
@@ -6637,7 +6637,7 @@
         "type: timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:289"
+        "approval/models.go:294"
       ],
       "terms": [
         "BusinessProjection.DesiredStartedAt",
@@ -6652,7 +6652,7 @@
       ]
     },
     {
-      "id": "869ae05b48b000edb1cb6cdb",
+      "id": "8a51d5c8613f92e6480f6eb4",
       "category": "JSON wire field",
       "name": "BusinessProjection.DesiredStatus",
       "value": "desiredStatus",
@@ -6661,7 +6661,7 @@
         "type: InstanceStatus"
       ],
       "source_evidence": [
-        "approval/models.go:288"
+        "approval/models.go:293"
       ],
       "terms": [
         "BusinessProjection.DesiredStatus",
@@ -6700,6 +6700,30 @@
       ]
     },
     {
+      "id": "06d03b9a7f8be453f672c700",
+      "category": "JSON wire field",
+      "name": "BusinessProjection.FlowID",
+      "value": "flowId",
+      "details": [
+        "Go field: BusinessProjection.FlowID",
+        "type: string"
+      ],
+      "source_evidence": [
+        "approval/models.go:285"
+      ],
+      "terms": [
+        "BusinessProjection.FlowID",
+        "Go",
+        "JSON",
+        "field",
+        "field:",
+        "flowId",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
       "id": "0b8936e215f035725f954a12",
       "category": "JSON wire field",
       "name": "BusinessProjection.FlowID",
@@ -6718,54 +6742,6 @@
         "field",
         "field:",
         "flowId",
-        "string",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "8ccb410442bc0560f80e0a91",
-      "category": "JSON wire field",
-      "name": "BusinessProjection.FlowID",
-      "value": "flowId",
-      "details": [
-        "Go field: BusinessProjection.FlowID",
-        "type: string"
-      ],
-      "source_evidence": [
-        "approval/models.go:280"
-      ],
-      "terms": [
-        "BusinessProjection.FlowID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "flowId",
-        "string",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "2e55a67490846de56c12a530",
-      "category": "JSON wire field",
-      "name": "BusinessProjection.FlowVersionID",
-      "value": "flowVersionId",
-      "details": [
-        "Go field: BusinessProjection.FlowVersionID",
-        "type: string"
-      ],
-      "source_evidence": [
-        "approval/models.go:281"
-      ],
-      "terms": [
-        "BusinessProjection.FlowVersionID",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "flowVersionId",
         "string",
         "type:",
         "wire"
@@ -6796,7 +6772,31 @@
       ]
     },
     {
-      "id": "3eba7b2ffaedb1018cba221e",
+      "id": "adec11a43d7b28045ba2c45d",
+      "category": "JSON wire field",
+      "name": "BusinessProjection.FlowVersionID",
+      "value": "flowVersionId",
+      "details": [
+        "Go field: BusinessProjection.FlowVersionID",
+        "type: string"
+      ],
+      "source_evidence": [
+        "approval/models.go:286"
+      ],
+      "terms": [
+        "BusinessProjection.FlowVersionID",
+        "Go",
+        "JSON",
+        "field",
+        "field:",
+        "flowVersionId",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "48544934a9ef84df619b5eb7",
       "category": "JSON wire field",
       "name": "BusinessProjection.LastError",
       "value": "lastError",
@@ -6805,7 +6805,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:297"
+        "approval/models.go:302"
       ],
       "terms": [
         "BusinessProjection.LastError",
@@ -6844,6 +6844,30 @@
       ]
     },
     {
+      "id": "08a304a7f9fae031c30022a3",
+      "category": "JSON wire field",
+      "name": "BusinessProjection.LeaseUntil",
+      "value": "leaseUntil",
+      "details": [
+        "Go field: BusinessProjection.LeaseUntil",
+        "type: *timex.DateTime"
+      ],
+      "source_evidence": [
+        "approval/models.go:301"
+      ],
+      "terms": [
+        "BusinessProjection.LeaseUntil",
+        "Go",
+        "JSON",
+        "field",
+        "field:",
+        "leaseUntil",
+        "timex.DateTime",
+        "type:",
+        "wire"
+      ]
+    },
+    {
       "id": "0f82a4ca830ded80a76deea6",
       "category": "JSON wire field",
       "name": "BusinessProjection.LeaseUntil",
@@ -6868,31 +6892,7 @@
       ]
     },
     {
-      "id": "db316a08bb86be23ca253751",
-      "category": "JSON wire field",
-      "name": "BusinessProjection.LeaseUntil",
-      "value": "leaseUntil",
-      "details": [
-        "Go field: BusinessProjection.LeaseUntil",
-        "type: *timex.DateTime"
-      ],
-      "source_evidence": [
-        "approval/models.go:296"
-      ],
-      "terms": [
-        "BusinessProjection.LeaseUntil",
-        "Go",
-        "JSON",
-        "field",
-        "field:",
-        "leaseUntil",
-        "timex.DateTime",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "9c8e9b6ee831b98f9f475f0d",
+      "id": "02f5a3c19ad3d546478d7dbb",
       "category": "JSON wire field",
       "name": "BusinessProjection.NextAttemptAt",
       "value": "nextAttemptAt",
@@ -6901,7 +6901,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:295"
+        "approval/models.go:300"
       ],
       "terms": [
         "BusinessProjection.NextAttemptAt",
@@ -6940,7 +6940,7 @@
       ]
     },
     {
-      "id": "2cf43350dfa896e50d7177f6",
+      "id": "12ae477028aa01487e5506e5",
       "category": "JSON wire field",
       "name": "BusinessProjection.OwnerInstanceID",
       "value": "ownerInstanceId",
@@ -6949,7 +6949,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:282"
+        "approval/models.go:287"
       ],
       "terms": [
         "BusinessProjection.OwnerInstanceID",
@@ -7012,7 +7012,7 @@
       ]
     },
     {
-      "id": "bbca341ad7fa9f9bc8e42188",
+      "id": "8015642c1ec98bae4c7e61f6",
       "category": "JSON wire field",
       "name": "BusinessProjection.RecordKey",
       "value": "recordKey",
@@ -7021,7 +7021,7 @@
         "type: json.RawMessage"
       ],
       "source_evidence": [
-        "approval/models.go:287"
+        "approval/models.go:292"
       ],
       "terms": [
         "BusinessProjection.RecordKey",
@@ -7060,7 +7060,7 @@
       ]
     },
     {
-      "id": "2b9b1b48da11cda91f865543",
+      "id": "580b6952e9c50fe84d95463c",
       "category": "JSON wire field",
       "name": "BusinessProjection.Status",
       "value": "status",
@@ -7069,7 +7069,7 @@
         "type: BindingProjectionStatus"
       ],
       "source_evidence": [
-        "approval/models.go:293"
+        "approval/models.go:298"
       ],
       "terms": [
         "BindingProjectionStatus",
@@ -7108,7 +7108,7 @@
       ]
     },
     {
-      "id": "6141d704cb807eebc3da08de",
+      "id": "3385daac0e9abf97702101c0",
       "category": "JSON wire field",
       "name": "BusinessProjection.TargetHash",
       "value": "targetHash",
@@ -7117,7 +7117,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:284"
+        "approval/models.go:289"
       ],
       "terms": [
         "BusinessProjection.TargetHash",
@@ -7156,7 +7156,7 @@
       ]
     },
     {
-      "id": "ba2172959f4d0989db15e30d",
+      "id": "ed971cf1fb2eaff69729bc97",
       "category": "JSON wire field",
       "name": "BusinessProjection.TenantID",
       "value": "tenantId",
@@ -7165,7 +7165,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:279"
+        "approval/models.go:284"
       ],
       "terms": [
         "BusinessProjection.TenantID",
@@ -7566,7 +7566,7 @@
       ]
     },
     {
-      "id": "b69e60d89882eeea2a6616a0",
+      "id": "22a385aacdafe7e8c2122182",
       "category": "JSON wire field",
       "name": "CCRecord.CCUserDepartmentID",
       "value": "ccUserDepartmentId",
@@ -7575,7 +7575,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:480"
+        "approval/models.go:485"
       ],
       "terms": [
         "CCRecord.CCUserDepartmentID",
@@ -7590,7 +7590,7 @@
       ]
     },
     {
-      "id": "deb9151e2692c0746ce43515",
+      "id": "33cfabc6c1c49f36b79403a0",
       "category": "JSON wire field",
       "name": "CCRecord.CCUserDepartmentName",
       "value": "ccUserDepartmentName",
@@ -7599,7 +7599,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:481"
+        "approval/models.go:486"
       ],
       "terms": [
         "CCRecord.CCUserDepartmentName",
@@ -7614,7 +7614,7 @@
       ]
     },
     {
-      "id": "e5a67be554e8b1802f0fd7f2",
+      "id": "74e93f9f1b4222c91cf8d01f",
       "category": "JSON wire field",
       "name": "CCRecord.CCUserID",
       "value": "ccUserId",
@@ -7623,7 +7623,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:478"
+        "approval/models.go:483"
       ],
       "terms": [
         "CCRecord.CCUserID",
@@ -7638,7 +7638,7 @@
       ]
     },
     {
-      "id": "5979b553ab7749b16a86b81a",
+      "id": "3d197bab1e7ac3d0bb15fbb6",
       "category": "JSON wire field",
       "name": "CCRecord.CCUserName",
       "value": "ccUserName",
@@ -7647,7 +7647,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:479"
+        "approval/models.go:484"
       ],
       "terms": [
         "CCRecord.CCUserName",
@@ -7734,7 +7734,7 @@
       ]
     },
     {
-      "id": "55ef3e28688ffe48a4a5d795",
+      "id": "03d12b8c3e330a9c1d293cfe",
       "category": "JSON wire field",
       "name": "CCRecord.InstanceID",
       "value": "instanceId",
@@ -7743,7 +7743,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:470"
+        "approval/models.go:475"
       ],
       "terms": [
         "CCRecord.InstanceID",
@@ -7830,7 +7830,7 @@
       ]
     },
     {
-      "id": "ee2d229c545d4d50a05b106e",
+      "id": "590cc644f3a1a7e28f9271ce",
       "category": "JSON wire field",
       "name": "CCRecord.IsManual",
       "value": "isManual",
@@ -7839,7 +7839,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:482"
+        "approval/models.go:487"
       ],
       "terms": [
         "CCRecord.IsManual",
@@ -7878,7 +7878,7 @@
       ]
     },
     {
-      "id": "5fca10ec333baa57ab3f2e1d",
+      "id": "9e561884a3768e2b333d0c15",
       "category": "JSON wire field",
       "name": "CCRecord.NodeID",
       "value": "nodeId",
@@ -7887,7 +7887,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:471"
+        "approval/models.go:476"
       ],
       "terms": [
         "CCRecord.NodeID",
@@ -7926,7 +7926,7 @@
       ]
     },
     {
-      "id": "cd3a11172ef6e35e0ce45b86",
+      "id": "8545209a666ad2a38743676c",
       "category": "JSON wire field",
       "name": "CCRecord.ReadAt",
       "value": "readAt",
@@ -7935,7 +7935,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:483"
+        "approval/models.go:488"
       ],
       "terms": [
         "CCRecord.ReadAt",
@@ -7950,7 +7950,7 @@
       ]
     },
     {
-      "id": "e8bbebf031a7128b880f8766",
+      "id": "473470b809d292dd6a927d41",
       "category": "JSON wire field",
       "name": "CCRecord.TaskID",
       "value": "taskId",
@@ -7959,7 +7959,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:477"
+        "approval/models.go:482"
       ],
       "terms": [
         "CCRecord.TaskID",
@@ -7974,7 +7974,7 @@
       ]
     },
     {
-      "id": "4f1c2d11d53c63f2c5a8d2dc",
+      "id": "312345e9d9832feb6edf1737",
       "category": "JSON wire field",
       "name": "CCRecord.VisitID",
       "value": "visitId",
@@ -7983,7 +7983,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:476"
+        "approval/models.go:481"
       ],
       "terms": [
         "CCRecord.VisitID",
@@ -8406,7 +8406,7 @@
       ]
     },
     {
-      "id": "650f29d8c7b426f24d7ba03e",
+      "id": "4640589c9444c54e4b6262bb",
       "category": "JSON wire field",
       "name": "CategoryParams.Code",
       "value": "code",
@@ -8416,7 +8416,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:26"
+        "internal/approval/resource/category.go:25"
       ],
       "terms": [
         "CategoryParams.Code",
@@ -8457,7 +8457,7 @@
       ]
     },
     {
-      "id": "07f32899b6a18e094837600c",
+      "id": "ab20763dad4174e04c33e411",
       "category": "JSON wire field",
       "name": "CategoryParams.Icon",
       "value": "icon",
@@ -8466,7 +8466,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:28"
+        "internal/approval/resource/category.go:27"
       ],
       "terms": [
         "CategoryParams.Icon",
@@ -8481,7 +8481,7 @@
       ]
     },
     {
-      "id": "93d4311b9deb72615c50542b",
+      "id": "fa96340d6e3e5c5dc5b15909",
       "category": "JSON wire field",
       "name": "CategoryParams.IsActive",
       "value": "isActive",
@@ -8490,7 +8490,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:31"
+        "internal/approval/resource/category.go:30"
       ],
       "terms": [
         "CategoryParams.IsActive",
@@ -8505,7 +8505,7 @@
       ]
     },
     {
-      "id": "d182fdbcc87e1688dcf2a366",
+      "id": "7f016c4e35a85ee5de8e283d",
       "category": "JSON wire field",
       "name": "CategoryParams.Name",
       "value": "name",
@@ -8515,7 +8515,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:27"
+        "internal/approval/resource/category.go:26"
       ],
       "terms": [
         "CategoryParams.Name",
@@ -8532,7 +8532,7 @@
       ]
     },
     {
-      "id": "1f644b4d1483b12e538425ee",
+      "id": "357a003a3f373daaaa637c60",
       "category": "JSON wire field",
       "name": "CategoryParams.ParentID",
       "value": "parentId",
@@ -8541,7 +8541,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:29"
+        "internal/approval/resource/category.go:28"
       ],
       "terms": [
         "CategoryParams.ParentID",
@@ -8556,7 +8556,7 @@
       ]
     },
     {
-      "id": "131264f318db5002fba3ed7e",
+      "id": "90e3910d01b3dee8875796b8",
       "category": "JSON wire field",
       "name": "CategoryParams.Remark",
       "value": "remark",
@@ -8565,7 +8565,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:32"
+        "internal/approval/resource/category.go:31"
       ],
       "terms": [
         "CategoryParams.Remark",
@@ -8580,7 +8580,7 @@
       ]
     },
     {
-      "id": "dcdff16c15c72411f61048d7",
+      "id": "4454a9c7ee121325b0d447fe",
       "category": "JSON wire field",
       "name": "CategoryParams.SortOrder",
       "value": "sortOrder",
@@ -8589,7 +8589,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:30"
+        "internal/approval/resource/category.go:29"
       ],
       "terms": [
         "CategoryParams.SortOrder",
@@ -8604,7 +8604,7 @@
       ]
     },
     {
-      "id": "005bc307bf4db1d470668ac3",
+      "id": "3e31d240f6a9586d94dd57e7",
       "category": "JSON wire field",
       "name": "CategoryParams.TenantID",
       "value": "tenantId",
@@ -8614,7 +8614,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:25"
+        "internal/approval/resource/category.go:24"
       ],
       "terms": [
         "CategoryParams.TenantID",
@@ -8631,34 +8631,7 @@
       ]
     },
     {
-      "id": "69a296b27b454ff7c2727c96",
-      "category": "JSON wire field",
-      "name": "CategorySearch.IncludeShared",
-      "value": "includeShared",
-      "details": [
-        "Go field: CategorySearch.IncludeShared",
-        "search: \"-\"",
-        "type: bool"
-      ],
-      "source_evidence": [
-        "internal/approval/resource/category.go:48"
-      ],
-      "terms": [
-        "-",
-        "CategorySearch.IncludeShared",
-        "Go",
-        "JSON",
-        "bool",
-        "field",
-        "field:",
-        "includeShared",
-        "search:",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "978c4368ad3232c163882cb8",
+      "id": "1624e1db48de1acfbd0e68c4",
       "category": "JSON wire field",
       "name": "CategorySearch.IsActive",
       "value": "isActive",
@@ -8668,7 +8641,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:40"
+        "internal/approval/resource/category.go:39"
       ],
       "terms": [
         "CategorySearch.IsActive",
@@ -8687,7 +8660,7 @@
       ]
     },
     {
-      "id": "379a0516cf51c382454c7c10",
+      "id": "1b296d9dafee23c0de97c178",
       "category": "JSON wire field",
       "name": "CategorySearch.Name",
       "value": "name",
@@ -8697,7 +8670,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:39"
+        "internal/approval/resource/category.go:38"
       ],
       "terms": [
         "CategorySearch.Name",
@@ -8714,7 +8687,7 @@
       ]
     },
     {
-      "id": "1d663d4698b035e655fb17c0",
+      "id": "88e46531b3101d3837f81e8a",
       "category": "JSON wire field",
       "name": "CategorySearch.TenantID",
       "value": "tenantId",
@@ -8724,7 +8697,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:44"
+        "internal/approval/resource/category.go:42"
       ],
       "terms": [
         "-",
@@ -11024,7 +10997,7 @@
       ]
     },
     {
-      "id": "8064bef3b98b5a24c2e901bd",
+      "id": "bd1ac8c0279701c01f1f89e6",
       "category": "JSON wire field",
       "name": "CreateFlowParams.AdminUserIDs",
       "value": "adminUserIds",
@@ -11033,7 +11006,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:67"
+        "internal/approval/resource/flow.go:69"
       ],
       "terms": [
         "CreateFlowParams.AdminUserIDs",
@@ -11048,7 +11021,7 @@
       ]
     },
     {
-      "id": "7a19af04ff156e7433a51efc",
+      "id": "034fde1d385b328470b7f1c4",
       "category": "JSON wire field",
       "name": "CreateFlowParams.BindingMode",
       "value": "bindingMode",
@@ -11058,7 +11031,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:65"
+        "internal/approval/resource/flow.go:67"
       ],
       "terms": [
         "CreateFlowParams.BindingMode",
@@ -11075,7 +11048,7 @@
       ]
     },
     {
-      "id": "60e6fbb6cbc41feed3247a85",
+      "id": "7ddd1a766fe929eea56237dd",
       "category": "JSON wire field",
       "name": "CreateFlowParams.BusinessBinding",
       "value": "businessBinding",
@@ -11084,7 +11057,7 @@
         "type: *approval.BusinessBindingConfig"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:66"
+        "internal/approval/resource/flow.go:68"
       ],
       "terms": [
         "CreateFlowParams.BusinessBinding",
@@ -11099,7 +11072,7 @@
       ]
     },
     {
-      "id": "0cf3e1ddf404cae8da39ad61",
+      "id": "1f46b44934994a4962b255b0",
       "category": "JSON wire field",
       "name": "CreateFlowParams.CategoryID",
       "value": "categoryId",
@@ -11109,7 +11082,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:61"
+        "internal/approval/resource/flow.go:63"
       ],
       "terms": [
         "CreateFlowParams.CategoryID",
@@ -11126,7 +11099,7 @@
       ]
     },
     {
-      "id": "926c4f8f7b45d5d4f8798aec",
+      "id": "87ba112edcad55f406087b7a",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Code",
       "value": "code",
@@ -11136,7 +11109,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:59"
+        "internal/approval/resource/flow.go:61"
       ],
       "terms": [
         "CreateFlowParams.Code",
@@ -11153,7 +11126,7 @@
       ]
     },
     {
-      "id": "60b8b2c6c580ab11e13bbed7",
+      "id": "55f540a31ce49a275ead7414",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Description",
       "value": "description",
@@ -11162,7 +11135,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:63"
+        "internal/approval/resource/flow.go:65"
       ],
       "terms": [
         "CreateFlowParams.Description",
@@ -11177,7 +11150,7 @@
       ]
     },
     {
-      "id": "8b86522a05264c4c873bb48c",
+      "id": "db91b80985589c080fced062",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Icon",
       "value": "icon",
@@ -11186,7 +11159,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:62"
+        "internal/approval/resource/flow.go:64"
       ],
       "terms": [
         "CreateFlowParams.Icon",
@@ -11201,7 +11174,7 @@
       ]
     },
     {
-      "id": "55400116c6f8b9fa0a2be93f",
+      "id": "d7182931ee031158134bf2f7",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Initiators",
       "value": "initiators",
@@ -11210,7 +11183,7 @@
         "type: []CreateInitiatorParams"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:70"
+        "internal/approval/resource/flow.go:72"
       ],
       "terms": [
         "CreateFlowParams.Initiators",
@@ -11225,7 +11198,7 @@
       ]
     },
     {
-      "id": "a930abff4a717a0f2e723071",
+      "id": "f907a35813b98883c875197b",
       "category": "JSON wire field",
       "name": "CreateFlowParams.InstanceTitleTemplate",
       "value": "instanceTitleTemplate",
@@ -11234,7 +11207,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:69"
+        "internal/approval/resource/flow.go:71"
       ],
       "terms": [
         "CreateFlowParams.InstanceTitleTemplate",
@@ -11249,7 +11222,7 @@
       ]
     },
     {
-      "id": "7d03d00ef47c394433f46909",
+      "id": "d5c344bff8576f54abd0c2f1",
       "category": "JSON wire field",
       "name": "CreateFlowParams.IsAllInitiationAllowed",
       "value": "isAllInitiationAllowed",
@@ -11258,7 +11231,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:68"
+        "internal/approval/resource/flow.go:70"
       ],
       "terms": [
         "CreateFlowParams.IsAllInitiationAllowed",
@@ -11273,7 +11246,31 @@
       ]
     },
     {
-      "id": "dd63e918e5b2f59978c38752",
+      "id": "7b0215f4d2bb0fe3c92e9f5e",
+      "category": "JSON wire field",
+      "name": "CreateFlowParams.IsShared",
+      "value": "isShared",
+      "details": [
+        "Go field: CreateFlowParams.IsShared",
+        "type: bool"
+      ],
+      "source_evidence": [
+        "internal/approval/resource/flow.go:60"
+      ],
+      "terms": [
+        "CreateFlowParams.IsShared",
+        "Go",
+        "JSON",
+        "bool",
+        "field",
+        "field:",
+        "isShared",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "f2aa0c607ad57879deff9cd2",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Labels",
       "value": "labels",
@@ -11282,7 +11279,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:64"
+        "internal/approval/resource/flow.go:66"
       ],
       "terms": [
         "CreateFlowParams.Labels",
@@ -11298,7 +11295,7 @@
       ]
     },
     {
-      "id": "7359f7fea99e7eaee4e9f092",
+      "id": "d1aea2057bb50a2ea4497b62",
       "category": "JSON wire field",
       "name": "CreateFlowParams.Name",
       "value": "name",
@@ -11308,7 +11305,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:60"
+        "internal/approval/resource/flow.go:62"
       ],
       "terms": [
         "CreateFlowParams.Name",
@@ -11325,7 +11322,7 @@
       ]
     },
     {
-      "id": "a925a7d09ccf78fec79d983d",
+      "id": "1d2e42dc1a3833b8406939a9",
       "category": "JSON wire field",
       "name": "CreateFlowParams.TenantID",
       "value": "tenantId",
@@ -11335,7 +11332,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:58"
+        "internal/approval/resource/flow.go:57"
       ],
       "terms": [
         "CreateFlowParams.TenantID",
@@ -11352,7 +11349,7 @@
       ]
     },
     {
-      "id": "95e31aedad376ca94f990be1",
+      "id": "a4a0cef951f818551fb568ec",
       "category": "JSON wire field",
       "name": "CreateInitiatorParams.IDs",
       "value": "ids",
@@ -11362,7 +11359,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:76"
+        "internal/approval/resource/flow.go:78"
       ],
       "terms": [
         "CreateInitiatorParams.IDs",
@@ -11379,7 +11376,7 @@
       ]
     },
     {
-      "id": "67847bbd871fc7162f2a57ce",
+      "id": "69a5bc189c0cda23382e6e62",
       "category": "JSON wire field",
       "name": "CreateInitiatorParams.Kind",
       "value": "kind",
@@ -11389,7 +11386,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:75"
+        "internal/approval/resource/flow.go:77"
       ],
       "terms": [
         "CreateInitiatorParams.Kind",
@@ -12166,7 +12163,7 @@
       ]
     },
     {
-      "id": "49d15bb75c9b522cfea40f71",
+      "id": "53d70dd2c02a4ad95301d5bf",
       "category": "JSON wire field",
       "name": "Delegation.DelegateeID",
       "value": "delegateeId",
@@ -12175,7 +12172,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:506"
+        "approval/models.go:511"
       ],
       "terms": [
         "Delegation.DelegateeID",
@@ -12190,7 +12187,7 @@
       ]
     },
     {
-      "id": "f6395490349d76ba71f9a8e7",
+      "id": "56fed252c1f2b1ba68a2e69c",
       "category": "JSON wire field",
       "name": "Delegation.DelegatorID",
       "value": "delegatorId",
@@ -12199,7 +12196,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:505"
+        "approval/models.go:510"
       ],
       "terms": [
         "Delegation.DelegatorID",
@@ -12214,7 +12211,7 @@
       ]
     },
     {
-      "id": "801977058949b7730b07b163",
+      "id": "a2fd4127177d6f173a05c403",
       "category": "JSON wire field",
       "name": "Delegation.EndsAt",
       "value": "endsAt",
@@ -12223,7 +12220,7 @@
         "type: timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:510"
+        "approval/models.go:515"
       ],
       "terms": [
         "Delegation.EndsAt",
@@ -12238,7 +12235,7 @@
       ]
     },
     {
-      "id": "98663fe711bc7bc22568afbb",
+      "id": "eada08b7b209c21db1ba57cc",
       "category": "JSON wire field",
       "name": "Delegation.FlowCategoryID",
       "value": "flowCategoryId",
@@ -12247,7 +12244,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:507"
+        "approval/models.go:512"
       ],
       "terms": [
         "Delegation.FlowCategoryID",
@@ -12262,7 +12259,7 @@
       ]
     },
     {
-      "id": "df80686ebc2affc07188562b",
+      "id": "bdba46370f3b32002d73950f",
       "category": "JSON wire field",
       "name": "Delegation.FlowID",
       "value": "flowId",
@@ -12271,7 +12268,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:508"
+        "approval/models.go:513"
       ],
       "terms": [
         "Delegation.FlowID",
@@ -12286,7 +12283,7 @@
       ]
     },
     {
-      "id": "e215547cb3ee0d664ddee634",
+      "id": "680570e25fd737ee3fc75ed5",
       "category": "JSON wire field",
       "name": "Delegation.IsActive",
       "value": "isActive",
@@ -12295,7 +12292,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:511"
+        "approval/models.go:516"
       ],
       "terms": [
         "Delegation.IsActive",
@@ -12310,7 +12307,7 @@
       ]
     },
     {
-      "id": "f31afe228aa65d57d30495a5",
+      "id": "c9265a1e661a4f6beadea201",
       "category": "JSON wire field",
       "name": "Delegation.Reason",
       "value": "reason",
@@ -12319,7 +12316,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:512"
+        "approval/models.go:517"
       ],
       "terms": [
         "Delegation.Reason",
@@ -12334,7 +12331,7 @@
       ]
     },
     {
-      "id": "b9260c0aeb8560da4ed51eff",
+      "id": "b1d681df0e1e00e0f14dce45",
       "category": "JSON wire field",
       "name": "Delegation.StartsAt",
       "value": "startsAt",
@@ -12343,7 +12340,7 @@
         "type: timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:509"
+        "approval/models.go:514"
       ],
       "terms": [
         "Delegation.StartsAt",
@@ -12946,7 +12943,7 @@
       ]
     },
     {
-      "id": "c6d90cfcadc7eee0760cc7ec",
+      "id": "bfe1704f0f5d514c0f5ed4fc",
       "category": "JSON wire field",
       "name": "DeployFlowParams.Description",
       "value": "description",
@@ -12955,7 +12952,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:122"
+        "internal/approval/resource/flow.go:125"
       ],
       "terms": [
         "DeployFlowParams.Description",
@@ -12970,7 +12967,7 @@
       ]
     },
     {
-      "id": "a7175724a97865f2f5d19f0d",
+      "id": "732b01829ae1e51a8b18ec68",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FlowDefinition",
       "value": "flowDefinition",
@@ -12980,7 +12977,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:124"
+        "internal/approval/resource/flow.go:127"
       ],
       "terms": [
         "DeployFlowParams.FlowDefinition",
@@ -12997,7 +12994,7 @@
       ]
     },
     {
-      "id": "2107ab4d5b7fb7e4f34d9aca",
+      "id": "16376d95104cca59c8907bfc",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FlowID",
       "value": "flowId",
@@ -13007,7 +13004,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:121"
+        "internal/approval/resource/flow.go:124"
       ],
       "terms": [
         "DeployFlowParams.FlowID",
@@ -13024,7 +13021,7 @@
       ]
     },
     {
-      "id": "20948cf2621132fe1b9cbbae",
+      "id": "10c25e591be509acf9316ce6",
       "category": "JSON wire field",
       "name": "DeployFlowParams.FormSchema",
       "value": "formSchema",
@@ -13033,7 +13030,7 @@
         "type: json.RawMessage"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:125"
+        "internal/approval/resource/flow.go:128"
       ],
       "terms": [
         "DeployFlowParams.FormSchema",
@@ -13048,7 +13045,7 @@
       ]
     },
     {
-      "id": "77f4654c3acd055240f04141",
+      "id": "28fcd41ed751cff3a5a178d4",
       "category": "JSON wire field",
       "name": "DeployFlowParams.StorageMode",
       "value": "storageMode",
@@ -13057,7 +13054,7 @@
         "type: approval.StorageMode"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:123"
+        "internal/approval/resource/flow.go:126"
       ],
       "terms": [
         "DeployFlowParams.StorageMode",
@@ -14721,7 +14718,7 @@
       ]
     },
     {
-      "id": "461a1a2c18d18ab47b2c5fbd",
+      "id": "4ab8ff2ac0cfea71826c447e",
       "category": "JSON wire field",
       "name": "FindFlowsParams.BindingMode",
       "value": "bindingMode",
@@ -14730,7 +14727,7 @@
         "type: *approval.BindingMode"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:216"
+        "internal/approval/resource/flow.go:223"
       ],
       "terms": [
         "FindFlowsParams.BindingMode",
@@ -14745,7 +14742,7 @@
       ]
     },
     {
-      "id": "9c361a9b5ed88274814a3a0d",
+      "id": "3d36e62fdf72a12cbc698ed0",
       "category": "JSON wire field",
       "name": "FindFlowsParams.CategoryID",
       "value": "categoryId",
@@ -14754,7 +14751,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:212"
+        "internal/approval/resource/flow.go:219"
       ],
       "terms": [
         "FindFlowsParams.CategoryID",
@@ -14769,7 +14766,31 @@
       ]
     },
     {
-      "id": "35e78c26ec6ffb6f1a501204",
+      "id": "251ae0db1c103da6a48d5d76",
+      "category": "JSON wire field",
+      "name": "FindFlowsParams.IncludeShared",
+      "value": "includeShared",
+      "details": [
+        "Go field: FindFlowsParams.IncludeShared",
+        "type: bool"
+      ],
+      "source_evidence": [
+        "internal/approval/resource/flow.go:218"
+      ],
+      "terms": [
+        "FindFlowsParams.IncludeShared",
+        "Go",
+        "JSON",
+        "bool",
+        "field",
+        "field:",
+        "includeShared",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "d6b63a06671d410ff06f3605",
       "category": "JSON wire field",
       "name": "FindFlowsParams.IsActive",
       "value": "isActive",
@@ -14778,7 +14799,7 @@
         "type: *bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:214"
+        "internal/approval/resource/flow.go:221"
       ],
       "terms": [
         "FindFlowsParams.IsActive",
@@ -14793,7 +14814,7 @@
       ]
     },
     {
-      "id": "16e5cf240bd20a75a262162d",
+      "id": "acc96a48abc043c35fe571d2",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Keyword",
       "value": "keyword",
@@ -14802,7 +14823,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:213"
+        "internal/approval/resource/flow.go:220"
       ],
       "terms": [
         "FindFlowsParams.Keyword",
@@ -14817,7 +14838,7 @@
       ]
     },
     {
-      "id": "b7b5f7f657a0d50a20e44433",
+      "id": "75109b7e64c9e4dc65961e1e",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Labels",
       "value": "labels",
@@ -14826,7 +14847,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:215"
+        "internal/approval/resource/flow.go:222"
       ],
       "terms": [
         "FindFlowsParams.Labels",
@@ -14842,7 +14863,7 @@
       ]
     },
     {
-      "id": "6cad1f0e77098b9c9a64eeb8",
+      "id": "c86187d54848b481a4bca260",
       "category": "JSON wire field",
       "name": "FindFlowsParams.Page",
       "value": "page",
@@ -14851,7 +14872,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:217"
+        "internal/approval/resource/flow.go:224"
       ],
       "terms": [
         "FindFlowsParams.Page",
@@ -14866,7 +14887,7 @@
       ]
     },
     {
-      "id": "883ab6fc34c2632cb54fa4a5",
+      "id": "471fb9a05f39f8043597acd8",
       "category": "JSON wire field",
       "name": "FindFlowsParams.PageSize",
       "value": "pageSize",
@@ -14875,7 +14896,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:218"
+        "internal/approval/resource/flow.go:225"
       ],
       "terms": [
         "FindFlowsParams.PageSize",
@@ -14890,7 +14911,7 @@
       ]
     },
     {
-      "id": "98cdc8215e1b42f4b2f28913",
+      "id": "dee1210f0acc0b47ba724a24",
       "category": "JSON wire field",
       "name": "FindFlowsParams.TenantID",
       "value": "tenantId",
@@ -14899,7 +14920,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:211"
+        "internal/approval/resource/flow.go:214"
       ],
       "terms": [
         "FindFlowsParams.TenantID",
@@ -15010,7 +15031,7 @@
       ]
     },
     {
-      "id": "b2e867ef1da9dff0bad49e54",
+      "id": "fc6b2abbc118d90c7067cd9e",
       "category": "JSON wire field",
       "name": "FindInitiatorsParams.FlowID",
       "value": "flowId",
@@ -15020,7 +15041,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:346"
+        "internal/approval/resource/flow.go:354"
       ],
       "terms": [
         "FindInitiatorsParams.FlowID",
@@ -15253,7 +15274,7 @@
       ]
     },
     {
-      "id": "d2c506240f241ddf8eba0f45",
+      "id": "bf6698e1ac97248cc31d22be",
       "category": "JSON wire field",
       "name": "FindVersionsParams.FlowID",
       "value": "flowId",
@@ -15263,7 +15284,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:323"
+        "internal/approval/resource/flow.go:331"
       ],
       "terms": [
         "FindVersionsParams.FlowID",
@@ -15304,7 +15325,7 @@
       ]
     },
     {
-      "id": "dcee8e3e6bf695cd3b62e364",
+      "id": "7872fce813bfecf9838a3bb4",
       "category": "JSON wire field",
       "name": "Flow.AdminUserIDs",
       "value": "adminUserIds",
@@ -15313,7 +15334,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:50"
+        "approval/models.go:54"
       ],
       "terms": [
         "Flow.AdminUserIDs",
@@ -15328,7 +15349,7 @@
       ]
     },
     {
-      "id": "f870a169095c371e5a05779b",
+      "id": "d4e0453bac0c22967d729e8e",
       "category": "JSON wire field",
       "name": "Flow.BindingMode",
       "value": "bindingMode",
@@ -15337,7 +15358,7 @@
         "type: BindingMode"
       ],
       "source_evidence": [
-        "approval/models.go:48"
+        "approval/models.go:52"
       ],
       "terms": [
         "BindingMode",
@@ -15352,7 +15373,7 @@
       ]
     },
     {
-      "id": "569ef5f6819313bcd988b495",
+      "id": "538e2e5f778f8c2e6cf5c8c1",
       "category": "JSON wire field",
       "name": "Flow.BusinessBinding",
       "value": "businessBinding",
@@ -15361,7 +15382,7 @@
         "type: *BusinessBindingConfig"
       ],
       "source_evidence": [
-        "approval/models.go:49"
+        "approval/models.go:53"
       ],
       "terms": [
         "BusinessBindingConfig",
@@ -15376,7 +15397,7 @@
       ]
     },
     {
-      "id": "4ec76e066cbd01eb00ec62ef",
+      "id": "8b0b3db70d562267a0b4ea93",
       "category": "JSON wire field",
       "name": "Flow.CategoryID",
       "value": "categoryId",
@@ -15385,7 +15406,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:37"
+        "approval/models.go:41"
       ],
       "terms": [
         "Flow.CategoryID",
@@ -15400,7 +15421,7 @@
       ]
     },
     {
-      "id": "86da14586c212f3bbd8df009",
+      "id": "382555a28dc31399553c2a6e",
       "category": "JSON wire field",
       "name": "Flow.Code",
       "value": "code",
@@ -15409,7 +15430,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:38"
+        "approval/models.go:42"
       ],
       "terms": [
         "Flow.Code",
@@ -15424,7 +15445,7 @@
       ]
     },
     {
-      "id": "26b398c738bcd7f20592b350",
+      "id": "0f67937033639840193962a6",
       "category": "JSON wire field",
       "name": "Flow.CurrentVersion",
       "value": "currentVersion",
@@ -15433,7 +15454,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:54"
+        "approval/models.go:58"
       ],
       "terms": [
         "Flow.CurrentVersion",
@@ -15448,7 +15469,7 @@
       ]
     },
     {
-      "id": "ef1efb229c416af17be23eb4",
+      "id": "9918882a7960de9d0093cbca",
       "category": "JSON wire field",
       "name": "Flow.Description",
       "value": "description",
@@ -15457,7 +15478,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:41"
+        "approval/models.go:45"
       ],
       "terms": [
         "Flow.Description",
@@ -15472,7 +15493,7 @@
       ]
     },
     {
-      "id": "ae27d37c984d4c5b7eefa19b",
+      "id": "decb8478e90ba04624ed416c",
       "category": "JSON wire field",
       "name": "Flow.Icon",
       "value": "icon",
@@ -15481,7 +15502,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:40"
+        "approval/models.go:44"
       ],
       "terms": [
         "Flow.Icon",
@@ -15496,7 +15517,7 @@
       ]
     },
     {
-      "id": "bc8fd299f154cb0ff7e138ae",
+      "id": "a4acfbd14829c893628b40f2",
       "category": "JSON wire field",
       "name": "Flow.InstanceTitleTemplate",
       "value": "instanceTitleTemplate",
@@ -15505,7 +15526,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:52"
+        "approval/models.go:56"
       ],
       "terms": [
         "Flow.InstanceTitleTemplate",
@@ -15520,7 +15541,7 @@
       ]
     },
     {
-      "id": "9a323852145d9e670632606f",
+      "id": "84a997218cbadb864fcd6995",
       "category": "JSON wire field",
       "name": "Flow.IsActive",
       "value": "isActive",
@@ -15529,7 +15550,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:53"
+        "approval/models.go:57"
       ],
       "terms": [
         "Flow.IsActive",
@@ -15544,7 +15565,7 @@
       ]
     },
     {
-      "id": "e227dd3661152fe1ae951790",
+      "id": "1f68978ab980764a3d9163c6",
       "category": "JSON wire field",
       "name": "Flow.IsAllInitiationAllowed",
       "value": "isAllInitiationAllowed",
@@ -15553,7 +15574,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:51"
+        "approval/models.go:55"
       ],
       "terms": [
         "Flow.IsAllInitiationAllowed",
@@ -15568,7 +15589,31 @@
       ]
     },
     {
-      "id": "14ab4e4853bf912381c9c0cb",
+      "id": "c20b0ae866f1c85342fea521",
+      "category": "JSON wire field",
+      "name": "Flow.IsShared",
+      "value": "isShared",
+      "details": [
+        "Go field: Flow.IsShared",
+        "type: bool"
+      ],
+      "source_evidence": [
+        "approval/models.go:40"
+      ],
+      "terms": [
+        "Flow.IsShared",
+        "Go",
+        "JSON",
+        "bool",
+        "field",
+        "field:",
+        "isShared",
+        "type:",
+        "wire"
+      ]
+    },
+    {
+      "id": "935665cd72e20e14539eb475",
       "category": "JSON wire field",
       "name": "Flow.Labels",
       "value": "labels",
@@ -15577,7 +15622,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "approval/models.go:47"
+        "approval/models.go:51"
       ],
       "terms": [
         "Flow.Labels",
@@ -15593,7 +15638,7 @@
       ]
     },
     {
-      "id": "15f778538afa0a4fbd3c476d",
+      "id": "5a5341d3e975019b21a612a3",
       "category": "JSON wire field",
       "name": "Flow.Name",
       "value": "name",
@@ -15602,7 +15647,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:39"
+        "approval/models.go:43"
       ],
       "terms": [
         "Flow.Name",
@@ -15617,7 +15662,7 @@
       ]
     },
     {
-      "id": "bbaa61b74c3e7a50f2119db4",
+      "id": "29f9c2f4da214379a110ac88",
       "category": "JSON wire field",
       "name": "Flow.TenantID",
       "value": "tenantId",
@@ -15626,7 +15671,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:36"
+        "approval/models.go:34"
       ],
       "terms": [
         "Flow.TenantID",
@@ -15641,7 +15686,7 @@
       ]
     },
     {
-      "id": "cb74c01e3a639b4881b48c2b",
+      "id": "6ff48af250c7d1c94c0a9129",
       "category": "JSON wire field",
       "name": "FlowCategory.Children",
       "value": "children",
@@ -15650,7 +15695,7 @@
         "type: []FlowCategory"
       ],
       "source_evidence": [
-        "approval/models.go:73"
+        "approval/models.go:77"
       ],
       "terms": [
         "FlowCategory",
@@ -15665,7 +15710,7 @@
       ]
     },
     {
-      "id": "0ed8abda036bb02f11242475",
+      "id": "2eb151ac23e121a97a0ea455",
       "category": "JSON wire field",
       "name": "FlowCategory.Code",
       "value": "code",
@@ -15674,7 +15719,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:66"
+        "approval/models.go:70"
       ],
       "terms": [
         "FlowCategory.Code",
@@ -15689,7 +15734,7 @@
       ]
     },
     {
-      "id": "d04d36f9e466fdb9343c2bf2",
+      "id": "a06f84b60af2f25fb262156b",
       "category": "JSON wire field",
       "name": "FlowCategory.Icon",
       "value": "icon",
@@ -15698,7 +15743,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:68"
+        "approval/models.go:72"
       ],
       "terms": [
         "FlowCategory.Icon",
@@ -15713,7 +15758,7 @@
       ]
     },
     {
-      "id": "8db5691e8f99d8dfee68de5d",
+      "id": "d0e8a2d5a8c38de651ff1e04",
       "category": "JSON wire field",
       "name": "FlowCategory.IsActive",
       "value": "isActive",
@@ -15722,7 +15767,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:71"
+        "approval/models.go:75"
       ],
       "terms": [
         "FlowCategory.IsActive",
@@ -15737,7 +15782,7 @@
       ]
     },
     {
-      "id": "410f38845b29c2ce6d6c68e0",
+      "id": "33396dc5f4ff92850160e7aa",
       "category": "JSON wire field",
       "name": "FlowCategory.Name",
       "value": "name",
@@ -15746,7 +15791,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:67"
+        "approval/models.go:71"
       ],
       "terms": [
         "FlowCategory.Name",
@@ -15761,7 +15806,7 @@
       ]
     },
     {
-      "id": "94e449fe683308724e16bdaf",
+      "id": "9fdaa75cd84299b631d73f47",
       "category": "JSON wire field",
       "name": "FlowCategory.ParentID",
       "value": "parentId",
@@ -15770,7 +15815,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:69"
+        "approval/models.go:73"
       ],
       "terms": [
         "FlowCategory.ParentID",
@@ -15785,7 +15830,7 @@
       ]
     },
     {
-      "id": "74e6b6b82ccf5153f4be3f21",
+      "id": "0e193e5c5b6a7d5985203c3b",
       "category": "JSON wire field",
       "name": "FlowCategory.Remark",
       "value": "remark",
@@ -15794,7 +15839,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:72"
+        "approval/models.go:76"
       ],
       "terms": [
         "FlowCategory.Remark",
@@ -15809,7 +15854,7 @@
       ]
     },
     {
-      "id": "96995fc0bddd41ea086e8960",
+      "id": "3bbf92621f0bba4212ba858f",
       "category": "JSON wire field",
       "name": "FlowCategory.SortOrder",
       "value": "sortOrder",
@@ -15818,7 +15863,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:70"
+        "approval/models.go:74"
       ],
       "terms": [
         "FlowCategory.SortOrder",
@@ -15833,7 +15878,7 @@
       ]
     },
     {
-      "id": "344b9aace16a16610c3283f6",
+      "id": "dd64082ad193b54056e02d9e",
       "category": "JSON wire field",
       "name": "FlowCategory.TenantID",
       "value": "tenantId",
@@ -15842,7 +15887,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:65"
+        "approval/models.go:69"
       ],
       "terms": [
         "FlowCategory.TenantID",
@@ -15977,7 +16022,7 @@
       ]
     },
     {
-      "id": "476e95a42694c027ab8beea9",
+      "id": "14d1bd9ab3e1d3973d01072b",
       "category": "JSON wire field",
       "name": "FlowEdge.FlowVersionID",
       "value": "flowVersionId",
@@ -15986,7 +16031,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:182"
+        "approval/models.go:186"
       ],
       "terms": [
         "FlowEdge.FlowVersionID",
@@ -16001,7 +16046,7 @@
       ]
     },
     {
-      "id": "e20b9f483b2ea093fb010429",
+      "id": "429b0a8ce89597243158246e",
       "category": "JSON wire field",
       "name": "FlowEdge.Key",
       "value": "key",
@@ -16010,7 +16055,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:183"
+        "approval/models.go:187"
       ],
       "terms": [
         "FlowEdge.Key",
@@ -16025,7 +16070,7 @@
       ]
     },
     {
-      "id": "af50688f96409f5a16bc8242",
+      "id": "c0a24ac7aced9308b31ed686",
       "category": "JSON wire field",
       "name": "FlowEdge.SourceHandle",
       "value": "sourceHandle",
@@ -16034,7 +16079,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:188"
+        "approval/models.go:192"
       ],
       "terms": [
         "FlowEdge.SourceHandle",
@@ -16049,7 +16094,7 @@
       ]
     },
     {
-      "id": "d0f9f6d9a24c4f8daedd8b43",
+      "id": "af82aa7ba8f78b2117099050",
       "category": "JSON wire field",
       "name": "FlowEdge.SourceNodeID",
       "value": "sourceNodeId",
@@ -16058,7 +16103,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:184"
+        "approval/models.go:188"
       ],
       "terms": [
         "FlowEdge.SourceNodeID",
@@ -16073,7 +16118,7 @@
       ]
     },
     {
-      "id": "16198b8be216815e38601327",
+      "id": "d374797ce78f5cebb71be832",
       "category": "JSON wire field",
       "name": "FlowEdge.SourceNodeKey",
       "value": "sourceNodeKey",
@@ -16082,7 +16127,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:185"
+        "approval/models.go:189"
       ],
       "terms": [
         "FlowEdge.SourceNodeKey",
@@ -16097,7 +16142,7 @@
       ]
     },
     {
-      "id": "f8a85f8b8e8f4c04b436a3ab",
+      "id": "394b8d0b7773172bce5adc90",
       "category": "JSON wire field",
       "name": "FlowEdge.TargetNodeID",
       "value": "targetNodeId",
@@ -16106,7 +16151,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:186"
+        "approval/models.go:190"
       ],
       "terms": [
         "FlowEdge.TargetNodeID",
@@ -16121,7 +16166,7 @@
       ]
     },
     {
-      "id": "fb9484b39f38b950d493b424",
+      "id": "4d2d9ee9afec723c0117f663",
       "category": "JSON wire field",
       "name": "FlowEdge.TargetNodeKey",
       "value": "targetNodeKey",
@@ -16130,7 +16175,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:187"
+        "approval/models.go:191"
       ],
       "terms": [
         "FlowEdge.TargetNodeKey",
@@ -16865,7 +16910,7 @@
       ]
     },
     {
-      "id": "fc7e50bbfbc8cfa6d6f76fbb",
+      "id": "7b312fbf13e373279700cdb0",
       "category": "JSON wire field",
       "name": "FlowInitiator.FlowID",
       "value": "flowId",
@@ -16874,7 +16919,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:220"
+        "approval/models.go:224"
       ],
       "terms": [
         "FlowInitiator.FlowID",
@@ -16889,7 +16934,7 @@
       ]
     },
     {
-      "id": "44b75453596a051a41273520",
+      "id": "fbce6a66b6ff7f5b5e584149",
       "category": "JSON wire field",
       "name": "FlowInitiator.IDs",
       "value": "ids",
@@ -16898,7 +16943,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:222"
+        "approval/models.go:226"
       ],
       "terms": [
         "FlowInitiator.IDs",
@@ -16913,7 +16958,7 @@
       ]
     },
     {
-      "id": "3ccf5133d755eb28b6f526e0",
+      "id": "79bd397993cbcaa03bb1d03b",
       "category": "JSON wire field",
       "name": "FlowInitiator.Kind",
       "value": "kind",
@@ -16922,7 +16967,7 @@
         "type: InitiatorKind"
       ],
       "source_evidence": [
-        "approval/models.go:221"
+        "approval/models.go:225"
       ],
       "terms": [
         "FlowInitiator.Kind",
@@ -16937,7 +16982,7 @@
       ]
     },
     {
-      "id": "45613f3131cca60f5214e9ce",
+      "id": "379a9ccb40c820a23092b6f2",
       "category": "JSON wire field",
       "name": "FlowNode.AddAssigneeTypes",
       "value": "addAssigneeTypes",
@@ -16946,7 +16991,7 @@
         "type: []AddAssigneeType"
       ],
       "source_evidence": [
-        "approval/models.go:162"
+        "approval/models.go:166"
       ],
       "terms": [
         "AddAssigneeType",
@@ -16961,7 +17006,7 @@
       ]
     },
     {
-      "id": "10346219dd43801c0efef034",
+      "id": "97a9f93b1003d73c9ebb5155",
       "category": "JSON wire field",
       "name": "FlowNode.AdminUserIDs",
       "value": "adminUserIds",
@@ -16970,7 +17015,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:155"
+        "approval/models.go:159"
       ],
       "terms": [
         "FlowNode.AdminUserIDs",
@@ -16985,7 +17030,7 @@
       ]
     },
     {
-      "id": "000398c86486b3534256d673",
+      "id": "b351d28a35e68e21342d641f",
       "category": "JSON wire field",
       "name": "FlowNode.ApprovalMethod",
       "value": "approvalMethod",
@@ -16994,7 +17039,7 @@
         "type: ApprovalMethod"
       ],
       "source_evidence": [
-        "approval/models.go:149"
+        "approval/models.go:153"
       ],
       "terms": [
         "ApprovalMethod",
@@ -17009,7 +17054,7 @@
       ]
     },
     {
-      "id": "f06383c25de4c9db2bad27a4",
+      "id": "bf1c562bccf17063bc0baae8",
       "category": "JSON wire field",
       "name": "FlowNode.Branches",
       "value": "branches",
@@ -17018,7 +17063,7 @@
         "type: []ConditionBranch"
       ],
       "source_evidence": [
-        "approval/models.go:174"
+        "approval/models.go:178"
       ],
       "terms": [
         "ConditionBranch",
@@ -17033,7 +17078,7 @@
       ]
     },
     {
-      "id": "50e3b1380a50f54176f242fd",
+      "id": "8ed96dd8cd9594fed322a5f6",
       "category": "JSON wire field",
       "name": "FlowNode.ConsecutiveApproverAction",
       "value": "consecutiveApproverAction",
@@ -17042,7 +17087,7 @@
         "type: ConsecutiveApproverAction"
       ],
       "source_evidence": [
-        "approval/models.go:172"
+        "approval/models.go:176"
       ],
       "terms": [
         "ConsecutiveApproverAction",
@@ -17057,7 +17102,7 @@
       ]
     },
     {
-      "id": "4511b46fce33062cd6ee0134",
+      "id": "69f9c5d735e152be631ae13c",
       "category": "JSON wire field",
       "name": "FlowNode.Description",
       "value": "description",
@@ -17066,7 +17111,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:147"
+        "approval/models.go:151"
       ],
       "terms": [
         "FlowNode.Description",
@@ -17081,7 +17126,7 @@
       ]
     },
     {
-      "id": "6857cef95d25fb182de27f8a",
+      "id": "eb84c017af911636adff5088",
       "category": "JSON wire field",
       "name": "FlowNode.EmptyAssigneeAction",
       "value": "emptyAssigneeAction",
@@ -17090,7 +17135,7 @@
         "type: EmptyAssigneeAction"
       ],
       "source_evidence": [
-        "approval/models.go:153"
+        "approval/models.go:157"
       ],
       "terms": [
         "EmptyAssigneeAction",
@@ -17105,7 +17150,7 @@
       ]
     },
     {
-      "id": "025acae653c2ba9f023f9731",
+      "id": "20aa264d3b7b002fd24fd695",
       "category": "JSON wire field",
       "name": "FlowNode.ExecutionType",
       "value": "executionType",
@@ -17114,7 +17159,7 @@
         "type: ExecutionType"
       ],
       "source_evidence": [
-        "approval/models.go:148"
+        "approval/models.go:152"
       ],
       "terms": [
         "ExecutionType",
@@ -17129,7 +17174,7 @@
       ]
     },
     {
-      "id": "a713e8f9d3e3a1bd39cb9c0b",
+      "id": "fcc4b58fb1cf2648e36c9af2",
       "category": "JSON wire field",
       "name": "FlowNode.FallbackUserIDs",
       "value": "fallbackUserIds",
@@ -17138,7 +17183,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:154"
+        "approval/models.go:158"
       ],
       "terms": [
         "FlowNode.FallbackUserIDs",
@@ -17153,7 +17198,7 @@
       ]
     },
     {
-      "id": "89cdcdf92fdd626c37474b78",
+      "id": "d655a8edb0946d4feba545a2",
       "category": "JSON wire field",
       "name": "FlowNode.FieldPermissions",
       "value": "fieldPermissions",
@@ -17162,7 +17207,7 @@
         "type: map[string]Permission"
       ],
       "source_evidence": [
-        "approval/models.go:164"
+        "approval/models.go:168"
       ],
       "terms": [
         "FlowNode.FieldPermissions",
@@ -17179,7 +17224,7 @@
       ]
     },
     {
-      "id": "bb8968a655d75c54de67573f",
+      "id": "ece81d5a8ab2d04748047272",
       "category": "JSON wire field",
       "name": "FlowNode.FlowVersionID",
       "value": "flowVersionId",
@@ -17188,7 +17233,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:143"
+        "approval/models.go:147"
       ],
       "terms": [
         "FlowNode.FlowVersionID",
@@ -17203,7 +17248,7 @@
       ]
     },
     {
-      "id": "8095ba666693dcd9b2271b86",
+      "id": "55a96ba80bcd5e5325461143",
       "category": "JSON wire field",
       "name": "FlowNode.IsAddAssigneeAllowed",
       "value": "isAddAssigneeAllowed",
@@ -17212,7 +17257,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:161"
+        "approval/models.go:165"
       ],
       "terms": [
         "FlowNode.IsAddAssigneeAllowed",
@@ -17227,7 +17272,7 @@
       ]
     },
     {
-      "id": "569642a09ca3686664c02b48",
+      "id": "2d7c3eba09dd6213b54c507d",
       "category": "JSON wire field",
       "name": "FlowNode.IsManualCCAllowed",
       "value": "isManualCcAllowed",
@@ -17236,7 +17281,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:165"
+        "approval/models.go:169"
       ],
       "terms": [
         "FlowNode.IsManualCCAllowed",
@@ -17251,7 +17296,7 @@
       ]
     },
     {
-      "id": "eb0791eb849cf3649051278d",
+      "id": "636d9a65c0d69d8681ce37a5",
       "category": "JSON wire field",
       "name": "FlowNode.IsOpinionRequired",
       "value": "isOpinionRequired",
@@ -17260,7 +17305,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:167"
+        "approval/models.go:171"
       ],
       "terms": [
         "FlowNode.IsOpinionRequired",
@@ -17275,7 +17320,7 @@
       ]
     },
     {
-      "id": "6e1bde5718d4823636286e44",
+      "id": "3b953f1943fd54f24a5fcba7",
       "category": "JSON wire field",
       "name": "FlowNode.IsReadConfirmRequired",
       "value": "isReadConfirmRequired",
@@ -17284,7 +17329,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:173"
+        "approval/models.go:177"
       ],
       "terms": [
         "FlowNode.IsReadConfirmRequired",
@@ -17299,7 +17344,7 @@
       ]
     },
     {
-      "id": "b5e1846e3836c00ff65f6957",
+      "id": "5bbe961133adfd91307d660a",
       "category": "JSON wire field",
       "name": "FlowNode.IsRemoveAssigneeAllowed",
       "value": "isRemoveAssigneeAllowed",
@@ -17308,7 +17353,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:163"
+        "approval/models.go:167"
       ],
       "terms": [
         "FlowNode.IsRemoveAssigneeAllowed",
@@ -17323,7 +17368,7 @@
       ]
     },
     {
-      "id": "2d4ef01330836c2654f2c8d3",
+      "id": "19a09707474bce0421c68f2f",
       "category": "JSON wire field",
       "name": "FlowNode.IsRollbackAllowed",
       "value": "isRollbackAllowed",
@@ -17332,7 +17377,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:157"
+        "approval/models.go:161"
       ],
       "terms": [
         "FlowNode.IsRollbackAllowed",
@@ -17347,7 +17392,7 @@
       ]
     },
     {
-      "id": "fb29b6b73de1cfac7f950466",
+      "id": "4b10f2bb55af9fd9eabffad2",
       "category": "JSON wire field",
       "name": "FlowNode.IsTransferAllowed",
       "value": "isTransferAllowed",
@@ -17356,7 +17401,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:166"
+        "approval/models.go:170"
       ],
       "terms": [
         "FlowNode.IsTransferAllowed",
@@ -17371,7 +17416,7 @@
       ]
     },
     {
-      "id": "b8f2be0df33caffb34b1bc2b",
+      "id": "ed69ef885650896b4c08a1b9",
       "category": "JSON wire field",
       "name": "FlowNode.Key",
       "value": "key",
@@ -17380,7 +17425,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:144"
+        "approval/models.go:148"
       ],
       "terms": [
         "FlowNode.Key",
@@ -17395,7 +17440,7 @@
       ]
     },
     {
-      "id": "31d896a06112c57f3fb13b89",
+      "id": "9eaaa25f1a3f2b5d33bd63fd",
       "category": "JSON wire field",
       "name": "FlowNode.Kind",
       "value": "kind",
@@ -17404,7 +17449,7 @@
         "type: NodeKind"
       ],
       "source_evidence": [
-        "approval/models.go:145"
+        "approval/models.go:149"
       ],
       "terms": [
         "FlowNode.Kind",
@@ -17419,7 +17464,7 @@
       ]
     },
     {
-      "id": "495b6a7a8f5d1f532c4a387c",
+      "id": "9ba86eb5d24773150b5b4a9b",
       "category": "JSON wire field",
       "name": "FlowNode.Name",
       "value": "name",
@@ -17428,7 +17473,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:146"
+        "approval/models.go:150"
       ],
       "terms": [
         "FlowNode.Name",
@@ -17443,7 +17488,7 @@
       ]
     },
     {
-      "id": "85e811c64ab215ec78eeb948",
+      "id": "a31ba800edf6ee8878e163c1",
       "category": "JSON wire field",
       "name": "FlowNode.PassCount",
       "value": "passCount",
@@ -17452,7 +17497,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:152"
+        "approval/models.go:156"
       ],
       "terms": [
         "FlowNode.PassCount",
@@ -17467,7 +17512,7 @@
       ]
     },
     {
-      "id": "9c3e92a6e3552326b84b8b64",
+      "id": "a3bd64ab1a9f38308bd2a190",
       "category": "JSON wire field",
       "name": "FlowNode.PassRatio",
       "value": "passRatio",
@@ -17476,7 +17521,7 @@
         "type: decimal.Decimal"
       ],
       "source_evidence": [
-        "approval/models.go:151"
+        "approval/models.go:155"
       ],
       "terms": [
         "FlowNode.PassRatio",
@@ -17491,7 +17536,7 @@
       ]
     },
     {
-      "id": "fd30df7430e4c505b30f4187",
+      "id": "e7e6b63a3709658731f4417a",
       "category": "JSON wire field",
       "name": "FlowNode.PassRule",
       "value": "passRule",
@@ -17500,7 +17545,7 @@
         "type: PassRule"
       ],
       "source_evidence": [
-        "approval/models.go:150"
+        "approval/models.go:154"
       ],
       "terms": [
         "FlowNode.PassRule",
@@ -17515,7 +17560,7 @@
       ]
     },
     {
-      "id": "cd9f997a85ae10c805f5cae1",
+      "id": "49f33ac4433c6053b1e161eb",
       "category": "JSON wire field",
       "name": "FlowNode.RollbackDataStrategy",
       "value": "rollbackDataStrategy",
@@ -17524,7 +17569,7 @@
         "type: RollbackDataStrategy"
       ],
       "source_evidence": [
-        "approval/models.go:159"
+        "approval/models.go:163"
       ],
       "terms": [
         "FlowNode.RollbackDataStrategy",
@@ -17539,7 +17584,7 @@
       ]
     },
     {
-      "id": "62d2515d9caf9d7c1134d7b5",
+      "id": "f477534ce0e10d26708bdce4",
       "category": "JSON wire field",
       "name": "FlowNode.RollbackTargetKeys",
       "value": "rollbackTargetKeys",
@@ -17548,7 +17593,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:160"
+        "approval/models.go:164"
       ],
       "terms": [
         "FlowNode.RollbackTargetKeys",
@@ -17563,7 +17608,7 @@
       ]
     },
     {
-      "id": "731709591f1d24b7531a585b",
+      "id": "f385cb7ad54f3ec643b76d9f",
       "category": "JSON wire field",
       "name": "FlowNode.RollbackType",
       "value": "rollbackType",
@@ -17572,7 +17617,7 @@
         "type: RollbackType"
       ],
       "source_evidence": [
-        "approval/models.go:158"
+        "approval/models.go:162"
       ],
       "terms": [
         "FlowNode.RollbackType",
@@ -17587,7 +17632,7 @@
       ]
     },
     {
-      "id": "6470878f187ca911efc4db1b",
+      "id": "4a24582dc2c13517843f06fc",
       "category": "JSON wire field",
       "name": "FlowNode.SameApplicantAction",
       "value": "sameApplicantAction",
@@ -17596,7 +17641,7 @@
         "type: SameApplicantAction"
       ],
       "source_evidence": [
-        "approval/models.go:156"
+        "approval/models.go:160"
       ],
       "terms": [
         "FlowNode.SameApplicantAction",
@@ -17611,7 +17656,7 @@
       ]
     },
     {
-      "id": "e4df633951f9ea12d79042ba",
+      "id": "e68414e382e90b025c870c82",
       "category": "JSON wire field",
       "name": "FlowNode.TimeoutAction",
       "value": "timeoutAction",
@@ -17620,7 +17665,7 @@
         "type: TimeoutAction"
       ],
       "source_evidence": [
-        "approval/models.go:169"
+        "approval/models.go:173"
       ],
       "terms": [
         "FlowNode.TimeoutAction",
@@ -17635,7 +17680,7 @@
       ]
     },
     {
-      "id": "0cdc5997b39cc37a87d4275c",
+      "id": "41a9ae033b4bd97f6a94a946",
       "category": "JSON wire field",
       "name": "FlowNode.TimeoutHours",
       "value": "timeoutHours",
@@ -17644,7 +17689,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:168"
+        "approval/models.go:172"
       ],
       "terms": [
         "FlowNode.TimeoutHours",
@@ -17659,7 +17704,7 @@
       ]
     },
     {
-      "id": "e471ac81a47ff9e80a52d811",
+      "id": "19a082c448522db7bc6f6f7f",
       "category": "JSON wire field",
       "name": "FlowNode.TimeoutNotifyBeforeHours",
       "value": "timeoutNotifyBeforeHours",
@@ -17668,7 +17713,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:170"
+        "approval/models.go:174"
       ],
       "terms": [
         "FlowNode.TimeoutNotifyBeforeHours",
@@ -17683,7 +17728,7 @@
       ]
     },
     {
-      "id": "23cb4a7e5175d0853ae5f501",
+      "id": "323e5fe95029c69fd1ae00d9",
       "category": "JSON wire field",
       "name": "FlowNode.UrgeCooldownMinutes",
       "value": "urgeCooldownMinutes",
@@ -17692,7 +17737,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:171"
+        "approval/models.go:175"
       ],
       "terms": [
         "FlowNode.UrgeCooldownMinutes",
@@ -17707,7 +17752,7 @@
       ]
     },
     {
-      "id": "26109a90432d63ac581bb113",
+      "id": "6172c1dbe88fdd3dccaec065",
       "category": "JSON wire field",
       "name": "FlowNodeAssignee.FormField",
       "value": "formField",
@@ -17716,7 +17761,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:199"
+        "approval/models.go:203"
       ],
       "terms": [
         "FlowNodeAssignee.FormField",
@@ -17731,7 +17776,7 @@
       ]
     },
     {
-      "id": "a1a6d8ea0f1cb438f88fe832",
+      "id": "fd408e8d72295632a2fb9c68",
       "category": "JSON wire field",
       "name": "FlowNodeAssignee.IDs",
       "value": "ids",
@@ -17740,7 +17785,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:198"
+        "approval/models.go:202"
       ],
       "terms": [
         "FlowNodeAssignee.IDs",
@@ -17755,7 +17800,7 @@
       ]
     },
     {
-      "id": "224006ef1f3bca48a9107825",
+      "id": "e10c09eb887d42b31e8066a9",
       "category": "JSON wire field",
       "name": "FlowNodeAssignee.Kind",
       "value": "kind",
@@ -17764,7 +17809,7 @@
         "type: AssigneeKind"
       ],
       "source_evidence": [
-        "approval/models.go:197"
+        "approval/models.go:201"
       ],
       "terms": [
         "AssigneeKind",
@@ -17779,7 +17824,7 @@
       ]
     },
     {
-      "id": "2cdd63303fb535efbb64cf98",
+      "id": "51005e0158f80e48af3c64f1",
       "category": "JSON wire field",
       "name": "FlowNodeAssignee.NodeID",
       "value": "nodeId",
@@ -17788,7 +17833,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:196"
+        "approval/models.go:200"
       ],
       "terms": [
         "FlowNodeAssignee.NodeID",
@@ -17803,7 +17848,7 @@
       ]
     },
     {
-      "id": "b82e6e39fc191b46a13fe3a0",
+      "id": "a84335d649034397e2e95dff",
       "category": "JSON wire field",
       "name": "FlowNodeAssignee.SortOrder",
       "value": "sortOrder",
@@ -17812,7 +17857,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:200"
+        "approval/models.go:204"
       ],
       "terms": [
         "FlowNodeAssignee.SortOrder",
@@ -17827,7 +17872,7 @@
       ]
     },
     {
-      "id": "a2dee17d55eafa0d71bb9140",
+      "id": "2f45cfef678bca2dcddfc43b",
       "category": "JSON wire field",
       "name": "FlowNodeCC.FormField",
       "value": "formField",
@@ -17836,7 +17881,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:211"
+        "approval/models.go:215"
       ],
       "terms": [
         "FlowNodeCC.FormField",
@@ -17851,7 +17896,7 @@
       ]
     },
     {
-      "id": "1001689431e9a59ae122ae9b",
+      "id": "a2c55f027423ca2312232223",
       "category": "JSON wire field",
       "name": "FlowNodeCC.IDs",
       "value": "ids",
@@ -17860,7 +17905,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "approval/models.go:210"
+        "approval/models.go:214"
       ],
       "terms": [
         "FlowNodeCC.IDs",
@@ -17875,7 +17920,7 @@
       ]
     },
     {
-      "id": "085aba503ca5c76dd921287a",
+      "id": "fdae1d84f98229b998eeb3f3",
       "category": "JSON wire field",
       "name": "FlowNodeCC.Kind",
       "value": "kind",
@@ -17884,7 +17929,7 @@
         "type: CCKind"
       ],
       "source_evidence": [
-        "approval/models.go:209"
+        "approval/models.go:213"
       ],
       "terms": [
         "CCKind",
@@ -17899,7 +17944,7 @@
       ]
     },
     {
-      "id": "30ef39181c0e13892c3d5bac",
+      "id": "5706d392b90cfc980425c94d",
       "category": "JSON wire field",
       "name": "FlowNodeCC.NodeID",
       "value": "nodeId",
@@ -17908,7 +17953,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:208"
+        "approval/models.go:212"
       ],
       "terms": [
         "FlowNodeCC.NodeID",
@@ -17923,7 +17968,7 @@
       ]
     },
     {
-      "id": "dd5541ecb7fb81cde6760e76",
+      "id": "18e307fb6f68360322a2a08d",
       "category": "JSON wire field",
       "name": "FlowNodeCC.Timing",
       "value": "timing",
@@ -17932,7 +17977,7 @@
         "type: CCTiming"
       ],
       "source_evidence": [
-        "approval/models.go:212"
+        "approval/models.go:216"
       ],
       "terms": [
         "CCTiming",
@@ -17995,7 +18040,7 @@
       ]
     },
     {
-      "id": "4c26e98a57612aa234cd18eb",
+      "id": "9a7a105cbb2d342db7324c1d",
       "category": "JSON wire field",
       "name": "FlowVersion.BusinessBinding",
       "value": "businessBinding",
@@ -18004,7 +18049,7 @@
         "type: *BusinessBindingConfig"
       ],
       "source_evidence": [
-        "approval/models.go:99"
+        "approval/models.go:103"
       ],
       "terms": [
         "BusinessBindingConfig",
@@ -18019,7 +18064,7 @@
       ]
     },
     {
-      "id": "94a53a512a77b53e1e8f3126",
+      "id": "2d0ebcc8684336c23818fd10",
       "category": "JSON wire field",
       "name": "FlowVersion.Description",
       "value": "description",
@@ -18028,7 +18073,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:84"
+        "approval/models.go:88"
       ],
       "terms": [
         "FlowVersion.Description",
@@ -18043,7 +18088,7 @@
       ]
     },
     {
-      "id": "8f94afc30b12681d28fcbe85",
+      "id": "85d790db632f80f863b36774",
       "category": "JSON wire field",
       "name": "FlowVersion.FlowID",
       "value": "flowId",
@@ -18052,7 +18097,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:81"
+        "approval/models.go:85"
       ],
       "terms": [
         "FlowVersion.FlowID",
@@ -18067,7 +18112,7 @@
       ]
     },
     {
-      "id": "24ecd37aa2dbe0b888c9afc4",
+      "id": "2d93e8b0d0d8cdf71f89d0ab",
       "category": "JSON wire field",
       "name": "FlowVersion.FlowSchema",
       "value": "flowSchema",
@@ -18076,7 +18121,7 @@
         "type: *FlowDefinition"
       ],
       "source_evidence": [
-        "approval/models.go:86"
+        "approval/models.go:90"
       ],
       "terms": [
         "FlowDefinition",
@@ -18091,7 +18136,7 @@
       ]
     },
     {
-      "id": "3cb13c78608be3e2651b9312",
+      "id": "dfa8de5a6b8a61b7f7f4670f",
       "category": "JSON wire field",
       "name": "FlowVersion.FormFields",
       "value": "formFields",
@@ -18100,7 +18145,7 @@
         "type: []FormFieldDefinition"
       ],
       "source_evidence": [
-        "approval/models.go:94"
+        "approval/models.go:98"
       ],
       "terms": [
         "FlowVersion.FormFields",
@@ -18115,7 +18160,7 @@
       ]
     },
     {
-      "id": "a76827a484a2e8ed0f867429",
+      "id": "50899129bf234031f956160b",
       "category": "JSON wire field",
       "name": "FlowVersion.FormSchema",
       "value": "formSchema",
@@ -18124,7 +18169,7 @@
         "type: json.RawMessage"
       ],
       "source_evidence": [
-        "approval/models.go:91"
+        "approval/models.go:95"
       ],
       "terms": [
         "FlowVersion.FormSchema",
@@ -18139,7 +18184,7 @@
       ]
     },
     {
-      "id": "81f8880148d3598434cacf09",
+      "id": "ed2a491d4a3daee2090200c1",
       "category": "JSON wire field",
       "name": "FlowVersion.PublishedAt",
       "value": "publishedAt",
@@ -18148,7 +18193,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:95"
+        "approval/models.go:99"
       ],
       "terms": [
         "FlowVersion.PublishedAt",
@@ -18163,7 +18208,7 @@
       ]
     },
     {
-      "id": "9ff916366dae4d87ba5d93b2",
+      "id": "ec4af0eeb4ba8e447e4a94af",
       "category": "JSON wire field",
       "name": "FlowVersion.PublishedBy",
       "value": "publishedBy",
@@ -18172,7 +18217,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:96"
+        "approval/models.go:100"
       ],
       "terms": [
         "FlowVersion.PublishedBy",
@@ -18187,7 +18232,7 @@
       ]
     },
     {
-      "id": "ec9d4ed2c9f978be7c053732",
+      "id": "deff505f8c60c4bc4b14fd2b",
       "category": "JSON wire field",
       "name": "FlowVersion.Status",
       "value": "status",
@@ -18196,7 +18241,7 @@
         "type: VersionStatus"
       ],
       "source_evidence": [
-        "approval/models.go:83"
+        "approval/models.go:87"
       ],
       "terms": [
         "FlowVersion.Status",
@@ -18211,7 +18256,7 @@
       ]
     },
     {
-      "id": "374879af17d94ddd6ca5e83e",
+      "id": "4b60595617a4e4f97b2b2055",
       "category": "JSON wire field",
       "name": "FlowVersion.StorageMode",
       "value": "storageMode",
@@ -18220,7 +18265,7 @@
         "type: StorageMode"
       ],
       "source_evidence": [
-        "approval/models.go:85"
+        "approval/models.go:89"
       ],
       "terms": [
         "FlowVersion.StorageMode",
@@ -18235,7 +18280,7 @@
       ]
     },
     {
-      "id": "7acf0194615846a3396991c5",
+      "id": "62048cd58211597ac01fc3dc",
       "category": "JSON wire field",
       "name": "FlowVersion.Version",
       "value": "version",
@@ -18244,7 +18289,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:82"
+        "approval/models.go:86"
       ],
       "terms": [
         "FlowVersion.Version",
@@ -18981,7 +19026,7 @@
       ]
     },
     {
-      "id": "2a00fe33c8238d53f659261a",
+      "id": "854351e118b806f0c7327d2d",
       "category": "JSON wire field",
       "name": "FormSnapshot.FormData",
       "value": "formData",
@@ -18990,7 +19035,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "approval/models.go:396"
+        "approval/models.go:401"
       ],
       "terms": [
         "FormSnapshot.FormData",
@@ -19007,7 +19052,7 @@
       ]
     },
     {
-      "id": "33a3d4a22bda293a4845a036",
+      "id": "ddde31bca4945ed190c68d6d",
       "category": "JSON wire field",
       "name": "FormSnapshot.InstanceID",
       "value": "instanceId",
@@ -19016,7 +19061,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:394"
+        "approval/models.go:399"
       ],
       "terms": [
         "FormSnapshot.InstanceID",
@@ -19031,7 +19076,7 @@
       ]
     },
     {
-      "id": "453335422b450c1d06e78495",
+      "id": "26b1c6f33505072d9d6bafed",
       "category": "JSON wire field",
       "name": "FormSnapshot.NodeID",
       "value": "nodeId",
@@ -19040,7 +19085,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:395"
+        "approval/models.go:400"
       ],
       "terms": [
         "FormSnapshot.NodeID",
@@ -19055,7 +19100,7 @@
       ]
     },
     {
-      "id": "24700f0e386b51d2f64d5e9b",
+      "id": "27b3488f30cb1d7ff103642c",
       "category": "JSON wire field",
       "name": "FormTable.FlowID",
       "value": "flowId",
@@ -19064,7 +19109,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:114"
+        "approval/models.go:118"
       ],
       "terms": [
         "FormTable.FlowID",
@@ -19079,7 +19124,7 @@
       ]
     },
     {
-      "id": "c49b4dff56c41cb3cb56184c",
+      "id": "6e22820e011b5333d72ce44b",
       "category": "JSON wire field",
       "name": "FormTable.PhysicalTableName",
       "value": "physicalTableName",
@@ -19088,7 +19133,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:116"
+        "approval/models.go:120"
       ],
       "terms": [
         "FormTable.PhysicalTableName",
@@ -19103,7 +19148,7 @@
       ]
     },
     {
-      "id": "907ecc2f6ef65b05fc50b21f",
+      "id": "be0c13d667847ab634810846",
       "category": "JSON wire field",
       "name": "FormTable.SourceFieldKey",
       "value": "sourceFieldKey",
@@ -19112,7 +19157,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:119"
+        "approval/models.go:123"
       ],
       "terms": [
         "FormTable.SourceFieldKey",
@@ -19127,7 +19172,7 @@
       ]
     },
     {
-      "id": "677c7e6c56760894db1dc98c",
+      "id": "c303a58cb85ab82baa486ba0",
       "category": "JSON wire field",
       "name": "FormTable.VersionID",
       "value": "versionId",
@@ -19136,7 +19181,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:115"
+        "approval/models.go:119"
       ],
       "terms": [
         "FormTable.VersionID",
@@ -19151,7 +19196,7 @@
       ]
     },
     {
-      "id": "cbefa7c8cd42edabb5b448e6",
+      "id": "a12941b3e281f8ad49e18d3e",
       "category": "JSON wire field",
       "name": "FormTableColumn.ColumnName",
       "value": "columnName",
@@ -19160,7 +19205,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:131"
+        "approval/models.go:135"
       ],
       "terms": [
         "FormTableColumn.ColumnName",
@@ -19175,7 +19220,7 @@
       ]
     },
     {
-      "id": "5b599c1709d4bbf2e68061fd",
+      "id": "f9ce811b22cd932b79c79970",
       "category": "JSON wire field",
       "name": "FormTableColumn.ColumnType",
       "value": "columnType",
@@ -19184,7 +19229,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:132"
+        "approval/models.go:136"
       ],
       "terms": [
         "FormTableColumn.ColumnType",
@@ -19199,7 +19244,7 @@
       ]
     },
     {
-      "id": "a15e8407d2ab1684790ba2ca",
+      "id": "98c2f2ce69e8cd1ffcb20479",
       "category": "JSON wire field",
       "name": "FormTableColumn.FormTableID",
       "value": "formTableId",
@@ -19208,7 +19253,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:130"
+        "approval/models.go:134"
       ],
       "terms": [
         "FormTableColumn.FormTableID",
@@ -19223,7 +19268,7 @@
       ]
     },
     {
-      "id": "43c8a19e9ea1b74ec6170926",
+      "id": "0f255ab0557de65e79c50c3a",
       "category": "JSON wire field",
       "name": "FormTableColumn.IsNullable",
       "value": "isNullable",
@@ -19232,7 +19277,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:133"
+        "approval/models.go:137"
       ],
       "terms": [
         "FormTableColumn.IsNullable",
@@ -19247,7 +19292,7 @@
       ]
     },
     {
-      "id": "5fa24b57c95b367f9ca55a22",
+      "id": "8dcd8059f028daede9ede732",
       "category": "JSON wire field",
       "name": "FormTableColumn.SortOrder",
       "value": "sortOrder",
@@ -19256,7 +19301,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:135"
+        "approval/models.go:139"
       ],
       "terms": [
         "FormTableColumn.SortOrder",
@@ -19271,7 +19316,7 @@
       ]
     },
     {
-      "id": "8da0cc7e9e682a85873fde86",
+      "id": "6a40f1df5164f527470dab1b",
       "category": "JSON wire field",
       "name": "FormTableColumn.SourceFieldKey",
       "value": "sourceFieldKey",
@@ -19280,7 +19325,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:134"
+        "approval/models.go:138"
       ],
       "terms": [
         "FormTableColumn.SourceFieldKey",
@@ -19623,7 +19668,7 @@
       ]
     },
     {
-      "id": "2aaa4942530799cde3540e15",
+      "id": "8e06c7b09704b7754c2f8b80",
       "category": "JSON wire field",
       "name": "GetGraphParams.FlowID",
       "value": "flowId",
@@ -19633,7 +19678,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:175"
+        "internal/approval/resource/flow.go:178"
       ],
       "terms": [
         "GetGraphParams.FlowID",
@@ -19650,7 +19695,7 @@
       ]
     },
     {
-      "id": "1dbcc5456b353fc6def30e3a",
+      "id": "48eda46b7227a9e78044d910",
       "category": "JSON wire field",
       "name": "GetGraphParams.VersionID",
       "value": "versionId",
@@ -19659,7 +19704,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:179"
+        "internal/approval/resource/flow.go:182"
       ],
       "terms": [
         "GetGraphParams.VersionID",
@@ -21880,7 +21925,7 @@
       ]
     },
     {
-      "id": "46f830ee7e305f562131e526",
+      "id": "d1147c84af98168394239c4b",
       "category": "JSON wire field",
       "name": "Instance.ApplicantDepartmentID",
       "value": "applicantDepartmentId",
@@ -21889,7 +21934,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:248"
+        "approval/models.go:253"
       ],
       "terms": [
         "Go",
@@ -21904,7 +21949,7 @@
       ]
     },
     {
-      "id": "787d39b9427e60ba3ff9af4e",
+      "id": "4cecdd377beca110b376c87a",
       "category": "JSON wire field",
       "name": "Instance.ApplicantDepartmentName",
       "value": "applicantDepartmentName",
@@ -21913,7 +21958,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:249"
+        "approval/models.go:254"
       ],
       "terms": [
         "Go",
@@ -21928,7 +21973,7 @@
       ]
     },
     {
-      "id": "4a76812800dab94106441a54",
+      "id": "581254e006b955f6d608a3dc",
       "category": "JSON wire field",
       "name": "Instance.ApplicantID",
       "value": "applicantId",
@@ -21937,7 +21982,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:246"
+        "approval/models.go:251"
       ],
       "terms": [
         "Go",
@@ -21952,7 +21997,7 @@
       ]
     },
     {
-      "id": "f657578ab11cfe000fd3b16a",
+      "id": "2e7ff946bc3622c459f45142",
       "category": "JSON wire field",
       "name": "Instance.ApplicantName",
       "value": "applicantName",
@@ -21961,7 +22006,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:247"
+        "approval/models.go:252"
       ],
       "terms": [
         "Go",
@@ -21976,7 +22021,7 @@
       ]
     },
     {
-      "id": "1b800402736b9ff5a5f3f9e9",
+      "id": "854e1304c8ef892362af3080",
       "category": "JSON wire field",
       "name": "Instance.BusinessProjectionID",
       "value": "businessProjectionId",
@@ -21985,7 +22030,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:268"
+        "approval/models.go:273"
       ],
       "terms": [
         "Go",
@@ -22000,7 +22045,7 @@
       ]
     },
     {
-      "id": "edbc9087d83c39e5766154cc",
+      "id": "cdf19aef0bb3a8b95bd71a5f",
       "category": "JSON wire field",
       "name": "Instance.BusinessRef",
       "value": "businessRef",
@@ -22009,7 +22054,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:257"
+        "approval/models.go:262"
       ],
       "terms": [
         "Go",
@@ -22048,7 +22093,7 @@
       ]
     },
     {
-      "id": "0741dd3bea399cf1da0c3fc4",
+      "id": "af4f002a246a28322b0d1f4a",
       "category": "JSON wire field",
       "name": "Instance.CurrentNodeID",
       "value": "currentNodeId",
@@ -22057,7 +22102,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:251"
+        "approval/models.go:256"
       ],
       "terms": [
         "Go",
@@ -22120,7 +22165,7 @@
       ]
     },
     {
-      "id": "69959a78f39937c7ebf0f52d",
+      "id": "32af76e55708bf6d734b226f",
       "category": "JSON wire field",
       "name": "Instance.FinishedAt",
       "value": "finishedAt",
@@ -22129,7 +22174,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:252"
+        "approval/models.go:257"
       ],
       "terms": [
         "Go",
@@ -22144,7 +22189,7 @@
       ]
     },
     {
-      "id": "22edd886a9c1cfe5aaae6afb",
+      "id": "34ef09c3a140c93ab604db4b",
       "category": "JSON wire field",
       "name": "Instance.FlowCode",
       "value": "flowCode",
@@ -22153,7 +22198,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:242"
+        "approval/models.go:247"
       ],
       "terms": [
         "Go",
@@ -22168,7 +22213,7 @@
       ]
     },
     {
-      "id": "1af2dfecfb2e87ee59550acc",
+      "id": "60e19a6116b7e9cdafccdaf8",
       "category": "JSON wire field",
       "name": "Instance.FlowID",
       "value": "flowId",
@@ -22177,7 +22222,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:237"
+        "approval/models.go:242"
       ],
       "terms": [
         "Go",
@@ -22240,7 +22285,7 @@
       ]
     },
     {
-      "id": "9b471943e9673817bb1247e7",
+      "id": "54f42535d890923c986cc2d8",
       "category": "JSON wire field",
       "name": "Instance.FlowVersionID",
       "value": "flowVersionId",
@@ -22249,7 +22294,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:243"
+        "approval/models.go:248"
       ],
       "terms": [
         "Go",
@@ -22264,7 +22309,7 @@
       ]
     },
     {
-      "id": "307d99c4208dbc3c36a2cc08",
+      "id": "1ae3a1aab84d8c10b1852451",
       "category": "JSON wire field",
       "name": "Instance.FormData",
       "value": "formData",
@@ -22273,7 +22318,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "approval/models.go:258"
+        "approval/models.go:263"
       ],
       "terms": [
         "Go",
@@ -22290,7 +22335,7 @@
       ]
     },
     {
-      "id": "33ea261f1d69c48a050f54af",
+      "id": "e01b1f7943b9fba99e8f8cc4",
       "category": "JSON wire field",
       "name": "Instance.Globals",
       "value": "globals",
@@ -22299,7 +22344,7 @@
         "type: map[string]any"
       ],
       "source_evidence": [
-        "approval/models.go:264"
+        "approval/models.go:269"
       ],
       "terms": [
         "Go",
@@ -22340,6 +22385,30 @@
       ]
     },
     {
+      "id": "256afe25caa3afa8c9bb5f96",
+      "category": "JSON wire field",
+      "name": "Instance.InstanceNo",
+      "value": "instanceNo",
+      "details": [
+        "Go field: Instance.InstanceNo",
+        "type: string"
+      ],
+      "source_evidence": [
+        "approval/models.go:250"
+      ],
+      "terms": [
+        "Go",
+        "Instance.InstanceNo",
+        "JSON",
+        "field",
+        "field:",
+        "instanceNo",
+        "string",
+        "type:",
+        "wire"
+      ]
+    },
+    {
       "id": "92d76bf1764ef643f48b9e41",
       "category": "JSON wire field",
       "name": "Instance.InstanceNo",
@@ -22364,25 +22433,25 @@
       ]
     },
     {
-      "id": "ed1e6f6e8140bcc139cc4cfa",
+      "id": "2534622542edc7d2c0c50426",
       "category": "JSON wire field",
-      "name": "Instance.InstanceNo",
-      "value": "instanceNo",
+      "name": "Instance.Status",
+      "value": "status",
       "details": [
-        "Go field: Instance.InstanceNo",
-        "type: string"
+        "Go field: Instance.Status",
+        "type: InstanceStatus"
       ],
       "source_evidence": [
-        "approval/models.go:245"
+        "approval/models.go:255"
       ],
       "terms": [
         "Go",
-        "Instance.InstanceNo",
+        "Instance.Status",
+        "InstanceStatus",
         "JSON",
         "field",
         "field:",
-        "instanceNo",
-        "string",
+        "status",
         "type:",
         "wire"
       ]
@@ -22412,25 +22481,25 @@
       ]
     },
     {
-      "id": "9b04f16310ddf7e254992696",
+      "id": "1c1e74b5a17f067af964f844",
       "category": "JSON wire field",
-      "name": "Instance.Status",
-      "value": "status",
+      "name": "Instance.TenantID",
+      "value": "tenantId",
       "details": [
-        "Go field: Instance.Status",
-        "type: InstanceStatus"
+        "Go field: Instance.TenantID",
+        "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:250"
+        "approval/models.go:241"
       ],
       "terms": [
         "Go",
-        "Instance.Status",
-        "InstanceStatus",
+        "Instance.TenantID",
         "JSON",
         "field",
         "field:",
-        "status",
+        "string",
+        "tenantId",
         "type:",
         "wire"
       ]
@@ -22460,25 +22529,25 @@
       ]
     },
     {
-      "id": "ab5a333e7d196e8776502d1c",
+      "id": "288df4b0d8818160325ab9bd",
       "category": "JSON wire field",
-      "name": "Instance.TenantID",
-      "value": "tenantId",
+      "name": "Instance.Title",
+      "value": "title",
       "details": [
-        "Go field: Instance.TenantID",
+        "Go field: Instance.Title",
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:236"
+        "approval/models.go:249"
       ],
       "terms": [
         "Go",
-        "Instance.TenantID",
+        "Instance.Title",
         "JSON",
         "field",
         "field:",
         "string",
-        "tenantId",
+        "title",
         "type:",
         "wire"
       ]
@@ -22494,30 +22563,6 @@
       ],
       "source_evidence": [
         "approval/admin/instance.go:12"
-      ],
-      "terms": [
-        "Go",
-        "Instance.Title",
-        "JSON",
-        "field",
-        "field:",
-        "string",
-        "title",
-        "type:",
-        "wire"
-      ]
-    },
-    {
-      "id": "d0e39ba9f720ee273964a4c4",
-      "category": "JSON wire field",
-      "name": "Instance.Title",
-      "value": "title",
-      "details": [
-        "Go field: Instance.Title",
-        "type: string"
-      ],
-      "source_evidence": [
-        "approval/models.go:244"
       ],
       "terms": [
         "Go",
@@ -27423,7 +27468,7 @@
       ]
     },
     {
-      "id": "e81c4678ad19dcdb10a73e44",
+      "id": "3faa23419f72cf6ed3dfad63",
       "category": "JSON wire field",
       "name": "NodeVisit.FinishedAt",
       "value": "finishedAt",
@@ -27432,7 +27477,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:385"
+        "approval/models.go:390"
       ],
       "terms": [
         "Go",
@@ -27447,7 +27492,7 @@
       ]
     },
     {
-      "id": "5216a6729a7c626ec4a0d7fb",
+      "id": "9da7174a6b23000344aa0429",
       "category": "JSON wire field",
       "name": "NodeVisit.InstanceID",
       "value": "instanceId",
@@ -27456,7 +27501,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:381"
+        "approval/models.go:386"
       ],
       "terms": [
         "Go",
@@ -27471,7 +27516,7 @@
       ]
     },
     {
-      "id": "4aac3a97e85894d03f547e49",
+      "id": "acd5c4e2731f571b2c082dad",
       "category": "JSON wire field",
       "name": "NodeVisit.NodeID",
       "value": "nodeId",
@@ -27480,7 +27525,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:382"
+        "approval/models.go:387"
       ],
       "terms": [
         "Go",
@@ -27495,7 +27540,7 @@
       ]
     },
     {
-      "id": "57fb070e2649f8e6c8345da0",
+      "id": "f508cd457e6b0ee6095c4cca",
       "category": "JSON wire field",
       "name": "NodeVisit.Sequence",
       "value": "sequence",
@@ -27504,7 +27549,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:383"
+        "approval/models.go:388"
       ],
       "terms": [
         "Go",
@@ -27519,7 +27564,7 @@
       ]
     },
     {
-      "id": "65b61651571709f5194d599b",
+      "id": "c9dc2d84551ed850c2b29c76",
       "category": "JSON wire field",
       "name": "NodeVisit.Status",
       "value": "status",
@@ -27528,7 +27573,7 @@
         "type: NodeVisitStatus"
       ],
       "source_evidence": [
-        "approval/models.go:384"
+        "approval/models.go:389"
       ],
       "terms": [
         "Go",
@@ -27543,7 +27588,7 @@
       ]
     },
     {
-      "id": "4a81782bfe938918971d84c3",
+      "id": "ae40faac3e3b5c4c7d110e86",
       "category": "JSON wire field",
       "name": "NodeVisit.TenantID",
       "value": "tenantId",
@@ -27552,7 +27597,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:380"
+        "approval/models.go:385"
       ],
       "terms": [
         "Go",
@@ -29854,7 +29899,7 @@
       ]
     },
     {
-      "id": "75f9a274712d02a3a4407393",
+      "id": "80a4402ca47a848e98137466",
       "category": "JSON wire field",
       "name": "PublishVersionParams.VersionID",
       "value": "versionId",
@@ -29864,7 +29909,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:152"
+        "internal/approval/resource/flow.go:155"
       ],
       "terms": [
         "Go",
@@ -36094,7 +36139,7 @@
       ]
     },
     {
-      "id": "832d9075116069e5f959e0d4",
+      "id": "689818f88cb4ae49901bdc9b",
       "category": "JSON wire field",
       "name": "Task.AddAssigneeType",
       "value": "addAssigneeType",
@@ -36103,7 +36148,7 @@
         "type: *AddAssigneeType"
       ],
       "source_evidence": [
-        "approval/models.go:332"
+        "approval/models.go:337"
       ],
       "terms": [
         "AddAssigneeType",
@@ -36142,7 +36187,7 @@
       ]
     },
     {
-      "id": "69f316c8a8a71bf10222b683",
+      "id": "64679db29cd5aa5ddf09c4a0",
       "category": "JSON wire field",
       "name": "Task.AssigneeDepartmentID",
       "value": "assigneeDepartmentId",
@@ -36151,7 +36196,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:322"
+        "approval/models.go:327"
       ],
       "terms": [
         "Go",
@@ -36166,7 +36211,7 @@
       ]
     },
     {
-      "id": "64e9c499cbc59af914c811c9",
+      "id": "1160b074ad11a03d9e7442b0",
       "category": "JSON wire field",
       "name": "Task.AssigneeDepartmentName",
       "value": "assigneeDepartmentName",
@@ -36175,7 +36220,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:323"
+        "approval/models.go:328"
       ],
       "terms": [
         "Go",
@@ -36190,7 +36235,7 @@
       ]
     },
     {
-      "id": "cba16e732716704c95897c65",
+      "id": "481ba3fad7440dd01c290ad2",
       "category": "JSON wire field",
       "name": "Task.AssigneeID",
       "value": "assigneeId",
@@ -36199,7 +36244,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:320"
+        "approval/models.go:325"
       ],
       "terms": [
         "Go",
@@ -36214,7 +36259,7 @@
       ]
     },
     {
-      "id": "400379bbbae1b7cfa40de1b0",
+      "id": "26c26430192eca0205599a08",
       "category": "JSON wire field",
       "name": "Task.AssigneeName",
       "value": "assigneeName",
@@ -36223,7 +36268,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:321"
+        "approval/models.go:326"
       ],
       "terms": [
         "Go",
@@ -36262,7 +36307,7 @@
       ]
     },
     {
-      "id": "77e2a5c0926997fadf989144",
+      "id": "84719fdbf2803c11b52ae1be",
       "category": "JSON wire field",
       "name": "Task.Deadline",
       "value": "deadline",
@@ -36271,7 +36316,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:333"
+        "approval/models.go:338"
       ],
       "terms": [
         "Go",
@@ -36310,7 +36355,7 @@
       ]
     },
     {
-      "id": "0295a768829554b4146a12e1",
+      "id": "0b64f6d45fe16e8da2517f57",
       "category": "JSON wire field",
       "name": "Task.DelegatorDepartmentID",
       "value": "delegatorDepartmentId",
@@ -36319,7 +36364,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:326"
+        "approval/models.go:331"
       ],
       "terms": [
         "Go",
@@ -36334,7 +36379,7 @@
       ]
     },
     {
-      "id": "0e7ea962a9c5ea49a6b4cf68",
+      "id": "a55e56134432e546c6b13d09",
       "category": "JSON wire field",
       "name": "Task.DelegatorDepartmentName",
       "value": "delegatorDepartmentName",
@@ -36343,7 +36388,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:327"
+        "approval/models.go:332"
       ],
       "terms": [
         "Go",
@@ -36358,7 +36403,7 @@
       ]
     },
     {
-      "id": "8ba2afcdfd59fa68efece7b3",
+      "id": "4877a12be3758101d22fc080",
       "category": "JSON wire field",
       "name": "Task.DelegatorID",
       "value": "delegatorId",
@@ -36367,7 +36412,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:324"
+        "approval/models.go:329"
       ],
       "terms": [
         "Go",
@@ -36382,7 +36427,7 @@
       ]
     },
     {
-      "id": "09c5be38dad1c4abf0a637cd",
+      "id": "feb78efa34e7589a6f05265e",
       "category": "JSON wire field",
       "name": "Task.DelegatorName",
       "value": "delegatorName",
@@ -36391,7 +36436,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:325"
+        "approval/models.go:330"
       ],
       "terms": [
         "Go",
@@ -36430,7 +36475,7 @@
       ]
     },
     {
-      "id": "475daf749a2b66c8ef6e63b2",
+      "id": "650d384df671edda277b55ba",
       "category": "JSON wire field",
       "name": "Task.FinishedAt",
       "value": "finishedAt",
@@ -36439,7 +36484,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:336"
+        "approval/models.go:341"
       ],
       "terms": [
         "Go",
@@ -36478,7 +36523,7 @@
       ]
     },
     {
-      "id": "29ab59919de001cfbc46b369",
+      "id": "163274413c6f72d2217bd320",
       "category": "JSON wire field",
       "name": "Task.InstanceID",
       "value": "instanceId",
@@ -36487,7 +36532,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:317"
+        "approval/models.go:322"
       ],
       "terms": [
         "Go",
@@ -36550,7 +36595,7 @@
       ]
     },
     {
-      "id": "108948477d79a7b2e9b2021a",
+      "id": "7d6df11d859e9fa06eb70209",
       "category": "JSON wire field",
       "name": "Task.IsPreWarningSent",
       "value": "isPreWarningSent",
@@ -36559,7 +36604,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:335"
+        "approval/models.go:340"
       ],
       "terms": [
         "Go",
@@ -36574,7 +36619,7 @@
       ]
     },
     {
-      "id": "0be57a7219b5bfe151a1427b",
+      "id": "582123537a97f7c226fe54e8",
       "category": "JSON wire field",
       "name": "Task.IsTimeout",
       "value": "isTimeout",
@@ -36583,7 +36628,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "approval/models.go:334"
+        "approval/models.go:339"
       ],
       "terms": [
         "Go",
@@ -36598,7 +36643,7 @@
       ]
     },
     {
-      "id": "c0aba05000aa01b1ff9b74bb",
+      "id": "a9a4ba8fec2db54b4fa91184",
       "category": "JSON wire field",
       "name": "Task.NodeID",
       "value": "nodeId",
@@ -36607,7 +36652,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:318"
+        "approval/models.go:323"
       ],
       "terms": [
         "Go",
@@ -36646,7 +36691,7 @@
       ]
     },
     {
-      "id": "526f07a98d99abb655315952",
+      "id": "d7ba406866f4f4f087f413e3",
       "category": "JSON wire field",
       "name": "Task.ParentTaskID",
       "value": "parentTaskId",
@@ -36655,7 +36700,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:331"
+        "approval/models.go:336"
       ],
       "terms": [
         "Go",
@@ -36670,7 +36715,7 @@
       ]
     },
     {
-      "id": "c112b984583d8a9e52d4bca8",
+      "id": "e575b3a40b272e273487aef4",
       "category": "JSON wire field",
       "name": "Task.ReadAt",
       "value": "readAt",
@@ -36679,7 +36724,7 @@
         "type: *timex.DateTime"
       ],
       "source_evidence": [
-        "approval/models.go:330"
+        "approval/models.go:335"
       ],
       "terms": [
         "Go",
@@ -36694,7 +36739,7 @@
       ]
     },
     {
-      "id": "e5aa19d321edbe89a13a0fc7",
+      "id": "9b11845793b454ed9b4b76bf",
       "category": "JSON wire field",
       "name": "Task.SortOrder",
       "value": "sortOrder",
@@ -36703,7 +36748,7 @@
         "type: int"
       ],
       "source_evidence": [
-        "approval/models.go:328"
+        "approval/models.go:333"
       ],
       "terms": [
         "Go",
@@ -36742,7 +36787,7 @@
       ]
     },
     {
-      "id": "ac18d8230b8d192fbfab2f54",
+      "id": "fff3e1001ffb873bccee59c6",
       "category": "JSON wire field",
       "name": "Task.Status",
       "value": "status",
@@ -36751,7 +36796,7 @@
         "type: TaskStatus"
       ],
       "source_evidence": [
-        "approval/models.go:329"
+        "approval/models.go:334"
       ],
       "terms": [
         "Go",
@@ -36790,7 +36835,7 @@
       ]
     },
     {
-      "id": "fd396e17a55ed895570ec4f5",
+      "id": "f57839a3fd05eb5fb5d254b7",
       "category": "JSON wire field",
       "name": "Task.TenantID",
       "value": "tenantId",
@@ -36799,7 +36844,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:316"
+        "approval/models.go:321"
       ],
       "terms": [
         "Go",
@@ -36814,7 +36859,7 @@
       ]
     },
     {
-      "id": "c6dc7dd9730bc95c6a5f6c3b",
+      "id": "91d9cf3cf5452421cae71579",
       "category": "JSON wire field",
       "name": "Task.VisitID",
       "value": "visitId",
@@ -36823,7 +36868,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:319"
+        "approval/models.go:324"
       ],
       "terms": [
         "Go",
@@ -38307,7 +38352,7 @@
       ]
     },
     {
-      "id": "c2f3054cb99d423115c0284d",
+      "id": "d04adeef398398b3c1524238",
       "category": "JSON wire field",
       "name": "ToggleActiveParams.FlowID",
       "value": "flowId",
@@ -38317,7 +38362,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:299"
+        "internal/approval/resource/flow.go:307"
       ],
       "terms": [
         "Go",
@@ -38334,7 +38379,7 @@
       ]
     },
     {
-      "id": "cdead0cc442fa694c5dc500a",
+      "id": "2c0a095d73fe13c68d665049",
       "category": "JSON wire field",
       "name": "ToggleActiveParams.IsActive",
       "value": "isActive",
@@ -38343,7 +38388,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:300"
+        "internal/approval/resource/flow.go:308"
       ],
       "terms": [
         "Go",
@@ -38721,7 +38766,7 @@
       ]
     },
     {
-      "id": "5ca9cd062d93000455808367",
+      "id": "632278c4461b92b03f5ab233",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.AdminUserIDs",
       "value": "adminUserIds",
@@ -38730,7 +38775,7 @@
         "type: []string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:255"
+        "internal/approval/resource/flow.go:263"
       ],
       "terms": [
         "Go",
@@ -38745,7 +38790,7 @@
       ]
     },
     {
-      "id": "bda87761d790d484cfff4747",
+      "id": "abc66f18e4de8d08bdf921c6",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.BindingMode",
       "value": "bindingMode",
@@ -38755,7 +38800,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:253"
+        "internal/approval/resource/flow.go:261"
       ],
       "terms": [
         "Go",
@@ -38772,7 +38817,7 @@
       ]
     },
     {
-      "id": "2433a0a5c505a141cfcd09f2",
+      "id": "046ad54a9bf2dfe8f5dce567",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.BusinessBinding",
       "value": "businessBinding",
@@ -38781,7 +38826,7 @@
         "type: *approval.BusinessBindingConfig"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:254"
+        "internal/approval/resource/flow.go:262"
       ],
       "terms": [
         "Go",
@@ -38796,7 +38841,7 @@
       ]
     },
     {
-      "id": "873b3c6d4529f0c2ef383866",
+      "id": "f4e7a0777263c88bcec7e605",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Description",
       "value": "description",
@@ -38805,7 +38850,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:251"
+        "internal/approval/resource/flow.go:259"
       ],
       "terms": [
         "Go",
@@ -38820,7 +38865,7 @@
       ]
     },
     {
-      "id": "376c09dd9ce48641b28c1be8",
+      "id": "386dd2f14ebf904b713ff0cd",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.FlowID",
       "value": "flowId",
@@ -38830,7 +38875,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:248"
+        "internal/approval/resource/flow.go:256"
       ],
       "terms": [
         "Go",
@@ -38847,7 +38892,7 @@
       ]
     },
     {
-      "id": "c5c34541e1bb0de68139c522",
+      "id": "7d954cdcfbba356d55067c38",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Icon",
       "value": "icon",
@@ -38856,7 +38901,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:250"
+        "internal/approval/resource/flow.go:258"
       ],
       "terms": [
         "Go",
@@ -38871,7 +38916,7 @@
       ]
     },
     {
-      "id": "94aebfa030cbde321891fc3d",
+      "id": "93e408ed0d5552fc2fd85f24",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Initiators",
       "value": "initiators",
@@ -38880,7 +38925,7 @@
         "type: []CreateInitiatorParams"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:258"
+        "internal/approval/resource/flow.go:266"
       ],
       "terms": [
         "CreateInitiatorParams",
@@ -38895,7 +38940,7 @@
       ]
     },
     {
-      "id": "4554f02359fc0e4ec19eb0b7",
+      "id": "94a95d7c254381b21e47702a",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.InstanceTitleTemplate",
       "value": "instanceTitleTemplate",
@@ -38905,7 +38950,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:257"
+        "internal/approval/resource/flow.go:265"
       ],
       "terms": [
         "Go",
@@ -38922,7 +38967,7 @@
       ]
     },
     {
-      "id": "4c1f229063768e42f3c85f8c",
+      "id": "8d1dd95eac4261491c0f0691",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.IsAllInitiationAllowed",
       "value": "isAllInitiationAllowed",
@@ -38931,7 +38976,7 @@
         "type: bool"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:256"
+        "internal/approval/resource/flow.go:264"
       ],
       "terms": [
         "Go",
@@ -38946,7 +38991,7 @@
       ]
     },
     {
-      "id": "61fbbaf8f396bba4eadf15bb",
+      "id": "7f52ec461de7c67f244aa122",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Labels",
       "value": "labels",
@@ -38955,7 +39000,7 @@
         "type: map[string]string"
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:252"
+        "internal/approval/resource/flow.go:260"
       ],
       "terms": [
         "Go",
@@ -38971,7 +39016,7 @@
       ]
     },
     {
-      "id": "cff222de4032f8cc10018d41",
+      "id": "30d1644b168478672574a811",
       "category": "JSON wire field",
       "name": "UpdateFlowParams.Name",
       "value": "name",
@@ -38981,7 +39026,7 @@
         "validate: \"required\""
       ],
       "source_evidence": [
-        "internal/approval/resource/flow.go:249"
+        "internal/approval/resource/flow.go:257"
       ],
       "terms": [
         "Go",
@@ -39588,7 +39633,7 @@
       ]
     },
     {
-      "id": "a3b8834ae6ee6425ca6758f8",
+      "id": "34cf4fd106c46835ddbd9f21",
       "category": "JSON wire field",
       "name": "UrgeRecord.InstanceID",
       "value": "instanceId",
@@ -39597,7 +39642,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:521"
+        "approval/models.go:526"
       ],
       "terms": [
         "Go",
@@ -39612,7 +39657,7 @@
       ]
     },
     {
-      "id": "996b64f70d327abed540cbd4",
+      "id": "f9883687c3180b8b7ea05846",
       "category": "JSON wire field",
       "name": "UrgeRecord.Message",
       "value": "message",
@@ -39621,7 +39666,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:532"
+        "approval/models.go:537"
       ],
       "terms": [
         "Go",
@@ -39636,7 +39681,7 @@
       ]
     },
     {
-      "id": "c3b8e8ad05af087e63b6366f",
+      "id": "88e0bee08e44558a1c2ccc6d",
       "category": "JSON wire field",
       "name": "UrgeRecord.NodeID",
       "value": "nodeId",
@@ -39645,7 +39690,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:522"
+        "approval/models.go:527"
       ],
       "terms": [
         "Go",
@@ -39660,7 +39705,7 @@
       ]
     },
     {
-      "id": "d747063b783979cd1758077f",
+      "id": "d0c9d2f5821dfadb146ba8f3",
       "category": "JSON wire field",
       "name": "UrgeRecord.TargetUserDepartmentID",
       "value": "targetUserDepartmentId",
@@ -39669,7 +39714,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:530"
+        "approval/models.go:535"
       ],
       "terms": [
         "Go",
@@ -39684,7 +39729,7 @@
       ]
     },
     {
-      "id": "177e0780e479135af2708919",
+      "id": "14ffdc91d767a4f2446b09ba",
       "category": "JSON wire field",
       "name": "UrgeRecord.TargetUserDepartmentName",
       "value": "targetUserDepartmentName",
@@ -39693,7 +39738,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:531"
+        "approval/models.go:536"
       ],
       "terms": [
         "Go",
@@ -39708,7 +39753,7 @@
       ]
     },
     {
-      "id": "d11257a596753f2c9e381d9f",
+      "id": "6523474e83c1b62640de863b",
       "category": "JSON wire field",
       "name": "UrgeRecord.TargetUserID",
       "value": "targetUserId",
@@ -39717,7 +39762,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:528"
+        "approval/models.go:533"
       ],
       "terms": [
         "Go",
@@ -39732,7 +39777,7 @@
       ]
     },
     {
-      "id": "bbd2178ee2abc32401a14977",
+      "id": "e3647b8914c453eec9a7a928",
       "category": "JSON wire field",
       "name": "UrgeRecord.TargetUserName",
       "value": "targetUserName",
@@ -39741,7 +39786,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:529"
+        "approval/models.go:534"
       ],
       "terms": [
         "Go",
@@ -39756,7 +39801,7 @@
       ]
     },
     {
-      "id": "23f19a36d1e737bde7c8a6ef",
+      "id": "5c2842496027cdd2406b99f7",
       "category": "JSON wire field",
       "name": "UrgeRecord.TaskID",
       "value": "taskId",
@@ -39765,7 +39810,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:523"
+        "approval/models.go:528"
       ],
       "terms": [
         "Go",
@@ -39780,7 +39825,7 @@
       ]
     },
     {
-      "id": "8b6c18260bd2a660236bb3a2",
+      "id": "abdfc534d9749ccd518580fe",
       "category": "JSON wire field",
       "name": "UrgeRecord.UrgerDepartmentID",
       "value": "urgerDepartmentId",
@@ -39789,7 +39834,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:526"
+        "approval/models.go:531"
       ],
       "terms": [
         "Go",
@@ -39804,7 +39849,7 @@
       ]
     },
     {
-      "id": "7854e1c65ab573b1ca50dc93",
+      "id": "b465017d5e8491c10027294d",
       "category": "JSON wire field",
       "name": "UrgeRecord.UrgerDepartmentName",
       "value": "urgerDepartmentName",
@@ -39813,7 +39858,7 @@
         "type: *string"
       ],
       "source_evidence": [
-        "approval/models.go:527"
+        "approval/models.go:532"
       ],
       "terms": [
         "Go",
@@ -39828,7 +39873,7 @@
       ]
     },
     {
-      "id": "c02688f5022431c177b18e5d",
+      "id": "f2a7d5fac3565b2169436b58",
       "category": "JSON wire field",
       "name": "UrgeRecord.UrgerID",
       "value": "urgerId",
@@ -39837,7 +39882,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:524"
+        "approval/models.go:529"
       ],
       "terms": [
         "Go",
@@ -39852,7 +39897,7 @@
       ]
     },
     {
-      "id": "ae4ce08cad366648da41a2f8",
+      "id": "b9bf3440c606880acbbce1ed",
       "category": "JSON wire field",
       "name": "UrgeRecord.UrgerName",
       "value": "urgerName",
@@ -39861,7 +39906,7 @@
         "type: string"
       ],
       "source_evidence": [
-        "approval/models.go:525"
+        "approval/models.go:530"
       ],
       "terms": [
         "Go",
@@ -44574,12 +44619,12 @@
       ]
     },
     {
-      "id": "3f95a0bf88654417e1759d04",
+      "id": "5c37bdced8a6fd1845acce3f",
       "category": "built-in resource",
       "name": "approval/category",
       "value": "rpc",
       "source_evidence": [
-        "internal/approval/resource/category.go:137"
+        "internal/approval/resource/category.go:124"
       ],
       "terms": [
         "approval/category",
@@ -45069,7 +45114,7 @@
       ]
     },
     {
-      "id": "d934ffc12dd8ec5cd2822222",
+      "id": "e7022fe839e8ab9ef7ad8f86",
       "category": "built-in resource action",
       "name": "approval/category/create",
       "value": "create",
@@ -45078,7 +45123,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:141"
+        "internal/approval/resource/category.go:128"
       ],
       "terms": [
         "action",
@@ -45093,7 +45138,7 @@
       ]
     },
     {
-      "id": "c0be4fd280b82f4fd9619858",
+      "id": "7a5b148f25d96a11f529488d",
       "category": "built-in resource action",
       "name": "approval/category/delete",
       "value": "delete",
@@ -45102,7 +45147,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:156"
+        "internal/approval/resource/category.go:143"
       ],
       "terms": [
         "action",
@@ -45117,7 +45162,7 @@
       ]
     },
     {
-      "id": "c33d8377959c9af939a9c5db",
+      "id": "1673c7dff7a2a7b29f67c0af",
       "category": "built-in resource action",
       "name": "approval/category/find_tree",
       "value": "find_tree",
@@ -45126,7 +45171,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:138"
+        "internal/approval/resource/category.go:125"
       ],
       "terms": [
         "action",
@@ -45141,7 +45186,7 @@
       ]
     },
     {
-      "id": "2af3a24bff365ca389247563",
+      "id": "49147f91e61a87a5fb537687",
       "category": "built-in resource action",
       "name": "approval/category/update",
       "value": "update",
@@ -45150,7 +45195,7 @@
         "resource kind: rpc"
       ],
       "source_evidence": [
-        "internal/approval/resource/category.go:146"
+        "internal/approval/resource/category.go:133"
       ],
       "terms": [
         "action",
@@ -54375,7 +54420,7 @@
       ]
     },
     {
-      "id": "23109a7ab1331687f7438a4f",
+      "id": "c0faa06de3bd708f1a2f3c9a",
       "category": "i18n message key",
       "name": "approval_access_denied",
       "value": "approval_access_denied",
@@ -54383,7 +54428,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:223"
+        "approval/api_errors.go:229"
       ],
       "terms": [
         "approval_access_denied",
@@ -54395,7 +54440,7 @@
       ]
     },
     {
-      "id": "12ffc1228dce611d8a0feb2a",
+      "id": "278cdda9a55b3393a2b849d4",
       "category": "i18n message key",
       "name": "approval_add_assignee_not_allowed",
       "value": "approval_add_assignee_not_allowed",
@@ -54403,7 +54448,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:198"
+        "approval/api_errors.go:204"
       ],
       "terms": [
         "approval_add_assignee_not_allowed",
@@ -54555,7 +54600,7 @@
       ]
     },
     {
-      "id": "0ae48c2f4b730633b1357532",
+      "id": "e98e64627fdc466b5da28389",
       "category": "i18n message key",
       "name": "approval_assignee_resolve_failed",
       "value": "approval_assignee_resolve_failed",
@@ -54563,7 +54608,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:211"
+        "approval/api_errors.go:217"
       ],
       "terms": [
         "approval_assignee_resolve_failed",
@@ -54575,7 +54620,7 @@
       ]
     },
     {
-      "id": "c316d470e0ceaede3208580c",
+      "id": "9ef33d4332c344d051a778fe",
       "category": "i18n message key",
       "name": "approval_binding_column_missing",
       "value": "approval_binding_column_missing",
@@ -54583,7 +54628,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:253"
+        "approval/api_errors.go:259"
       ],
       "terms": [
         "approval_binding_column_missing",
@@ -54595,7 +54640,7 @@
       ]
     },
     {
-      "id": "af8927349017bb95ee0f20a3",
+      "id": "a30822fcab9767b77ecdfa2f",
       "category": "i18n message key",
       "name": "approval_binding_columns_conflict",
       "value": "approval_binding_columns_conflict",
@@ -54603,7 +54648,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:165"
+        "approval/api_errors.go:171"
       ],
       "terms": [
         "approval_binding_columns_conflict",
@@ -54615,7 +54660,7 @@
       ]
     },
     {
-      "id": "d5dde86ef796b1e14c27df78",
+      "id": "abc0bfa9901ddb6fa6e4afc1",
       "category": "i18n message key",
       "name": "approval_binding_incomplete",
       "value": "approval_binding_incomplete",
@@ -54623,7 +54668,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:122"
+        "approval/api_errors.go:123"
       ],
       "terms": [
         "approval_binding_incomplete",
@@ -54635,7 +54680,7 @@
       ]
     },
     {
-      "id": "9abf0540f481adf11bdabd90",
+      "id": "71e248cf2bf62e10163b97a5",
       "category": "i18n message key",
       "name": "approval_binding_key_not_unique",
       "value": "approval_binding_key_not_unique",
@@ -54643,7 +54688,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:171"
+        "approval/api_errors.go:177"
       ],
       "terms": [
         "approval_binding_key_not_unique",
@@ -54655,7 +54700,7 @@
       ]
     },
     {
-      "id": "3064274eaa4c83c9a5a69df3",
+      "id": "48fd52b7292c68a7b68800e4",
       "category": "i18n message key",
       "name": "approval_binding_projection_not_found",
       "value": "approval_binding_projection_not_found",
@@ -54663,7 +54708,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:189"
+        "approval/api_errors.go:195"
       ],
       "terms": [
         "approval_binding_projection_not_found",
@@ -54675,7 +54720,7 @@
       ]
     },
     {
-      "id": "1a2b0cef8d34c05d6869d7ab",
+      "id": "91509b260ea1e4a637891290",
       "category": "i18n message key",
       "name": "approval_binding_status_mapping_invalid",
       "value": "approval_binding_status_mapping_invalid",
@@ -54683,7 +54728,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:175"
+        "approval/api_errors.go:181"
       ],
       "terms": [
         "approval_binding_status_mapping_invalid",
@@ -54695,7 +54740,7 @@
       ]
     },
     {
-      "id": "8a9deb7fb1d9b8a718f92f41",
+      "id": "4e4107cde742ecb67450e6f0",
       "category": "i18n message key",
       "name": "approval_binding_table_missing",
       "value": "approval_binding_table_missing",
@@ -54703,7 +54748,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:243"
+        "approval/api_errors.go:249"
       ],
       "terms": [
         "approval_binding_table_missing",
@@ -54715,7 +54760,7 @@
       ]
     },
     {
-      "id": "ad3dbf9f53b5a2310942ac43",
+      "id": "cd2d4e4cfb1056167e0e091d",
       "category": "i18n message key",
       "name": "approval_binding_target_busy",
       "value": "approval_binding_target_busy",
@@ -54723,7 +54768,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:186"
+        "approval/api_errors.go:192"
       ],
       "terms": [
         "approval_binding_target_busy",
@@ -54735,7 +54780,7 @@
       ]
     },
     {
-      "id": "180d89e3758364893330158c",
+      "id": "4bea48cd31f929987f7d3188",
       "category": "i18n message key",
       "name": "approval_binding_unexpected",
       "value": "approval_binding_unexpected",
@@ -54743,7 +54788,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:168"
+        "approval/api_errors.go:174"
       ],
       "terms": [
         "approval_binding_unexpected",
@@ -54755,7 +54800,7 @@
       ]
     },
     {
-      "id": "27fd4d4e74cfbf880568ff64",
+      "id": "f80648338f35212174447692",
       "category": "i18n message key",
       "name": "approval_business_ref_required",
       "value": "approval_business_ref_required",
@@ -54763,7 +54808,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:185"
+        "approval/api_errors.go:191"
       ],
       "terms": [
         "approval_business_ref_required",
@@ -54775,7 +54820,7 @@
       ]
     },
     {
-      "id": "6235c22ec1098154a5df56b0",
+      "id": "22e4765746dd90cf2541c770",
       "category": "i18n message key",
       "name": "approval_category_not_found",
       "value": "approval_category_not_found",
@@ -54783,7 +54828,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:157"
+        "approval/api_errors.go:158"
       ],
       "terms": [
         "approval_category_not_found",
@@ -54875,7 +54920,7 @@
       ]
     },
     {
-      "id": "a559f9e138c2e2cec994c6c7",
+      "id": "c6772fc76982cdab3816c4d8",
       "category": "i18n message key",
       "name": "approval_cross_tenant_access",
       "value": "approval_cross_tenant_access",
@@ -54883,7 +54928,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:234"
+        "approval/api_errors.go:240"
       ],
       "terms": [
         "approval_cross_tenant_access",
@@ -54895,7 +54940,7 @@
       ]
     },
     {
-      "id": "61eaf9f6b18b26e26761306b",
+      "id": "fc6d50a6c5fa2af62c66394b",
       "category": "i18n message key",
       "name": "approval_flow_code_exists",
       "value": "approval_flow_code_exists",
@@ -54903,7 +54948,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:96"
+        "approval/api_errors.go:97"
       ],
       "terms": [
         "approval_flow_code_exists",
@@ -54915,7 +54960,7 @@
       ]
     },
     {
-      "id": "084993a06671653901fac72a",
+      "id": "d4223f5977045c2523ddaf73",
       "category": "i18n message key",
       "name": "approval_flow_not_active",
       "value": "approval_flow_not_active",
@@ -54923,7 +54968,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:92"
+        "approval/api_errors.go:93"
       ],
       "terms": [
         "approval_flow_not_active",
@@ -54935,7 +54980,7 @@
       ]
     },
     {
-      "id": "7a566f3f645419afe24fa285",
+      "id": "afd80d823d3b529db94c04b0",
       "category": "i18n message key",
       "name": "approval_flow_not_found",
       "value": "approval_flow_not_found",
@@ -54943,7 +54988,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:91"
+        "approval/api_errors.go:92"
       ],
       "terms": [
         "approval_flow_not_found",
@@ -54995,7 +55040,7 @@
       ]
     },
     {
-      "id": "6190ed577058aaeab206f163",
+      "id": "add40b4142ff60c498e55d05",
       "category": "i18n message key",
       "name": "approval_form_data_too_large",
       "value": "approval_form_data_too_large",
@@ -55003,7 +55048,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:219"
+        "approval/api_errors.go:225"
       ],
       "terms": [
         "approval_form_data_too_large",
@@ -55695,7 +55740,7 @@
       ]
     },
     {
-      "id": "825e6a7307116264856ee2ee",
+      "id": "8c85dfa8ec9bb7466e24a899",
       "category": "i18n message key",
       "name": "approval_form_validation_failed",
       "value": "approval_form_validation_failed",
@@ -55703,7 +55748,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:213"
+        "approval/api_errors.go:219"
       ],
       "terms": [
         "approval_form_validation_failed",
@@ -55775,7 +55820,7 @@
       ]
     },
     {
-      "id": "224365281510b119c30433b7",
+      "id": "0a26d9a3b2ea3b7742351cd6",
       "category": "i18n message key",
       "name": "approval_initiators_not_allowed",
       "value": "approval_initiators_not_allowed",
@@ -55783,7 +55828,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:137"
+        "approval/api_errors.go:138"
       ],
       "terms": [
         "approval_initiators_not_allowed",
@@ -55795,7 +55840,7 @@
       ]
     },
     {
-      "id": "e792d9a4bf9725c882803fcc",
+      "id": "8ac392c846bdfb3cf7d2f9db",
       "category": "i18n message key",
       "name": "approval_initiators_required",
       "value": "approval_initiators_required",
@@ -55803,7 +55848,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:144"
+        "approval/api_errors.go:145"
       ],
       "terms": [
         "approval_initiators_required",
@@ -55815,7 +55860,7 @@
       ]
     },
     {
-      "id": "201340995a1ea28eb43e7b88",
+      "id": "0579b4344ab9305c3c10dec1",
       "category": "i18n message key",
       "name": "approval_instance_completed",
       "value": "approval_instance_completed",
@@ -55823,7 +55868,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:180"
+        "approval/api_errors.go:186"
       ],
       "terms": [
         "approval_instance_completed",
@@ -55835,7 +55880,7 @@
       ]
     },
     {
-      "id": "1aed62c9e5a35dacb80a8bd7",
+      "id": "7261f6a96b91e68ad8ca91c1",
       "category": "i18n message key",
       "name": "approval_instance_not_found",
       "value": "approval_instance_not_found",
@@ -55843,7 +55888,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:179"
+        "approval/api_errors.go:185"
       ],
       "terms": [
         "approval_instance_not_found",
@@ -55855,7 +55900,7 @@
       ]
     },
     {
-      "id": "a068912d82df6c0779d96ba1",
+      "id": "1cea4583310d123977db9ad3",
       "category": "i18n message key",
       "name": "approval_invalid_add_assignee_type",
       "value": "approval_invalid_add_assignee_type",
@@ -55863,7 +55908,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:203"
+        "approval/api_errors.go:209"
       ],
       "terms": [
         "approval_invalid_add_assignee_type",
@@ -55875,7 +55920,7 @@
       ]
     },
     {
-      "id": "89ac8e5088c170fefb14f59e",
+      "id": "4f352e4e46f5812b56402a12",
       "category": "i18n message key",
       "name": "approval_invalid_binding_mode",
       "value": "approval_invalid_binding_mode",
@@ -55883,7 +55928,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:127"
+        "approval/api_errors.go:128"
       ],
       "terms": [
         "approval_invalid_binding_mode",
@@ -55895,7 +55940,7 @@
       ]
     },
     {
-      "id": "d7fbe432e7241753e83c5a75",
+      "id": "1f20cdfd7420d32ccf3ebdda",
       "category": "i18n message key",
       "name": "approval_invalid_business_identifier",
       "value": "approval_invalid_business_identifier",
@@ -55903,7 +55948,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:104"
+        "approval/api_errors.go:105"
       ],
       "terms": [
         "approval_invalid_business_identifier",
@@ -55915,7 +55960,7 @@
       ]
     },
     {
-      "id": "bf105646c351a632a1892b3b",
+      "id": "c3e09ecf26e6d204972c5199",
       "category": "i18n message key",
       "name": "approval_invalid_business_ref",
       "value": "approval_invalid_business_ref",
@@ -55923,7 +55968,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:187"
+        "approval/api_errors.go:193"
       ],
       "terms": [
         "approval_invalid_business_ref",
@@ -55935,7 +55980,7 @@
       ]
     },
     {
-      "id": "02527eadf07cf64e87d059c5",
+      "id": "ca0ba552f500eb8a2788120d",
       "category": "i18n message key",
       "name": "approval_invalid_flow_design",
       "value": "approval_invalid_flow_design",
@@ -55943,7 +55988,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:95"
+        "approval/api_errors.go:96"
       ],
       "terms": [
         "approval_invalid_flow_design",
@@ -55955,7 +56000,7 @@
       ]
     },
     {
-      "id": "77498716662e7346bc37e6b5",
+      "id": "d830c992bced3bc29afd8970",
       "category": "i18n message key",
       "name": "approval_invalid_flow_label",
       "value": "approval_invalid_flow_label",
@@ -55963,7 +56008,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:114"
+        "approval/api_errors.go:115"
       ],
       "terms": [
         "approval_invalid_flow_label",
@@ -55975,7 +56020,7 @@
       ]
     },
     {
-      "id": "02fabaae316331900ce3125b",
+      "id": "479ef776ddd8590001eec9d2",
       "category": "i18n message key",
       "name": "approval_invalid_form_design",
       "value": "approval_invalid_form_design",
@@ -55983,7 +56028,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:119"
+        "approval/api_errors.go:120"
       ],
       "terms": [
         "approval_invalid_form_design",
@@ -55995,7 +56040,7 @@
       ]
     },
     {
-      "id": "934da097a2b78e433f18d8c4",
+      "id": "596d751f2970953fa18f39a6",
       "category": "i18n message key",
       "name": "approval_invalid_initiator_kind",
       "value": "approval_invalid_initiator_kind",
@@ -56003,7 +56048,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:131"
+        "approval/api_errors.go:132"
       ],
       "terms": [
         "approval_invalid_initiator_kind",
@@ -56015,7 +56060,7 @@
       ]
     },
     {
-      "id": "ea792eba1dcebd0cb6daeefd",
+      "id": "33c4ae9c7e918ef0f19a9113",
       "category": "i18n message key",
       "name": "approval_invalid_instance_transition",
       "value": "approval_invalid_instance_transition",
@@ -56023,7 +56068,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:184"
+        "approval/api_errors.go:190"
       ],
       "terms": [
         "approval_invalid_instance_transition",
@@ -56035,7 +56080,7 @@
       ]
     },
     {
-      "id": "fdaf325909cd2384db7c83a0",
+      "id": "a39c4578506d4d4005241943",
       "category": "i18n message key",
       "name": "approval_invalid_rollback_target",
       "value": "approval_invalid_rollback_target",
@@ -56043,7 +56088,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:205"
+        "approval/api_errors.go:211"
       ],
       "terms": [
         "approval_invalid_rollback_target",
@@ -56055,7 +56100,7 @@
       ]
     },
     {
-      "id": "5f219681c655de5d706a3e1a",
+      "id": "fc7bed1094443e816cee75e7",
       "category": "i18n message key",
       "name": "approval_invalid_storage_mode",
       "value": "approval_invalid_storage_mode",
@@ -56063,7 +56108,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:162"
+        "approval/api_errors.go:168"
       ],
       "terms": [
         "approval_invalid_storage_mode",
@@ -56075,7 +56120,7 @@
       ]
     },
     {
-      "id": "e440bbbec400d12596fe144a",
+      "id": "a4eea8621ab6a0b69ee14738",
       "category": "i18n message key",
       "name": "approval_invalid_task_transition",
       "value": "approval_invalid_task_transition",
@@ -56083,7 +56128,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:196"
+        "approval/api_errors.go:202"
       ],
       "terms": [
         "approval_invalid_task_transition",
@@ -56095,7 +56140,7 @@
       ]
     },
     {
-      "id": "5f6c71521f46b0b972b0e2ca",
+      "id": "4cabfbabb35e6f63a261cb93",
       "category": "i18n message key",
       "name": "approval_invalid_title_template",
       "value": "approval_invalid_title_template",
@@ -56103,7 +56148,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:110"
+        "approval/api_errors.go:111"
       ],
       "terms": [
         "approval_invalid_title_template",
@@ -56115,7 +56160,7 @@
       ]
     },
     {
-      "id": "224da266f17ce37562072544",
+      "id": "9106365ce4a69b9cccde90d1",
       "category": "i18n message key",
       "name": "approval_invalid_transfer_target",
       "value": "approval_invalid_transfer_target",
@@ -56123,7 +56168,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:207"
+        "approval/api_errors.go:213"
       ],
       "terms": [
         "approval_invalid_transfer_target",
@@ -56135,7 +56180,7 @@
       ]
     },
     {
-      "id": "49c61cc8c1cf9cd0cbefbc9f",
+      "id": "6269aa1e75add765ac63e67b",
       "category": "i18n message key",
       "name": "approval_last_assignee_removal",
       "value": "approval_last_assignee_removal",
@@ -56143,7 +56188,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:206"
+        "approval/api_errors.go:212"
       ],
       "terms": [
         "approval_last_assignee_removal",
@@ -56155,7 +56200,7 @@
       ]
     },
     {
-      "id": "5962356d2a6fc01176251173",
+      "id": "f116dcd46050bf4dd48d73ea",
       "category": "i18n message key",
       "name": "approval_manual_cc_not_allowed",
       "value": "approval_manual_cc_not_allowed",
@@ -56163,7 +56208,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:201"
+        "approval/api_errors.go:207"
       ],
       "terms": [
         "approval_manual_cc_not_allowed",
@@ -56175,7 +56220,7 @@
       ]
     },
     {
-      "id": "1608bac8b88f6de916e8acd5",
+      "id": "be1e3263deb75c3cc2e6ca35",
       "category": "i18n message key",
       "name": "approval_no_assignee",
       "value": "approval_no_assignee",
@@ -56183,7 +56228,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:210"
+        "approval/api_errors.go:216"
       ],
       "terms": [
         "approval_no_assignee",
@@ -56195,7 +56240,7 @@
       ]
     },
     {
-      "id": "1e25f790bf21e3edf0762949",
+      "id": "113da82877b868ccc3f5da2e",
       "category": "i18n message key",
       "name": "approval_no_published_version",
       "value": "approval_no_published_version",
@@ -56203,7 +56248,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:93"
+        "approval/api_errors.go:94"
       ],
       "terms": [
         "approval_no_published_version",
@@ -56215,7 +56260,7 @@
       ]
     },
     {
-      "id": "b81e6355e14acacbc8c3c856",
+      "id": "b426e8f7a6cdd405c4398e23",
       "category": "i18n message key",
       "name": "approval_no_users_specified",
       "value": "approval_no_users_specified",
@@ -56223,7 +56268,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:208"
+        "approval/api_errors.go:214"
       ],
       "terms": [
         "approval_no_users_specified",
@@ -56235,7 +56280,7 @@
       ]
     },
     {
-      "id": "9bd69a401385151bddab5639",
+      "id": "a9d6232e21826d4bb77ee740",
       "category": "i18n message key",
       "name": "approval_not_allowed_initiate",
       "value": "approval_not_allowed_initiate",
@@ -56243,7 +56288,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:181"
+        "approval/api_errors.go:187"
       ],
       "terms": [
         "approval_not_allowed_initiate",
@@ -56255,7 +56300,7 @@
       ]
     },
     {
-      "id": "37359d6a25a67de0256991ff",
+      "id": "99e75384e6b450a9c64b32d1",
       "category": "i18n message key",
       "name": "approval_not_applicant",
       "value": "approval_not_applicant",
@@ -56263,7 +56308,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:204"
+        "approval/api_errors.go:210"
       ],
       "terms": [
         "approval_not_applicant",
@@ -56275,7 +56320,7 @@
       ]
     },
     {
-      "id": "ed257a0a300fe44ea8d82284",
+      "id": "e8d8b4090f23c00421288d2f",
       "category": "i18n message key",
       "name": "approval_not_assignee",
       "value": "approval_not_assignee",
@@ -56283,7 +56328,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:195"
+        "approval/api_errors.go:201"
       ],
       "terms": [
         "approval_not_assignee",
@@ -56295,7 +56340,7 @@
       ]
     },
     {
-      "id": "a35a06a385966b89eff424a9",
+      "id": "8daad7cefe225685829cdcc1",
       "category": "i18n message key",
       "name": "approval_opinion_required",
       "value": "approval_opinion_required",
@@ -56303,7 +56348,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:200"
+        "approval/api_errors.go:206"
       ],
       "terms": [
         "approval_opinion_required",
@@ -56315,7 +56360,7 @@
       ]
     },
     {
-      "id": "ccb0c965b555f76d2458aae3",
+      "id": "1245db989e5b9f53267a8f55",
       "category": "i18n message key",
       "name": "approval_remove_assignee_not_allowed",
       "value": "approval_remove_assignee_not_allowed",
@@ -56323,7 +56368,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:202"
+        "approval/api_errors.go:208"
       ],
       "terms": [
         "approval_remove_assignee_not_allowed",
@@ -56335,7 +56380,7 @@
       ]
     },
     {
-      "id": "595d8150edb61a93cfef137c",
+      "id": "98d4ba1f583b1db3614bed15",
       "category": "i18n message key",
       "name": "approval_resubmit_not_allowed",
       "value": "approval_resubmit_not_allowed",
@@ -56343,7 +56388,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:183"
+        "approval/api_errors.go:189"
       ],
       "terms": [
         "approval_resubmit_not_allowed",
@@ -56355,7 +56400,7 @@
       ]
     },
     {
-      "id": "6afa62ff9f972020c1e66b68",
+      "id": "1bd617bc19abf1bfb37c0e88",
       "category": "i18n message key",
       "name": "approval_rollback_not_allowed",
       "value": "approval_rollback_not_allowed",
@@ -56363,7 +56408,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:197"
+        "approval/api_errors.go:203"
       ],
       "terms": [
         "approval_rollback_not_allowed",
@@ -56375,7 +56420,27 @@
       ]
     },
     {
-      "id": "09599a642ee4e44ac6f1f589",
+      "id": "ee8b5b27e455bd3e684cdae8",
+      "category": "i18n message key",
+      "name": "approval_shared_flow_code_exists",
+      "value": "approval_shared_flow_code_exists",
+      "details": [
+        "i18n.T call"
+      ],
+      "source_evidence": [
+        "approval/api_errors.go:163"
+      ],
+      "terms": [
+        "approval_shared_flow_code_exists",
+        "call",
+        "i18n",
+        "i18n.T",
+        "key",
+        "message"
+      ]
+    },
+    {
+      "id": "3f020d29a7fc854d2090a283",
       "category": "i18n message key",
       "name": "approval_shared_flow_names_people",
       "value": "approval_shared_flow_names_people",
@@ -56383,7 +56448,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:152"
+        "approval/api_errors.go:153"
       ],
       "terms": [
         "approval_shared_flow_names_people",
@@ -56395,7 +56460,7 @@
       ]
     },
     {
-      "id": "408c301cd9713e657c1ede53",
+      "id": "594b4052b10b3364056830d3",
       "category": "i18n message key",
       "name": "approval_task_not_found",
       "value": "approval_task_not_found",
@@ -56403,7 +56468,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:193"
+        "approval/api_errors.go:199"
       ],
       "terms": [
         "approval_task_not_found",
@@ -56415,7 +56480,7 @@
       ]
     },
     {
-      "id": "330bcb435712e95f0db5c0e4",
+      "id": "9833e2046506fbfc8c8845f9",
       "category": "i18n message key",
       "name": "approval_task_not_pending",
       "value": "approval_task_not_pending",
@@ -56423,7 +56488,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:194"
+        "approval/api_errors.go:200"
       ],
       "terms": [
         "approval_task_not_pending",
@@ -56435,7 +56500,7 @@
       ]
     },
     {
-      "id": "3085a088d7c5f9d49538f66b",
+      "id": "ea42106e39adc35890832c2a",
       "category": "i18n message key",
       "name": "approval_terminate_not_allowed",
       "value": "approval_terminate_not_allowed",
@@ -56443,7 +56508,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:227"
+        "approval/api_errors.go:233"
       ],
       "terms": [
         "approval_terminate_not_allowed",
@@ -56455,7 +56520,7 @@
       ]
     },
     {
-      "id": "5d1c1031c40fa5eec82b51a9",
+      "id": "ca1b599f8ae937da28576a38",
       "category": "i18n message key",
       "name": "approval_transfer_not_allowed",
       "value": "approval_transfer_not_allowed",
@@ -56463,7 +56528,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:199"
+        "approval/api_errors.go:205"
       ],
       "terms": [
         "approval_transfer_not_allowed",
@@ -56495,7 +56560,7 @@
       ]
     },
     {
-      "id": "52871ecfeddb63d5841d7e69",
+      "id": "1aa392859fd0f22f6b7806fc",
       "category": "i18n message key",
       "name": "approval_version_not_draft",
       "value": "approval_version_not_draft",
@@ -56503,7 +56568,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:94"
+        "approval/api_errors.go:95"
       ],
       "terms": [
         "approval_version_not_draft",
@@ -56515,7 +56580,7 @@
       ]
     },
     {
-      "id": "5451074a6b0c9cca4a4e82c9",
+      "id": "d1b84435f9bbe2aac54eadcd",
       "category": "i18n message key",
       "name": "approval_version_not_found",
       "value": "approval_version_not_found",
@@ -56523,7 +56588,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:97"
+        "approval/api_errors.go:98"
       ],
       "terms": [
         "approval_version_not_found",
@@ -56535,7 +56600,7 @@
       ]
     },
     {
-      "id": "136620ef60d4d409b0c6cee5",
+      "id": "1f4161fb05538423df1ce21f",
       "category": "i18n message key",
       "name": "approval_withdraw_not_allowed",
       "value": "approval_withdraw_not_allowed",
@@ -56543,7 +56608,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:182"
+        "approval/api_errors.go:188"
       ],
       "terms": [
         "approval_withdraw_not_allowed",
@@ -60204,12 +60269,12 @@
       ]
     },
     {
-      "id": "2806d817ced2e0216911c153",
+      "id": "02b6ae460e7b6697028c7945",
       "category": "result error code",
       "name": "ErrCodeAccessDenied",
       "value": "40701",
       "source_evidence": [
-        "approval/api_errors.go:75"
+        "approval/api_errors.go:76"
       ],
       "terms": [
         "40701",
@@ -60268,12 +60333,12 @@
       ]
     },
     {
-      "id": "69583741ce08d12def636d4b",
+      "id": "31cd16dcabc2b9010f7baebc",
       "category": "result error code",
       "name": "ErrCodeAddAssigneeNotAllowed",
       "value": "40206",
       "source_evidence": [
-        "approval/api_errors.go:56"
+        "approval/api_errors.go:57"
       ],
       "terms": [
         "40206",
@@ -60300,12 +60365,12 @@
       ]
     },
     {
-      "id": "e337ffd4f2d92694b9dd5b1d",
+      "id": "a7376faefc76ddcfc561f1e5",
       "category": "result error code",
       "name": "ErrCodeAssigneeResolveFailed",
       "value": "40302",
       "source_evidence": [
-        "approval/api_errors.go:69"
+        "approval/api_errors.go:70"
       ],
       "terms": [
         "40302",
@@ -60428,12 +60493,12 @@
       ]
     },
     {
-      "id": "f95721bc7b223875367ecf6e",
+      "id": "92c9bf3977b4ccfbc7516d1f",
       "category": "result error code",
       "name": "ErrCodeBindingProjectionNotFound",
       "value": "40110",
       "source_evidence": [
-        "approval/api_errors.go:49"
+        "approval/api_errors.go:50"
       ],
       "terms": [
         "40110",
@@ -60476,12 +60541,12 @@
       ]
     },
     {
-      "id": "c22af567c24067a062b479fa",
+      "id": "4e271e82712d621fb9f303d6",
       "category": "result error code",
       "name": "ErrCodeBindingTargetBusy",
       "value": "40108",
       "source_evidence": [
-        "approval/api_errors.go:47"
+        "approval/api_errors.go:48"
       ],
       "terms": [
         "40108",
@@ -60508,12 +60573,12 @@
       ]
     },
     {
-      "id": "173ee3b301fa6f3b16da607f",
+      "id": "bb0ef79ee85590fbe5861104",
       "category": "result error code",
       "name": "ErrCodeBusinessRefRequired",
       "value": "40107",
       "source_evidence": [
-        "approval/api_errors.go:46"
+        "approval/api_errors.go:47"
       ],
       "terms": [
         "40107",
@@ -60732,12 +60797,12 @@
       ]
     },
     {
-      "id": "9be08a321a50fb264b914dc5",
+      "id": "530097bbc6d69b703ff124c9",
       "category": "result error code",
       "name": "ErrCodeCrossTenantAccess",
       "value": "40703",
       "source_evidence": [
-        "approval/api_errors.go:77"
+        "approval/api_errors.go:78"
       ],
       "terms": [
         "40703",
@@ -60972,12 +61037,12 @@
       ]
     },
     {
-      "id": "fc7ebec7f285ae803d35051f",
+      "id": "0c6fd75e3f195468d0638916",
       "category": "result error code",
       "name": "ErrCodeFormValidationFailed",
       "value": "40401",
       "source_evidence": [
-        "approval/api_errors.go:71"
+        "approval/api_errors.go:72"
       ],
       "terms": [
         "40401",
@@ -61148,12 +61213,12 @@
       ]
     },
     {
-      "id": "38fb927d567207797698dbdf",
+      "id": "87408d7a4647992ec3f28257",
       "category": "result error code",
       "name": "ErrCodeInstanceCompleted",
       "value": "40102",
       "source_evidence": [
-        "approval/api_errors.go:41"
+        "approval/api_errors.go:42"
       ],
       "terms": [
         "40102",
@@ -61164,12 +61229,12 @@
       ]
     },
     {
-      "id": "5a3139ec5768de9d7f72b525",
+      "id": "2c17182fff4684b3845fe804",
       "category": "result error code",
       "name": "ErrCodeInstanceNotFound",
       "value": "40101",
       "source_evidence": [
-        "approval/api_errors.go:40"
+        "approval/api_errors.go:41"
       ],
       "terms": [
         "40101",
@@ -61180,12 +61245,12 @@
       ]
     },
     {
-      "id": "9c4f9e3ed27a9046c0861f06",
+      "id": "16bec3b22d5757ce11b73cb1",
       "category": "result error code",
       "name": "ErrCodeInvalidAddAssigneeType",
       "value": "40211",
       "source_evidence": [
-        "approval/api_errors.go:61"
+        "approval/api_errors.go:62"
       ],
       "terms": [
         "40211",
@@ -61260,12 +61325,12 @@
       ]
     },
     {
-      "id": "13e4f42d3b3966b8518ce51c",
+      "id": "ba0468ff10ffec7d3dee7d50",
       "category": "result error code",
       "name": "ErrCodeInvalidBusinessRef",
       "value": "40109",
       "source_evidence": [
-        "approval/api_errors.go:48"
+        "approval/api_errors.go:49"
       ],
       "terms": [
         "40109",
@@ -61436,12 +61501,12 @@
       ]
     },
     {
-      "id": "5b2679bb4c388c3fb0b2d022",
+      "id": "ee8bce62f26cc3f9be5dd086",
       "category": "result error code",
       "name": "ErrCodeInvalidInstanceTransition",
       "value": "40106",
       "source_evidence": [
-        "approval/api_errors.go:45"
+        "approval/api_errors.go:46"
       ],
       "terms": [
         "40106",
@@ -61468,12 +61533,12 @@
       ]
     },
     {
-      "id": "a1a6e2f2b6406b7d5470e1f8",
+      "id": "0bf25cb3e558eb2dc6a1e5ec",
       "category": "result error code",
       "name": "ErrCodeInvalidRollbackTarget",
       "value": "40213",
       "source_evidence": [
-        "approval/api_errors.go:63"
+        "approval/api_errors.go:64"
       ],
       "terms": [
         "40213",
@@ -61548,12 +61613,12 @@
       ]
     },
     {
-      "id": "a0ad9cc6146f5c3f76862b65",
+      "id": "9d2e396c2ac57f38fb8dccb5",
       "category": "result error code",
       "name": "ErrCodeInvalidTaskTransition",
       "value": "40204",
       "source_evidence": [
-        "approval/api_errors.go:54"
+        "approval/api_errors.go:55"
       ],
       "terms": [
         "40204",
@@ -61580,12 +61645,12 @@
       ]
     },
     {
-      "id": "3cbff3569724cca413c12892",
+      "id": "6fc5f4120532759006bf32a8",
       "category": "result error code",
       "name": "ErrCodeInvalidTransferTarget",
       "value": "40215",
       "source_evidence": [
-        "approval/api_errors.go:65"
+        "approval/api_errors.go:66"
       ],
       "terms": [
         "40215",
@@ -61644,12 +61709,12 @@
       ]
     },
     {
-      "id": "12b5c0f907ba225581012b9c",
+      "id": "62a0b6998e04176b69d734bc",
       "category": "result error code",
       "name": "ErrCodeLastAssigneeRemoval",
       "value": "40214",
       "source_evidence": [
-        "approval/api_errors.go:64"
+        "approval/api_errors.go:65"
       ],
       "terms": [
         "40214",
@@ -61660,12 +61725,12 @@
       ]
     },
     {
-      "id": "75ff0599e88744e16e8d3212",
+      "id": "ebadf16b60385d9a211d7ef7",
       "category": "result error code",
       "name": "ErrCodeManualCcNotAllowed",
       "value": "40209",
       "source_evidence": [
-        "approval/api_errors.go:59"
+        "approval/api_errors.go:60"
       ],
       "terms": [
         "40209",
@@ -61724,12 +61789,12 @@
       ]
     },
     {
-      "id": "cc54d1f6fb6284cb2b59a529",
+      "id": "c8968d356a9d76e0272c4522",
       "category": "result error code",
       "name": "ErrCodeNoAssignee",
       "value": "40301",
       "source_evidence": [
-        "approval/api_errors.go:68"
+        "approval/api_errors.go:69"
       ],
       "terms": [
         "40301",
@@ -61756,12 +61821,12 @@
       ]
     },
     {
-      "id": "4873a3bf923460698e799cbc",
+      "id": "9a0a4d68ebe36d033354ba71",
       "category": "result error code",
       "name": "ErrCodeNoUsersSpecified",
       "value": "40216",
       "source_evidence": [
-        "approval/api_errors.go:66"
+        "approval/api_errors.go:67"
       ],
       "terms": [
         "40216",
@@ -61820,12 +61885,12 @@
       ]
     },
     {
-      "id": "9fdcc53ef7e12b6986b65960",
+      "id": "49f842f0f12cdd9d85856298",
       "category": "result error code",
       "name": "ErrCodeNotAllowedInitiate",
       "value": "40103",
       "source_evidence": [
-        "approval/api_errors.go:42"
+        "approval/api_errors.go:43"
       ],
       "terms": [
         "40103",
@@ -61836,12 +61901,12 @@
       ]
     },
     {
-      "id": "273108a9498327045fd9c005",
+      "id": "c7bc4e8f16d15a1513625faf",
       "category": "result error code",
       "name": "ErrCodeNotApplicant",
       "value": "40212",
       "source_evidence": [
-        "approval/api_errors.go:62"
+        "approval/api_errors.go:63"
       ],
       "terms": [
         "40212",
@@ -61852,12 +61917,12 @@
       ]
     },
     {
-      "id": "a757b402c804f6d552bab0c0",
+      "id": "ddd7a0ada861a13b27e1e0c6",
       "category": "result error code",
       "name": "ErrCodeNotAssignee",
       "value": "40203",
       "source_evidence": [
-        "approval/api_errors.go:53"
+        "approval/api_errors.go:54"
       ],
       "terms": [
         "40203",
@@ -61948,12 +62013,12 @@
       ]
     },
     {
-      "id": "6d16ef51e03df926d27b5017",
+      "id": "984b2348d0bfe59746fa1768",
       "category": "result error code",
       "name": "ErrCodeOpinionRequired",
       "value": "40208",
       "source_evidence": [
-        "approval/api_errors.go:58"
+        "approval/api_errors.go:59"
       ],
       "terms": [
         "40208",
@@ -62076,12 +62141,12 @@
       ]
     },
     {
-      "id": "5d71ec025ac544828b14abb3",
+      "id": "de19f1e26037e201f9f26455",
       "category": "result error code",
       "name": "ErrCodeRemoveAssigneeNotAllowed",
       "value": "40210",
       "source_evidence": [
-        "approval/api_errors.go:60"
+        "approval/api_errors.go:61"
       ],
       "terms": [
         "40210",
@@ -62124,12 +62189,12 @@
       ]
     },
     {
-      "id": "c6b4cb7e8705b1cfbc240400",
+      "id": "f15bfdb6760ced276d274355",
       "category": "result error code",
       "name": "ErrCodeResubmitNotAllowed",
       "value": "40105",
       "source_evidence": [
-        "approval/api_errors.go:44"
+        "approval/api_errors.go:45"
       ],
       "terms": [
         "40105",
@@ -62140,12 +62205,12 @@
       ]
     },
     {
-      "id": "cae115f4896e6c5b3eeeeb9f",
+      "id": "4dc475b74dd262d5b6b0b112",
       "category": "result error code",
       "name": "ErrCodeRollbackNotAllowed",
       "value": "40205",
       "source_evidence": [
-        "approval/api_errors.go:55"
+        "approval/api_errors.go:56"
       ],
       "terms": [
         "40205",
@@ -62246,6 +62311,22 @@
       "terms": [
         "2613",
         "ErrCodeScriptFailed",
+        "code",
+        "error",
+        "result"
+      ]
+    },
+    {
+      "id": "9324205a3f38ddb0e7c6e9f0",
+      "category": "result error code",
+      "name": "ErrCodeSharedFlowCodeExists",
+      "value": "40026",
+      "source_evidence": [
+        "approval/api_errors.go:39"
+      ],
+      "terms": [
+        "40026",
+        "ErrCodeSharedFlowCodeExists",
         "code",
         "error",
         "result"
@@ -62396,12 +62477,12 @@
       ]
     },
     {
-      "id": "7210b1b06df04a3485b01006",
+      "id": "e51fad4f41132caf356e2c3c",
       "category": "result error code",
       "name": "ErrCodeTaskNotFound",
       "value": "40201",
       "source_evidence": [
-        "approval/api_errors.go:51"
+        "approval/api_errors.go:52"
       ],
       "terms": [
         "40201",
@@ -62412,12 +62493,12 @@
       ]
     },
     {
-      "id": "89c87cd489de5d3106865334",
+      "id": "4247cff2ac30df80fccc7e76",
       "category": "result error code",
       "name": "ErrCodeTaskNotPending",
       "value": "40202",
       "source_evidence": [
-        "approval/api_errors.go:52"
+        "approval/api_errors.go:53"
       ],
       "terms": [
         "40202",
@@ -62428,12 +62509,12 @@
       ]
     },
     {
-      "id": "6f1ada6c8163207bbcc41ff9",
+      "id": "ea122c71b563d9bc57f5c5d3",
       "category": "result error code",
       "name": "ErrCodeTerminateNotAllowed",
       "value": "40702",
       "source_evidence": [
-        "approval/api_errors.go:76"
+        "approval/api_errors.go:77"
       ],
       "terms": [
         "40702",
@@ -62604,12 +62685,12 @@
       ]
     },
     {
-      "id": "b7905bb2c9141ede743dfd32",
+      "id": "a914cf7bab6ff7d4f920a227",
       "category": "result error code",
       "name": "ErrCodeTransferNotAllowed",
       "value": "40207",
       "source_evidence": [
-        "approval/api_errors.go:57"
+        "approval/api_errors.go:58"
       ],
       "terms": [
         "40207",
@@ -63020,12 +63101,12 @@
       ]
     },
     {
-      "id": "b53a825fd065f8351b9f5a70",
+      "id": "55e6014e755826535215029c",
       "category": "result error code",
       "name": "ErrCodeUrgeCooldown",
       "value": "40601",
       "source_evidence": [
-        "approval/api_errors.go:73"
+        "approval/api_errors.go:74"
       ],
       "terms": [
         "40601",
@@ -63068,12 +63149,12 @@
       ]
     },
     {
-      "id": "581d7f078b3420844eb8a487",
+      "id": "208d063fa3115322f0749629",
       "category": "result error code",
       "name": "ErrCodeWithdrawNotAllowed",
       "value": "40104",
       "source_evidence": [
-        "approval/api_errors.go:43"
+        "approval/api_errors.go:44"
       ],
       "terms": [
         "40104",
@@ -64572,12 +64653,12 @@
       ]
     },
     {
-      "id": "0d2e32b2c1609c496ad50fe4",
+      "id": "fbefacbc244ae7f2251e7ea3",
       "category": "runtime enum value",
       "name": "BindingTriggerCompleted (BindingTrigger)",
       "value": "completed",
       "source_evidence": [
-        "approval/binding.go:94"
+        "approval/binding.go:95"
       ],
       "terms": [
         "BindingTrigger",
@@ -64589,12 +64670,12 @@
       ]
     },
     {
-      "id": "a88e7f89bcd5aab8d61f8fc0",
+      "id": "1e4c1b2d8a41234be92af119",
       "category": "runtime enum value",
       "name": "BindingTriggerResubmitted (BindingTrigger)",
       "value": "resubmitted",
       "source_evidence": [
-        "approval/binding.go:97"
+        "approval/binding.go:98"
       ],
       "terms": [
         "BindingTrigger",
@@ -64606,12 +64687,12 @@
       ]
     },
     {
-      "id": "bac6994dc589aa3a0e6406e9",
+      "id": "7fc927c96d6add3d1a23d31f",
       "category": "runtime enum value",
       "name": "BindingTriggerReturned (BindingTrigger)",
       "value": "returned",
       "source_evidence": [
-        "approval/binding.go:95"
+        "approval/binding.go:96"
       ],
       "terms": [
         "BindingTrigger",
@@ -64623,12 +64704,12 @@
       ]
     },
     {
-      "id": "a2377d5ed040faee956be7e7",
+      "id": "1317961d4a06aa6d1f5da0ab",
       "category": "runtime enum value",
       "name": "BindingTriggerStarted (BindingTrigger)",
       "value": "started",
       "source_evidence": [
-        "approval/binding.go:93"
+        "approval/binding.go:94"
       ],
       "terms": [
         "BindingTrigger",
@@ -64640,12 +64721,12 @@
       ]
     },
     {
-      "id": "887f5083cecfa2edffccdee6",
+      "id": "fbef9ba6910b463a827fbdc8",
       "category": "runtime enum value",
       "name": "BindingTriggerWithdrawn (BindingTrigger)",
       "value": "withdrawn",
       "source_evidence": [
-        "approval/binding.go:96"
+        "approval/binding.go:97"
       ],
       "terms": [
         "BindingTrigger",

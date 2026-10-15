@@ -177,11 +177,11 @@ type errorContract struct {
 var approvalPackages = []expectedPackage{
 	{
 		pkg:         "github.com/coldsmirk/vef-framework-go/approval",
-		topLevel:    560,
-		fields:      990,
+		topLevel:    561,
+		fields:      991,
 		methods:     162,
-		entries:     1712,
-		fingerprint: "c30dbe8185c911cc30146e9c4a4bd46cb178f1d48163d7c54f7ad86b018011f6",
+		entries:     1714,
+		fingerprint: "5d442db621820038bff1ccaaae1b307afe948034f6a658d4ebe76ad2b8100971",
 		contracts: []string{
 			"github.com/coldsmirk/vef-framework-go/approval#dynamic-resource:approval-built-in-resources",
 			"github.com/coldsmirk/vef-framework-go/approval#event-contract:approval-domain-events",
