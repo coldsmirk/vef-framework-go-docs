@@ -31,12 +31,12 @@ Conventions used on this page:
 
 ## `approval/category`
 
-Flow category management (`apv_flow_category`). Reads are tenant-scoped:
-super-admin callers see all tenants unless they name one, everyone else is
-confined to their own tenant and fails closed without one. A category of
-`approval.SharedTenantID` (`"0"`) is shared — the home of shared flows: every
-tenant may read it through `includeShared`, only super-admins write it. A
-category tree never spans tenants (see [Shared Flows](./integration.md#shared-flows)).
+Flow category management (`apv_flow_category`). Categories are managed across
+tenants, gated by the permissions below: a category's tenant is the one the
+request names, and the caller's own tenant is never checked. A category of
+`approval.SharedTenantID` (`"0"`) is shared — the home of shared flows — and is
+managed like any other. A category never changes tenant, and a tree never spans
+tenants (see [Shared Flows](./integration.md#shared-flows)).
 
 | Action | Permission | Input | Output |
 | --- | --- | --- | --- |
@@ -54,8 +54,8 @@ There is no `find_tree_options` operation; build option lists from
 | --- | --- | --- | --- |
 | `name` | `string` | contains | filter by category name fragment |
 | `isActive` | `bool` | equals | filter by active flag; omit to match both |
-| `tenantId` | `string` | equals | super-admin only: narrow the read to one tenant (`"0"` for the shared categories); ignored for everyone else |
-| `includeShared` | `bool` | — | add the shared categories to the tenant read — what a delegation scope picker needs |
+| `tenantId` | `string` | equals | narrow the read to one tenant (`"0"` for the shared categories); omitted, every tenant's categories are read |
+| `includeShared` | `bool` | — | add the shared categories to the named tenant's — what a delegation scope picker needs |
 | `sort` | `OrderSpec[]` | — | sort specifications (`crud.Sortable`) |
 
 `CategoryParams` (create/update, decoded from `params`):
@@ -63,7 +63,7 @@ There is no `find_tree_options` operation; build option lists from
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `id` | `string` | update only | primary key of the row to update |
-| `tenantId` | `string` | No | owning tenant. On create, non-super-admin callers have this stamped from their own tenant (the submitted value is ignored), while a super-admin may name any tenant, `"0"` included — omitted, their own tenant, else `"default"`; on update the row keeps its tenant for every caller (the submitted value is ignored), and update/delete require authority over the row's tenant |
+| `tenantId` | `string` | Yes | owning tenant, as named — `"0"` makes a shared category. On update the row keeps its tenant (the submitted value is ignored) |
 | `code` | `string` | Yes | category business code |
 | `name` | `string` | Yes | display name |
 | `icon` | `string` | No | display icon identifier |
@@ -133,7 +133,11 @@ arrive via delegation carry the delegator as a separate person snapshot (see
 ## `approval/flow`
 
 Flow definition management: the mutable flow row, its immutable deployed
-versions, and the designer-facing graph reads.
+versions, and the designer-facing graph reads. Flows are managed across
+tenants, gated by the permissions below: a flow's tenant is the one `create`
+names, `find_flows` filters by the tenant it is given, and every other action
+takes the flow by id — the caller's own tenant is never checked, so a shared
+flow is managed like any other.
 
 | Action | Permission | Input | Output | Audit |
 | --- | --- | --- | --- | --- |
@@ -152,7 +156,7 @@ versions, and the designer-facing graph reads.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | No | owning tenant, resolved like a category's: non-super-admin callers create in their own tenant (the submitted value is ignored), a super-admin where it names — omitted, their own tenant, else `"default"`. `"0"` (`approval.SharedTenantID`, super-admin only) creates a shared flow |
+| `tenantId` | `string` | Yes | owning tenant, as named — `"0"` (`approval.SharedTenantID`) creates a shared flow |
 | `code` | `string` | Yes | flow business code, unique within the tenant; immutable after creation (`start` targets it — a tenant flow takes a shared flow's place for its code within that tenant) |
 | `name` | `string` | Yes | display name |
 | `categoryId` | `string` | Yes | owning `FlowCategory` id; must belong to the flow's tenant (`ErrCategoryNotFound`) |
@@ -247,7 +251,6 @@ are immutable):
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `flowId` | `string` | Yes | flow whose graph to load |
-| `tenantId` | `string` | No | optional pre-filter; the actual cross-tenant gate is the caller's tenant authority |
 | `versionId` | `string` | No | explicit version to load — a designer resuming from the newest deployment, published or not; omitted resolves the latest published version |
 
 `get_graph` responds with a `FlowGraph`:
@@ -263,7 +266,7 @@ are immutable):
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | No | tenant filter; non-super-admin callers are constrained to their own tenant regardless |
+| `tenantId` | `string` | No | tenant filter (`"0"` for the shared flows); omitted, every tenant's flows are listed |
 | `categoryId` | `string` | No | filter by category |
 | `keyword` | `string` | No | contains match against the flow name |
 | `isActive` | `bool` | No | filter by active flag |
@@ -297,7 +300,6 @@ are immutable):
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `flowId` | `string` | Yes | flow to inspect |
-| `tenantId` | `string` | No | optional pre-filter (cross-tenant gate is the caller's authority) |
 
 `find_versions` returns `FlowVersionSummary` entries — the
 version list without the graph documents (`flowSchema` / `formSchema` /
@@ -356,7 +358,6 @@ govern which actions a node offers at runtime.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | No | tenant the instance runs in. Only a super-admin's value counts — omitted, their own tenant, else `"default"`; everyone else always starts in their own tenant. `"0"` is refused (`ErrFlowNotFound`) |
 | `flowCode` | `string` | Yes | business code of the flow to start: the tenant's own flow with that code, else the shared one; resolves its published version (`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`) |
 | `businessRef` | `string` (≤ 512) | business mode | opaque reference to the bound business row; required on business-bound flows unless a registered `BusinessRefProvider` supplies it (`ErrBusinessRefRequired`). Default shapes: single key verbatim, composite key as a JSON object |
 | `formData` | `object` | No | form values keyed by field key; validated against the published version's derived field list (`40401` family), rejected above 64 KiB; unknown keys are rejected (`approval_form_field_not_defined`) |
@@ -452,7 +453,9 @@ viewers cannot.
 
 Self-service queries for the current user. The operations declare no
 `RequiredPermission` — any authenticated principal may call them; every query
-is keyed to the caller's identity server-side.
+is keyed to the caller's identity server-side and takes no tenant. The lists
+read the caller's own work in every tenant; cross-tenant views of everyone's
+work are `approval/admin`'s.
 
 | Action | Input | Output |
 | --- | --- | --- |
@@ -462,41 +465,34 @@ is keyed to the caller's identity server-side.
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[CompletedTask]` |
 | `find_cc_records` | `FindCCRecordsParams` | `page.Page[CCRecord]` |
-| `get_pending_counts` | `GetPendingCountsParams` | `PendingCounts` |
+| `get_pending_counts` | none | `PendingCounts` |
 | `get_instance_detail` | `GetInstanceDetailParams` | `InstanceDetail` |
 
 Request parameters (all decoded from `params`):
 
 | Action | Field | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `find_available_flows` | `tenantId` | `string` | No | tenant to list for, honored for super-admins only; everyone else is offered their own tenant's flows plus the shared flows it has not replaced, gated exactly as `instance.start` gates them |
-| | `keyword` | `string` | No | contains match against the flow name |
+| `find_available_flows` | `keyword` | `string` | No | contains match against the flow name; the list offers the flows of the tenant the caller acts in plus the shared flows it has not replaced, gated exactly as `instance.start` gates them |
 | | `labels` | `object` | No | label equality filter — every pair must match |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `get_start_form` | `tenantId` | `string` | No | tenant the instance would run in, resolved as `instance.start` resolves it |
-| | `flowCode` | `string` | Yes | flow to load the start form for |
-| `find_initiated` | `tenantId` | `string` | No | tenant filter |
-| | `status` | `string` | No | instance status filter (`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`) |
+| `get_start_form` | `flowCode` | `string` | Yes | flow to load the start form for, resolved in the caller's tenant as `instance.start` resolves it |
+| `find_initiated` | `status` | `string` | No | instance status filter (`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`) |
 | | `keyword` | `string` | No | contains match against the instance title |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `find_pending_tasks` | `tenantId` | `string` | No | tenant filter |
-| | `keyword` | `string` | No | contains match against the instance title |
+| `find_pending_tasks` | `keyword` | `string` | No | contains match against the instance title |
 | | `applicantId` | `string` | No | exact applicant — the value a user picker yields |
 | | `applicantName` | `string` | No | contains match against the applicant name snapshot, for free-text search |
 | | `flowId` | `string` | No | the flow the instance was started from |
 | | `isTimeout` | `bool` | No | only tasks past (`true`) or within (`false`) their deadline |
 | | `createdAtFrom` / `createdAtTo` | `DateTime` | No | when the task arrived; both bounds inclusive |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `find_completed_tasks` | `tenantId` | `string` | No | tenant filter |
-| | `keyword` / `applicantId` / `applicantName` / `flowId` | | No | as on `find_pending_tasks` |
+| `find_completed_tasks` | `keyword` / `applicantId` / `applicantName` / `flowId` | | No | as on `find_pending_tasks` |
 | | `status` | `string` | No | how the caller finished the task (`approved` / `rejected` / `handled` / `transferred` / `rolled_back`); a status no completed task has matches nothing |
 | | `instanceStatus` | `string` | No | the instance's current status |
 | | `finishedAtFrom` / `finishedAtTo` | `DateTime` | No | when the task was finished; both bounds inclusive |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `find_cc_records` | `tenantId` | `string` | No | tenant filter |
-| | `isRead` | `bool` | No | read-state filter |
+| `find_cc_records` | `isRead` | `bool` | No | read-state filter |
 | | `page` / `pageSize` | `int` | No | pagination |
-| `get_pending_counts` | `tenantId` | `string` | No | tenant filter |
 | `get_instance_detail` | `instanceId` | `string` | Yes | instance to load; the caller must be a participant — applicant, assignee, delegator, or CC recipient (`ErrAccessDenied`) |
 
 Response DTOs (`approval/my` package):

@@ -78,7 +78,7 @@ CC + 流程：
 
 ## CallerContext 与多租户安全
 
-资源/命令 handler 在每次请求时解析出一个 `CallerContext`，承载本次调用的租户权能。`TenantID`、`IsSuperAdmin`、`IsSystemInternal` 必须**且只能**有一个为真；零值 `CallerContext` 走 fail-closed 路径（被视为未授权）。
+资源/命令 handler 在每次请求时解析出一个 `CallerContext`，承载本次调用的租户权能。`TenantID`、`IsSuperAdmin`、`IsSystemInternal` 必须**且只能**有一个为真；零值 `CallerContext` 走 fail-closed 路径（被视为未授权）。它约束的是运行期——发起、办理、查看和管理实例。流程与分类的定义不做租户隔离：`approval/flow` 与 `approval/category` 只由各自的权限把关，定义的租户就是请求指定的租户。
 
 | 字段 | 含义 |
 | --- | --- |
@@ -94,8 +94,9 @@ CC + 流程：
 
 - **实例运行在发起它的租户里。** 发起全局流程时，实例以及它产生的一切——任务、节点访问记录、业务投影、事件——都记在发起它的租户名下，绝不会记成 `SharedTenantID`。管理端列表、统计、`ForTenants` 过滤和生命周期钩子都把它当作该租户的普通实例处理。
 - **同一编码在一个租户内只对应一个流程。** 按编码发起时，先找本租户该编码的流程，找不到再用全局的。租户自己的同编码流程不论处于什么状态，都会在本租户内取代全局流程——即使本租户的流程已停用，全局流程也不会生效。`my.find_available_flows`、`my.get_start_form` 和 `instance.start` 的解析规则完全一致，所以列表里列出的正好是能发起的流程。
-- **租户由服务端决定。** 普通调用方不论传了什么 `tenantId`，都只在自己的租户里列出和发起流程。超级管理员传的 `tenantId` 会被采用；不传时用其本人所在租户，没有则用 `DefaultTenantID`。`StartInstanceInput.TenantID` 遵循同样的规则。
-- **没有人属于全局租户。** `TenantID` 为 `SharedTenantID` 的 `CallerContext` 与没有租户的调用方一样被拒绝，所以只有超级管理员和系统调用方能创建、修改全局流程与分类——即便宿主的 `PrincipalTenantResolver` 误返回了 `"0"`。
+- **租户由服务端决定。** `my.find_available_flows`、`my.get_start_form` 和 `instance.start` 不接收租户参数：它们在调用方所在的租户中列出和发起流程。只有 `StartInstanceInput.TenantID` 可以指定租户，而且只对超级管理员和系统调用方生效（不传时用其本人所在租户，没有则用 `DefaultTenantID`）。
+- **没有人属于全局租户。** `TenantID` 为 `SharedTenantID` 的 `CallerContext` 与没有租户的调用方一样被拒绝，即便宿主的 `PrincipalTenantResolver` 误返回了 `"0"`。
+- **全局定义的管理方式与其他定义相同。** 流程与分类跨租户管理，由 `approval.flow.*` / `approval.category.*` 权限把关：以 `tenantId: "0"` 创建即为全局定义，列出和修改的方式与租户自己的定义相同。
 - **全局流程不把工作派给具体的人。** 部署全局流程时，如果审批人或抄送规则所用类型的 `SelectionMode` 会选具体的用户、角色或部门，或者节点会把任务转交节点管理员或指定人员（`emptyAssigneeAction: transfer_admin | transfer_specified`，以及设有时限的节点上的 `timeoutAction: transfer_admin`），部署会以 `ErrSharedFlowNamesPeople`（`40024`）失败。基于申请人解析的规则（直属上级、部门负责人、申请人本人）、来自表单的规则（`form_field`）和 `SelectionCustom` 宿主目录仍然可用；发起人规则和流程管理员也可用，因为它们授予的权限不会超出实例所在租户。需要在某个租户内解析人员的宿主类型，从 `NodeResolveContext.Instance.TenantID` 读取租户；检查发起权限时从 `InitiatorResolveContext.TenantID` 读取。两者都是发起实例的租户，而不是流程所属的租户。
 - **分类从不跨租户。** 流程的分类、分类的上级分类，都必须与它属于同一租户——全局流程挂在全局分类下——否则保存以 `ErrCategoryNotFound`（`40025`）失败，与分类不存在时的回答相同。分类创建后，所属租户不再改变。
 

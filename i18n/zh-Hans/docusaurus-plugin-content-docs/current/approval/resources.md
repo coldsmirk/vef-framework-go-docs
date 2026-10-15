@@ -27,11 +27,11 @@ sidebar_position: 2
 
 ## `approval/category`
 
-流程分类管理（`apv_flow_category`）。读操作按租户隔离：super-admin 不指定
-租户时可见所有租户，其他调用者只能看到自己租户的数据，无租户时直接拒绝（fail
-closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分类，也就是
-全局流程所在的分类：所有租户都可以通过 `includeShared` 读取，只有 super-admin
-可以写入。分类树从不跨租户（见[全局流程](./integration.md#全局流程)）。
+流程分类管理（`apv_flow_category`）。分类跨租户管理，由下表中的权限把关：
+分类的租户就是请求指定的租户，不会校验调用者自己所在的租户。租户为
+`approval.SharedTenantID`（`"0"`）的分类是全局分类，也就是全局流程所在的分类，
+管理方式与其他分类相同。分类创建后不会改变租户，分类树也从不跨租户（见
+[全局流程](./integration.md#全局流程)）。
 
 | Action | 权限 | 入参 | 出参 |
 | --- | --- | --- | --- |
@@ -48,8 +48,8 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 | --- | --- | --- | --- |
 | `name` | `string` | contains | 按分类名称片段过滤 |
 | `isActive` | `bool` | equals | 按启用状态过滤；省略则两者都匹配 |
-| `tenantId` | `string` | equals | 仅 super-admin 生效：把读取范围限定为一个租户（`"0"` 表示全局分类）；其他调用者传了也会被忽略 |
-| `includeShared` | `bool` | — | 在本租户分类之外再加上全局分类——委托范围选择器需要它 |
+| `tenantId` | `string` | equals | 把读取范围限定为一个租户（`"0"` 表示全局分类）；不传时读取所有租户的分类 |
+| `includeShared` | `bool` | — | 在所指定租户的分类之外再加上全局分类——委托范围选择器需要它 |
 | `sort` | `OrderSpec[]` | — | 排序声明（`crud.Sortable`） |
 
 `CategoryParams`（create/update，从 `params` 解码）：
@@ -57,7 +57,7 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `id` | `string` | 仅 update | 要更新记录的主键 |
-| `tenantId` | `string` | 否 | 所属租户。create 时非 super-admin 会以调用者自己的租户覆盖写入（提交值被忽略），super-admin 可以指定任意租户，包括 `"0"`——不传时用其本人所在租户，没有则用 `"default"`；update 时对所有调用者都保持记录原有的租户（提交值被忽略），update/delete 时调用者必须对记录的租户有权限 |
+| `tenantId` | `string` | 是 | 所属租户，按请求指定——`"0"` 表示全局分类。update 时记录保持原有租户（提交值被忽略） |
 | `code` | `string` | 是 | 分类业务编码 |
 | `name` | `string` | 是 | 显示名称 |
 | `icon` | `string` | 否 | 显示图标标识 |
@@ -123,7 +123,10 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 
 ## `approval/flow`
 
-流程定义管理：可变的流程行、不可变的已部署版本、面向设计器的图查询。
+流程定义管理：可变的流程行、不可变的已部署版本、面向设计器的图查询。流程跨租户
+管理，由下表中的权限把关：流程的租户就是 `create` 指定的租户，`find_flows` 按传入
+的租户过滤，其余操作按流程 ID 定位——都不会校验调用者自己所在的租户，因此全局流程
+的管理方式与其他流程相同。
 
 | Action | 权限 | 入参 | 出参 | 审计 |
 | --- | --- | --- | --- | --- |
@@ -142,7 +145,7 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 否 | 所属租户，解析方式与分类相同：非 super-admin 总在自己的租户中创建（提交值被忽略），super-admin 按其指定的租户创建——不传时用其本人所在租户，没有则用 `"default"`。`"0"`（`approval.SharedTenantID`，仅 super-admin）表示创建全局流程 |
+| `tenantId` | `string` | 是 | 所属租户，按请求指定——`"0"`（`approval.SharedTenantID`）表示创建全局流程 |
 | `code` | `string` | 是 | 流程业务编码，在租户内唯一；创建后不可变（`start` 以它定位流程——租户自己的同编码流程会在本租户内取代全局流程） |
 | `name` | `string` | 是 | 显示名称 |
 | `categoryId` | `string` | 是 | 所属 `FlowCategory` id；必须属于流程所在的租户（`ErrCategoryNotFound`） |
@@ -232,7 +235,6 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `flowId` | `string` | 是 | 要加载图的流程 |
-| `tenantId` | `string` | 否 | 可选预过滤；真正的跨租户闸门是调用者的租户权限 |
 | `versionId` | `string` | 否 | 显式加载某个版本 —— 设计器从最新部署（无论是否已发布）继续编辑的场景；省略则解析最新已发布版本 |
 
 `get_graph` 响应 `FlowGraph`：
@@ -248,7 +250,7 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 否 | 租户过滤；非 super-admin 无论如何都被限定在自己租户 |
+| `tenantId` | `string` | 否 | 租户过滤（`"0"` 表示全局流程）；不传时列出所有租户的流程 |
 | `categoryId` | `string` | 否 | 按分类过滤 |
 | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
 | `isActive` | `bool` | 否 | 按启用状态过滤 |
@@ -282,7 +284,6 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `flowId` | `string` | 是 | 要查看的流程 |
-| `tenantId` | `string` | 否 | 可选预过滤（跨租户闸门是调用者权限） |
 
 `find_versions` 返回 `FlowVersionSummary` 条目 —— 不含图文档
 （`flowSchema` / `formSchema` / `formFields`）的版本列表，列表本就不渲染
@@ -336,7 +337,6 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `tenantId` | `string` | 否 | 实例运行的租户。只有 super-admin 传的值会被采用——不传时用其本人所在租户，没有则用 `"default"`；其他调用者总是在自己的租户里发起。`"0"` 会被拒绝（`ErrFlowNotFound`） |
 | `flowCode` | `string` | 是 | 要发起流程的业务编码：先取本租户该编码的流程，没有再取全局流程；解析其已发布版本（`ErrFlowNotFound` / `ErrFlowNotActive` / `ErrNoPublishedVersion`） |
 | `businessRef` | `string`（≤ 512） | business 模式 | 绑定业务行的不透明引用；业务绑定流程必填，除非注册的 `BusinessRefProvider` 提供（`ErrBusinessRefRequired`）。默认形状：单键直接取值、复合键为 JSON 对象 |
 | `formData` | `object` | 否 | 按字段 key 组织的表单值；按已发布版本的派生字段清单校验（`40401` 系列），超过 64 KiB 拒绝；未知 key 会被拒绝（`approval_form_field_not_defined`） |
@@ -427,7 +427,9 @@ closed）。租户为 `approval.SharedTenantID`（`"0"`）的分类是全局分�
 ## `approval/my`
 
 面向当前用户的自助查询。这些操作不声明 `RequiredPermission` —— 任何已认证
-principal 都可调用；每个查询都在服务端锚定到调用者身份。
+principal 都可调用；每个查询都在服务端锚定到调用者身份，且不接收租户参数。列表读取
+的是调用者自己在所有租户中的数据；查看所有人数据的跨租户视图由 `approval/admin`
+提供。
 
 | Action | 入参 | 出参 |
 | --- | --- | --- |
@@ -437,41 +439,34 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份。
 | `find_pending_tasks` | `FindPendingTasksParams` | `page.Page[PendingTask]` |
 | `find_completed_tasks` | `FindCompletedTasksParams` | `page.Page[CompletedTask]` |
 | `find_cc_records` | `FindCCRecordsParams` | `page.Page[CCRecord]` |
-| `get_pending_counts` | `GetPendingCountsParams` | `PendingCounts` |
+| `get_pending_counts` | 无 | `PendingCounts` |
 | `get_instance_detail` | `GetInstanceDetailParams` | `InstanceDetail` |
 
 请求参数（全部从 `params` 解码）：
 
 | Action | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- | --- |
-| `find_available_flows` | `tenantId` | `string` | 否 | 要列出流程的租户，仅对 super-admin 生效；其他调用者看到的是本租户的流程，加上本租户没有取代的全局流程，与 `instance.start` 采用完全相同的发起校验 |
-| | `keyword` | `string` | 否 | 对流程名称做 contains 匹配 |
+| `find_available_flows` | `keyword` | `string` | 否 | 对流程名称做 contains 匹配；列出的是调用者所在租户的流程，加上该租户没有取代的全局流程，与 `instance.start` 采用完全相同的发起校验 |
 | | `labels` | `object` | 否 | label 相等过滤 —— 每一对都必须匹配 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `get_start_form` | `tenantId` | `string` | 否 | 实例将要运行的租户，解析方式与 `instance.start` 相同 |
-| | `flowCode` | `string` | 是 | 要加载发起表单的流程 |
-| `find_initiated` | `tenantId` | `string` | 否 | 租户过滤 |
-| | `status` | `string` | 否 | 实例状态过滤（`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`） |
+| `get_start_form` | `flowCode` | `string` | 是 | 要加载发起表单的流程，按 `instance.start` 的方式在调用者所在租户中解析 |
+| `find_initiated` | `status` | `string` | 否 | 实例状态过滤（`running` / `approved` / `rejected` / `withdrawn` / `returned` / `terminated`） |
 | | `keyword` | `string` | 否 | 对实例标题做 contains 匹配 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `find_pending_tasks` | `tenantId` | `string` | 否 | 租户过滤 |
-| | `keyword` | `string` | 否 | 对实例标题做 contains 匹配 |
+| `find_pending_tasks` | `keyword` | `string` | 否 | 对实例标题做 contains 匹配 |
 | | `applicantId` | `string` | 否 | 精确匹配申请人——即用户选择器给出的值 |
 | | `applicantName` | `string` | 否 | 对申请人姓名快照做 contains 匹配，用于自由文本搜索 |
 | | `flowId` | `string` | 否 | 实例所属的流程 |
 | | `isTimeout` | `bool` | 否 | 只保留已超时（`true`）或未超时（`false`）的任务 |
 | | `createdAtFrom` / `createdAtTo` | `DateTime` | 否 | 任务到达时间；两端均包含 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `find_completed_tasks` | `tenantId` | `string` | 否 | 租户过滤 |
-| | `keyword` / `applicantId` / `applicantName` / `flowId` | | 否 | 同 `find_pending_tasks` |
+| `find_completed_tasks` | `keyword` / `applicantId` / `applicantName` / `flowId` | | 否 | 同 `find_pending_tasks` |
 | | `status` | `string` | 否 | 调用者如何办结该任务（`approved` / `rejected` / `handled` / `transferred` / `rolled_back`）；不属于已办状态的值不会匹配任何任务 |
 | | `instanceStatus` | `string` | 否 | 实例当前状态 |
 | | `finishedAtFrom` / `finishedAtTo` | `DateTime` | 否 | 任务办结时间；两端均包含 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `find_cc_records` | `tenantId` | `string` | 否 | 租户过滤 |
-| | `isRead` | `bool` | 否 | 已读状态过滤 |
+| `find_cc_records` | `isRead` | `bool` | 否 | 已读状态过滤 |
 | | `page` / `pageSize` | `int` | 否 | 分页 |
-| `get_pending_counts` | `tenantId` | `string` | 否 | 租户过滤 |
 | `get_instance_detail` | `instanceId` | `string` | 是 | 要加载的实例；调用者必须是参与者 —— 申请人、（曾经的）办理人、委托人或抄送对象（`ErrAccessDenied`） |
 
 响应 DTO（`approval/my` 包）：
