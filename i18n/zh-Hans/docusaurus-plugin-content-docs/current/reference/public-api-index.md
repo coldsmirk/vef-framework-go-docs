@@ -862,6 +862,7 @@ TYPE CallerContext : github.com/coldsmirk/vef-framework-go/approval.CallerContex
   FIELD IsSuperAdmin : bool [field_order=2 tag=""]
   FIELD IsSystemInternal : bool [field_order=3 tag=""]
   METHOD Allows : func(entityTenantID string) bool
+  METHOD AllowsParticipant : func(entityTenantID string, participant bool) bool
   METHOD Authorize : func(entityTenantID string) error
   METHOD ResolveWriteTenant : func(requested string) (string, error)
   METHOD TenantScopeFilter : func(override string) (*string, error)
@@ -1032,7 +1033,6 @@ CONST ErrCodeRemoveAssigneeNotAllowed : untyped int = 40210
 CONST ErrCodeResubmitNotAllowed : untyped int = 40105
 CONST ErrCodeRollbackNotAllowed : untyped int = 40205
 CONST ErrCodeSharedFlowCodeExists : untyped int = 40026
-CONST ErrCodeSharedFlowNamesPeople : untyped int = 40024
 CONST ErrCodeTaskNotFound : untyped int = 40201
 CONST ErrCodeTaskNotPending : untyped int = 40202
 CONST ErrCodeTerminateNotAllowed : untyped int = 40702
@@ -1083,7 +1083,6 @@ VAR ErrRemoveAssigneeNotAllowed : github.com/coldsmirk/vef-framework-go/result.E
 VAR ErrResubmitNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrRollbackNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrSharedFlowCodeExists : github.com/coldsmirk/vef-framework-go/result.Error
-VAR ErrSharedFlowNamesPeople : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotFound : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTaskNotPending : github.com/coldsmirk/vef-framework-go/result.Error
 VAR ErrTerminateNotAllowed : github.com/coldsmirk/vef-framework-go/result.Error
@@ -8606,5 +8605,5 @@ TYPE ValidationRule : github.com/coldsmirk/vef-framework-go/validator.Validation
   FIELD CallValidationEvenIfNull : bool [field_order=6 tag=""]
 
 ## github.com/coldsmirk/vef-framework-go/version
-CONST VEFVersion : untyped string = "v0.63.0"
+CONST VEFVersion : untyped string = "v0.64.0"
 ```

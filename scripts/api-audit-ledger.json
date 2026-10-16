@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
-  "entry_count": 8430,
-  "fingerprint": "ee5671b338ee4e02cf8df65c4eeea2d18856c01c093806d13137000455757764",
+  "entry_count": 8429,
+  "fingerprint": "a268c31427d011d889b363fa46da4b04172f216825e4983c7abe8d4683d0022f",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -23797,6 +23797,23 @@
       ]
     },
     {
+      "id": "github.com/coldsmirk/vef-framework-go/approval#method:CallerContext.AllowsParticipant",
+      "package": "github.com/coldsmirk/vef-framework-go/approval",
+      "kind": "method",
+      "symbol": "CallerContext.AllowsParticipant",
+      "signature": "AllowsParticipant : func(entityTenantID string, participant bool) bool",
+      "disposition": "grouped:type-member-family",
+      "coverage": [
+        "docs/approval/overview.md",
+        "docs/approval/flow-design.md",
+        "docs/approval/runtime.md",
+        "docs/approval/resources.md",
+        "docs/approval/integration.md",
+        "docs/reference/built-in-resources.md",
+        "docs/approval/service.md"
+      ]
+    },
+    {
       "id": "github.com/coldsmirk/vef-framework-go/approval#method:CallerContext.Authorize",
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "method",
@@ -29288,23 +29305,6 @@
       ]
     },
     {
-      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeSharedFlowNamesPeople",
-      "package": "github.com/coldsmirk/vef-framework-go/approval",
-      "kind": "top",
-      "symbol": "ErrCodeSharedFlowNamesPeople",
-      "signature": "ErrCodeSharedFlowNamesPeople : untyped int = 40024",
-      "disposition": "documented:top-level",
-      "coverage": [
-        "docs/approval/overview.md",
-        "docs/approval/flow-design.md",
-        "docs/approval/runtime.md",
-        "docs/approval/resources.md",
-        "docs/approval/integration.md",
-        "docs/reference/built-in-resources.md",
-        "docs/approval/service.md"
-      ]
-    },
-    {
       "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrCodeTaskNotFound",
       "package": "github.com/coldsmirk/vef-framework-go/approval",
       "kind": "top",
@@ -30143,23 +30143,6 @@
       "kind": "top",
       "symbol": "ErrSharedFlowCodeExists",
       "signature": "ErrSharedFlowCodeExists : github.com/coldsmirk/vef-framework-go/result.Error",
-      "disposition": "documented:top-level",
-      "coverage": [
-        "docs/approval/overview.md",
-        "docs/approval/flow-design.md",
-        "docs/approval/runtime.md",
-        "docs/approval/resources.md",
-        "docs/approval/integration.md",
-        "docs/reference/built-in-resources.md",
-        "docs/approval/service.md"
-      ]
-    },
-    {
-      "id": "github.com/coldsmirk/vef-framework-go/approval#top:ErrSharedFlowNamesPeople",
-      "package": "github.com/coldsmirk/vef-framework-go/approval",
-      "kind": "top",
-      "symbol": "ErrSharedFlowNamesPeople",
-      "signature": "ErrSharedFlowNamesPeople : github.com/coldsmirk/vef-framework-go/result.Error",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/approval/overview.md",
@@ -121797,7 +121780,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.63.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.64.0\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"

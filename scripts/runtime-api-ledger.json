@@ -1,8 +1,8 @@
 {
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Runtime user-facing API surface: HTTP/RPC protocols, built-in resources, CLI, config, events, error codes, wire JSON fields, tag grammars, MCP surface, and runtime enum/string contracts. Test files, internal logs, and implementation-only strings are excluded.",
-  "entry_count": 3300,
-  "fingerprint": "ad4ad8b60319b99bcd9e8a041b871671bf0b741e055b0720e6883ed202ec43d4",
+  "entry_count": 3298,
+  "fingerprint": "3ddc78f14a78b22af149cacf5a95ef2c9ec308a9c1eed774002a971872c3e3ce",
   "coverage": [
     {
       "category": "API default",
@@ -230,7 +230,7 @@
     },
     {
       "category": "i18n message key",
-      "entry_count": 289,
+      "entry_count": 288,
       "tier": "Tier 2 AST call/tag scan",
       "extractor": "extractI18NMessageKeys",
       "method": "AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags.",
@@ -262,7 +262,7 @@
     },
     {
       "category": "result error code",
-      "entry_count": 183,
+      "entry_count": 182,
       "tier": "Tier 1 AST constants",
       "extractor": "extractErrorCodes",
       "method": "AST scan of ErrCode* constants in api_errors.go and result/constants.go.",
@@ -54468,7 +54468,7 @@
       ]
     },
     {
-      "id": "c0faa06de3bd708f1a2f3c9a",
+      "id": "7b0405f08f146ad34223a3cc",
       "category": "i18n message key",
       "name": "approval_access_denied",
       "value": "approval_access_denied",
@@ -54476,7 +54476,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:229"
+        "approval/api_errors.go:221"
       ],
       "terms": [
         "approval_access_denied",
@@ -54488,7 +54488,7 @@
       ]
     },
     {
-      "id": "278cdda9a55b3393a2b849d4",
+      "id": "83d40122962dca30af40ef0f",
       "category": "i18n message key",
       "name": "approval_add_assignee_not_allowed",
       "value": "approval_add_assignee_not_allowed",
@@ -54496,7 +54496,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:204"
+        "approval/api_errors.go:196"
       ],
       "terms": [
         "approval_add_assignee_not_allowed",
@@ -54648,7 +54648,7 @@
       ]
     },
     {
-      "id": "e98e64627fdc466b5da28389",
+      "id": "91a45a1c57a23188df3e7d31",
       "category": "i18n message key",
       "name": "approval_assignee_resolve_failed",
       "value": "approval_assignee_resolve_failed",
@@ -54656,7 +54656,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:217"
+        "approval/api_errors.go:209"
       ],
       "terms": [
         "approval_assignee_resolve_failed",
@@ -54668,7 +54668,7 @@
       ]
     },
     {
-      "id": "9ef33d4332c344d051a778fe",
+      "id": "0486635e3991ee282eaabcac",
       "category": "i18n message key",
       "name": "approval_binding_column_missing",
       "value": "approval_binding_column_missing",
@@ -54676,7 +54676,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:259"
+        "approval/api_errors.go:251"
       ],
       "terms": [
         "approval_binding_column_missing",
@@ -54688,7 +54688,7 @@
       ]
     },
     {
-      "id": "a30822fcab9767b77ecdfa2f",
+      "id": "43f87f1382b0e5c14297545b",
       "category": "i18n message key",
       "name": "approval_binding_columns_conflict",
       "value": "approval_binding_columns_conflict",
@@ -54696,7 +54696,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:171"
+        "approval/api_errors.go:163"
       ],
       "terms": [
         "approval_binding_columns_conflict",
@@ -54728,7 +54728,7 @@
       ]
     },
     {
-      "id": "71e248cf2bf62e10163b97a5",
+      "id": "ed3c3b137a53222839d32fd2",
       "category": "i18n message key",
       "name": "approval_binding_key_not_unique",
       "value": "approval_binding_key_not_unique",
@@ -54736,7 +54736,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:177"
+        "approval/api_errors.go:169"
       ],
       "terms": [
         "approval_binding_key_not_unique",
@@ -54748,7 +54748,7 @@
       ]
     },
     {
-      "id": "48fd52b7292c68a7b68800e4",
+      "id": "ea7ee4be9f2de0dd7894142d",
       "category": "i18n message key",
       "name": "approval_binding_projection_not_found",
       "value": "approval_binding_projection_not_found",
@@ -54756,7 +54756,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:195"
+        "approval/api_errors.go:187"
       ],
       "terms": [
         "approval_binding_projection_not_found",
@@ -54768,7 +54768,7 @@
       ]
     },
     {
-      "id": "91509b260ea1e4a637891290",
+      "id": "9f54cb91b560db61c0860ab9",
       "category": "i18n message key",
       "name": "approval_binding_status_mapping_invalid",
       "value": "approval_binding_status_mapping_invalid",
@@ -54776,7 +54776,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:181"
+        "approval/api_errors.go:173"
       ],
       "terms": [
         "approval_binding_status_mapping_invalid",
@@ -54788,7 +54788,7 @@
       ]
     },
     {
-      "id": "4e4107cde742ecb67450e6f0",
+      "id": "4e82874bdfb3b9189c9ccea7",
       "category": "i18n message key",
       "name": "approval_binding_table_missing",
       "value": "approval_binding_table_missing",
@@ -54796,7 +54796,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:249"
+        "approval/api_errors.go:241"
       ],
       "terms": [
         "approval_binding_table_missing",
@@ -54808,7 +54808,7 @@
       ]
     },
     {
-      "id": "cd2d4e4cfb1056167e0e091d",
+      "id": "c80092dac981ef6ba6a93a5b",
       "category": "i18n message key",
       "name": "approval_binding_target_busy",
       "value": "approval_binding_target_busy",
@@ -54816,7 +54816,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:192"
+        "approval/api_errors.go:184"
       ],
       "terms": [
         "approval_binding_target_busy",
@@ -54828,7 +54828,7 @@
       ]
     },
     {
-      "id": "4bea48cd31f929987f7d3188",
+      "id": "ba824ddc3832b046a4bf0a12",
       "category": "i18n message key",
       "name": "approval_binding_unexpected",
       "value": "approval_binding_unexpected",
@@ -54836,7 +54836,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:174"
+        "approval/api_errors.go:166"
       ],
       "terms": [
         "approval_binding_unexpected",
@@ -54848,7 +54848,7 @@
       ]
     },
     {
-      "id": "f80648338f35212174447692",
+      "id": "eb9d5216c6028ff470855a8e",
       "category": "i18n message key",
       "name": "approval_business_ref_required",
       "value": "approval_business_ref_required",
@@ -54856,7 +54856,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:191"
+        "approval/api_errors.go:183"
       ],
       "terms": [
         "approval_business_ref_required",
@@ -54868,7 +54868,7 @@
       ]
     },
     {
-      "id": "22e4765746dd90cf2541c770",
+      "id": "67cfabde1e443f1c6625c380",
       "category": "i18n message key",
       "name": "approval_category_not_found",
       "value": "approval_category_not_found",
@@ -54876,7 +54876,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:158"
+        "approval/api_errors.go:150"
       ],
       "terms": [
         "approval_category_not_found",
@@ -54968,7 +54968,7 @@
       ]
     },
     {
-      "id": "c6772fc76982cdab3816c4d8",
+      "id": "23b335ce8d47bae38940413c",
       "category": "i18n message key",
       "name": "approval_cross_tenant_access",
       "value": "approval_cross_tenant_access",
@@ -54976,7 +54976,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:240"
+        "approval/api_errors.go:232"
       ],
       "terms": [
         "approval_cross_tenant_access",
@@ -55088,7 +55088,7 @@
       ]
     },
     {
-      "id": "add40b4142ff60c498e55d05",
+      "id": "5d16f08dc556c6f084708e0e",
       "category": "i18n message key",
       "name": "approval_form_data_too_large",
       "value": "approval_form_data_too_large",
@@ -55096,7 +55096,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:225"
+        "approval/api_errors.go:217"
       ],
       "terms": [
         "approval_form_data_too_large",
@@ -55848,7 +55848,7 @@
       ]
     },
     {
-      "id": "8c85dfa8ec9bb7466e24a899",
+      "id": "de3408972ef40054666acd8a",
       "category": "i18n message key",
       "name": "approval_form_validation_failed",
       "value": "approval_form_validation_failed",
@@ -55856,7 +55856,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:219"
+        "approval/api_errors.go:211"
       ],
       "terms": [
         "approval_form_validation_failed",
@@ -55968,7 +55968,7 @@
       ]
     },
     {
-      "id": "0579b4344ab9305c3c10dec1",
+      "id": "9cc82e0af001c00170f776b7",
       "category": "i18n message key",
       "name": "approval_instance_completed",
       "value": "approval_instance_completed",
@@ -55976,7 +55976,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:186"
+        "approval/api_errors.go:178"
       ],
       "terms": [
         "approval_instance_completed",
@@ -55988,7 +55988,7 @@
       ]
     },
     {
-      "id": "7261f6a96b91e68ad8ca91c1",
+      "id": "db2f2f2edd0a48453df3651e",
       "category": "i18n message key",
       "name": "approval_instance_not_found",
       "value": "approval_instance_not_found",
@@ -55996,7 +55996,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:185"
+        "approval/api_errors.go:177"
       ],
       "terms": [
         "approval_instance_not_found",
@@ -56008,7 +56008,7 @@
       ]
     },
     {
-      "id": "1cea4583310d123977db9ad3",
+      "id": "c9c3f1cd31448bec899409cf",
       "category": "i18n message key",
       "name": "approval_invalid_add_assignee_type",
       "value": "approval_invalid_add_assignee_type",
@@ -56016,7 +56016,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:209"
+        "approval/api_errors.go:201"
       ],
       "terms": [
         "approval_invalid_add_assignee_type",
@@ -56068,7 +56068,7 @@
       ]
     },
     {
-      "id": "c3e09ecf26e6d204972c5199",
+      "id": "2c63daa4b18044c1c85b9770",
       "category": "i18n message key",
       "name": "approval_invalid_business_ref",
       "value": "approval_invalid_business_ref",
@@ -56076,7 +56076,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:193"
+        "approval/api_errors.go:185"
       ],
       "terms": [
         "approval_invalid_business_ref",
@@ -56168,7 +56168,7 @@
       ]
     },
     {
-      "id": "33c4ae9c7e918ef0f19a9113",
+      "id": "d81c2d813579bec70557c6ef",
       "category": "i18n message key",
       "name": "approval_invalid_instance_transition",
       "value": "approval_invalid_instance_transition",
@@ -56176,7 +56176,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:190"
+        "approval/api_errors.go:182"
       ],
       "terms": [
         "approval_invalid_instance_transition",
@@ -56188,7 +56188,7 @@
       ]
     },
     {
-      "id": "a39c4578506d4d4005241943",
+      "id": "2074877aa3125a7c63d53186",
       "category": "i18n message key",
       "name": "approval_invalid_rollback_target",
       "value": "approval_invalid_rollback_target",
@@ -56196,7 +56196,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:211"
+        "approval/api_errors.go:203"
       ],
       "terms": [
         "approval_invalid_rollback_target",
@@ -56208,7 +56208,7 @@
       ]
     },
     {
-      "id": "fc7bed1094443e816cee75e7",
+      "id": "a5777772103cb83babdd1d82",
       "category": "i18n message key",
       "name": "approval_invalid_storage_mode",
       "value": "approval_invalid_storage_mode",
@@ -56216,7 +56216,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:168"
+        "approval/api_errors.go:160"
       ],
       "terms": [
         "approval_invalid_storage_mode",
@@ -56228,7 +56228,7 @@
       ]
     },
     {
-      "id": "a4eea8621ab6a0b69ee14738",
+      "id": "07715a2bba9f61a47107c2cb",
       "category": "i18n message key",
       "name": "approval_invalid_task_transition",
       "value": "approval_invalid_task_transition",
@@ -56236,7 +56236,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:202"
+        "approval/api_errors.go:194"
       ],
       "terms": [
         "approval_invalid_task_transition",
@@ -56268,7 +56268,7 @@
       ]
     },
     {
-      "id": "9106365ce4a69b9cccde90d1",
+      "id": "cdd53fdc1c73600368e3902b",
       "category": "i18n message key",
       "name": "approval_invalid_transfer_target",
       "value": "approval_invalid_transfer_target",
@@ -56276,7 +56276,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:213"
+        "approval/api_errors.go:205"
       ],
       "terms": [
         "approval_invalid_transfer_target",
@@ -56288,7 +56288,7 @@
       ]
     },
     {
-      "id": "6269aa1e75add765ac63e67b",
+      "id": "dd7af5066700db732518329b",
       "category": "i18n message key",
       "name": "approval_last_assignee_removal",
       "value": "approval_last_assignee_removal",
@@ -56296,7 +56296,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:212"
+        "approval/api_errors.go:204"
       ],
       "terms": [
         "approval_last_assignee_removal",
@@ -56308,7 +56308,7 @@
       ]
     },
     {
-      "id": "f116dcd46050bf4dd48d73ea",
+      "id": "348e4c212d4728770cfdb955",
       "category": "i18n message key",
       "name": "approval_manual_cc_not_allowed",
       "value": "approval_manual_cc_not_allowed",
@@ -56316,7 +56316,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:207"
+        "approval/api_errors.go:199"
       ],
       "terms": [
         "approval_manual_cc_not_allowed",
@@ -56328,7 +56328,7 @@
       ]
     },
     {
-      "id": "be1e3263deb75c3cc2e6ca35",
+      "id": "1222e8484c24f7b7f3d5a786",
       "category": "i18n message key",
       "name": "approval_no_assignee",
       "value": "approval_no_assignee",
@@ -56336,7 +56336,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:216"
+        "approval/api_errors.go:208"
       ],
       "terms": [
         "approval_no_assignee",
@@ -56368,7 +56368,7 @@
       ]
     },
     {
-      "id": "b426e8f7a6cdd405c4398e23",
+      "id": "701af3ebac0af12a807ef37d",
       "category": "i18n message key",
       "name": "approval_no_users_specified",
       "value": "approval_no_users_specified",
@@ -56376,7 +56376,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:214"
+        "approval/api_errors.go:206"
       ],
       "terms": [
         "approval_no_users_specified",
@@ -56388,7 +56388,7 @@
       ]
     },
     {
-      "id": "a9d6232e21826d4bb77ee740",
+      "id": "fa0c6a373c39e950a812fc37",
       "category": "i18n message key",
       "name": "approval_not_allowed_initiate",
       "value": "approval_not_allowed_initiate",
@@ -56396,7 +56396,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:187"
+        "approval/api_errors.go:179"
       ],
       "terms": [
         "approval_not_allowed_initiate",
@@ -56408,7 +56408,7 @@
       ]
     },
     {
-      "id": "99e75384e6b450a9c64b32d1",
+      "id": "8f62b75b3476c27e51276fd6",
       "category": "i18n message key",
       "name": "approval_not_applicant",
       "value": "approval_not_applicant",
@@ -56416,7 +56416,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:210"
+        "approval/api_errors.go:202"
       ],
       "terms": [
         "approval_not_applicant",
@@ -56428,7 +56428,7 @@
       ]
     },
     {
-      "id": "e8d8b4090f23c00421288d2f",
+      "id": "f96261dc1c952bc06fb8e76f",
       "category": "i18n message key",
       "name": "approval_not_assignee",
       "value": "approval_not_assignee",
@@ -56436,7 +56436,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:201"
+        "approval/api_errors.go:193"
       ],
       "terms": [
         "approval_not_assignee",
@@ -56448,7 +56448,7 @@
       ]
     },
     {
-      "id": "8daad7cefe225685829cdcc1",
+      "id": "fe006e7fcd257f1368af010d",
       "category": "i18n message key",
       "name": "approval_opinion_required",
       "value": "approval_opinion_required",
@@ -56456,7 +56456,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:206"
+        "approval/api_errors.go:198"
       ],
       "terms": [
         "approval_opinion_required",
@@ -56468,7 +56468,7 @@
       ]
     },
     {
-      "id": "1245db989e5b9f53267a8f55",
+      "id": "dc9d0c7d6192abe954011fb4",
       "category": "i18n message key",
       "name": "approval_remove_assignee_not_allowed",
       "value": "approval_remove_assignee_not_allowed",
@@ -56476,7 +56476,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:208"
+        "approval/api_errors.go:200"
       ],
       "terms": [
         "approval_remove_assignee_not_allowed",
@@ -56488,7 +56488,7 @@
       ]
     },
     {
-      "id": "98d4ba1f583b1db3614bed15",
+      "id": "a67c979c07bd8c901da117a1",
       "category": "i18n message key",
       "name": "approval_resubmit_not_allowed",
       "value": "approval_resubmit_not_allowed",
@@ -56496,7 +56496,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:189"
+        "approval/api_errors.go:181"
       ],
       "terms": [
         "approval_resubmit_not_allowed",
@@ -56508,7 +56508,7 @@
       ]
     },
     {
-      "id": "1bd617bc19abf1bfb37c0e88",
+      "id": "e59ceaa4fe7e8d2ca1842909",
       "category": "i18n message key",
       "name": "approval_rollback_not_allowed",
       "value": "approval_rollback_not_allowed",
@@ -56516,7 +56516,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:203"
+        "approval/api_errors.go:195"
       ],
       "terms": [
         "approval_rollback_not_allowed",
@@ -56528,7 +56528,7 @@
       ]
     },
     {
-      "id": "ee8b5b27e455bd3e684cdae8",
+      "id": "cc0126f471170f7dbd26ad2e",
       "category": "i18n message key",
       "name": "approval_shared_flow_code_exists",
       "value": "approval_shared_flow_code_exists",
@@ -56536,7 +56536,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:163"
+        "approval/api_errors.go:155"
       ],
       "terms": [
         "approval_shared_flow_code_exists",
@@ -56548,27 +56548,7 @@
       ]
     },
     {
-      "id": "3f020d29a7fc854d2090a283",
-      "category": "i18n message key",
-      "name": "approval_shared_flow_names_people",
-      "value": "approval_shared_flow_names_people",
-      "details": [
-        "i18n.T call"
-      ],
-      "source_evidence": [
-        "approval/api_errors.go:153"
-      ],
-      "terms": [
-        "approval_shared_flow_names_people",
-        "call",
-        "i18n",
-        "i18n.T",
-        "key",
-        "message"
-      ]
-    },
-    {
-      "id": "594b4052b10b3364056830d3",
+      "id": "7488ad3193eecddb4d3a6037",
       "category": "i18n message key",
       "name": "approval_task_not_found",
       "value": "approval_task_not_found",
@@ -56576,7 +56556,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:199"
+        "approval/api_errors.go:191"
       ],
       "terms": [
         "approval_task_not_found",
@@ -56588,7 +56568,7 @@
       ]
     },
     {
-      "id": "9833e2046506fbfc8c8845f9",
+      "id": "7990df29bf38890828660078",
       "category": "i18n message key",
       "name": "approval_task_not_pending",
       "value": "approval_task_not_pending",
@@ -56596,7 +56576,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:200"
+        "approval/api_errors.go:192"
       ],
       "terms": [
         "approval_task_not_pending",
@@ -56608,7 +56588,7 @@
       ]
     },
     {
-      "id": "ea42106e39adc35890832c2a",
+      "id": "10264e3efc8e2efec5ab6373",
       "category": "i18n message key",
       "name": "approval_terminate_not_allowed",
       "value": "approval_terminate_not_allowed",
@@ -56616,7 +56596,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:233"
+        "approval/api_errors.go:225"
       ],
       "terms": [
         "approval_terminate_not_allowed",
@@ -56628,7 +56608,7 @@
       ]
     },
     {
-      "id": "ca1b599f8ae937da28576a38",
+      "id": "56916dd08a45092d83cbcaae",
       "category": "i18n message key",
       "name": "approval_transfer_not_allowed",
       "value": "approval_transfer_not_allowed",
@@ -56636,7 +56616,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:205"
+        "approval/api_errors.go:197"
       ],
       "terms": [
         "approval_transfer_not_allowed",
@@ -56648,7 +56628,7 @@
       ]
     },
     {
-      "id": "6640bcbbb870997789d5f990",
+      "id": "ab862c0ddcea240225f3cb57",
       "category": "i18n message key",
       "name": "approval_urge_too_frequent",
       "value": "approval_urge_too_frequent",
@@ -56656,7 +56636,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "internal/approval/command/urge_task.go:112"
+        "internal/approval/command/urge_task.go:119"
       ],
       "terms": [
         "approval_urge_too_frequent",
@@ -56708,7 +56688,7 @@
       ]
     },
     {
-      "id": "1f4161fb05538423df1ce21f",
+      "id": "5cf2dbac95d9a0f5144a0edb",
       "category": "i18n message key",
       "name": "approval_withdraw_not_allowed",
       "value": "approval_withdraw_not_allowed",
@@ -56716,7 +56696,7 @@
         "i18n.T call"
       ],
       "source_evidence": [
-        "approval/api_errors.go:188"
+        "approval/api_errors.go:180"
       ],
       "terms": [
         "approval_withdraw_not_allowed",
@@ -62435,22 +62415,6 @@
       "terms": [
         "40026",
         "ErrCodeSharedFlowCodeExists",
-        "code",
-        "error",
-        "result"
-      ]
-    },
-    {
-      "id": "53fe7fe8117088af541f470c",
-      "category": "result error code",
-      "name": "ErrCodeSharedFlowNamesPeople",
-      "value": "40024",
-      "source_evidence": [
-        "approval/api_errors.go:37"
-      ],
-      "terms": [
-        "40024",
-        "ErrCodeSharedFlowNamesPeople",
         "code",
         "error",
         "result"

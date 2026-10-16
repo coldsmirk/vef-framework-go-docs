@@ -17,8 +17,8 @@ sidebar_position: 91
 (cd ../vef-framework-go && go run ../vef-framework-go-docs/scripts/verify-runtime-api-audit.go -source . -out ../vef-framework-go-docs)
 ```
 
-Fingerprint: `ad4ad8b60319b99bcd9e8a041b871671bf0b741e055b0720e6883ed202ec43d4`
-Entries: `3300`
+Fingerprint: `3ddc78f14a78b22af149cacf5a95ef2c9ec308a9c1eed774002a971872c3e3ce`
+Entries: `3298`
 
 ## Coverage Evidence
 
@@ -52,11 +52,11 @@ Entries: `3300`
 | `event topic` | 36 | Tier 2 event constant/method scan | `extractProtocolConstants, extractMoldGrammar` | AST scan of EventType*/eventType* constants, EventType() return values, and built-in subscription/route-inspection topic call sites. | None for framework-owned non-test event topics. |
 | `event transport contract` | 6 | Tier 2 scoped AST constants | `extractEventTransportContracts` | AST/source-derived extraction of outbox DLQ headers, topic prefix, retry backoff, and persisted-error bounds. | None for current built-in event transports. |
 | `i18n key indirection` | 4 | Tier 2 AST call scan | `extractI18NMessageKeys` | AST scan of dynamic i18n.T call sites whose key source is another audited surface such as label_i18n tags, validator rules, or Fiber error mappings. | None for current dynamic i18n.T call sites. |
-| `i18n message key` | 289 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
+| `i18n message key` | 288 | Tier 2 AST call/tag scan | `extractI18NMessageKeys` | AST scan of literal or const-backed i18n.T calls, validator rule message keys, and label_i18n struct tags. | None for literal or const-backed keys; dynamic sources are tracked as i18n key indirections. |
 | `meta tag grammar` | 7 | Tier 2 AST constants | `extractStructTagGrammars` | Catalog of storage meta tag name, dive value, file-reference kinds, and attribute grammar delimiters. | None for the current parser constants and tag parsing rules. |
 | `mold tag grammar` | 9 | Tier 2 parser grammar scan | `extractMoldGrammar` | AST scan of the default mold tag name and restricted parser token constants, with boundary verification for parser token coverage. | None for current mold parser token constants. |
 | `mold transformer tag` | 2 | Tier 2 transformer scan | `extractMoldGrammar` | AST scan of built-in FieldTransformer Tag() methods. | None for current built-in mold transformer Tag() methods. |
-| `result error code` | 183 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
+| `result error code` | 182 | Tier 1 AST constants | `extractErrorCodes` | AST scan of ErrCode* constants in api_errors.go and result/constants.go. | None for named error-code constants. |
 | `result message key` | 44 | Tier 1 AST constants | `extractProtocolConstants` | AST scan of ErrMessage* constants. | Inline i18n keys are covered by the i18n message key category. |
 | `runtime enum value` | 383 | Tier 2 typed string constants | `extractRuntimeEnumValues` | AST scan of typed string constants in public packages plus runtime internal DTO/transport packages. | Integer/stringer enum renderings are covered by the generated public API index and package contract ledger. |
 | `search tag grammar` | 38 | Tier 1 AST constants | `extractStructTagGrammars` | AST scan of search tag name, attributes, params, ignore marker, and operator/type tokens. | None for constants in search/constants.go. |
@@ -2545,8 +2545,8 @@ Entries: `3300`
 | `api_request_params_invalid_json` | `api_request_params_invalid_json` | i18n.T call | `api/api_errors.go:17` |
 | `api_request_resource` | `api_request_resource` | label_i18n struct tag | `api/request.go:16` |
 | `api_request_version` | `api_request_version` | label_i18n struct tag | `api/request.go:18` |
-| `approval_access_denied` | `approval_access_denied` | i18n.T call | `approval/api_errors.go:229` |
-| `approval_add_assignee_not_allowed` | `approval_add_assignee_not_allowed` | i18n.T call | `approval/api_errors.go:204` |
+| `approval_access_denied` | `approval_access_denied` | i18n.T call | `approval/api_errors.go:221` |
+| `approval_add_assignee_not_allowed` | `approval_add_assignee_not_allowed` | i18n.T call | `approval/api_errors.go:196` |
 | `approval_assignee_kind_department` | `approval_assignee_kind_department` | i18n.T call | `internal/approval/strategy/assignee.go:88` |
 | `approval_assignee_kind_department_leader` | `approval_assignee_kind_department_leader` | i18n.T call | `internal/approval/strategy/assignee.go:183` |
 | `approval_assignee_kind_form_field` | `approval_assignee_kind_form_field` | i18n.T call | `internal/approval/strategy/assignee.go:217` |
@@ -2554,29 +2554,29 @@ Entries: `3300`
 | `approval_assignee_kind_self` | `approval_assignee_kind_self` | i18n.T call | `internal/approval/strategy/assignee.go:119` |
 | `approval_assignee_kind_superior` | `approval_assignee_kind_superior` | i18n.T call | `internal/approval/strategy/assignee.go:146` |
 | `approval_assignee_kind_user` | `approval_assignee_kind_user` | i18n.T call | `internal/approval/strategy/assignee.go:27` |
-| `approval_assignee_resolve_failed` | `approval_assignee_resolve_failed` | i18n.T call | `approval/api_errors.go:217` |
-| `approval_binding_column_missing` | `approval_binding_column_missing` | i18n.T call | `approval/api_errors.go:259` |
-| `approval_binding_columns_conflict` | `approval_binding_columns_conflict` | i18n.T call | `approval/api_errors.go:171` |
+| `approval_assignee_resolve_failed` | `approval_assignee_resolve_failed` | i18n.T call | `approval/api_errors.go:209` |
+| `approval_binding_column_missing` | `approval_binding_column_missing` | i18n.T call | `approval/api_errors.go:251` |
+| `approval_binding_columns_conflict` | `approval_binding_columns_conflict` | i18n.T call | `approval/api_errors.go:163` |
 | `approval_binding_incomplete` | `approval_binding_incomplete` | i18n.T call | `approval/api_errors.go:123` |
-| `approval_binding_key_not_unique` | `approval_binding_key_not_unique` | i18n.T call | `approval/api_errors.go:177` |
-| `approval_binding_projection_not_found` | `approval_binding_projection_not_found` | i18n.T call | `approval/api_errors.go:195` |
-| `approval_binding_status_mapping_invalid` | `approval_binding_status_mapping_invalid` | i18n.T call | `approval/api_errors.go:181` |
-| `approval_binding_table_missing` | `approval_binding_table_missing` | i18n.T call | `approval/api_errors.go:249` |
-| `approval_binding_target_busy` | `approval_binding_target_busy` | i18n.T call | `approval/api_errors.go:192` |
-| `approval_binding_unexpected` | `approval_binding_unexpected` | i18n.T call | `approval/api_errors.go:174` |
-| `approval_business_ref_required` | `approval_business_ref_required` | i18n.T call | `approval/api_errors.go:191` |
-| `approval_category_not_found` | `approval_category_not_found` | i18n.T call | `approval/api_errors.go:158` |
+| `approval_binding_key_not_unique` | `approval_binding_key_not_unique` | i18n.T call | `approval/api_errors.go:169` |
+| `approval_binding_projection_not_found` | `approval_binding_projection_not_found` | i18n.T call | `approval/api_errors.go:187` |
+| `approval_binding_status_mapping_invalid` | `approval_binding_status_mapping_invalid` | i18n.T call | `approval/api_errors.go:173` |
+| `approval_binding_table_missing` | `approval_binding_table_missing` | i18n.T call | `approval/api_errors.go:241` |
+| `approval_binding_target_busy` | `approval_binding_target_busy` | i18n.T call | `approval/api_errors.go:184` |
+| `approval_binding_unexpected` | `approval_binding_unexpected` | i18n.T call | `approval/api_errors.go:166` |
+| `approval_business_ref_required` | `approval_business_ref_required` | i18n.T call | `approval/api_errors.go:183` |
+| `approval_category_not_found` | `approval_category_not_found` | i18n.T call | `approval/api_errors.go:150` |
 | `approval_cc_kind_department` | `approval_cc_kind_department` | i18n.T call | `internal/approval/strategy/cc.go:75` |
 | `approval_cc_kind_form_field` | `approval_cc_kind_form_field` | i18n.T call | `internal/approval/strategy/cc.go:99` |
 | `approval_cc_kind_role` | `approval_cc_kind_role` | i18n.T call | `internal/approval/strategy/cc.go:48` |
 | `approval_cc_kind_user` | `approval_cc_kind_user` | i18n.T call | `internal/approval/strategy/cc.go:26` |
-| `approval_cross_tenant_access` | `approval_cross_tenant_access` | i18n.T call | `approval/api_errors.go:240` |
+| `approval_cross_tenant_access` | `approval_cross_tenant_access` | i18n.T call | `approval/api_errors.go:232` |
 | `approval_flow_code_exists` | `approval_flow_code_exists` | i18n.T call | `approval/api_errors.go:97` |
 | `approval_flow_not_active` | `approval_flow_not_active` | i18n.T call | `approval/api_errors.go:93` |
 | `approval_flow_not_found` | `approval_flow_not_found` | i18n.T call | `approval/api_errors.go:92` |
 | `approval_form_cross_device_kind_mismatch` | `approval_form_cross_device_kind_mismatch` | i18n.T call | `internal/approval/formeditor/api_errors.go:52` |
 | `approval_form_cross_device_table_mismatch` | `approval_form_cross_device_table_mismatch` | i18n.T call | `internal/approval/formeditor/api_errors.go:62` |
-| `approval_form_data_too_large` | `approval_form_data_too_large` | i18n.T call | `approval/api_errors.go:225` |
+| `approval_form_data_too_large` | `approval_form_data_too_large` | i18n.T call | `approval/api_errors.go:217` |
 | `approval_form_field_assignee_unresolved` | `approval_form_field_assignee_unresolved` | i18n.T call | `internal/approval/strategy/assignee.go:252` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:498` |
 | `approval_form_field_empty` | `approval_form_field_empty` | i18n.T call | `internal/approval/service/validation.go:512` |
@@ -2614,50 +2614,49 @@ Entries: `3300`
 | `approval_form_table_columns_empty` | `approval_form_table_columns_empty` | i18n.T call | `internal/approval/formeditor/api_errors.go:46` |
 | `approval_form_unknown_field_type` | `approval_form_unknown_field_type` | i18n.T call | `internal/approval/formeditor/api_errors.go:32` |
 | `approval_form_unmappable_field_type` | `approval_form_unmappable_field_type` | i18n.T call | `internal/approval/formeditor/api_errors.go:23` |
-| `approval_form_validation_failed` | `approval_form_validation_failed` | i18n.T call | `approval/api_errors.go:219` |
+| `approval_form_validation_failed` | `approval_form_validation_failed` | i18n.T call | `approval/api_errors.go:211` |
 | `approval_initiator_kind_department` | `approval_initiator_kind_department` | i18n.T call | `internal/approval/strategy/initiator.go:45` |
 | `approval_initiator_kind_role` | `approval_initiator_kind_role` | i18n.T call | `internal/approval/strategy/initiator.go:75` |
 | `approval_initiator_kind_user` | `approval_initiator_kind_user` | i18n.T call | `internal/approval/strategy/initiator.go:24` |
 | `approval_initiators_not_allowed` | `approval_initiators_not_allowed` | i18n.T call | `approval/api_errors.go:138` |
 | `approval_initiators_required` | `approval_initiators_required` | i18n.T call | `approval/api_errors.go:145` |
-| `approval_instance_completed` | `approval_instance_completed` | i18n.T call | `approval/api_errors.go:186` |
-| `approval_instance_not_found` | `approval_instance_not_found` | i18n.T call | `approval/api_errors.go:185` |
-| `approval_invalid_add_assignee_type` | `approval_invalid_add_assignee_type` | i18n.T call | `approval/api_errors.go:209` |
+| `approval_instance_completed` | `approval_instance_completed` | i18n.T call | `approval/api_errors.go:178` |
+| `approval_instance_not_found` | `approval_instance_not_found` | i18n.T call | `approval/api_errors.go:177` |
+| `approval_invalid_add_assignee_type` | `approval_invalid_add_assignee_type` | i18n.T call | `approval/api_errors.go:201` |
 | `approval_invalid_binding_mode` | `approval_invalid_binding_mode` | i18n.T call | `approval/api_errors.go:128` |
 | `approval_invalid_business_identifier` | `approval_invalid_business_identifier` | i18n.T call | `approval/api_errors.go:105` |
-| `approval_invalid_business_ref` | `approval_invalid_business_ref` | i18n.T call | `approval/api_errors.go:193` |
+| `approval_invalid_business_ref` | `approval_invalid_business_ref` | i18n.T call | `approval/api_errors.go:185` |
 | `approval_invalid_flow_design` | `approval_invalid_flow_design` | i18n.T call | `approval/api_errors.go:96` |
 | `approval_invalid_flow_label` | `approval_invalid_flow_label` | i18n.T call | `approval/api_errors.go:115` |
 | `approval_invalid_form_design` | `approval_invalid_form_design` | i18n.T call | `approval/api_errors.go:120` |
 | `approval_invalid_initiator_kind` | `approval_invalid_initiator_kind` | i18n.T call | `approval/api_errors.go:132` |
-| `approval_invalid_instance_transition` | `approval_invalid_instance_transition` | i18n.T call | `approval/api_errors.go:190` |
-| `approval_invalid_rollback_target` | `approval_invalid_rollback_target` | i18n.T call | `approval/api_errors.go:211` |
-| `approval_invalid_storage_mode` | `approval_invalid_storage_mode` | i18n.T call | `approval/api_errors.go:168` |
-| `approval_invalid_task_transition` | `approval_invalid_task_transition` | i18n.T call | `approval/api_errors.go:202` |
+| `approval_invalid_instance_transition` | `approval_invalid_instance_transition` | i18n.T call | `approval/api_errors.go:182` |
+| `approval_invalid_rollback_target` | `approval_invalid_rollback_target` | i18n.T call | `approval/api_errors.go:203` |
+| `approval_invalid_storage_mode` | `approval_invalid_storage_mode` | i18n.T call | `approval/api_errors.go:160` |
+| `approval_invalid_task_transition` | `approval_invalid_task_transition` | i18n.T call | `approval/api_errors.go:194` |
 | `approval_invalid_title_template` | `approval_invalid_title_template` | i18n.T call | `approval/api_errors.go:111` |
-| `approval_invalid_transfer_target` | `approval_invalid_transfer_target` | i18n.T call | `approval/api_errors.go:213` |
-| `approval_last_assignee_removal` | `approval_last_assignee_removal` | i18n.T call | `approval/api_errors.go:212` |
-| `approval_manual_cc_not_allowed` | `approval_manual_cc_not_allowed` | i18n.T call | `approval/api_errors.go:207` |
-| `approval_no_assignee` | `approval_no_assignee` | i18n.T call | `approval/api_errors.go:216` |
+| `approval_invalid_transfer_target` | `approval_invalid_transfer_target` | i18n.T call | `approval/api_errors.go:205` |
+| `approval_last_assignee_removal` | `approval_last_assignee_removal` | i18n.T call | `approval/api_errors.go:204` |
+| `approval_manual_cc_not_allowed` | `approval_manual_cc_not_allowed` | i18n.T call | `approval/api_errors.go:199` |
+| `approval_no_assignee` | `approval_no_assignee` | i18n.T call | `approval/api_errors.go:208` |
 | `approval_no_published_version` | `approval_no_published_version` | i18n.T call | `approval/api_errors.go:94` |
-| `approval_no_users_specified` | `approval_no_users_specified` | i18n.T call | `approval/api_errors.go:214` |
-| `approval_not_allowed_initiate` | `approval_not_allowed_initiate` | i18n.T call | `approval/api_errors.go:187` |
-| `approval_not_applicant` | `approval_not_applicant` | i18n.T call | `approval/api_errors.go:210` |
-| `approval_not_assignee` | `approval_not_assignee` | i18n.T call | `approval/api_errors.go:201` |
-| `approval_opinion_required` | `approval_opinion_required` | i18n.T call | `approval/api_errors.go:206` |
-| `approval_remove_assignee_not_allowed` | `approval_remove_assignee_not_allowed` | i18n.T call | `approval/api_errors.go:208` |
-| `approval_resubmit_not_allowed` | `approval_resubmit_not_allowed` | i18n.T call | `approval/api_errors.go:189` |
-| `approval_rollback_not_allowed` | `approval_rollback_not_allowed` | i18n.T call | `approval/api_errors.go:203` |
-| `approval_shared_flow_code_exists` | `approval_shared_flow_code_exists` | i18n.T call | `approval/api_errors.go:163` |
-| `approval_shared_flow_names_people` | `approval_shared_flow_names_people` | i18n.T call | `approval/api_errors.go:153` |
-| `approval_task_not_found` | `approval_task_not_found` | i18n.T call | `approval/api_errors.go:199` |
-| `approval_task_not_pending` | `approval_task_not_pending` | i18n.T call | `approval/api_errors.go:200` |
-| `approval_terminate_not_allowed` | `approval_terminate_not_allowed` | i18n.T call | `approval/api_errors.go:233` |
-| `approval_transfer_not_allowed` | `approval_transfer_not_allowed` | i18n.T call | `approval/api_errors.go:205` |
-| `approval_urge_too_frequent` | `approval_urge_too_frequent` | i18n.T call | `internal/approval/command/urge_task.go:112` |
+| `approval_no_users_specified` | `approval_no_users_specified` | i18n.T call | `approval/api_errors.go:206` |
+| `approval_not_allowed_initiate` | `approval_not_allowed_initiate` | i18n.T call | `approval/api_errors.go:179` |
+| `approval_not_applicant` | `approval_not_applicant` | i18n.T call | `approval/api_errors.go:202` |
+| `approval_not_assignee` | `approval_not_assignee` | i18n.T call | `approval/api_errors.go:193` |
+| `approval_opinion_required` | `approval_opinion_required` | i18n.T call | `approval/api_errors.go:198` |
+| `approval_remove_assignee_not_allowed` | `approval_remove_assignee_not_allowed` | i18n.T call | `approval/api_errors.go:200` |
+| `approval_resubmit_not_allowed` | `approval_resubmit_not_allowed` | i18n.T call | `approval/api_errors.go:181` |
+| `approval_rollback_not_allowed` | `approval_rollback_not_allowed` | i18n.T call | `approval/api_errors.go:195` |
+| `approval_shared_flow_code_exists` | `approval_shared_flow_code_exists` | i18n.T call | `approval/api_errors.go:155` |
+| `approval_task_not_found` | `approval_task_not_found` | i18n.T call | `approval/api_errors.go:191` |
+| `approval_task_not_pending` | `approval_task_not_pending` | i18n.T call | `approval/api_errors.go:192` |
+| `approval_terminate_not_allowed` | `approval_terminate_not_allowed` | i18n.T call | `approval/api_errors.go:225` |
+| `approval_transfer_not_allowed` | `approval_transfer_not_allowed` | i18n.T call | `approval/api_errors.go:197` |
+| `approval_urge_too_frequent` | `approval_urge_too_frequent` | i18n.T call | `internal/approval/command/urge_task.go:119` |
 | `approval_version_not_draft` | `approval_version_not_draft` | i18n.T call | `approval/api_errors.go:95` |
 | `approval_version_not_found` | `approval_version_not_found` | i18n.T call | `approval/api_errors.go:98` |
-| `approval_withdraw_not_allowed` | `approval_withdraw_not_allowed` | i18n.T call | `approval/api_errors.go:188` |
+| `approval_withdraw_not_allowed` | `approval_withdraw_not_allowed` | i18n.T call | `approval/api_errors.go:180` |
 | `auth_challenge_response` | `auth_challenge_response` | label_i18n struct tag | `internal/security/auth_resource.go:307` |
 | `auth_challenge_token` | `auth_challenge_token` | label_i18n struct tag | `internal/security/auth_resource.go:305` |
 | `auth_challenge_type` | `auth_challenge_type` | label_i18n struct tag | `internal/security/auth_resource.go:306` |
@@ -2993,7 +2992,6 @@ Entries: `3300`
 | `ErrCodeScheduleNotFound` | `2700` |  | `cron/api_errors.go:10` |
 | `ErrCodeScriptFailed` | `2613` |  | `integration/api_errors.go:27` |
 | `ErrCodeSharedFlowCodeExists` | `40026` |  | `approval/api_errors.go:39` |
-| `ErrCodeSharedFlowNamesPeople` | `40024` |  | `approval/api_errors.go:37` |
 | `ErrCodeSignatureExpired` | `1013` |  | `security/api_errors.go:48` |
 | `ErrCodeSignatureInvalid` | `1017` |  | `security/api_errors.go:52` |
 | `ErrCodeSignatureRequired` | `1011` |  | `security/api_errors.go:46` |

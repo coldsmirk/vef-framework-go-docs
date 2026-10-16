@@ -209,7 +209,7 @@ vef-cli export-api --app ./cmd/server -o api-manifest.json --check
 
 ```json
 {
-  "framework": "v0.63.0",
+  "framework": "v0.64.0",
   "resources": [
     {
       "name": "security/auth",

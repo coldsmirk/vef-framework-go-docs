@@ -175,11 +175,11 @@
    "disposition": "has-semantic-contracts",
    "summary": "Approval domain models, enums, node definitions, events, hooks, and extension interfaces. Semantic contracts are linked by contract_ids; generated public API index and symbol ledger cover exported symbols, fields, and methods.",
    "reviewed_surface": {
-    "top_level": 562,
+    "top_level": 560,
     "fields": 992,
-    "methods": 162,
-    "entry_count": 1716,
-    "fingerprint": "83f83ab5270460d9b173f6e8e02fd04d692ab7601bd1769287b2bbaaca2c5211",
+    "methods": 163,
+    "entry_count": 1715,
+    "fingerprint": "88f78a9edb32b356a877d161f29f878cb7725bb862836a7b371deb8c22a7155d",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
@@ -2207,7 +2207,7 @@
     "fields": 0,
     "methods": 0,
     "entry_count": 1,
-    "fingerprint": "6a4d290af5be8a672a6fc1650ec587aafcd0453801d2c01600e3950312d3e3d5",
+    "fingerprint": "1106ae95dcd9b7d0df1b45a8cb5129ff215d8b6883b4992f96a2fa50ea9d0f4d",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",
