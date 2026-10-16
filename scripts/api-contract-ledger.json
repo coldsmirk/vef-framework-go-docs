@@ -2207,7 +2207,7 @@
     "fields": 0,
     "methods": 0,
     "entry_count": 1,
-    "fingerprint": "1106ae95dcd9b7d0df1b45a8cb5129ff215d8b6883b4992f96a2fa50ea9d0f4d",
+    "fingerprint": "41f399b1bfc61296da8472e36b36e49dc74b4142217a5ea31f76420acb71297b",
     "review_scope": [
      "exported top-level symbols",
      "exported struct fields",

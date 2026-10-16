@@ -2,7 +2,7 @@
   "source_module": "github.com/coldsmirk/vef-framework-go",
   "scope": "Exported top-level symbols, exported struct fields, and exported methods from non-internal/non-main packages.",
   "entry_count": 8429,
-  "fingerprint": "a268c31427d011d889b363fa46da4b04172f216825e4983c7abe8d4683d0022f",
+  "fingerprint": "c473ea7afe1249af230d98d58ed6dfc299787999d78f8dc13293a7a09d1e68a7",
   "dispositions": {
     "documented:top-level": "Top-level public symbols are mentioned in the package coverage docs and listed in the generated public API index.",
     "excluded:cli-implementation-export": "Exported CLI command implementation symbols are listed for audit completeness but are not supported import APIs.",
@@ -121780,7 +121780,7 @@
       "package": "github.com/coldsmirk/vef-framework-go/version",
       "kind": "top",
       "symbol": "VEFVersion",
-      "signature": "VEFVersion : untyped string = \"v0.64.0\"",
+      "signature": "VEFVersion : untyped string = \"v0.64.1\"",
       "disposition": "documented:top-level",
       "coverage": [
         "docs/utilities/small-helpers.md"
