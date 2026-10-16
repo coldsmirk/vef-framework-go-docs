@@ -582,26 +582,27 @@ all.
 ### Shared Flows
 
 A shared flow (`Flow.IsShared`, see
-[Shared Flows](./integration.md#shared-flows)) runs in every tenant, while a
-specific user — and the users behind a specific role or department — belongs
-to one. Deploying a shared flow therefore returns `ErrSharedFlowNamesPeople`
-(code `40024`) when a node:
+[Shared Flows](./integration.md#shared-flows)) is offered to every tenant, and
+its nodes may route work to people of other tenants than the one that starts
+it. Deploy validation treats it like any other flow: assignee and CC rules,
+node admins and fallback users may name specific users, roles and departments,
+so a flow can hand an application from one tenant's approver to another's. The
+people it is routed to act on the instance from the tenant they belong to (see
+[Shared Flows](./integration.md#shared-flows)).
 
-- has an assignee or CC rule whose kind's `SelectionMode` is `user`, `role` or
-  `department` — host kinds included, judged by the input they declare;
-- hands an assignee-less node to named fallback users or node admins
-  (`emptyAssigneeAction: transfer_specified | transfer_admin`);
-- escalates timeouts to node admins (`timeoutAction: transfer_admin` on a node
-  with a deadline, `timeoutHours > 0`).
+A user or department belongs to one tenant, so the form below records, beside
+the picked `ids`, the tenant they were picked from as `tenantId` on the
+assignee or CC rule. It is designer-only: the version keeps the definition as
+written, so a reopened flow shows the same tenant, and the engine never reads
+it — `AssigneeDefinition` and `CCDefinition` have no field for it.
 
-What stays available is everything resolved from the instance: `self`,
-`superior`, `department_leader`, `form_field`, a `SelectionCustom` host
-catalog, and a host kind resolving within `NodeResolveContext.Instance.TenantID`
-— the tenant the instance runs in. Initiator rules and flow admins are not
-restricted: they only ever act inside that tenant. The rule judges the actions,
-so a node admin or fallback list no action routes to does not block a deploy.
-`approval-flow-editor` mirrors it when the host marks the flow shared
-(`EditorPlugins.shared`).
+```json
+{ "kind": "user", "ids": ["u-17"], "tenantId": "org-b", "sortOrder": 1 }
+```
+
+`approval-flow-editor` asks for the tenant first when the host marks the flow
+shared (`EditorPlugins.shared`) and lists the tenants
+(`EditorPlugins.tenants`).
 
 ### Business Binding Schema
 

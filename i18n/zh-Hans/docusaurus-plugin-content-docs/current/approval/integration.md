@@ -88,6 +88,8 @@ CC + 流程：
 
 跨租户尝试返回 `approval.ErrCrossTenantAccess`。`IsSuperAdmin(p)` 判定 principal 是否带该 override 角色。override 角色字符串本身以 `approval.SuperAdminRole`（`"approval:super_admin"`）形式导出，方便宿主进行权限装配。
 
+`CallerContext.Allows(tenantID)` 是租户检查的布尔形式。`CallerContext.AllowsParticipant(tenantID, participant)` 是同一项检查，用于以“被派到工作的人员”身份操作的人：当调用者已确认 `participant` 时（框架对实例中任务的办理人和抄送接收人这样做），带有租户的普通调用者也能通过；零值上下文仍然被拒绝。见[全局流程](#全局流程)。
+
 ### 全局流程
 
 以 `isShared: true` 创建的流程（`Flow.IsShared`）是**全局**的：它仍由创建它的租户拥有和管理——`Flow.TenantID` 就是这个真实租户——同时也对其他所有租户开放。框架没有保留的全局租户，也没有全局分类。`IsShared` 在创建时确定，之后不可修改。
@@ -96,7 +98,7 @@ CC + 流程：
 - **同一编码在一个租户内只对应一个流程。** 按编码发起时，先找本租户该编码的流程，找不到再用同编码的全局流程，不论它属于哪个租户。租户自己的同编码流程不论处于什么状态，都会在本租户内取代全局流程——即使本租户的流程已停用，全局流程也不会生效。为此，全局流程的编码在所有租户的全局流程中唯一：再创建同编码的全局流程会以 `ErrSharedFlowCodeExists`（`40026`）失败，而非全局流程仍可使用这个编码。`my.find_available_flows`、`my.get_start_form` 和 `instance.start` 的解析规则完全一致，所以列表里列出的正好是能发起的流程。
 - **租户由服务端决定。** `my.find_available_flows`、`my.get_start_form` 和 `instance.start` 不接收租户参数：它们在调用方所在的租户中列出和发起流程。只有 `StartInstanceInput.TenantID` 可以指定租户，而且只对超级管理员和系统调用方生效（不传时用其本人所在租户，没有则用 `DefaultTenantID`）。
 - **全局流程由所属租户管理。** 流程与分类跨租户管理，由 `approval.flow.*` / `approval.category.*` 权限把关：用所属租户的 `tenantId` 加 `isShared: true` 创建即为全局流程，列出和修改的方式与该租户的其他流程相同。`find_flows` 传 `tenantId` 时列出该租户拥有的流程，包括它的全局流程；再加 `includeShared: true` 时，还会列出其他租户的、编码未被该租户自有流程占用的全局流程——也就是在该租户按编码发起能找到的流程，选择"本租户可用流程"的选择器需要的正是它。框架允许任何持有权限的人编辑任何流程；如果宿主希望全局流程只能由所属租户编辑，需要在自己的界面里限制。
-- **全局流程不把工作派给具体的人。** 部署全局流程时，如果审批人或抄送规则所用类型的 `SelectionMode` 会选具体的用户、角色或部门，或者节点会把任务转交节点管理员或指定人员（`emptyAssigneeAction: transfer_admin | transfer_specified`，以及设有时限的节点上的 `timeoutAction: transfer_admin`），部署会以 `ErrSharedFlowNamesPeople`（`40024`）失败。基于申请人解析的规则（直属上级、部门负责人、申请人本人）、来自表单的规则（`form_field`）和 `SelectionCustom` 宿主目录仍然可用；发起人规则和流程管理员也可用，因为它们授予的权限不会超出实例所在租户。需要在某个租户内解析人员的宿主类型，从 `NodeResolveContext.Instance.TenantID` 读取租户；检查发起权限时从 `InitiatorResolveContext.TenantID` 读取。两者都是发起实例的租户，而不是流程所属的租户。
+- **全局流程可以把工作派给任意租户的人员。** 部署全局流程时与其他流程一样校验，因此审批人和抄送规则、节点管理员和转交人员可以指定任意租户的具体用户、角色和部门——把一份申请从一个租户的审批人交给另一个租户的审批人，正是跨租户流程的用途。实例仍然在发起租户中运行，任务也带着该租户，但被派到任务或抄送的人员在自己所属的租户里处理它：租户检查会放行操作者是该实例某个任务的办理人、或是其抄送接收人的调用者（`CallerContext.AllowsParticipant`）——包括同意、驳回、转交、回退任务，加签、减签，追加抄送，标记抄送已读以及催办。管理类操作（`ReassignTask`、终止、`RetryBusinessProjection`）和申请人自己的操作（撤回、重新提交）仍然限定在实例所在租户内，零值 `CallerContext` 依旧被拒绝。全局流程的流程管理员属于流程所属租户，不会被派到工作，因此不会通过这项检查。需要在某个租户内解析人员的宿主类型，从 `NodeResolveContext.Instance.TenantID` 读取租户；检查发起权限时从 `InitiatorResolveContext.TenantID` 读取。两者都是发起实例的租户，而不是流程所属的租户。
 - **分类从不跨租户。** 流程的分类、分类的上级分类，都必须与它属于同一租户——全局流程挂在所属租户的某个分类下，各租户的发起列表都按该分类的名称展示它——否则保存以 `ErrCategoryNotFound`（`40025`）失败，与分类不存在时的回答相同。分类创建后，所属租户不再改变。
 
 `table` 存储模式下的全局流程，会把所有租户的实例放在同一张投影表里，而这张表没有租户列：按租户统计时需要按 `instance_id` 关联 `apv_instance`。

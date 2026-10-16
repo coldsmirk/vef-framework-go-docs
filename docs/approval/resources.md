@@ -211,7 +211,7 @@ publishing yields another draft):
 | `flowId` | `string` | Yes | flow to deploy under |
 | `description` | `string` | No | version description shown in version lists |
 | `storageMode` | `string` | No | `json` (default; form data stays in `apv_instance.form_data`) or `table` (a dedicated physical projection table is generated at publish) |
-| `flowDefinition` | `FlowDefinition` | Yes | the designer graph document — nodes, edges, and per-node `data`; validated at deploy (`ErrInvalidFlowDesign`). A shared flow additionally rejects rules routing tasks or CC to specific people (`ErrSharedFlowNamesPeople`, see [Shared Flows](./integration.md#shared-flows)). See [Flow Design](./flow-design.md) for the wire shape |
+| `flowDefinition` | `FlowDefinition` | Yes | the designer graph document — nodes, edges, and per-node `data`; validated at deploy (`ErrInvalidFlowDesign`). See [Flow Design](./flow-design.md) for the wire shape |
 | `formSchema` | JSON document | No | host-owned form designer document, passed through opaque and stored verbatim; the flat field list the engine consumes is derived from it at deploy (see [Form Schema and Derived Fields](./flow-design.md#form-schema-and-derived-fields)) |
 
 `PublishVersionParams` (`publish_version` — makes a draft the live version and
@@ -915,7 +915,7 @@ surface rather than importing the internal Go symbols.
 | `40021` | `ErrCodeInvalidFlowLabel` | `ErrInvalidFlowLabel` | `approval_invalid_flow_label` | flow label key would silently break JSON or host tooling |
 | `40022` | `ErrCodeInitiatorsNotAllowed` | `ErrInitiatorsNotAllowed` | `approval_initiators_not_allowed` | `isAllInitiationAllowed=true` and `initiators` are mutually exclusive |
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | restricted initiation requires at least one initiator rule with non-empty IDs |
-| `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | a shared flow routes tasks or CC to specific users, roles or departments, or hands tasks to node admins or named fallback users |
+| `40024` | — | — | — | unused (former shared-flow people rule); the code is never reassigned |
 | `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | a flow's category, or a category's parent, is missing or belongs to another tenant |
 | `40026` | `ErrCodeSharedFlowCodeExists` | `ErrSharedFlowCodeExists` | `approval_shared_flow_code_exists` | another tenant's shared flow already holds the code of a shared flow being created |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | instance lookup failed |

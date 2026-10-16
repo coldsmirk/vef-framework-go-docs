@@ -513,23 +513,23 @@ func valueKey(mapping *approval.RemoteOptionMapping) string {
 ### 全局流程
 
 全局流程（`Flow.IsShared`，见[全局流程](./integration.md#全局流程)）
-会在所有租户中运行，而具体的用户——以及具体角色、部门背后的用户——只属于某
-一个租户。因此，部署全局流程时，节点出现以下情况会返回
-`ErrSharedFlowNamesPeople`（code `40024`）：
+面向所有租户发起，它的节点可以把工作派给发起租户以外的其他租户的人员。部署
+校验对它与其他流程一视同仁：审批人和抄送规则、节点管理员和转交人员都可以指
+定具体的用户、角色和部门，因此流程可以把一份申请从一个租户的审批人交给另一个
+租户的审批人。被派到工作的人员在自己所属的租户里处理该实例（见
+[全局流程](./integration.md#全局流程)）。
 
-- 审批人或抄送规则所用类型的 `SelectionMode` 是 `user`、`role` 或
-  `department`——宿主自定义类型同样适用，按其声明的输入方式判断；
-- 无审批人时转交指定人员或节点管理员
-  （`emptyAssigneeAction: transfer_specified | transfer_admin`）；
-- 设有时限（`timeoutHours > 0`）的节点超时后转交节点管理员
-  （`timeoutAction: transfer_admin`）。
+用户和部门只属于某一个租户，所以设计器会在选中的 `ids` 之外，把选择时所用的租
+户记在审批人或抄送规则的 `tenantId` 上。它只供设计器使用：版本按原样保存流程
+定义，重新打开流程时仍显示同一个租户；引擎从不读取它——`AssigneeDefinition`
+和 `CCDefinition` 也没有对应字段。
 
-仍然可用的是一切基于实例解析的规则：`self`、`superior`、`department_leader`、
-`form_field`、`SelectionCustom` 宿主目录，以及在
-`NodeResolveContext.Instance.TenantID`（实例所在的租户）内解析人员的宿主类型。
-发起人规则和流程管理员不受限制：它们只在该租户内生效。规则判断的是这些动作，
-所以节点上残留、但没有任何动作使用的管理员或转交人名单不会阻止部署。
-宿主把流程标记为全局（`EditorPlugins.shared`）时，`approval-flow-editor` 会做同样的校验。
+```json
+{ "kind": "user", "ids": ["u-17"], "tenantId": "org-b", "sortOrder": 1 }
+```
+
+宿主把流程标记为全局（`EditorPlugins.shared`）并提供租户列表
+（`EditorPlugins.tenants`）时，`approval-flow-editor` 会先让设计者选择租户。
 
 ### 业务绑定 Schema
 

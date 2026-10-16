@@ -196,7 +196,7 @@ sidebar_position: 2
 | `flowId` | `string` | 是 | 目标流程 |
 | `description` | `string` | 否 | 展示在版本列表的版本描述 |
 | `storageMode` | `string` | 否 | `json`（默认；表单数据留在 `apv_instance.form_data`）或 `table`（发布时生成专用物理投影表） |
-| `flowDefinition` | `FlowDefinition` | 是 | 设计器图文档 —— 节点、边与每个节点的 `data`；部署时校验（`ErrInvalidFlowDesign`）。全局流程还会拒绝把任务或抄送派给具体人员的规则（`ErrSharedFlowNamesPeople`，见[全局流程](./integration.md#全局流程)）。线上传输格式见 [流程设计](./flow-design.md) |
+| `flowDefinition` | `FlowDefinition` | 是 | 设计器图文档 —— 节点、边与每个节点的 `data`；部署时校验（`ErrInvalidFlowDesign`）。线上传输格式见 [流程设计](./flow-design.md) |
 | `formSchema` | JSON 文档 | 否 | 宿主自有的表单设计器文档，原样透传并存储；引擎消费的扁平字段清单在部署时从中推导（见 [表单 Schema 与派生字段](./flow-design.md#表单-schema-与派生字段)） |
 
 `PublishVersionParams`（`publish_version` —— 将 draft 版本设为线上版本并归档
@@ -875,7 +875,7 @@ principal 都可调用；每个查询都在服务端锚定到调用者身份，�
 | `40021` | `ErrCodeInvalidFlowLabel` | `ErrInvalidFlowLabel` | `approval_invalid_flow_label` | 流程 label 键会无声破坏 JSON 或宿主工具 |
 | `40022` | `ErrCodeInitiatorsNotAllowed` | `ErrInitiatorsNotAllowed` | `approval_initiators_not_allowed` | `isAllInitiationAllowed=true` 与 `initiators` 不能同时存在 |
 | `40023` | `ErrCodeInitiatorsRequired` | `ErrInitiatorsRequired` | `approval_initiators_required` | 受限发起必须至少有一条 `ids` 非空的发起人规则 |
-| `40024` | `ErrCodeSharedFlowNamesPeople` | `ErrSharedFlowNamesPeople` | `approval_shared_flow_names_people` | 全局流程把任务或抄送派给了指定的用户、角色或部门，或把任务转交节点管理员或指定人员 |
+| `40024` | — | — | — | 未使用（原全局流程人员规则）；该编码不会被复用 |
 | `40025` | `ErrCodeCategoryNotFound` | `ErrCategoryNotFound` | `approval_category_not_found` | 流程的分类或分类的上级分类不存在，或属于其他租户 |
 | `40026` | `ErrCodeSharedFlowCodeExists` | `ErrSharedFlowCodeExists` | `approval_shared_flow_code_exists` | 创建全局流程时，其编码已被其他租户的全局流程占用 |
 | `40101` | `ErrCodeInstanceNotFound` | `ErrInstanceNotFound` | `approval_instance_not_found` | 实例查找失败 |
